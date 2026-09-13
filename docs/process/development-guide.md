@@ -22,23 +22,74 @@ The Navigator holds intent, trade-offs, product judgment, and acceptance.
 
 ## Project Commands
 
-List the commands the Driver should use in this project.
+Provisório até `CV1.DS1.TS1` fixar o esqueleto do projeto. O Driver deve confirmar e corrigir esta seção ao final daquela story.
 
 ```bash
-# install dependencies
+# instalar dependências
+uv sync
 
-# run tests
+# rodar testes
+uv run pytest
 
-# run lint or formatting checks
+# lint e formatação
+uv run ruff check .
+uv run ruff format --check .
 
-# run the app locally
+# rodar o backend localmente
+uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+# frontend (Svelte 5)
+cd web && npm install
+cd web && npm run dev      # dev server com proxy para o backend
+cd web && npm run build    # gera os estáticos servidos pelo FastAPI
+cd web && npm run check    # svelte-check
+
+# subir como roda no Mini PC
+docker compose up -d --build
 ```
+
+O `.env` é obrigatório para subir a aplicação. Ele guarda o segredo de owner e o caminho do arquivo SQLite. Existe um `.env.example` versionado; o `.env` real nunca é commitado.
 
 ## Verification
 
-Describe what counts as verified work in this project.
+Trabalho verificado neste projeto significa as três coisas abaixo, não apenas a primeira.
 
-Include automated checks, manual validation routes, smoke tests, screenshots, local URLs, database safety rules, or any project-specific acceptance expectations.
+**Verificação automatizada**
+
+- `npm run check` sem erros no frontend.
+
+- `uv run pytest` verde.
+- Toda mudança de comportamento tem teste. Regra de pontuação, projeção de eventos e permissão de papel não entram sem teste.
+- A projeção do log é testada por sequência de eventos, incluindo pontos e desfazimentos intercalados, e precisa ser determinística: rodar duas vezes sobre o mesmo log produz o mesmo estado.
+
+**Validação multi-dispositivo**
+
+Este produto é sobre estado compartilhado. Validar numa aba só não prova nada.
+
+- Toda User Story com efeito visível é validada em **pelo menos dois clientes simultâneos** (dois navegadores, um deles anônimo, ou dois celulares).
+- Stories que envolvem presença, papéis ou sucessão exigem **três** clientes.
+- A rota de validação da story precisa nomear o que observar em cada tela, a condição de aprovação e a condição de falha.
+
+**Resiliência**
+
+- Stories que tocam estado de partida são validadas com um restart do processo no meio (`docker compose restart`), confirmando que o placar volta idêntico.
+- Stories que tocam conexão são validadas com um cliente em modo avião por ~30 segundos, confirmando reconciliação sem recarregar a página.
+
+**Interface**
+
+- Story com efeito visível não fecha sem a animação correspondente. A rota de validação precisa nomear qual transição observar.
+- Validar com `prefers-reduced-motion` ativo: a informação continua legível sem o movimento.
+- Validar em tela de celular real, não apenas no emulador de largura do navegador.
+
+**Segurança**
+
+- Toda restrição de papel é testada **contra o backend**, não contra a UI. Esconder o botão não é controle de acesso: a validação precisa incluir uma chamada forjada a partir de um cliente sem permissão.
+- Antes de fechar qualquer story que toque o canal de owner: `grep` no log da aplicação procurando o segredo do `.env`. Aparecer é falha.
+
+**Banco**
+
+- O SQLite de desenvolvimento é descartável. O arquivo de produção no Mini PC nunca é alterado manualmente pelo Driver.
+- Nenhuma migração destrutiva sobre o log de eventos. O log é append-only, inclusive em migração.
 
 ## Documentation Rules
 
@@ -134,12 +185,14 @@ Add any project-specific checkpoint rules here.
 
 Ariad ships with opinionated defaults. Override them here when this project or Navigator has a better local answer.
 
-- **Commit policy:** default is to commit after a coherent story or meaningful change is validated and accepted.
-- **Push policy:** default is to ask before pushing to a shared remote.
-- **Checkpoint compression:** default is full checkpoints for non-trivial work, compressed checkpoints only for trivial low-risk changes.
-- **Documentation detail:** default is the smallest documentation update that keeps the project coherent.
-- **Worklog policy:** default is to record meaningful milestones as one file per entry, not every edit.
-- **Branch/PR habits:** describe local branch, pull request, review, or merge expectations.
+- **Commit policy:** commit ao final de cada User ou Technical Story validada e aceita. Mensagem em português, explicando o porquê.
+- **Push policy:** perguntar antes de dar push.
+- **Checkpoint compression:** checkpoints completos para User e Technical Stories. Compressão permitida apenas para correção trivial, ajuste de configuração ou edição de documentação.
+- **Documentation detail:** a menor atualização que mantém o projeto coerente. Documentação é atualizada no mesmo ciclo da mudança, nunca depois.
+- **Worklog policy:** uma entrada por marco significativo — fechamento de Delivery Story, decisão relevante, mudança de rumo. Não uma entrada por commit.
+- **Branch/PR habits:** trabalho direto na branch principal enquanto o projeto for de um só desenvolvedor. Revisar quando entrar uma segunda pessoa.
+- **Idioma:** documentação de projeto, mensagens de commit e comentários em português. Código, nomes de identificadores e nomenclatura estrutural do Ariad (`status`, `CV`, `DS`, `US`, `TS`, `Planned`, `Active`, `Done`) em inglês.
+- **Escopo:** o Navigator é Product Owner de profissão e decide produto. O Driver propõe trade-offs técnicos, mas não fecha decisão de produto sozinho — registra como decisão `Open` e pergunta.
 
 ## Commit and Release Rules
 
@@ -157,6 +210,16 @@ The team may refine changelog wording at the end, but the Driver should keep the
 
 ## Local Exceptions
 
-Record deliberate deviations from Ariad or from common engineering habits.
+Desvios deliberados em relação ao Ariad ou a hábitos comuns de engenharia.
 
-Each exception should explain why it exists and when it should be revisited.
+### Documentação de projeto em português
+
+O Ariad e seus templates são em inglês; os documentos deste projeto são em português.
+
+Motivo: o Navigator opera em português e a clareza da regra de negócio vale mais que a uniformidade com o método canônico. A nomenclatura estrutural do Ariad permanece em inglês para não quebrar buscas por `status: Active` e afins.
+
+Revisitar se o projeto ganhar colaboradores que não falem português.
+
+### Sem `Unreleased` no changelog
+
+Regra padrão do Ariad, registrada aqui por ser fácil de violar por hábito: `CHANGELOG.md` só recebe versões fechadas. Trabalho em andamento vive no roadmap e no worklog.
