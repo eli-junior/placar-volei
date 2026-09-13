@@ -2,7 +2,7 @@
 code: CV1.DS1.TS1
 level: Technical Story
 status: Planned
-status_reason: pré-requisito de todas as User Stories do MVP
+status_reason: plano aprovado pelo Navigator em 2026-09-13; implementação adiada a pedido dele
 updated: 2026-09-13
 related:
   - 2026-09-13T1400Z-log-de-eventos-como-fonte-da-verdade
@@ -35,5 +35,7 @@ Suíte de testes da projeção, incluindo sequência com pontos e desfazimentos 
 Qualquer interface de usuário. Snapshot ou compactação do log.
 
 ## Notes
+
+Plano aprovado e registrado em `plan.md`. Guia de teste em `test-guide.md`. A story está pronta para implementação: o próximo ciclo entra direto na fase de implementação, sem repetir o Checkpoint 1.
 
 A serialização dos appends por quadra precisa ser explícita — dois controladores marcando ponto no mesmo instante não podem produzir sequência ambígua.

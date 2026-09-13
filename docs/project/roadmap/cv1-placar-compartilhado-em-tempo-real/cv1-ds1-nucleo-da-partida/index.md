@@ -18,7 +18,7 @@ Duas pessoas em celulares diferentes conseguem abrir a mesma quadra, marcar pont
 
 ## Scope
 
-Fundação do backend e do event store, criação e listagem de quadras, registro por apelido, marcação de ponto com propagação por WebSocket, desfazer ponto a ponto e encerramento com reinício automático.
+Fundação do backend e do event store, criação e listagem de quadras, registro por apelido, marcação de ponto com propagação por WebSocket, desfazer ponto a ponto, encerramento com reinício automático e empacotamento para deploy no Mini PC.
 
 ## Acceptance / Done Condition
 
@@ -35,3 +35,7 @@ Permissões (todos que entram podem pontuar nesta DS), configuração de regras 
 ## Notes
 
 Stack do frontend decidida: Svelte 5. O contrato de eventos WebSocket segue sendo o limite entre backend e frontend.
+
+Ordem sugerida: TS1 → US1 → US2 → US3 → US4, com TS2 puxada antes da primeira validação em quadra real (validar de celular exige a aplicação fora do localhost).
+
+`TS1` tem plano aprovado e guia de teste registrados; entra direto em implementação quando puxada.

@@ -14,7 +14,9 @@ Audiência: o grupo de vôlei do Navigator. Escala esperada: dezenas de pessoas,
 
 Projeto em fase inicial. Regras de negócio do MVP definidas e validadas pelo Navigator (2026-09-13). Ariad configurado. Nenhum código de aplicação escrito.
 
-Trabalho mais importante agora: `CV1.DS1` — núcleo da partida em tempo real.
+Repositório publicado em `github.com/eli-junior/placar-volei`.
+
+Trabalho mais importante agora: `CV1.DS1` — núcleo da partida em tempo real. `TS1` tem plano aprovado e guia de teste registrados, pronta para implementação.
 
 ## Architecture Premises
 
@@ -40,6 +42,7 @@ Trabalho mais importante agora: `CV1.DS1` — núcleo da partida em tempo real.
 - Sem cadastro de usuário, sem coleta de e-mail, telefone ou qualquer dado pessoal além do apelido informado.
 - O segredo de owner vive no `.env` e nunca aparece na UI, em resposta de API pública ou em log de aplicação.
 - O log de eventos é append-only. Correção de placar gera novo evento; nada é apagado ou reescrito.
+- Todo timestamp é gravado em UTC. Conversão para `America/Sao_Paulo` acontece apenas na exibição.
 - Node existe apenas em desenvolvimento e no `docker build`. A imagem que roda no Mini PC não tem Node nem `node_modules`.
 
 ## Operating Notes
