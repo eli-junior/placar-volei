@@ -1,0 +1,1 @@
+"""Placar Vôlei backend application."""

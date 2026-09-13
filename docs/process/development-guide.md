@@ -22,7 +22,7 @@ The Navigator holds intent, trade-offs, product judgment, and acceptance.
 
 ## Project Commands
 
-Provisório até `CV1.DS1.TS1` fixar o esqueleto do projeto. O Driver deve confirmar e corrigir esta seção ao final daquela story.
+Comandos verificados na entrega da `CV1.DS1.TS1`. A seção de frontend e docker compose será confirmada em suas respectivas stories.
 
 ```bash
 # instalar dependências

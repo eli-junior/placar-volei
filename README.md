@@ -6,9 +6,9 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Fase inicial. Regras de negócio definidas e validadas, método de trabalho configurado, nenhum código de aplicação escrito.
+Fase inicial. Fundação do backend e event store implementados e testados (`CV1.DS1.TS1`).
 
-Próximo trabalho: `CV1.DS1` — núcleo da partida em tempo real.
+Próximo trabalho: `CV1.DS1.US1` — criar quadra e entrar.
 
 ## Como funciona
 

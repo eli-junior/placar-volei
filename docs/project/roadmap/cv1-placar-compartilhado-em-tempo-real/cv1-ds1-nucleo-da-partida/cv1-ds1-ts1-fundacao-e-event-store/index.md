@@ -1,8 +1,8 @@
 ---
 code: CV1.DS1.TS1
 level: Technical Story
-status: Planned
-status_reason: plano aprovado pelo Navigator em 2026-09-13; implementação adiada a pedido dele
+status: Done
+status_reason: implementado e validado com 14 testes automatizados e script de integridade de banco
 updated: 2026-09-13
 related:
   - 2026-09-13T1400Z-log-de-eventos-como-fonte-da-verdade
