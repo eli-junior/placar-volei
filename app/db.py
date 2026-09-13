@@ -5,8 +5,15 @@ import sqlite3
 from app.config import settings
 
 SCHEMA_SQL = """
+CREATE TABLE IF NOT EXISTS arenas (
+    id TEXT PRIMARY KEY,
+    nome TEXT NOT NULL,
+    criado_em TEXT NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS quadras (
     id TEXT PRIMARY KEY,
+    arena_id TEXT REFERENCES arenas(id),
     nome TEXT NOT NULL,
     criado_em TEXT NOT NULL
 );
@@ -40,6 +47,7 @@ CREATE TABLE IF NOT EXISTS eventos (
     UNIQUE(partida_id, seq)
 );
 
+CREATE INDEX IF NOT EXISTS idx_quadras_arena ON quadras (arena_id);
 CREATE INDEX IF NOT EXISTS idx_eventos_partida_seq ON eventos (partida_id, seq);
 CREATE INDEX IF NOT EXISTS idx_partidas_quadra ON partidas (quadra_id);
 CREATE INDEX IF NOT EXISTS idx_participantes_quadra ON participantes (quadra_id);
@@ -63,6 +71,14 @@ def get_db(db_path: str | None = None) -> sqlite3.Connection:
 def init_db_sync(db_path: str | None = None) -> None:
     with get_db(db_path) as conn:
         conn.executescript(SCHEMA_SQL)
+        # Migração idempotente se arena_id ainda não existir na tabela quadras
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(quadras);")
+        colunas = [row["name"] for row in cursor.fetchall()]
+        if "arena_id" not in colunas:
+            cursor.execute(
+                "ALTER TABLE quadras ADD COLUMN arena_id TEXT REFERENCES arenas(id);"
+            )
         conn.commit()
 
 

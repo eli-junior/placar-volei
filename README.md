@@ -6,13 +6,14 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Fase inicial. Fundação do backend e event store implementados e testados (`CV1.DS1.TS1`).
+Fase inicial. Fundação (`CV1.DS1.TS1`) e criação de arenas, quadras e entrada por apelido (`CV1.DS1.US1`) concluídas e testadas.
 
-Próximo trabalho: `CV1.DS1.US1` — criar quadra e entrar.
+Próximo trabalho: `CV1.DS1.US2` — marcar ponto em tempo real.
 
 ## Como funciona
 
-- **Quadra** — sala de jogo, escolhida numa lista. Múltiplas coexistem.
+- **Arena** — clube ou complexo esportivo (ex: T9 Beach Club), que abriga múltiplas quadras.
+- **Quadra** — sala de jogo dentro da arena, escolhida na lista.
 - **Registro** — todo participante informa um apelido. Sem cadastro, sem senha.
 - **Papéis** — o primeiro a entrar vira admin e pode promover controladores. Espectadores só assistem.
 - **Partida** — set único até a pontuação-alvo configurada, com vantagem de 2 opcional e teto opcional. Ao encerrar, anuncia o vencedor e zera para a próxima.

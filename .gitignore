@@ -32,7 +32,7 @@ web/.svelte-kit/
 .vite/
 
 # Estáticos gerados pelo build do frontend
-app/static/assets/
+app/static/
 
 # Sistema operacional e editores
 .DS_Store

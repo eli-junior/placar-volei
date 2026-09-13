@@ -1,8 +1,8 @@
 ---
 code: CV1.DS1.US1
 level: User Story
-status: Planned
-status_reason:
+status: Done
+status_reason: implementado e validado com Arenas, Quadras, Svelte 5 e presença WebSocket
 updated: 2026-09-13
 related:
   - 2026-09-13T1405Z-identidade-por-apelido-e-sessao
