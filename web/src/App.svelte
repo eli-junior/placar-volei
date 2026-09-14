@@ -176,6 +176,8 @@
   const handleIniciarNovaPartida = () => executar('reiniciar');
   const handleAssumirControle = () => executar('controle/assumir');
   const handleAutorizarAdmin = id => executar(`participantes/${id}/admin`);
+  const handlePromoverControlador = id => executar(`participantes/${id}/promover`);
+  const handleRevogarControlador = id => executar(`participantes/${id}/revogar`);
 
   async function carregarRota() {
     handleVoltarParaHome(false);
@@ -220,6 +222,8 @@
       onIniciarNovaPartida={handleIniciarNovaPartida}
       onVoltar={() => handleVoltarParaHome()}
       onAssumirControle={handleAssumirControle}
+      onPromoverControlador={handlePromoverControlador}
+      onRevogarControlador={handleRevogarControlador}
       onAutorizarAdmin={handleAutorizarAdmin}
       {operando}
       {erro}

@@ -17,6 +17,8 @@
     onIniciarNovaPartida = () => {},
     onVoltar,
     onAssumirControle = () => {},
+    onPromoverControlador = (id) => {},
+    onRevogarControlador = (id) => {},
     onAutorizarAdmin = (id) => {},
     operando = false,
     erro = null,
@@ -56,8 +58,9 @@
   let girado = $state(giroInicial);
 
   const podeControlar = $derived(
-    eu?.papel === 'ADMIN'
+    eu?.papel === 'ADMIN' || eu?.papel === 'CONTROLADOR'
   );
+  const ehAdmin = $derived(eu?.papel === 'ADMIN');
 
   const temControle = $derived(podeControlar && quadra?.controle_id === eu?.id);
   const operador = $derived(participantes.find(p => p.id === quadra?.controle_id)?.apelido || (temControle ? eu?.apelido : 'aguardando atualização'));
@@ -272,7 +275,7 @@
           <span class="label-voce">Você está conectado como:</span>
           <span class="meu-apelido">{eu?.apelido || 'Participante'}</span>
         </div>
-        <span class="badge {eu?.papel === 'ADMIN' ? 'badge-admin' : 'badge-espectador'}">
+        <span class="badge {eu?.papel === 'ADMIN' ? 'badge-admin' : eu?.papel === 'CONTROLADOR' ? 'badge-controlador' : 'badge-espectador'}">
           {eu?.papel || 'ESPECTADOR'}
         </span>
       </div>
@@ -332,7 +335,16 @@
   <!-- Lista de Participantes em Tempo Real (oculta em modo imersivo) -->
   {#if podeControlar || !modoImersivo}
     <div in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
-      <ListaPresentes {prefersReducedMotion} {participantes} euId={eu?.id} podeAutorizar={podeControlar} desabilitado={!wsConectado || operando} {onAutorizarAdmin} />
+      <ListaPresentes
+        {prefersReducedMotion}
+        {participantes}
+        euId={eu?.id}
+        podeAutorizar={ehAdmin}
+        desabilitado={!wsConectado || operando}
+        {onPromoverControlador}
+        {onRevogarControlador}
+        {onAutorizarAdmin}
+      />
     </div>
   {/if}
 </div>

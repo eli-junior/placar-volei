@@ -66,12 +66,16 @@ def executar_sync(
             "SELECT id, papel FROM participantes WHERE quadra_id = ? AND session_hash = ?",
             (quadra_id, hash_sessao(session_id)),
         ).fetchone()
-        if not autor or autor["papel"] != "ADMIN":
-            raise HTTPException(403, "Apenas administradores podem operar o placar.")
+        if not autor:
+            raise HTTPException(403, "Participante não registrado nesta quadra.")
         atual = snapshot(conn, quadra_id)
         if acao in ("pontos", "desfazer"):
+            if autor["papel"] not in ("ADMIN", "CONTROLADOR"):
+                raise HTTPException(
+                    403, "Apenas administradores e controladores podem operar o placar."
+                )
             if quadra["controle_id"] != autor["id"]:
-                raise HTTPException(403, "Outro admin está no controle do placar.")
+                raise HTTPException(403, "Outro operador está no controle do placar.")
             if versao is None:
                 raise HTTPException(
                     428, "Atualize o estado do controle antes de operar."
@@ -96,6 +100,11 @@ def executar_sync(
                     {"ref_seq": estado["eventos_ativos_seq"][-1]},
                 )
         elif acao == "assumir":
+            if autor["papel"] not in ("ADMIN", "CONTROLADOR"):
+                raise HTTPException(
+                    403,
+                    "Apenas administradores e controladores podem assumir o controle.",
+                )
             if quadra["controle_id"] == autor["id"]:
                 return atual
             conn.execute(
@@ -106,9 +115,87 @@ def executar_sync(
                 TipoEvento.CONTROLE_ASSUMIDO,
                 {"anterior_id": quadra["controle_id"], "controle_id": autor["id"]},
             )
-        elif acao == "autorizar":
+        elif acao == "promover":
+            if autor["papel"] != "ADMIN":
+                raise HTTPException(
+                    403, "Apenas administradores podem gerenciar permissões."
+                )
             alvo = conn.execute(
-                "SELECT papel, apelido FROM participantes WHERE quadra_id = ? AND id = ?",
+                "SELECT id, papel, apelido FROM participantes WHERE quadra_id = ? AND id = ?",
+                (quadra_id, alvo_id),
+            ).fetchone()
+            if not alvo:
+                raise HTTPException(404, "Participante não encontrado nesta sala.")
+            if alvo["id"] == autor["id"]:
+                raise HTTPException(400, "Não é possível alterar o próprio papel.")
+            if alvo["papel"] == "ADMIN":
+                raise HTTPException(
+                    400, "Não é possível alterar o papel de um administrador."
+                )
+            if alvo["papel"] == "CONTROLADOR":
+                return atual
+            conn.execute(
+                "UPDATE participantes SET papel = 'CONTROLADOR' WHERE id = ?",
+                (alvo_id,),
+            )
+            # Ao promover, transfere o controle ativo para o novo controlador imediatamente
+            conn.execute(
+                "UPDATE quadras SET controle_id = ?, controle_versao = controle_versao + 1 WHERE id = ?",
+                (alvo_id, quadra_id),
+            )
+            tipo, payload = (
+                TipoEvento.PAPEL_ALTERADO,
+                {
+                    "participante_id": alvo_id,
+                    "apelido": alvo["apelido"],
+                    "papel": "CONTROLADOR",
+                    "anterior": alvo["papel"],
+                },
+            )
+        elif acao == "revogar":
+            if autor["papel"] != "ADMIN":
+                raise HTTPException(
+                    403, "Apenas administradores podem gerenciar permissões."
+                )
+            alvo = conn.execute(
+                "SELECT id, papel, apelido FROM participantes WHERE quadra_id = ? AND id = ?",
+                (quadra_id, alvo_id),
+            ).fetchone()
+            if not alvo:
+                raise HTTPException(404, "Participante não encontrado nesta sala.")
+            if alvo["id"] == autor["id"]:
+                raise HTTPException(400, "Não é possível alterar o próprio papel.")
+            if alvo["papel"] == "ADMIN":
+                raise HTTPException(
+                    400, "Não é possível alterar o papel de um administrador."
+                )
+            if alvo["papel"] == "ESPECTADOR":
+                return atual
+            conn.execute(
+                "UPDATE participantes SET papel = 'ESPECTADOR' WHERE id = ?", (alvo_id,)
+            )
+            # Se o participante que perdeu o controle estava operando, retorna controle ao admin
+            if quadra["controle_id"] == alvo_id:
+                conn.execute(
+                    "UPDATE quadras SET controle_id = ?, controle_versao = controle_versao + 1 WHERE id = ?",
+                    (autor["id"], quadra_id),
+                )
+            tipo, payload = (
+                TipoEvento.PAPEL_ALTERADO,
+                {
+                    "participante_id": alvo_id,
+                    "apelido": alvo["apelido"],
+                    "papel": "ESPECTADOR",
+                    "anterior": alvo["papel"],
+                },
+            )
+        elif acao == "autorizar":
+            if autor["papel"] != "ADMIN":
+                raise HTTPException(
+                    403, "Apenas administradores podem gerenciar permissões."
+                )
+            alvo = conn.execute(
+                "SELECT id, papel, apelido FROM participantes WHERE quadra_id = ? AND id = ?",
                 (quadra_id, alvo_id),
             ).fetchone()
             if not alvo:
@@ -124,12 +211,13 @@ def executar_sync(
                     "participante_id": alvo_id,
                     "apelido": alvo["apelido"],
                     "papel": "ADMIN",
+                    "anterior": alvo["papel"],
                 },
             )
         elif acao == "reiniciar":
-            if quadra["controle_id"] != autor["id"]:
+            if autor["papel"] != "ADMIN":
                 raise HTTPException(
-                    403, "Apenas quem está no controle pode iniciar uma nova partida."
+                    403, "Apenas administradores podem iniciar uma nova partida."
                 )
             estado = atual["estado_partida"]
             if not estado["encerrada"]:
