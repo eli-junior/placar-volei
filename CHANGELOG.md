@@ -11,9 +11,9 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 ### feature/cv1-ds1-us4-encerramento-e-reinicio
 - **História / Escopo**: CV1.DS1.US4 — Encerramento da partida e reinício sob demanda
 - **Branch**: `feature/cv1-ds1-us4-encerramento-e-reinicio`
-- **Passo Ariad**: Passo 6 - Documentação e Coerência
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: e9ccd4d0-3e99-4c46-be20-c312feffd1e5 | Data: 2026-09-14 18:15
-- **Handoff / Próximos Passos**: Documentação atualizada (README, Roadmap, Worklog). Preparando Checkpoint 4 (Conclusão e Merge).
+- **Passo Ariad**: Passo 7 - Conclusão e Merge
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: e9ccd4d0-3e99-4c46-be20-c312feffd1e5 | Data: 2026-09-14 18:16
+- **Handoff / Próximos Passos**: Aguardando confirmação do Navigator no Checkpoint 4 para merge na branch master e fechamento da versão 0.3.0.
 
 ## 0.2.1 - 2026-09-14
 
