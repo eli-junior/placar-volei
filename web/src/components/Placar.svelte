@@ -1,0 +1,396 @@
+<script>
+  import { fly, fade, slide } from 'svelte/transition';
+
+  let {
+    estadoPartida = null,
+    desabilitado = false,
+    onMarcarPonto = () => {},
+  } = $props();
+
+  let submetendo = $state(false);
+  let feedbackEquipe = $state(null);
+  let feedbackTimer = null;
+  let prefersReducedMotion = $state(false);
+
+  $effect(() => {
+    if (typeof window !== 'undefined') {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      prefersReducedMotion = mq.matches;
+      const handler = (e) => {
+        prefersReducedMotion = e.matches;
+      };
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
+    }
+  });
+
+  const pontosA = $derived(estadoPartida?.pontos_a ?? 0);
+  const pontosB = $derived(estadoPartida?.pontos_b ?? 0);
+  const equipeA = $derived(estadoPartida?.equipe_a || 'Equipe A');
+  const equipeB = $derived(estadoPartida?.equipe_b || 'Equipe B');
+  const alvo = $derived(estadoPartida?.alvo ?? 12);
+  const vantagem = $derived(estadoPartida?.vantagem ?? true);
+  const teto = $derived(estadoPartida?.teto ?? null);
+  const encerrada = $derived(estadoPartida?.encerrada ?? false);
+  const vencedor = $derived(estadoPartida?.vencedor ?? null);
+
+  const vencedorNome = $derived(
+    vencedor === 'A' ? equipeA : vencedor === 'B' ? equipeB : null
+  );
+
+  async function handleToquePonto(equipe) {
+    if (submetendo || desabilitado || encerrada) return;
+
+    // Feedback háptico tátil leve no celular (se suportado pelo navegador)
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate(35);
+      } catch {}
+    }
+
+    // Feedback visual imediato no card da equipe
+    feedbackEquipe = equipe;
+    if (feedbackTimer) clearTimeout(feedbackTimer);
+    feedbackTimer = setTimeout(() => {
+      feedbackEquipe = null;
+    }, 300);
+
+    try {
+      submetendo = true;
+      await onMarcarPonto(equipe);
+    } finally {
+      // Debounce curto para evitar duplo toque acidental
+      setTimeout(() => {
+        submetendo = false;
+      }, 250);
+    }
+  }
+</script>
+
+<section class="placar-card" in:slide={{ duration: 250 }}>
+  <!-- Cabeçalho de regras da partida -->
+  <div class="placar-header">
+    <span class="placar-badge">Set Único</span>
+    <span class="placar-regra">
+      Alvo: {alvo} pts
+      {#if vantagem}• Vantagem de 2{/if}
+      {#if teto}• Teto: {teto}{/if}
+    </span>
+  </div>
+
+  <!-- Banner de encerramento quando houver vencedor -->
+  {#if encerrada && vencedorNome}
+    <div class="banner-vitoria" in:slide={{ duration: 250 }}>
+      <span class="trofeu">🏆</span>
+      <div class="vitoria-texto">
+        <span class="vitoria-titulo">Fim de Jogo!</span>
+        <span class="vitoria-vencedor">Vitória da {vencedorNome}</span>
+      </div>
+    </div>
+  {/if}
+
+  <!-- Área do Placar com Alvos Grandes para Uma Mão -->
+  <div class="placar-grid">
+    <!-- Coluna Equipe A -->
+    <div
+      class="equipe-col {feedbackEquipe === 'A' ? 'flash-a' : ''} {vencedor === 'A' ? 'col-vencedor' : ''}"
+    >
+      <span class="equipe-nome">{equipeA}</span>
+
+      <div class="flipper-container" aria-live="polite">
+        {#key pontosA}
+          <span
+            class="flipper-numero num-a"
+            in:fly={{ y: prefersReducedMotion ? 0 : -28, duration: prefersReducedMotion ? 0 : 220 }}
+            out:fly={{ y: prefersReducedMotion ? 0 : 28, duration: prefersReducedMotion ? 0 : 220 }}
+          >
+            {pontosA}
+          </span>
+        {/key}
+      </div>
+
+      <button
+        type="button"
+        class="btn-marcar btn-marcar-a"
+        disabled={desabilitado || encerrada || submetendo}
+        onclick={() => handleToquePonto('A')}
+        aria-label="Marcar ponto para {equipeA}"
+      >
+        <span class="btn-plus">+1</span>
+        <span class="btn-sub">{equipeA}</span>
+      </button>
+    </div>
+
+    <!-- Divisor Central -->
+    <div class="vs-col">
+      <span class="vs-simbolo">×</span>
+    </div>
+
+    <!-- Coluna Equipe B -->
+    <div
+      class="equipe-col {feedbackEquipe === 'B' ? 'flash-b' : ''} {vencedor === 'B' ? 'col-vencedor' : ''}"
+    >
+      <span class="equipe-nome">{equipeB}</span>
+
+      <div class="flipper-container" aria-live="polite">
+        {#key pontosB}
+          <span
+            class="flipper-numero num-b"
+            in:fly={{ y: prefersReducedMotion ? 0 : -28, duration: prefersReducedMotion ? 0 : 220 }}
+            out:fly={{ y: prefersReducedMotion ? 0 : 28, duration: prefersReducedMotion ? 0 : 220 }}
+          >
+            {pontosB}
+          </span>
+        {/key}
+      </div>
+
+      <button
+        type="button"
+        class="btn-marcar btn-marcar-b"
+        disabled={desabilitado || encerrada || submetendo}
+        onclick={() => handleToquePonto('B')}
+        aria-label="Marcar ponto para {equipeB}"
+      >
+        <span class="btn-plus">+1</span>
+        <span class="btn-sub">{equipeB}</span>
+      </button>
+    </div>
+  </div>
+</section>
+
+<style>
+  .placar-card {
+    background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-surface) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 20px 16px 24px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-shadow: 0 4px 28px rgba(0, 0, 0, 0.35);
+  }
+
+  .placar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+  }
+
+  .placar-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--accent-cyan);
+    letter-spacing: 0.05em;
+  }
+
+  .placar-regra {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+
+  /* Banner de Vitória */
+  .banner-vitoria {
+    background: linear-gradient(90deg, rgba(245, 158, 11, 0.2) 0%, rgba(234, 88, 12, 0.2) 100%);
+    border: 1px solid var(--accent-orange);
+    border-radius: var(--radius-md);
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .trofeu {
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+
+  .vitoria-texto {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .vitoria-titulo {
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--accent-orange);
+    letter-spacing: 0.06em;
+  }
+
+  .vitoria-vencedor {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #ffffff;
+  }
+
+  /* Grid Principal do Placar */
+  .placar-grid {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .equipe-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    padding: 14px 10px;
+    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .equipe-col.flash-a {
+    background: rgba(6, 182, 212, 0.12);
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 16px rgba(6, 182, 212, 0.3);
+  }
+
+  .equipe-col.flash-b {
+    background: rgba(249, 115, 22, 0.12);
+    border-color: var(--accent-orange);
+    box-shadow: 0 0 16px rgba(249, 115, 22, 0.3);
+  }
+
+  .equipe-col.col-vencedor {
+    border-color: rgba(245, 158, 11, 0.5);
+    background: rgba(245, 158, 11, 0.08);
+  }
+
+  .equipe-nome {
+    font-size: 0.88rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    text-align: center;
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* Flipper com Grid Area 1 / 1 para sobreposição perfeita no slide */
+  .flipper-container {
+    display: grid;
+    place-items: center;
+    height: 5.4rem;
+    width: 100%;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .flipper-numero {
+    grid-area: 1 / 1;
+    font-family: var(--font-display);
+    font-size: 5.2rem;
+    font-weight: 800;
+    line-height: 1;
+    color: #ffffff;
+    user-select: none;
+    will-change: transform, opacity;
+  }
+
+  .num-a {
+    color: #f0fdfa;
+    text-shadow: 0 2px 16px rgba(6, 182, 212, 0.35);
+  }
+
+  .num-b {
+    color: #fff7ed;
+    text-shadow: 0 2px 16px rgba(249, 115, 22, 0.35);
+  }
+
+  .vs-col {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-bottom: 74px; /* alinha com os números */
+  }
+
+  .vs-simbolo {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  /* Botões Grandes para Uma Mão */
+  .btn-marcar {
+    width: 100%;
+    height: 86px;
+    border-radius: var(--radius-md);
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    transition: transform 0.12s ease, filter 0.12s ease, box-shadow 0.12s ease;
+  }
+
+  .btn-marcar:active:not(:disabled) {
+    transform: scale(0.95);
+    filter: brightness(1.15);
+  }
+
+  .btn-marcar:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+    transform: none;
+    filter: grayscale(0.6);
+  }
+
+  .btn-marcar-a {
+    background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3);
+  }
+
+  .btn-marcar-a:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(6, 182, 212, 0.45);
+  }
+
+  .btn-marcar-b {
+    background: linear-gradient(135deg, #ea580c 0%, #f97316 100%);
+    color: #ffffff;
+    box-shadow: 0 4px 14px rgba(249, 115, 22, 0.3);
+  }
+
+  .btn-marcar-b:hover:not(:disabled) {
+    box-shadow: 0 6px 20px rgba(249, 115, 22, 0.45);
+  }
+
+  .btn-plus {
+    font-size: 2.2rem;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  .btn-sub {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    opacity: 0.9;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .flipper-numero {
+      transition: none !important;
+      animation: none !important;
+    }
+    .btn-marcar {
+      transition: none !important;
+    }
+  }
+</style>

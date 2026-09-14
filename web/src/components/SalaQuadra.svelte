@@ -1,8 +1,17 @@
 <script>
-  import { fade, slide } from 'svelte/transition';
+  import { fade } from 'svelte/transition';
   import ListaPresentes from './ListaPresentes.svelte';
+  import Placar from './Placar.svelte';
 
-  let { quadra, eu, participantes = [], wsConectado = false, onVoltar } = $props();
+  let {
+    quadra,
+    eu,
+    participantes = [],
+    estadoPartida = null,
+    wsConectado = false,
+    onMarcarPonto = () => {},
+    onVoltar,
+  } = $props();
 </script>
 
 <div class="sala-container" in:fade={{ duration: 200 }}>
@@ -41,33 +50,12 @@
     </div>
   </section>
 
-  <!-- Partida Status Placeholder (US1 foundation, US2 adds interactive scoring) -->
-  <section class="partida-card" in:slide>
-    <div class="partida-header">
-      <span class="partida-badge">Set Único</span>
-      <span class="partida-regra">Alvo: 12 pts (Vantagem de 2)</span>
-    </div>
-
-    <div class="placar-preview">
-      <div class="time-col">
-        <span class="time-nome">Equipe A</span>
-        <span class="pontos-display">0</span>
-      </div>
-      <span class="vs-divider">×</span>
-      <div class="time-col">
-        <span class="time-nome">Equipe B</span>
-        <span class="pontos-display">0</span>
-      </div>
-    </div>
-
-    <div class="partida-status-aviso">
-      {#if eu?.papel === 'ADMIN'}
-        <p>👑 Você é o <strong>Admin</strong> desta quadra. A marcação de pontos em tempo real será liberada na próxima entrega (US2).</p>
-      {:else}
-        <p>👀 Você é <strong>Espectador</strong>. O placar sincronizará em tempo real no seu celular assim que os pontos forem marcados.</p>
-      {/if}
-    </div>
-  </section>
+  <!-- Placar Interativo em Tempo Real (US2) -->
+  <Placar
+    {estadoPartida}
+    desabilitado={!wsConectado}
+    {onMarcarPonto}
+  />
 
   <!-- Lista de Participantes em Tempo Real -->
   <ListaPresentes {participantes} euId={eu?.id} />
@@ -168,85 +156,6 @@
   .meu-apelido {
     font-size: 1.15rem;
     font-weight: 700;
-    color: #ffffff;
-  }
-
-  /* Partida card */
-  .partida-card {
-    background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-surface) 100%);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 22px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.25);
-  }
-
-  .partida-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .partida-badge {
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--accent-cyan);
-    letter-spacing: 0.05em;
-  }
-
-  .partida-regra {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
-
-  .placar-preview {
-    display: flex;
-    align-items: center;
-    justify-content: space-around;
-    padding: 10px 0;
-  }
-
-  .time-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
-  .time-nome {
-    font-size: 0.92rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-  }
-
-  .pontos-display {
-    font-family: var(--font-display);
-    font-size: 4.5rem;
-    font-weight: 700;
-    line-height: 1;
-    color: #ffffff;
-  }
-
-  .vs-divider {
-    font-size: 1.5rem;
-    color: var(--text-muted);
-    font-weight: 600;
-  }
-
-  .partida-status-aviso {
-    background: rgba(0, 0, 0, 0.2);
-    border-radius: var(--radius-sm);
-    padding: 10px 14px;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-  }
-
-  .partida-status-aviso strong {
     color: #ffffff;
   }
 </style>

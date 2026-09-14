@@ -1,8 +1,8 @@
 ---
 code: CV1.DS1.US2
 level: User Story
-status: Planned
-status_reason:
+status: Done
+status_reason: implementado, verificado com 27 testes e validado pelo Navigator
 updated: 2026-09-13
 related:
   - 2026-09-13T1425Z-stack-do-frontend

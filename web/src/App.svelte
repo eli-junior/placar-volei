@@ -14,6 +14,7 @@
   let quadraAtual = $state(null);
   let eu = $state(null);
   let participantes = $state([]);
+  let estadoPartida = $state(null);
   let loading = $state(true);
   let submetendo = $state(false);
 
@@ -98,8 +99,15 @@
         const msg = JSON.parse(event.data);
         if (msg.tipo === 'ESTADO_INICIAL') {
           participantes = msg.payload.participantes || [];
+          if (msg.payload.estado_partida) {
+            estadoPartida = msg.payload.estado_partida;
+          }
         } else if (msg.tipo === 'PRESENCA_ATUALIZADA') {
           participantes = msg.payload.participantes || [];
+        } else if (msg.tipo === 'PLACAR_ATUALIZADO') {
+          if (msg.payload.estado_partida) {
+            estadoPartida = msg.payload.estado_partida;
+          }
         }
       } catch (e) {
         console.error('Erro ao processar mensagem WS:', e);
@@ -219,6 +227,28 @@
     }
   }
 
+  async function handleMarcarPonto(equipe) {
+    if (!quadraAtual) return;
+    try {
+      const res = await fetch(`/api/quadras/${quadraAtual.id}/pontos`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ equipe }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.estado_partida) {
+          estadoPartida = data.estado_partida;
+        }
+      } else {
+        const err = await res.json();
+        console.warn('Erro ao marcar ponto:', err.detail);
+      }
+    } catch (e) {
+      console.error('Erro de rede ao marcar ponto:', e);
+    }
+  }
+
   function handleVoltarParaQuadras() {
     if (wsSocket) {
       wsSocket.close();
@@ -231,6 +261,7 @@
     quadraAtual = null;
     eu = null;
     participantes = [];
+    estadoPartida = null;
 
     if (arenaId) {
       window.history.pushState({}, '', `/arena/${arenaId}`);
@@ -299,7 +330,9 @@
       quadra={quadraAtual}
       {eu}
       {participantes}
+      {estadoPartida}
       {wsConectado}
+      onMarcarPonto={handleMarcarPonto}
       onVoltar={handleVoltarParaQuadras}
     />
   {:else if arenaAtual}

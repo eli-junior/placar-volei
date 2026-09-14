@@ -72,6 +72,7 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
                 "payload": {
                     "quadra": quadra,
                     "estado_partida": {
+                        "partida_id": estado_partida.partida_id,
                         "pontos_a": estado_partida.pontos_a,
                         "pontos_b": estado_partida.pontos_b,
                         "equipe_a": estado_partida.equipe_a,

@@ -1,10 +1,13 @@
 import uuid
+from dataclasses import asdict
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
 from app.config import settings
+from app.eventos import TipoEvento, append_evento, carregar_eventos
 from app.hub import hub
+from app.projecao import projetar_estado
 from app.quadras import (
     criar_arena,
     criar_quadra,
@@ -24,6 +27,10 @@ class CriarArenaBody(BaseModel):
     nome: str = Field(..., min_length=1, max_length=50)
 
 
+class MarcarPontoBody(BaseModel):
+    equipe: str = Field(..., description="Equipe que marcou ponto: 'A' ou 'B'")
+
+
 class CriarQuadraBody(BaseModel):
     nome: str = Field(..., min_length=1, max_length=50)
     arena_id: str | None = None
@@ -34,7 +41,9 @@ class EntrarQuadraBody(BaseModel):
 
 
 def extrair_ou_gerar_session_id(request: Request) -> tuple[str, bool]:
-    session_id = request.cookies.get("session_id")
+    session_id = request.cookies.get("session_id") or request.headers.get(
+        "x-session-id"
+    )
     if session_id:
         return session_id, False
     return str(uuid.uuid4()), True
@@ -204,7 +213,9 @@ async def post_entrar_quadra(
 
 @router.get("/quadras/{quadra_id}/eu")
 async def get_eu(quadra_id: str, request: Request):
-    session_id = request.cookies.get("session_id")
+    session_id = request.cookies.get("session_id") or request.headers.get(
+        "x-session-id"
+    )
     if not session_id:
         return {"participante": None, "quadra": None}
 
@@ -234,3 +245,105 @@ async def get_participantes(quadra_id: str):
         p["online"] = p["id"] in online_set
 
     return {"participantes": participantes}
+
+
+@router.get("/quadras/{quadra_id}/partida")
+async def get_partida_quadra(quadra_id: str):
+    quadra = await obter_quadra(settings.db_path, quadra_id)
+    if not quadra:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quadra não encontrada.",
+        )
+    partida_id = quadra.get("partida_id")
+    if not partida_id:
+        return {"partida_id": None, "estado_partida": None}
+
+    eventos = await carregar_eventos(settings.db_path, partida_id)
+    estado_partida = projetar_estado(eventos)
+    return {
+        "partida_id": partida_id,
+        "estado_partida": asdict(estado_partida),
+    }
+
+
+@router.post("/quadras/{quadra_id}/pontos", status_code=status.HTTP_201_CREATED)
+async def post_marcar_ponto(
+    quadra_id: str,
+    body: MarcarPontoBody,
+    request: Request,
+):
+    quadra = await obter_quadra(settings.db_path, quadra_id)
+    if not quadra:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quadra não encontrada.",
+        )
+
+    partida_id = quadra.get("partida_id")
+    if not partida_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Nenhuma partida ativa encontrada para esta quadra.",
+        )
+
+    session_id = request.cookies.get("session_id") or request.headers.get(
+        "x-session-id"
+    )
+    if not session_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Participante não autenticado.",
+        )
+
+    participante = await obter_participante(settings.db_path, quadra_id, session_id)
+    if not participante:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Participante não registrado nesta quadra.",
+        )
+
+    equipe = body.equipe.strip().upper()
+    if equipe not in ("A", "B"):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Equipe deve ser 'A' ou 'B'.",
+        )
+
+    eventos_atuais = await carregar_eventos(settings.db_path, partida_id)
+    estado_atual = projetar_estado(eventos_atuais)
+    if estado_atual.encerrada:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="A partida já está encerrada.",
+        )
+
+    evento = await append_evento(
+        settings.db_path,
+        quadra_id=quadra_id,
+        partida_id=partida_id,
+        tipo=TipoEvento.PONTO_MARCADO,
+        payload={"equipe": equipe},
+        autor_id=participante["id"],
+    )
+
+    novo_estado = projetar_estado([*eventos_atuais, evento])
+    estado_dict = asdict(novo_estado)
+    evento_dict = asdict(evento)
+
+    # Broadcast para todos os clientes WebSocket conectados na quadra
+    await hub.broadcast(
+        quadra_id,
+        {
+            "tipo": "PLACAR_ATUALIZADO",
+            "payload": {
+                "evento": evento_dict,
+                "estado_partida": estado_dict,
+            },
+        },
+    )
+
+    return {
+        "evento": evento_dict,
+        "estado_partida": estado_dict,
+    }
