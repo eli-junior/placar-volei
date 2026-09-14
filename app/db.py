@@ -1,10 +1,13 @@
 import asyncio
+import logging
 import os
 import sqlite3
 from collections.abc import Generator
 from contextlib import contextmanager
 
 from app.config import settings
+
+logger = logging.getLogger(__name__)
 
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS arenas (
@@ -92,10 +95,20 @@ def init_db_sync(db_path: str | None = None, fixture_path: str | None = None) ->
     target_fixture = (
         fixture_path if fixture_path is not None else settings.default_arenas_file
     )
-    if target_fixture and os.path.exists(target_fixture):
-        from app.fixtures import sincronizar_fixtures_para_db_sync
+    if target_fixture:
+        from app.fixtures import (
+            resolver_caminho_fixture,
+            sincronizar_fixtures_para_db_sync,
+        )
 
-        sincronizar_fixtures_para_db_sync(target_path, target_fixture)
+        caminho_resolvido = resolver_caminho_fixture(target_fixture)
+        if caminho_resolvido:
+            sincronizar_fixtures_para_db_sync(target_path, caminho_resolvido)
+        else:
+            logger.warning(
+                "Arquivo de fixture '%s' não foi localizado no sistema de arquivos.",
+                target_fixture,
+            )
 
 
 async def init_db(db_path: str | None = None, fixture_path: str | None = None) -> None:
