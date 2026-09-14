@@ -20,14 +20,9 @@ services:
       - MAX_QUADRAS_POR_ARENA=${MAX_QUADRAS_POR_ARENA:-20}
       - MAX_PARTICIPANTES_POR_QUADRA=${MAX_PARTICIPANTES_POR_QUADRA:-50}
     volumes:
-      - placar-dados:/data
       - ./defaultArenas.json:/srv/defaultArenas.json
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
-
-volumes:
-  placar-dados:
-    name: placar-volei-dados

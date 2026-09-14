@@ -2,40 +2,42 @@
 code: CV1.DS1.US1
 level: User Story
 status: Done
-status_reason: implementado e validado com Arenas, Quadras, Svelte 5 e presença WebSocket
-updated: 2026-09-13
+status_reason: atualizado para fluxo direto de salas com código PIN de 5 dígitos, criador como admin, espectador via código, limite de 20 salas/participantes e TTL de 1h
+updated: 2026-09-14
 related:
   - 2026-09-13T1405Z-identidade-por-apelido-e-sessao
+  - 2026-09-14T1625Z-salas-por-codigo-pin-de-5-digitos
 ---
 
-# CV1.DS1.US1 — Criar quadra e entrar por apelido
+# CV1.DS1.US1 — Criar quadra e entrar por apelido (Salas com PIN de 5 dígitos)
 
 ## Intent
 
-Chegar na quadra, abrir o link e estar dentro do jogo em poucos segundos, sem cadastro.
+Chegar na quadra, abrir a página e estar dentro do jogo em poucos segundos, sem cadastro, com um código PIN de 5 dígitos fácil de compartilhar.
 
 ## Scope
 
-Tela inicial com lista de quadras ativas, criação de quadra, tela de registro por apelido, sessão persistida no navegador, lista de presentes na quadra e atribuição de admin ao primeiro participante.
+Tela inicial direta com opções de **Criar Placar** ou **Acompanhar** via código PIN de 5 dígitos, geração aleatória de código (`10000` a `99999`), criador como `ADMIN`, ingressante como `ESPECTADOR`, exibição destacada do código no topo da sala, limites de capacidade (20 salas e 20 participantes por sala) e expiração automática por inatividade de 1 hora.
 
 ## Acceptance / Done Condition
 
-Given nenhuma quadra ativa no sistema
-When um usuário cria uma quadra e informa seu apelido
-Then ele entra na quadra como admin
-And a quadra passa a aparecer na lista da tela inicial para os demais
-And um segundo usuário que escolhe essa quadra e informa seu apelido entra como espectador
-And ambos aparecem na lista de presentes
-And recarregar a página devolve cada um à quadra com o mesmo apelido e o mesmo papel, sem novo registro.
+Given a tela inicial aberta
+When o usuário clica em "Criar Placar" e informa seu apelido
+Then uma sala com código numérico de 5 dígitos é criada
+And o criador entra como ADMIN com o código destacado no topo da tela
+When outro usuário informa o código da sala e seu apelido em "Acompanhar"
+Then ele entra imediatamente na sala como ESPECTADOR
+And salas sem atividade por mais de 1 hora são eliminadas automaticamente
+And o sistema impede a criação de mais de 20 salas simultâneas ou mais de 20 pessoas por sala.
 
 ## Validation Route
 
-Dois navegadores (um deles anônimo). Criar quadra no primeiro, entrar pelo segundo, conferir lista de presentes nos dois, recarregar ambos e confirmar que os papéis se mantêm.
+Abrir duas abas/navegadores: na primeira, criar placar informando apelido e verificar o código de 5 dígitos gerado no topo e papel ADMIN; na segunda, digitar o código e apelido em Acompanhar e verificar entrada como ESPECTADOR e sincronização em tempo real.
 
 ## Out of Scope
 
-Encerrar ou excluir quadra, expiração de quadra inativa, unicidade global de apelido.
+Proteção por senha de espectador, controle avançado de permissões granulares além de Admin/Espectador.
 
 ## Notes
 
-Registro é obrigatório também para espectador — ninguém entra anônimo.
+Decisão registrada em `docs/project/decisions/records/2026-09-14T1625Z-salas-por-codigo-pin-de-5-digitos.md`.

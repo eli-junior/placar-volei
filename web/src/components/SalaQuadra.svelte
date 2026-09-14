@@ -30,6 +30,15 @@
 
   let modalLinhaDoTempoAberto = $state(false);
   let prefersReducedMotion = $state(false);
+  let copiado = $state(false);
+
+  function copiarCodigo() {
+    if (typeof navigator !== 'undefined' && navigator.clipboard && quadra?.id) {
+      navigator.clipboard.writeText(quadra.id);
+      copiado = true;
+      setTimeout(() => { copiado = false; }, 2000);
+    }
+  }
 
   // Dimensões da janela física
   let viewportW = $state(typeof window !== 'undefined' ? window.innerWidth : 390);
@@ -227,11 +236,27 @@
 
     <!-- Quadra Title & Meu Perfil -->
     <section class="quadra-hero" in:slide={{ duration: 200 }} out:slide={{ duration: 200 }}>
+      <!-- Banner com Código de 5 Dígitos da Sala -->
+      <div class="codigo-sala-destaque">
+        <div class="codigo-sala-info">
+          <span class="codigo-sala-label">CÓDIGO DA SALA</span>
+          <span class="codigo-sala-num">{quadra.id}</span>
+        </div>
+        <button
+          type="button"
+          class="btn-copiar-pin"
+          onclick={copiarCodigo}
+          title="Copiar código da sala"
+        >
+          {copiado ? '✓ Copiado!' : '📋 Copiar'}
+        </button>
+      </div>
+
       <div class="quadra-title-row">
-        <span class="quadra-tag">
-          🏟️ {quadra.arena_nome ? quadra.arena_nome + ' • ' : ''}Quadra Ativa
-        </span>
         <h2 class="quadra-title">{quadra.nome}</h2>
+        <span class="quadra-tag">
+          🏟️ {quadra.arena_nome ? quadra.arena_nome + ' • ' : ''}Ativa
+        </span>
       </div>
 
       <div class="meu-perfil-card">
@@ -422,6 +447,56 @@
     flex-direction: column;
     gap: 14px;
     flex: 0 0 auto;
+  }
+
+  .codigo-sala-destaque {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #0f172a;
+    border: 2px solid #0284c7;
+    border-radius: 14px;
+    padding: 10px 16px;
+    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
+  }
+
+  .codigo-sala-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .codigo-sala-label {
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #94a3b8;
+    letter-spacing: 0.08em;
+  }
+
+  .codigo-sala-num {
+    font-size: 1.6rem;
+    font-weight: 900;
+    color: #38bdf8;
+    letter-spacing: 0.15em;
+    line-height: 1;
+  }
+
+  .btn-copiar-pin {
+    background: #1e293b;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-copiar-pin:hover {
+    background: #0284c7;
+    border-color: #0284c7;
+    color: #ffffff;
   }
 
   .quadra-tag {

@@ -40,6 +40,9 @@
       <span class="nome-quadra">
         {quadra?.arena_nome ? quadra.arena_nome + ' • ' : ''}{quadra?.nome || 'Quadra'}
       </span>
+      {#if quadra?.id}
+        <span class="pin-pill">#{quadra.id}</span>
+      {/if}
     </div>
 
     <div class="regras-badge">
@@ -290,6 +293,17 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 999px;
     padding: 4px 14px;
+  }
+
+  .pin-pill {
+    background: #0284c7;
+    color: #ffffff;
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    border-radius: 6px;
+    margin-left: 2px;
   }
 
   .modo-imersivo.layout-paisagem .quadra-badge {

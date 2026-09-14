@@ -18,6 +18,7 @@ from app.quadras import (
     obter_participante,
     obter_quadra,
     registrar_participante,
+    tocar_quadra,
 )
 
 router = APIRouter(prefix="/api", tags=["arenas_e_quadras"])
@@ -32,7 +33,8 @@ class MarcarPontoBody(BaseModel):
 
 
 class CriarQuadraBody(BaseModel):
-    nome: str = Field(..., min_length=1, max_length=50)
+    apelido: str | None = Field(default=None, max_length=30)
+    nome: str | None = Field(default=None, max_length=50)
     arena_id: str | None = None
 
 
@@ -41,8 +43,8 @@ class EntrarQuadraBody(BaseModel):
 
 
 def extrair_ou_gerar_session_id(request: Request) -> tuple[str, bool]:
-    session_id = request.cookies.get("session_id") or request.headers.get(
-        "x-session-id"
+    session_id = request.headers.get("x-session-id") or request.cookies.get(
+        "session_id"
     )
     if session_id:
         return session_id, False
@@ -107,12 +109,11 @@ async def post_arena_quadra(arena_id: str, body: CriarQuadraBody):
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Arena não encontrada.",
         )
-    nome = body.nome.strip()
-    if not nome:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Nome da quadra não pode ser vazio.",
-        )
+    nome = (
+        body.nome.strip()
+        if body.nome and body.nome.strip()
+        else f"Quadra {arena_id[:4]}"
+    )
     try:
         quadra = await criar_quadra(settings.db_path, arena_id=arena_id, nome=nome)
     except ValueError as e:
@@ -133,24 +134,35 @@ async def get_quadras(arena_id: str | None = None):
 
 
 @router.post("/quadras", status_code=status.HTTP_201_CREATED)
-async def post_quadras(body: CriarQuadraBody):
-    nome = body.nome.strip()
-    if not nome:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Nome da quadra não pode ser vazio.",
-        )
-    arena_id = body.arena_id
-    try:
-        if not arena_id:
-            arenas = await listar_arenas(settings.db_path)
-            if arenas:
-                arena_id = arenas[0]["id"]
-            else:
-                nova_arena = await criar_arena(settings.db_path, "Arena Principal")
-                arena_id = nova_arena["id"]
+async def post_quadras(
+    body: CriarQuadraBody,
+    request: Request,
+    response: Response,
+):
+    apelido = body.apelido.strip() if body.apelido and body.apelido.strip() else None
+    nome = body.nome.strip() if body.nome and body.nome.strip() else None
 
-        quadra = await criar_quadra(settings.db_path, arena_id=arena_id, nome=nome)
+    session_id = None
+    if apelido:
+        session_id, is_new = extrair_ou_gerar_session_id(request)
+        if is_new:
+            response.set_cookie(
+                key="session_id",
+                value=session_id,
+                httponly=True,
+                samesite="lax",
+                path="/",
+                max_age=86400 * 30,
+            )
+
+    try:
+        quadra = await criar_quadra(
+            settings.db_path,
+            arena_id=body.arena_id,
+            nome=nome,
+            session_id=session_id,
+            apelido=apelido,
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -237,8 +249,8 @@ async def post_entrar_quadra(
 
 @router.get("/quadras/{quadra_id}/eu")
 async def get_eu(quadra_id: str, request: Request):
-    session_id = request.cookies.get("session_id") or request.headers.get(
-        "x-session-id"
+    session_id = request.headers.get("x-session-id") or request.cookies.get(
+        "session_id"
     )
     if not session_id:
         return {"participante": None, "quadra": None}
@@ -311,8 +323,8 @@ async def post_marcar_ponto(
             detail="Nenhuma partida ativa encontrada para esta quadra.",
         )
 
-    session_id = request.cookies.get("session_id") or request.headers.get(
-        "x-session-id"
+    session_id = request.headers.get("x-session-id") or request.cookies.get(
+        "session_id"
     )
     if not session_id:
         raise HTTPException(
@@ -356,6 +368,7 @@ async def post_marcar_ponto(
         payload={"equipe": equipe},
         autor_id=participante["id"],
     )
+    await tocar_quadra(settings.db_path, quadra_id)
 
     novo_estado = projetar_estado([*eventos_atuais, evento])
     estado_dict = asdict(novo_estado)
@@ -405,8 +418,8 @@ async def post_desfazer_ponto(
             detail="Nenhuma partida ativa encontrada para esta quadra.",
         )
 
-    session_id = request.cookies.get("session_id") or request.headers.get(
-        "x-session-id"
+    session_id = request.headers.get("x-session-id") or request.cookies.get(
+        "session_id"
     )
     if not session_id:
         raise HTTPException(
@@ -447,6 +460,7 @@ async def post_desfazer_ponto(
         payload={"ref_seq": ref_seq},
         autor_id=participante["id"],
     )
+    await tocar_quadra(settings.db_path, quadra_id)
 
     novo_estado = projetar_estado([*eventos_atuais, evento])
     estado_dict = asdict(novo_estado)

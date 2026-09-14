@@ -1,63 +1,24 @@
 <script>
   import { onMount } from 'svelte';
-  import ListaArenas from './components/ListaArenas.svelte';
-  import ListaQuadras from './components/ListaQuadras.svelte';
-  import ModalCriarArena from './components/ModalCriarArena.svelte';
-  import ModalCriarQuadra from './components/ModalCriarQuadra.svelte';
+  import HomePlacar from './components/HomePlacar.svelte';
   import ModalEntrar from './components/ModalEntrar.svelte';
   import SalaQuadra from './components/SalaQuadra.svelte';
 
   // Svelte 5 Runes de Estado
-  let arenas = $state([]);
-  let arenaAtual = $state(null);
-  let quadras = $state([]);
   let quadraAtual = $state(null);
   let eu = $state(null);
   let participantes = $state([]);
   let estadoPartida = $state(null);
   let linhaDoTempo = $state([]);
-  let loading = $state(true);
   let submetendo = $state(false);
+  let erro = $state(null);
 
-  let modalCriarArenaAberto = $state(false);
-  let modalCriarQuadraAberto = $state(false);
   let modalEntrarAberto = $state(false);
   let quadraSelecionadaParaEntrar = $state(null);
 
   let wsConectado = $state(false);
   let wsSocket = null;
   let wsReconnectTimer = null;
-
-  async function fetchArenas() {
-    try {
-      loading = true;
-      const res = await fetch('/api/arenas');
-      if (res.ok) {
-        const data = await res.json();
-        arenas = data.arenas || [];
-      }
-    } catch (err) {
-      console.error('Erro ao buscar arenas:', err);
-    } finally {
-      loading = false;
-    }
-  }
-
-  async function fetchQuadrasDaArena(arenaId) {
-    try {
-      loading = true;
-      const res = await fetch(`/api/arenas/${arenaId}/quadras`);
-      if (res.ok) {
-        const data = await res.json();
-        arenaAtual = data.arena;
-        quadras = data.quadras || [];
-      }
-    } catch (err) {
-      console.error('Erro ao buscar quadras da arena:', err);
-    } finally {
-      loading = false;
-    }
-  }
 
   async function tentarRestaurarSessao(quadraId) {
     try {
@@ -136,81 +97,40 @@
     };
   }
 
-  // --- NAVEGAÇÃO E AÇÕES ---
+  // --- AÇÕES DO HOME ---
 
-  async function handleSelecionarArena(arena) {
-    arenaAtual = arena;
-    window.history.pushState({}, '', `/arena/${arena.id}`);
-    await fetchQuadrasDaArena(arena.id);
-  }
-
-  function handleVoltarParaArenas() {
-    arenaAtual = null;
-    quadras = [];
-    window.history.pushState({}, '', '/');
-    fetchArenas();
-  }
-
-  async function handleCriarArena(nome) {
+  async function handleCriarQuadraHome({ apelido, nome }) {
     try {
       submetendo = true;
-      const res = await fetch('/api/arenas', {
+      erro = null;
+      const res = await fetch('/api/quadras', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome }),
+        body: JSON.stringify({ apelido, nome }),
       });
+
       if (res.ok) {
-        const novaArena = await res.json();
-        modalCriarArenaAberto = false;
-        await handleSelecionarArena(novaArena);
+        const data = await res.json();
+        eu = data.participante;
+        quadraAtual = data;
+        window.history.pushState({}, '', `/quadra/${data.id}`);
+        conectarWebSocket(data.id);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        erro = errData.detail || 'Não foi possível criar o placar.';
       }
-    } catch (err) {
-      console.error('Erro ao criar arena:', err);
+    } catch (e) {
+      console.error('Erro ao criar quadra:', e);
+      erro = 'Erro de conexão ao criar a quadra. Verifique sua rede.';
     } finally {
       submetendo = false;
     }
   }
 
-  async function handleSelecionarQuadra(quadra) {
-    const restaurou = await tentarRestaurarSessao(quadra.id);
-    if (!restaurou) {
-      quadraSelecionadaParaEntrar = quadra;
-      modalEntrarAberto = true;
-    } else {
-      window.history.pushState({}, '', `/quadra/${quadra.id}`);
-    }
-  }
-
-  async function handleCriarQuadra(nome) {
-    if (!arenaAtual) return;
+  async function handleEntrarQuadraHome({ quadraId, apelido }) {
     try {
       submetendo = true;
-      const res = await fetch(`/api/arenas/${arenaAtual.id}/quadras`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nome }),
-      });
-      if (res.ok) {
-        const novaQuadra = await res.json();
-        modalCriarQuadraAberto = false;
-        // Abre modal para criador informar apelido e virar ADMIN
-        quadraSelecionadaParaEntrar = novaQuadra;
-        modalEntrarAberto = true;
-        await fetchQuadrasDaArena(arenaAtual.id);
-      }
-    } catch (err) {
-      console.error('Erro ao criar quadra:', err);
-    } finally {
-      submetendo = false;
-    }
-  }
-
-  async function handleEntrarQuadra(apelido) {
-    if (!quadraSelecionadaParaEntrar) return;
-    const quadraId = quadraSelecionadaParaEntrar.id;
-
-    try {
-      submetendo = true;
+      erro = null;
       const res = await fetch(`/api/quadras/${quadraId}/entrar`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -221,16 +141,27 @@
         const data = await res.json();
         eu = data.participante;
         quadraAtual = data.quadra;
-        modalEntrarAberto = false;
-        quadraSelecionadaParaEntrar = null;
-
         window.history.pushState({}, '', `/quadra/${quadraId}`);
         conectarWebSocket(quadraId);
+      } else {
+        const errData = await res.json().catch(() => ({}));
+        erro = errData.detail || 'Código de quadra inválido ou sala já expirou por inatividade.';
       }
-    } catch (err) {
-      console.error('Erro ao entrar na quadra:', err);
+    } catch (e) {
+      console.error('Erro ao entrar na quadra:', e);
+      erro = 'Erro de conexão ao entrar na quadra. Verifique sua rede.';
     } finally {
       submetendo = false;
+    }
+  }
+
+  async function handleEntrarQuadraModal(apelido) {
+    if (!quadraSelecionadaParaEntrar) return;
+    const quadraId = quadraSelecionadaParaEntrar.id;
+    await handleEntrarQuadraHome({ quadraId, apelido });
+    if (quadraAtual) {
+      modalEntrarAberto = false;
+      quadraSelecionadaParaEntrar = null;
     }
   }
 
@@ -251,7 +182,7 @@
           linhaDoTempo = data.linha_do_tempo;
         }
       } else {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         console.warn('Erro ao marcar ponto:', err.detail);
       }
     } catch (e) {
@@ -275,7 +206,7 @@
           linhaDoTempo = data.linha_do_tempo;
         }
       } else {
-        const err = await res.json();
+        const err = await res.json().catch(() => ({}));
         console.warn('Erro ao desfazer ponto:', err.detail);
       }
     } catch (e) {
@@ -283,7 +214,7 @@
     }
   }
 
-  function handleVoltarParaQuadras() {
+  function handleVoltarParaHome() {
     if (wsSocket) {
       wsSocket.close();
       wsSocket = null;
@@ -291,19 +222,13 @@
     if (wsReconnectTimer) {
       clearTimeout(wsReconnectTimer);
     }
-    const arenaId = quadraAtual?.arena_id || arenaAtual?.id;
     quadraAtual = null;
     eu = null;
     participantes = [];
     estadoPartida = null;
     linhaDoTempo = [];
-
-    if (arenaId) {
-      window.history.pushState({}, '', `/arena/${arenaId}`);
-      fetchQuadrasDaArena(arenaId);
-    } else {
-      handleVoltarParaArenas();
-    }
+    erro = null;
+    window.history.pushState({}, '', '/');
   }
 
   onMount(async () => {
@@ -320,25 +245,13 @@
             modalEntrarAberto = true;
           } else {
             window.history.replaceState({}, '', '/');
-            await fetchArenas();
+            erro = 'Quadra não encontrada ou já expirou por inatividade.';
           }
         } catch {
           window.history.replaceState({}, '', '/');
-          await fetchArenas();
         }
       }
-      return;
     }
-
-    // 2. Rota de arena: /arena/:id
-    const arenaMatch = window.location.pathname.match(/\/arena\/([a-zA-Z0-9_-]+)/);
-    if (arenaMatch && arenaMatch[1]) {
-      await fetchQuadrasDaArena(arenaMatch[1]);
-      return;
-    }
-
-    // 3. Raiz: lista de arenas
-    await fetchArenas();
 
     window.addEventListener('popstate', async () => {
       const qMatch = window.location.pathname.match(/\/quadra\/([a-zA-Z0-9_-]+)/);
@@ -346,14 +259,7 @@
         await tentarRestaurarSessao(qMatch[1]);
         return;
       }
-      const aMatch = window.location.pathname.match(/\/arena\/([a-zA-Z0-9_-]+)/);
-      if (aMatch && aMatch[1]) {
-        if (wsSocket) wsSocket.close();
-        quadraAtual = null;
-        await fetchQuadrasDaArena(aMatch[1]);
-        return;
-      }
-      handleVoltarParaArenas();
+      handleVoltarParaHome();
     });
   });
 </script>
@@ -370,54 +276,27 @@
       {wsConectado}
       onMarcarPonto={handleMarcarPonto}
       onDesfazerPonto={handleDesfazerPonto}
-      onVoltar={handleVoltarParaQuadras}
-    />
-  {:else if arenaAtual}
-    <!-- Quadras da Arena Selecionada -->
-    <ListaQuadras
-      arena={arenaAtual}
-      {quadras}
-      {loading}
-      onSelectQuadra={handleSelecionarQuadra}
-      onAbrirCriar={() => { modalCriarQuadraAberto = true; }}
-      onVoltarArenas={handleVoltarParaArenas}
+      onVoltar={handleVoltarParaHome}
     />
   {:else}
-    <!-- Lista de Arenas / Clubes -->
-    <ListaArenas
-      {arenas}
-      {loading}
-      onSelectArena={handleSelecionarArena}
-      onAbrirCriar={() => { modalCriarArenaAberto = true; }}
-    />
-  {/if}
-
-  {#if modalCriarArenaAberto}
-    <ModalCriarArena
-      onCriar={handleCriarArena}
-      onFechar={() => { modalCriarArenaAberto = false; }}
+    <!-- Tela Inicial: Criar Placar ou Acompanhar com Código de 5 Dígitos -->
+    <HomePlacar
+      onCriarQuadra={handleCriarQuadraHome}
+      onEntrarQuadra={handleEntrarQuadraHome}
       {submetendo}
-    />
-  {/if}
-
-  {#if modalCriarQuadraAberto}
-    <ModalCriarQuadra
-      onCriar={handleCriarQuadra}
-      onFechar={() => { modalCriarQuadraAberto = false; }}
-      {submetendo}
+      {erro}
     />
   {/if}
 
   {#if modalEntrarAberto}
     <ModalEntrar
       quadra={quadraSelecionadaParaEntrar}
-      onEntrar={handleEntrarQuadra}
+      onEntrar={handleEntrarQuadraModal}
       onVoltar={() => {
         modalEntrarAberto = false;
         quadraSelecionadaParaEntrar = null;
-        if (!quadraAtual && !arenaAtual) {
+        if (!quadraAtual) {
           window.history.pushState({}, '', '/');
-          fetchArenas();
         }
       }}
       {submetendo}

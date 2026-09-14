@@ -14,11 +14,15 @@ class Settings(BaseSettings):
     admin_timeout_seconds: int = 120
     host: str = "0.0.0.0"
     port: int = 8000
+    version: str = "0.2.0"
+    reset_db_on_startup: bool = False
 
-    # Limites de capacidade para proteção da instância
+    # Limites de capacidade e ciclo de vida
+    max_quadras: int = 20
+    max_participantes_por_quadra: int = 20
+    quadra_ttl_seconds: int = 3600  # 1 hora sem atualização
     max_arenas: int = 50
     max_quadras_por_arena: int = 20
-    max_participantes_por_quadra: int = 50
 
 
 settings = Settings()

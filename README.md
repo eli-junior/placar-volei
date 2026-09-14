@@ -12,12 +12,13 @@ Próximo trabalho: `CV1.DS1.US4` — encerramento formal da partida e reinício 
 
 ## Como funciona
 
-- **Arena** — clube ou complexo esportivo (ex: T9 Beach Club), que abriga múltiplas quadras.
-- **Quadra** — sala de jogo dentro da arena, escolhida na lista.
+- **Criar Placar** — o criador informa um apelido, a aplicação gera um código numérico aleatório de 5 dígitos (ex: `48291`) exibido com destaque no topo e ele assume o papel de **Admin**.
+- **Acompanhar** — qualquer pessoa digita o código de 5 dígitos e seu apelido na tela inicial, ingressando imediatamente como **Espectador**.
 - **Registro** — todo participante informa um apelido. Sem cadastro, sem senha.
-- **Papéis** — o primeiro a entrar vira admin e pode promover controladores. Espectadores só assistem.
-- **Partida** — set único até a pontuação-alvo configurada, com vantagem de 2 opcional e teto opcional. Ao encerrar, anuncia o vencedor e zera para a próxima.
-- **Correção** — controladores desfazem ponto a ponto até zerar. Nada é apagado: a correção vira registro.
+- **Papéis** — o criador vira admin e controla os pontos. Espectadores acompanham o placar ao vivo.
+- **Capacidade e Ciclo de Vida** — suporta até 20 salas ativas e 20 pessoas por sala. Salas sem lances há mais de 1 hora são limpas automaticamente.
+- **Partida** — set único até a pontuação-alvo configurada, com vantagem de 2 opcional e teto opcional.
+- **Correção** — admin desfaz ponto a ponto até zerar. Nada é apagado: a correção vira registro.
 - **Linha do tempo** — mostra como o placar foi construído, ponto a ponto.
 
 ## Stack

@@ -67,8 +67,6 @@ COPY --from=web-builder --chown=placar:placar /src/app/static/ /srv/app/static/
 
 USER placar
 
-VOLUME ["/data"]
-
 EXPOSE 8000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \

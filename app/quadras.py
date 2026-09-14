@@ -1,28 +1,37 @@
 import asyncio
+import random
 import uuid
-from datetime import UTC, datetime
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from app.config import settings
 from app.db import get_db
 from app.eventos import TipoEvento, append_evento_sync, get_quadra_lock
 
-# --- ARENAS ---
+# --- ARENAS (Legado/Compatibilidade) ---
 
 
 def criar_arena_sync(db_path: str, nome: str) -> dict[str, Any]:
+    nome_limpo = nome.strip()
+    if not nome_limpo:
+        raise ValueError("Nome da arena não pode ser vazio.")
+
     with get_db(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM arenas")
-        (total_arenas,) = cursor.fetchone()
-        if total_arenas >= settings.max_arenas:
+        (total,) = cursor.fetchone()
+        if total >= settings.max_arenas:
             raise ValueError(f"Limite máximo de {settings.max_arenas} arenas atingido.")
+
+        cursor.execute(
+            "SELECT id FROM arenas WHERE lower(nome) = lower(?)", (nome_limpo,)
+        )
+        if cursor.fetchone():
+            raise ValueError(f"Já existe uma arena com o nome '{nome_limpo}'.")
 
         arena_id = str(uuid.uuid4())
         agora = datetime.now(UTC).isoformat()
-        nome_limpo = nome.strip()
-
-        conn.execute(
+        cursor.execute(
             "INSERT INTO arenas (id, nome, criado_em) VALUES (?, ?, ?)",
             (arena_id, nome_limpo, agora),
         )
@@ -50,8 +59,7 @@ def listar_arenas_sync(db_path: str) -> list[dict[str, Any]]:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT a.id, a.nome, a.criado_em,
-                   COUNT(q.id) as quadras_count
+            SELECT a.id, a.nome, a.criado_em, COUNT(q.id) as quadras_count
             FROM arenas a
             LEFT JOIN quadras q ON q.arena_id = a.id
             GROUP BY a.id
@@ -78,15 +86,7 @@ def obter_arena_sync(db_path: str, arena_id: str) -> dict[str, Any] | None:
     with get_db(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute(
-            """
-            SELECT a.id, a.nome, a.criado_em,
-                   COUNT(q.id) as quadras_count
-            FROM arenas a
-            LEFT JOIN quadras q ON q.arena_id = a.id
-            WHERE a.id = ?
-            GROUP BY a.id
-            """,
-            (arena_id,),
+            "SELECT id, nome, criado_em FROM arenas WHERE id = ?", (arena_id,)
         )
         row = cursor.fetchone()
         if not row:
@@ -95,7 +95,6 @@ def obter_arena_sync(db_path: str, arena_id: str) -> dict[str, Any] | None:
             "id": row["id"],
             "nome": row["nome"],
             "criado_em": row["criado_em"],
-            "quadras_count": row["quadras_count"],
         }
 
 
@@ -103,44 +102,137 @@ async def obter_arena(db_path: str, arena_id: str) -> dict[str, Any] | None:
     return await asyncio.to_thread(obter_arena_sync, db_path, arena_id)
 
 
-# --- QUADRAS ---
+# --- QUADRAS / PLACARES COM CÓDIGO DE 5 DÍGITOS ---
+
+
+def gerar_codigo_quadra_sync(conn) -> str:
+    """Gera um código numérico de 5 dígitos (10000 a 99999) único entre as quadras ativas."""
+    for _ in range(100):
+        codigo = str(random.randint(10000, 99999))
+        cursor = conn.execute("SELECT 1 FROM quadras WHERE id = ?", (codigo,))
+        if not cursor.fetchone():
+            return codigo
+    raise RuntimeError("Não foi possível gerar um código único para a quadra.")
+
+
+def limpar_quadras_expiradas_sync(db_path: str) -> int:
+    """Remove quadras sem atualização há mais de 1 hora (TTL configurável)."""
+    limite = (
+        datetime.now(UTC) - timedelta(seconds=settings.quadra_ttl_seconds)
+    ).isoformat()
+    with get_db(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("PRAGMA table_info(quadras);")
+        colunas = [row["name"] for row in cursor.fetchall()]
+        if "atualizado_em" not in colunas:
+            return 0
+
+        cursor.execute("SELECT id FROM quadras WHERE atualizado_em < ?", (limite,))
+        expiradas = [r["id"] for r in cursor.fetchall()]
+        if expiradas:
+            placeholders = ",".join("?" for _ in expiradas)
+            cursor.execute(
+                f"DELETE FROM eventos WHERE quadra_id IN ({placeholders})", expiradas
+            )
+            cursor.execute(
+                f"DELETE FROM participantes WHERE quadra_id IN ({placeholders})",
+                expiradas,
+            )
+            cursor.execute(
+                f"DELETE FROM partidas WHERE quadra_id IN ({placeholders})", expiradas
+            )
+            cursor.execute(
+                f"DELETE FROM quadras WHERE id IN ({placeholders})", expiradas
+            )
+            conn.commit()
+        return len(expiradas)
+
+
+async def limpar_quadras_expiradas(db_path: str) -> int:
+    return await asyncio.to_thread(limpar_quadras_expiradas_sync, db_path)
+
+
+def tocar_quadra_sync(db_path: str, quadra_id: str) -> None:
+    """Atualiza o timestamp de última atividade da quadra."""
+    agora = datetime.now(UTC).isoformat()
+    with get_db(db_path) as conn:
+        conn.execute(
+            "UPDATE quadras SET atualizado_em = ? WHERE id = ?",
+            (agora, quadra_id),
+        )
+        conn.commit()
+
+
+async def tocar_quadra(db_path: str, quadra_id: str) -> None:
+    await asyncio.to_thread(tocar_quadra_sync, db_path, quadra_id)
 
 
 def criar_quadra_sync(
     db_path: str,
-    arena_id: str,
-    nome: str,
+    arena_id: str | None = None,
+    nome: str | None = None,
+    session_id: str | None = None,
+    apelido: str | None = None,
 ) -> dict[str, Any]:
-    quadra_id = str(uuid.uuid4())
-    partida_id = str(uuid.uuid4())
-    agora = datetime.now(UTC).isoformat()
-    nome_limpo = nome.strip()
+    limpar_quadras_expiradas_sync(db_path)
 
     with get_db(db_path) as conn:
         cursor = conn.cursor()
-        cursor.execute(
-            "SELECT COUNT(*) FROM quadras WHERE arena_id = ?",
-            (arena_id,),
-        )
+        cursor.execute("SELECT COUNT(*) FROM quadras")
         (total_quadras,) = cursor.fetchone()
-        if total_quadras >= settings.max_quadras_por_arena:
+        if total_quadras >= settings.max_quadras:
             raise ValueError(
-                f"Limite máximo de {settings.max_quadras_por_arena} quadras para esta arena atingido."
+                f"Limite máximo de {settings.max_quadras} quadras atingido."
             )
 
+        arena_nome = None
+        if arena_id:
+            cursor.execute(
+                "SELECT COUNT(*) FROM quadras WHERE arena_id = ?", (arena_id,)
+            )
+            (total_arena,) = cursor.fetchone()
+            if total_arena >= settings.max_quadras_por_arena:
+                raise ValueError(
+                    f"Limite máximo de {settings.max_quadras_por_arena} quadras para esta arena atingido."
+                )
+            cursor.execute("SELECT nome FROM arenas WHERE id = ?", (arena_id,))
+            row_arena = cursor.fetchone()
+            arena_nome = row_arena["nome"] if row_arena else None
+
+        quadra_id = gerar_codigo_quadra_sync(conn)
+        partida_id = str(uuid.uuid4())
+        agora = datetime.now(UTC).isoformat()
+        nome_limpo = nome.strip() if nome and nome.strip() else f"Quadra #{quadra_id}"
+
         conn.execute(
-            "INSERT INTO quadras (id, arena_id, nome, criado_em) VALUES (?, ?, ?, ?)",
-            (quadra_id, arena_id, nome_limpo, agora),
+            "INSERT INTO quadras (id, arena_id, nome, criado_em, atualizado_em) VALUES (?, ?, ?, ?, ?)",
+            (quadra_id, arena_id, nome_limpo, agora, agora),
         )
         conn.execute(
             "INSERT INTO partidas (id, quadra_id, status, criado_em) VALUES (?, ?, ?, ?)",
             (partida_id, quadra_id, "EM_ANDAMENTO", agora),
         )
-        conn.commit()
 
-        cursor.execute("SELECT nome FROM arenas WHERE id = ?", (arena_id,))
-        row_arena = cursor.fetchone()
-        arena_nome = row_arena["nome"] if row_arena else None
+        participante = None
+        if apelido and session_id:
+            participante_id = f"{quadra_id}:{session_id}"
+            apelido_limpo = apelido.strip()
+            conn.execute(
+                """
+                INSERT INTO participantes (id, quadra_id, apelido, papel, criado_em, ultimo_visto_em)
+                VALUES (?, ?, ?, 'ADMIN', ?, ?)
+                """,
+                (participante_id, quadra_id, apelido_limpo, agora, agora),
+            )
+            participante = {
+                "id": participante_id,
+                "quadra_id": quadra_id,
+                "apelido": apelido_limpo,
+                "papel": "ADMIN",
+                "criado_em": agora,
+                "ultimo_visto_em": agora,
+            }
+        conn.commit()
 
     # Registra o evento de partida iniciada com regra padrão
     append_evento_sync(
@@ -155,7 +247,7 @@ def criar_quadra_sync(
             "equipe_a": "Equipe A",
             "equipe_b": "Equipe B",
         },
-        autor_id=None,
+        autor_id=participante["id"] if participante else None,
     )
 
     if settings.default_arenas_file and arena_nome:
@@ -165,26 +257,84 @@ def criar_quadra_sync(
             settings.default_arenas_file, arena_nome, nome_limpo
         )
 
-    return {
+    resultado = {
         "id": quadra_id,
         "arena_id": arena_id,
+        "arena_nome": arena_nome,
         "nome": nome_limpo,
         "criado_em": agora,
+        "atualizado_em": agora,
         "partida_id": partida_id,
     }
+    if participante:
+        resultado["participante"] = participante
+    return resultado
 
 
-async def criar_quadra(db_path: str, arena_id: str, nome: str) -> dict[str, Any]:
-    return await asyncio.to_thread(criar_quadra_sync, db_path, arena_id, nome)
+async def criar_quadra(
+    db_path: str,
+    arena_id: str | None = None,
+    nome: str | None = None,
+    session_id: str | None = None,
+    apelido: str | None = None,
+) -> dict[str, Any]:
+    return await asyncio.to_thread(
+        criar_quadra_sync,
+        db_path=db_path,
+        arena_id=arena_id,
+        nome=nome,
+        session_id=session_id,
+        apelido=apelido,
+    )
+
+
+def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
+    limpar_quadras_expiradas_sync(db_path)
+    with get_db(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT q.id, q.arena_id, q.nome, q.criado_em, q.atualizado_em, a.nome as arena_nome
+            FROM quadras q
+            LEFT JOIN arenas a ON a.id = q.arena_id
+            WHERE q.id = ?
+            """,
+            (quadra_id,),
+        )
+        quadra = cursor.fetchone()
+        if not quadra:
+            return None
+
+        cursor.execute(
+            "SELECT id FROM partidas WHERE quadra_id = ? AND status = 'EM_ANDAMENTO' ORDER BY criado_em DESC LIMIT 1",
+            (quadra_id,),
+        )
+        partida = cursor.fetchone()
+        partida_id = partida["id"] if partida else None
+
+        return {
+            "id": quadra["id"],
+            "arena_id": quadra["arena_id"],
+            "arena_nome": quadra["arena_nome"],
+            "nome": quadra["nome"],
+            "criado_em": quadra["criado_em"],
+            "atualizado_em": quadra["atualizado_em"],
+            "partida_id": partida_id,
+        }
+
+
+async def obter_quadra(db_path: str, quadra_id: str) -> dict[str, Any] | None:
+    return await asyncio.to_thread(obter_quadra_sync, db_path, quadra_id)
 
 
 def listar_quadras_sync(
     db_path: str, arena_id: str | None = None
 ) -> list[dict[str, Any]]:
+    limpar_quadras_expiradas_sync(db_path)
     with get_db(db_path) as conn:
         cursor = conn.cursor()
         query = """
-            SELECT q.id, q.arena_id, q.nome, q.criado_em,
+            SELECT q.id, q.arena_id, q.nome, q.criado_em, q.atualizado_em,
                    a.nome as arena_nome,
                    COUNT(p.id) as participantes_count
             FROM quadras q
@@ -195,7 +345,7 @@ def listar_quadras_sync(
         if arena_id:
             query += " WHERE q.arena_id = ?"
             params.append(arena_id)
-        query += " GROUP BY q.id ORDER BY q.criado_em DESC"
+        query += " GROUP BY q.id ORDER BY q.atualizado_em DESC"
 
         cursor.execute(query, params)
         rows = cursor.fetchall()
@@ -206,6 +356,7 @@ def listar_quadras_sync(
                 "arena_nome": r["arena_nome"],
                 "nome": r["nome"],
                 "criado_em": r["criado_em"],
+                "atualizado_em": r["atualizado_em"],
                 "participantes_count": r["participantes_count"],
             }
             for r in rows
@@ -218,62 +369,23 @@ async def listar_quadras(
     return await asyncio.to_thread(listar_quadras_sync, db_path, arena_id)
 
 
-def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
-    with get_db(db_path) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT q.id, q.arena_id, q.nome, q.criado_em, a.nome as arena_nome
-            FROM quadras q
-            LEFT JOIN arenas a ON a.id = q.arena_id
-            WHERE q.id = ?
-            """,
-            (quadra_id,),
-        )
-        quadra = cursor.fetchone()
-        if not quadra:
-            return None
-
-        cursor.execute(
-            """
-            SELECT id FROM partidas
-            WHERE quadra_id = ? AND status = 'EM_ANDAMENTO'
-            ORDER BY criado_em DESC LIMIT 1
-            """,
-            (quadra_id,),
-        )
-        partida = cursor.fetchone()
-        partida_id = partida["id"] if partida else None
-
-        return {
-            "id": quadra["id"],
-            "arena_id": quadra["arena_id"],
-            "arena_nome": quadra["arena_nome"],
-            "nome": quadra["nome"],
-            "criado_em": quadra["criado_em"],
-            "partida_id": partida_id,
-        }
-
-
-async def obter_quadra(db_path: str, quadra_id: str) -> dict[str, Any] | None:
-    return await asyncio.to_thread(obter_quadra_sync, db_path, quadra_id)
-
-
-# --- PARTICIPANTES ---
-
-
 def registrar_participante_sync(
     db_path: str,
     quadra_id: str,
     session_id: str,
     apelido: str,
 ) -> dict[str, Any]:
+    limpar_quadras_expiradas_sync(db_path)
     participante_id = f"{quadra_id}:{session_id}"
     agora = datetime.now(UTC).isoformat()
     apelido_limpo = apelido.strip()
 
     with get_db(db_path) as conn:
         cursor = conn.cursor()
+        cursor.execute("SELECT id FROM quadras WHERE id = ?", (quadra_id,))
+        if not cursor.fetchone():
+            raise ValueError("Quadra não encontrada ou já expirou por inatividade.")
+
         cursor.execute(
             "SELECT id, quadra_id, apelido, papel, criado_em, ultimo_visto_em FROM participantes WHERE id = ?",
             (participante_id,),
@@ -284,6 +396,10 @@ def registrar_participante_sync(
             cursor.execute(
                 "UPDATE participantes SET apelido = ?, ultimo_visto_em = ? WHERE id = ?",
                 (apelido_limpo, agora, participante_id),
+            )
+            cursor.execute(
+                "UPDATE quadras SET atualizado_em = ? WHERE id = ?",
+                (agora, quadra_id),
             )
             conn.commit()
             return {
@@ -314,6 +430,10 @@ def registrar_participante_sync(
             VALUES (?, ?, ?, ?, ?, ?)
             """,
             (participante_id, quadra_id, apelido_limpo, papel, agora, agora),
+        )
+        cursor.execute(
+            "UPDATE quadras SET atualizado_em = ? WHERE id = ?",
+            (agora, quadra_id),
         )
         conn.commit()
 

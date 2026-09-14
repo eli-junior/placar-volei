@@ -1,4 +1,7 @@
+import asyncio
+import logging
 import os
+import sqlite3
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket
@@ -12,19 +15,40 @@ from app.db import init_db
 from app.eventos import carregar_eventos
 from app.hub import hub
 from app.projecao import projetar_estado, projetar_linha_do_tempo
-from app.quadras import listar_participantes, obter_quadra
+from app.quadras import (
+    limpar_quadras_expiradas,
+    listar_participantes,
+    obter_quadra,
+)
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Inicializa o schema e WAL do SQLite na inicialização
     await init_db(settings.db_path)
-    yield
+
+    async def rotina_limpeza():
+        while True:
+            try:
+                await asyncio.sleep(300)
+                await limpar_quadras_expiradas(settings.db_path)
+            except asyncio.CancelledError:
+                break
+            except (sqlite3.Error, OSError, ValueError, RuntimeError) as e:
+                logger.warning("Falha na rotina de limpeza de quadras expiradas: %s", e)
+
+    tarefa = asyncio.create_task(rotina_limpeza())
+    try:
+        yield
+    finally:
+        tarefa.cancel()
 
 
 app = FastAPI(
     title="Placar Vôlei",
-    version="0.1.0",
+    version=settings.version,
     description="Placar de vôlei compartilhado em tempo real para pelada",
     lifespan=lifespan,
 )
@@ -37,7 +61,7 @@ app.include_router(api_router)
 async def health_check():
     return {
         "status": "ok",
-        "version": "0.1.0",
+        "version": settings.version,
         "db": settings.db_path,
     }
 
