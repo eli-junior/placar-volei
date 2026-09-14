@@ -11,9 +11,9 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 ### chore/ariad-multi-agent-branching-and-changelog
 - **História / Escopo**: Ajuste do processo Ariad: branches por história a partir da main, tracking em tempo real no changelog, assinatura de agente para colaboração multi-agente/handoff e sincronização remota contínua para evitar congelamento de trabalho por esgotamento de créditos.
 - **Branch**: `chore/ariad-multi-agent-branching-and-changelog`
-- **Passo Ariad**: Passo 5 - Revisão e Avaliação de Débitos (Checkpoint 3)
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Conversa: 1673960e-7e63-46ad-812f-f55dc2f95f2c | Data: 2026-09-14 17:13
-- **Handoff / Próximos Passos**: Apresentar Checkpoint 3 (Revisão e Débitos Técnicos), obter aprovação do Navigator e proceder para o Checkpoint 4 (Conclusão e Merge na main/master).
+- **Passo Ariad**: Passo 7 - Conclusão e Merge (Checkpoint 4)
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Conversa: 1673960e-7e63-46ad-812f-f55dc2f95f2c | Data: 2026-09-14 17:14
+- **Handoff / Próximos Passos**: Aguardando confirmação do Navigator no Checkpoint 4 para realizar merge na branch principal (master) e arquivar no changelog fechado.
 
 ## 0.2.0 - 2026-09-14
 
