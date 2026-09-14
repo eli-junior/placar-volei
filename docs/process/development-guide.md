@@ -185,28 +185,32 @@ Add any project-specific checkpoint rules here.
 
 Ariad ships with opinionated defaults. Override them here when this project or Navigator has a better local answer.
 
-- **Commit policy:** commit ao final de cada User ou Technical Story validada e aceita. Mensagem em português, explicando o porquê.
-- **Push policy:** perguntar antes de dar push.
+- **Commit policy:** commit ao final de cada User ou Technical Story validada e aceita. Mensagem em português, explicando o porquê e identificando o agente Driver.
+- **Push policy:** push contínuo e frequente da branch de trabalho para o repositório remoto (`origin <branch>`) durante o desenvolvimento e a cada checkpoint. Desta forma, se os créditos do agente se esgotarem ou a sessão for interrompida, o progresso não fica congelado na máquina local e outro agente pode assumir imediatamente pelo remote. Push na branch principal (`main`/`master`) ocorre exclusivamente após validação final e aprovação do Navigator no Checkpoint 4.
 - **Checkpoint compression:** checkpoints completos para User e Technical Stories. Compressão permitida apenas para correção trivial, ajuste de configuração ou edição de documentação.
 - **Documentation detail:** a menor atualização que mantém o projeto coerente. Documentação é atualizada no mesmo ciclo da mudança, nunca depois.
 - **Worklog policy:** uma entrada por marco significativo — fechamento de Delivery Story, decisão relevante, mudança de rumo. Não uma entrada por commit.
-- **Branch/PR habits:** trabalho direto na branch principal enquanto o projeto for de um só desenvolvedor. Revisar quando entrar uma segunda pessoa.
+- **Branch/PR habits:** sempre criar uma branch dedicada a partir da branch principal (`main` ou `master`) ao iniciar qualquer novo desenvolvimento (ex.: `feature/<codigo-slug>`, `fix/...`, `chore/...`). Trabalho direto na branch principal é proibido para novos desenvolvimentos. A `main` só recebe código finalizado e validado após aceitação no Checkpoint 4.
+- **Changelog ativo:** manter registro obrigatório na seção `## [Em Andamento]` do `CHANGELOG.md` contendo a branch ativa, história, passo atual do ciclo Ariad, assinatura do agente e notas de handoff.
+- **Assinatura do agente:** toda história ativa no changelog e mensagens de commit devem conter a identificação do agente (ex.: `Agente: <Nome> (Driver) | Sessão: <ID> | Data: YYYY-MM-DD HH:mm`).
 - **Idioma:** documentação de projeto, mensagens de commit e comentários em português. Código, nomes de identificadores e nomenclatura estrutural do Ariad (`status`, `CV`, `DS`, `US`, `TS`, `Planned`, `Active`, `Done`) em inglês.
 - **Escopo:** o Navigator é Product Owner de profissão e decide produto. O Driver propõe trade-offs técnicos, mas não fecha decisão de produto sozinho — registra como decisão `Open` e pergunta.
 
 ## Commit and Release Rules
 
-Describe branch, commit, push, pull request, versioning, and release expectations for this project.
+Branches de trabalho nascem a partir da branch principal (`main` ou `master`).
 
-If the work creates a release boundary, name the likely boundary explicitly: Value / CV, Delivery Story, User Story, Technical Story, or Maintenance.
+Durante o ciclo de desenvolvimento, o agente Driver deve realizar commits parciais na branch e sincronizá-la frequentemente com o repositório remoto (`git push -u origin <branch>`), garantindo persistência remota contra esgotamento de créditos ou interrupção de contexto.
 
-Maintain `CHANGELOG.md` from Git evidence when a version is closed.
+O trabalho ativo é registrado e atualizado na seção `## [Em Andamento]` do `CHANGELOG.md` a cada avanço no ciclo Ariad (Planejamento, Implementação, Validação, Revisão, Documentação, Merge).
 
-This project records only closed versions in the changelog. Do not keep an always-open `Unreleased` section unless this project explicitly overrides the rule. While work is still in progress, keep notes in roadmap items, worklog entries, release-candidate notes, or checkpoint surfaces.
+Somente histórias completamente testadas, validadas com o Navigator e aprovadas compõem a branch principal (`main`).
 
-Before closing a version, the Driver should inspect the relevant Git source: commit range, tag range, merge commit, pull request, or current diff. The changelog entry should include the version, release date, release boundary, Git source, and the author, authors, agent, or runtime that made the change.
-
-The team may refine changelog wording at the end, but the Driver should keep the file current enough that nobody has to reconstruct the release from raw commits.
+Quando uma história ou versão é finalizada:
+1. O commit na branch é consolidado com mensagem descritiva e assinatura do agente;
+2. O merge é realizado na branch principal (`main`);
+3. O bloco correspondente é removido de `## [Em Andamento]` e adicionado à seção da versão fechada correspondente no `CHANGELOG.md`;
+4. O changelog da versão fechada registra versão, data, fronteira (Value, Delivery Story, etc.), fontes Git e os autores/agentes envolvidos.
 
 ## Local Exceptions
 
@@ -220,6 +224,10 @@ Motivo: o Navigator opera em português e a clareza da regra de negócio vale ma
 
 Revisitar se o projeto ganhar colaboradores que não falem português.
 
-### Sem `Unreleased` no changelog
+### Seção [Em Andamento] no changelog e branches por história
 
-Regra padrão do Ariad, registrada aqui por ser fácil de violar por hábito: `CHANGELOG.md` só recebe versões fechadas. Trabalho em andamento vive no roadmap e no worklog.
+Desvio em relação ao Ariad padrão (que recomenda apenas versões fechadas no changelog e trabalho em branch única para desenvolvedor solo):
+
+O projeto adota obrigatoriamente branches separadas para cada desenvolvimento e mantém a seção `## [Em Andamento]` no topo do `CHANGELOG.md`.
+
+Motivo: permitir o trabalho concorrente de múltiplos agentes de IA (ex.: Claude, Antigravity), viabilizar o handoff transparente (um agente inicia e outro conclui a história sabendo exatamente em qual passo ela está) e proteger a integridade da branch principal (`main`), garantindo que apenas entregas prontas e validadas cheguem a ela.

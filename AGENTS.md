@@ -41,12 +41,17 @@ If a listed file does not exist, continue with the available context and mention
 - Stop at checkpoints and wait for Navigator confirmation.
 - Do not silently absorb new scope. Capture it for later unless it blocks correctness or coherence.
 - Prefer small, reviewable changes over broad unbounded edits.
+- **Dedicated Branch per Story**: Never develop new features directly on `main` (or `master`). Always create a dedicated branch from `main` at the start of any new development.
+- **Continuous Remote Sync**: Sincronizar frequentemente a branch de trabalho com o remoto (`git push origin <branch>`) durante o ciclo e a cada checkpoint. Se a sessão for interrompida ou os créditos acabarem, o trabalho não fica congelado na máquina local.
+- **Live Tracking in CHANGELOG**: Register active work immediately under `## [Em Andamento]` in `CHANGELOG.md`, including branch name, Ariad lifecycle step, and Agent Signature.
+- **Main Protection & Handoff**: Only stories fully validated and accepted by the Navigator compose `main`. Work can be started by one agent and completed by another via transparent handoff in the branch and changelog.
 
 ## Navigator Preferences
 
 Ariad ships with opinionated defaults, but local Navigator preferences and project contract rules may override them when explicit.
 
-Follow `docs/process/development-guide.md` for commit frequency, push policy, checkpoint compression, documentation detail, worklog habits, and branch or pull request rules. If no local preference is configured, use Ariad defaults: full checkpoints for non-trivial work, ask before pushing, and record project history with a descriptive reason after the change is validated and accepted.
+Follow `docs/process/development-guide.md` for commit frequency, push policy, checkpoint compression, documentation detail, worklog habits, and branch or pull request rules:
+- **Push Policy**: Push contínuo da branch de trabalho para o repositório remoto (`origin <branch>`) durante o desenvolvimento e a cada checkpoint para evitar perda de progresso por esgotamento de créditos. Push na `main` exclusivamente após validação completa e aceite do Navigator no Checkpoint 4.
 
 ## Self-Conduct Protocol
 
@@ -60,15 +65,20 @@ For non-trivial work, follow the full lifecycle.
 
 ### 1. Read and Orient
 
-Read the project context files listed above. Identify the current state: what version is current, what work is next, what the roadmap says. If using a journey system, load the journey context.
+Read the project context files listed above. Check `CHANGELOG.md` under `## [Em Andamento]` to identify if there is ongoing work to continue or if this is a new initiative.
+- If starting new work: create a dedicated branch from `main` (or `master`, e.g. `feature/<code-slug>`, `fix/...`, `chore/...`). **Never develop directly on `main`**.
+- If continuing existing work (handoff): switch to the story's branch, inspect the logged step in `CHANGELOG.md`, and update the Agent Signature to yourself.
 
-Present orientation briefly: current state, identified next work, any ambiguity that needs Navigator input before planning.
+Present orientation briefly: current state, identified work, active branch, and any ambiguity needing Navigator input.
 
 ### 2. Plan
 
-Read relevant code and docs for the specific work. Propose:
+Read relevant code and docs for the specific work. Register or update the entry in `CHANGELOG.md` under `## [Em Andamento]` with the branch name, what is being developed, current step (`Passo 2 - Planejamento`), and Agent Signature.
+
+Propose:
 
 - **Roadmap level** — Value / CV, Delivery Story, User Story, Technical Story, Task, or Maintenance.
+- **Branch** — name of the dedicated branch created from `main`.
 - **What is in scope** — the concrete changes this work makes.
 - **Acceptance behavior** — for User Stories, preferably in lightweight BDD form: Given / When / Then / And.
 - **Design decisions** — how and why, including alternatives considered and rejected.
@@ -80,11 +90,11 @@ Read relevant code and docs for the specific work. Propose:
 
 ### 3. Implement
 
-Write code following the plan. Keep scope stable. If new work surfaces during implementation, distinguish what blocks the current story from what should become follow-up work. Do not silently expand scope.
+Update `CHANGELOG.md` under `## [Em Andamento]` to reflect `Passo 3 - Implementação` and current Agent Signature. Write code following the plan on the story branch. Keep scope stable. If new work surfaces during implementation, distinguish what blocks the current story from what should become follow-up work. Do not silently expand scope.
 
 ### 4. Test and Validate
 
-Run automated tests. For user-visible, product-visible, or capability-visible work, prepare a Navigator validation route: commands, URLs, files, operation surfaces, sample data, expected observations, pass condition, and fail condition.
+Update `CHANGELOG.md` under `## [Em Andamento]` to reflect `Passo 4 - Teste e Validação`. Run automated tests. For user-visible, product-visible, or capability-visible work, prepare a Navigator validation route: commands, URLs, files, operation surfaces, sample data, expected observations, pass condition, and fail condition.
 
 Present:
 
@@ -97,7 +107,7 @@ Present:
 
 ### 5. Review and Refactoring Assessment
 
-Review what was built. Assess:
+Update `CHANGELOG.md` under `## [Em Andamento]` to reflect `Passo 5 - Revisão`. Review what was built. Assess:
 
 - **Refactoring done** — what was improved during implementation and why.
 - **Refactoring considered** — what was evaluated but not done.
@@ -111,7 +121,7 @@ Review what was built. Assess:
 
 ### 6. Document and Coherence Check
 
-Update all pending documentation. Then run the coherence check — ask what was forgotten:
+Update `CHANGELOG.md` under `## [Em Andamento]` to reflect `Passo 6 - Documentação`. Update all pending documentation. Then run the coherence check — ask what was forgotten:
 
 - Does the roadmap or current focus need an update?
 - Does `docs/project/decisions/records/` need a new or updated decision record?
@@ -123,13 +133,18 @@ Update all pending documentation. Then run the coherence check — ask what was 
 
 The goal is not more documentation. The goal is for the project to remember why it changed.
 
-### 7. Record History
+### 7. Record History and Main Merge
 
-Record the change according to the configured commit policy.
+Update `CHANGELOG.md` under `## [Em Andamento]` to reflect `Passo 7 - Conclusão e Merge`. Propose the commit message and merge into `main` (or `master`).
 
-Default Ariad behavior: propose a descriptive commit message that explains the WHY, not just the what. Include key decisions in the commit body when relevant.
+Default Ariad behavior: propose a descriptive commit message that explains the WHY, not just the what. Include key decisions in the commit body when relevant, and sign with the Driver Agent identity.
 
-**→ Checkpoint 4: stop and present the proposed history action. Wait for Navigator confirmation unless the local commit policy says otherwise.**
+**→ Checkpoint 4: stop and present the proposed history and merge action. Wait for Navigator confirmation unless the local commit policy says otherwise.**
+
+Upon confirmation:
+1. Commit the changes on the branch.
+2. Merge the branch into `main` (only finished, validated stories compose `main`).
+3. Move the entry from `## [Em Andamento]` to the closed version in `CHANGELOG.md`.
 
 ## Checkpoint Rules
 
@@ -139,16 +154,29 @@ At each checkpoint, the Driver presents what was done and what comes next. The N
 
 If the Navigator gives a broad instruction like "implement the next story", the Driver should drive all the way to Checkpoint 1 autonomously, then stop. After confirmation, drive to Checkpoint 2, then stop. And so on.
 
-## Changelog Discipline
+## Changelog Discipline and Multi-Agent Collaboration
 
-Maintain `CHANGELOG.md` from Git evidence when a version is closed.
+Maintain `CHANGELOG.md` with two core zones: **active work in progress** and **closed versions**.
 
-The changelog records closed versions only. Do not keep an always-open `Unreleased` section. During active work, preserve notes in the roadmap, worklog, release-candidate notes, or checkpoint surfaces. When the Navigator accepts a release boundary, update `CHANGELOG.md` before recording history.
+### 1. Active Work (`## [Em Andamento]`)
+The top of `CHANGELOG.md` always tracks active branches. Every new development registers:
+- **História / Escopo**: Story code and human-readable intent.
+- **Branch**: Dedicated branch name created from `main`.
+- **Passo Ariad**: Current lifecycle step (e.g., `Passo 2 - Planejamento`, `Passo 3 - Implementação`, etc.).
+- **Assinatura do Agente**: Identifies the working agent and session/timestamp, e.g.:
+  `Agente: <Nome> (Driver) | Sessão: <ID> | Data: YYYY-MM-DD HH:mm`
+- **Handoff / Próximos Passos**: Clear operational state so another agent or session can resume immediately without lost context.
 
-For each closed version, the Driver should:
+### 2. Multi-Agent Concurrency and Handoff Protocol
+- **Parallel Work**: Multiple agents can work concurrently, each on its own branch, without stepping on `main`. Each agent maintains its branch entry in `[Em Andamento]`.
+- **Remote Synchronization**: Each agent commits and pushes its working branch to `origin` during development and at checkpoints. If an agent runs out of credits/tokens or disconnects, the work is never frozen on the local machine; any agent can immediately fetch the branch from origin and resume.
+- **Handoff**: When Agent B takes over work started by Agent A on a branch, Agent B fetches/switches to that branch, updates the **Assinatura do Agente** to itself with a note (e.g., `Assumido por Agent B a partir do Passo X`), and continues seamlessly.
+- **Main Integrity**: Only completely validated and Navigator-accepted stories are merged into `main`.
 
-- inspect the relevant Git source, such as `git diff`, `git log`, tag ranges, merge commits, or pull requests;
-- summarize only changes that matter to users, operators, contributors, or future agents;
-- name the author, authors, agent, or runtime responsible for the work;
-- include the version, release date, release boundary, and Git source;
-- leave the entry clear enough for the team to refine without reconstructing the history from scratch.
+### 3. Closed Versions
+When a story or release closes and merges into `main`, remove its active entry from `[Em Andamento]` and record it under the closed version:
+- the version and release date;
+- the release boundary that closed;
+- the people, agents, or runtimes who made the change (including agent signatures);
+- the relevant Git source (merge commit, branch, or tag);
+- the summary of changes that matter.

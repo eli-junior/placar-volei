@@ -1,16 +1,19 @@
 # Changelog
 
-This project records only closed versions.
+Este changelog registra tanto o **trabalho ativo em andamento** (para coordenação multi-agente e handoff) quanto as **versões fechadas**.
 
-The Driver updates this file when a release boundary is accepted and a version is closed. Do not maintain an always-open `Unreleased` section here. Use the roadmap, worklog, or release-candidate notes for work that is still in motion.
+A seção `## [Em Andamento]` no topo do arquivo rastreia todas as branches ativas geradas a partir da branch principal (`main`/`master`). Todo novo desenvolvimento deve ser registrado aqui com a branch, a história, o passo atual do ciclo Ariad, a assinatura do agente responsável e notas de handoff.
 
-Each closed version should name:
+Quando uma história é validada e integrada na `main`, seu registro é removido de `[Em Andamento]` e incorporado à versão fechada correspondente.
 
-- the version and release date;
-- the release boundary that closed, such as Value / CV, Delivery Story, User Story, Technical Story, or Maintenance;
-- the people, agents, or runtimes who made the change;
-- the relevant Git source, such as commit range, tag, pull request, or merge commit;
-- the changes that matter to users, operators, contributors, or future agents.
+## [Em Andamento]
+
+### chore/ariad-multi-agent-branching-and-changelog
+- **História / Escopo**: Ajuste do processo Ariad: branches por história a partir da main, tracking em tempo real no changelog, assinatura de agente para colaboração multi-agente/handoff e sincronização remota contínua para evitar congelamento de trabalho por esgotamento de créditos.
+- **Branch**: `chore/ariad-multi-agent-branching-and-changelog`
+- **Passo Ariad**: Passo 4 - Teste e Validação (Checkpoint 2)
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Conversa: 1673960e-7e63-46ad-812f-f55dc2f95f2c | Data: 2026-09-14 17:12
+- **Handoff / Próximos Passos**: Apresentar evidências e rota de validação para o Navigator (Checkpoint 2), realizar push da branch no remoto para sincronização, conduzir revisão (Checkpoint 3) e preparar merge na main/master (Checkpoint 4).
 
 ## 0.2.0 - 2026-09-14
 
@@ -36,8 +39,19 @@ Git source: master
 - Bump de versão para 0.2.0 em `pyproject.toml`, `app/config.py` e `app/main.py`.
 - Precedência de cabeçalho `x-session-id` sobre cookies em todos os endpoints REST.
 
-## Template
+## Templates
 
+### Template de Trabalho em Andamento (Em Andamento)
+```markdown
+### <nome-da-branch>
+- **História / Escopo**: <Código da história e resumo do objetivo>
+- **Branch**: `<nome-da-branch>`
+- **Passo Ariad**: Passo <N> - <Nome do Passo> (ex: Passo 3 - Implementação)
+- **Assinatura do Agente**: Agente: <Nome> (Driver) | Sessão: <ID> | Data: YYYY-MM-DD HH:mm
+- **Handoff / Próximos Passos**: <O que já foi feito e o que o próximo agente deve executar>
+```
+
+### Template de Versão Fechada
 ```markdown
 ## X.Y.Z - YYYY-MM-DD
 
