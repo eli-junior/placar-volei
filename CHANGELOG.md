@@ -8,12 +8,26 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-### chore/ariad-multi-agent-branching-and-changelog
-- **História / Escopo**: Ajuste do processo Ariad: branches por história a partir da main, tracking em tempo real no changelog, assinatura de agente para colaboração multi-agente/handoff e sincronização remota contínua para evitar congelamento de trabalho por esgotamento de créditos.
-- **Branch**: `chore/ariad-multi-agent-branching-and-changelog`
-- **Passo Ariad**: Passo 7 - Conclusão e Merge (Checkpoint 4)
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Conversa: 1673960e-7e63-46ad-812f-f55dc2f95f2c | Data: 2026-09-14 17:14
-- **Handoff / Próximos Passos**: Aguardando confirmação do Navigator no Checkpoint 4 para realizar merge na branch principal (master) e arquivar no changelog fechado.
+*(Nenhum desenvolvimento ativo no momento)*
+
+## 0.2.1 - 2026-09-14
+
+Boundary: patch (governança Ariad: branches por história, tracking ativo no changelog, assinatura de agentes e sync remoto)
+
+Authors: Eli (Navigator); Antigravity (Driver)
+
+Git source: chore/ariad-multi-agent-branching-and-changelog (merge into master)
+
+### Added
+
+- Seção `## [Em Andamento]` no topo de `CHANGELOG.md` para monitoramento ativo de branches, passos do ciclo Ariad e notas de handoff.
+- Assinatura obrigatória de agentes (`Agente: <Nome> (Driver) | Conversa: <ID> | Data: YYYY-MM-DD HH:mm`) no changelog e commits.
+- Política de push remoto contínuo da branch de trabalho (`git push -u origin <branch>`) a cada checkpoint para proteção contra congelamento por esgotamento de créditos.
+
+### Changed
+
+- Princípios e regras do Ariad em `AGENTS.md` e `docs/process/development-guide.md` atualizados: mandatório criar branch a partir de `main`/`master` para qualquer novo desenvolvimento; commits diretos no tronco são proibidos.
+- Registro formal de decisão arquitetural no ADR `2026-09-14T1710Z-branches-por-historia-registro-changelog-e-assinatura-de-agentes.md`.
 
 ## 0.2.0 - 2026-09-14
 
