@@ -38,7 +38,9 @@ async def test_marcar_ponto_equipe_a_e_b():
 
         # Marca ponto para a Equipe A
         resp_ponto1 = await client.post(
-            f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"}
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "A"},
         )
         assert resp_ponto1.status_code == 201
         data1 = resp_ponto1.json()
@@ -51,6 +53,7 @@ async def test_marcar_ponto_equipe_a_e_b():
         # Marca ponto para a Equipe B
         resp_ponto2 = await client.post(
             f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
             json={"equipe": "b"},  # case-insensitive
         )
         assert resp_ponto2.status_code == 201
@@ -82,7 +85,9 @@ async def test_marcar_ponto_validacoes():
 
         # 1. Sem cookie de sessão
         resp_sem_auth = await client.post(
-            f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"}
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "A"},
         )
         assert resp_sem_auth.status_code == 401
 
@@ -90,7 +95,7 @@ async def test_marcar_ponto_validacoes():
         resp_nao_reg = await client.post(
             f"/api/quadras/{quadra_id}/pontos",
             json={"equipe": "A"},
-            headers={"x-session-id": "sessao-inexistente"},
+            headers={"x-control-version": "1", "x-session-id": "sessao-inexistente"},
         )
         assert resp_nao_reg.status_code == 403
 
@@ -105,7 +110,7 @@ async def test_marcar_ponto_validacoes():
         resp_inv = await client.post(
             f"/api/quadras/{quadra_id}/pontos",
             json={"equipe": "Z"},
-            headers={"x-session-id": "sessao-carlos"},
+            headers={"x-control-version": "1", "x-session-id": "sessao-carlos"},
         )
         assert resp_inv.status_code == 422
 
@@ -129,7 +134,11 @@ async def test_consultar_partida_quadra():
 
         # Entra e marca ponto
         await client.post(f"/api/quadras/{quadra_id}/entrar", json={"apelido": "Bia"})
-        await client.post(f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"})
+        await client.post(
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "A"},
+        )
 
         # Consulta após o ponto
         resp_pos = await client.get(f"/api/quadras/{quadra_id}/partida")
@@ -152,7 +161,9 @@ async def test_marcar_ponto_bloqueado_se_partida_encerrada():
         # Pontua 12 vezes para Time A
         for _ in range(12):
             resp = await client.post(
-                f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"}
+                f"/api/quadras/{quadra_id}/pontos",
+                headers={"x-control-version": "1"},
+                json={"equipe": "A"},
             )
             assert resp.status_code == 201
 
@@ -163,7 +174,9 @@ async def test_marcar_ponto_bloqueado_se_partida_encerrada():
 
         # Tentar marcar o 13º ponto deve ser rejeitado com 400
         resp_extra = await client.post(
-            f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"}
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "A"},
         )
         assert resp_extra.status_code == 400
         assert "encerrada" in resp_extra.json()["detail"].lower()
@@ -188,7 +201,9 @@ def test_websocket_broadcast_ponto():
 
             # Marca ponto via REST
             resp_ponto = client.post(
-                f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"}
+                f"/api/quadras/{quadra_id}/pontos",
+                headers={"x-control-version": "1"},
+                json={"equipe": "A"},
             )
             assert resp_ponto.status_code == 201
 

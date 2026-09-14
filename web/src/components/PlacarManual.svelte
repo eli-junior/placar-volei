@@ -55,7 +55,7 @@
 
   <!-- Banner de Vitória quando houver vencedor -->
   {#if encerrada && vencedorNome}
-    <div class="banner-vitoria" in:slide={{ duration: 250 }}>
+    <div class="banner-vitoria" in:slide={{ duration: prefersReducedMotion ? 0 : 250 }}>
       <span class="trofeu">🏆</span>
       <div class="vitoria-info">
         <span class="vitoria-label">FIM DE JOGO</span>
@@ -125,7 +125,7 @@
   <!-- Rodapé do modo imersivo: Dica sutil e Linha do Tempo -->
   <div class="rodape-imersivo">
     {#if modoImersivo}
-      <div class="dica-toque" in:fade={{ duration: 200 }}>
+      <div class="dica-toque" in:fade={{ duration: prefersReducedMotion ? 0 : 200 }}>
         <span class="dica-icone">👆</span>
         <span class="dica-texto">Toque na tela para opções</span>
       </div>

@@ -3,6 +3,7 @@
 
   let {
     itens = [],
+    prefersReducedMotion = false,
     equipeA = 'Equipe A',
     equipeB = 'Equipe B',
     pontosA = 0,
@@ -32,7 +33,7 @@
     if (listaEl && itens.length > 0) {
       setTimeout(() => {
         if (listaEl) {
-          listaEl.scrollTo({ top: listaEl.scrollHeight, behavior: 'smooth' });
+          listaEl.scrollTo({ top: listaEl.scrollHeight, behavior: prefersReducedMotion ? 'instant' : 'smooth' });
         }
       }, 50);
     }
@@ -49,14 +50,14 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="modal-backdrop" onclick={onFechar} in:fade={{ duration: 150 }}>
+<div class="modal-backdrop" onclick={onFechar} in:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>
   <!-- svelte-ignore a11y_click_events_have_key_events -->
   <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
   <div
     class="modal-sheet"
     tabindex="-1"
     onclick={(e) => e.stopPropagation()}
-    in:fly={{ y: 80, duration: 250 }}
+    in:fly={{ y: 80, duration: prefersReducedMotion ? 0 : 250 }}
     role="dialog"
     aria-modal="true"
     aria-labelledby="titulo-linha-tempo"
@@ -95,7 +96,7 @@
           {#each itens as item, index (item.id || item.seq)}
             <li
               class="card-lance {item.anulado ? 'lance-anulado' : ''} {item.tipo === 'PONTO_DESFEITO' ? 'lance-desfeito' : ''}"
-              in:slide={{ duration: 200 }}
+              in:slide={{ duration: prefersReducedMotion ? 0 : 200 }}
             >
               <!-- Marcador de Sequência e Ícone -->
               <div class="lance-lado">
@@ -110,6 +111,10 @@
                   </span>
                 {:else if item.tipo === 'PONTO_DESFEITO'}
                   <span class="lance-badge badge-desfeito">↺ Anulação</span>
+                {:else if item.tipo === 'CONTROLE_ASSUMIDO'}
+                  <span class="lance-badge badge-geral">Controle</span>
+                {:else if item.tipo === 'PAPEL_ALTERADO'}
+                  <span class="lance-badge badge-geral">Admin</span>
                 {:else if item.tipo === 'PARTIDA_ENCERRADA'}
                   <span class="lance-badge badge-fim">🏆 Vitória</span>
                 {:else}

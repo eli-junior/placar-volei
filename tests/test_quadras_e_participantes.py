@@ -108,7 +108,7 @@ async def test_primeiro_participante_vira_admin_segundo_espectador():
         part_eli = resp_entrar_eli.json()["participante"]
         assert part_eli["apelido"] == "Eli"
         assert part_eli["papel"] == "ADMIN"
-        assert "session_id" in client_eli.cookies
+        assert "placar_session_v3" in client_eli.cookies
 
     # Segundo cliente (sessão isolada, como segundo celular)
     async with httpx.AsyncClient(
@@ -121,7 +121,7 @@ async def test_primeiro_participante_vira_admin_segundo_espectador():
         part_carlos = resp_entrar_carlos.json()["participante"]
         assert part_carlos["apelido"] == "Carlos"
         assert part_carlos["papel"] == "ESPECTADOR"
-        assert "session_id" in client_carlos.cookies
+        assert "placar_session_v3" in client_carlos.cookies
 
         # Lista participantes da quadra
         resp_parts = await client_carlos.get(f"/api/quadras/{quadra_id}/participantes")

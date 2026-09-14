@@ -28,7 +28,9 @@ CREATE TABLE IF NOT EXISTS quadras (
     arena_id TEXT REFERENCES arenas(id),
     nome TEXT NOT NULL,
     criado_em TEXT NOT NULL,
-    atualizado_em TEXT NOT NULL
+    atualizado_em TEXT NOT NULL,
+    controle_id TEXT,
+    controle_versao INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS partidas (
@@ -45,7 +47,9 @@ CREATE TABLE IF NOT EXISTS participantes (
     apelido TEXT NOT NULL,
     papel TEXT NOT NULL,
     criado_em TEXT NOT NULL,
-    ultimo_visto_em TEXT NOT NULL
+    ultimo_visto_em TEXT NOT NULL,
+    session_hash TEXT NOT NULL,
+    UNIQUE(quadra_id, session_hash)
 );
 
 CREATE TABLE IF NOT EXISTS eventos (

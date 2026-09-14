@@ -15,6 +15,10 @@
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
     onVoltar,
+    onAssumirControle = () => {},
+    onAutorizarAdmin = (id) => {},
+    operando = false,
+    erro = null,
   } = $props();
 
   const CHAVE_GIRO = 'placar:girado';
@@ -51,8 +55,11 @@
   let girado = $state(giroInicial);
 
   const podeControlar = $derived(
-    eu?.papel === 'ADMIN' || eu?.papel === 'CONTROLADOR'
+    eu?.papel === 'ADMIN'
   );
+
+  const temControle = $derived(podeControlar && quadra?.controle_id === eu?.id);
+  const operador = $derived(participantes.find(p => p.id === quadra?.controle_id)?.apelido || (temControle ? eu?.apelido : 'aguardando atualização'));
 
   // Se o aparelho/monitor já é fisicamente paisagem (Desktop, tablet ou celular com auto-rotate)
   const paisagemNativa = $derived(viewportW > viewportH);
@@ -183,7 +190,7 @@
   class:em-modo-imersivo={modoImersivo && !podeControlar}
   class:tela-girada={telaGirada}
   style="--tela-w: {telaW}px; --tela-h: {telaH}px;"
-  in:fade={{ duration: 200 }}
+  in:fade={{ duration: prefersReducedMotion ? 0 : 200 }}
   onclick={tratarInteracaoUsuario}
   onpointerdown={tratarInteracaoUsuario}
   onkeydown={(e) => {
@@ -197,7 +204,7 @@
 >
   <!-- Top Bar com Botão Voltar e Status de Conexão -->
   {#if podeControlar || !modoImersivo}
-    <header class="sala-header" in:slide={{ duration: 200 }} out:slide={{ duration: 200 }}>
+    <header class="sala-header" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
       <button
         type="button"
         class="btn-voltar"
@@ -235,7 +242,7 @@
     </header>
 
     <!-- Quadra Title & Meu Perfil -->
-    <section class="quadra-hero" in:slide={{ duration: 200 }} out:slide={{ duration: 200 }}>
+    <section class="quadra-hero" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
       <!-- Banner com Código de 5 Dígitos da Sala -->
       <div class="codigo-sala-destaque">
         <div class="codigo-sala-info">
@@ -271,13 +278,26 @@
     </section>
   {/if}
 
+  <div class="controle-painel" aria-live="polite">
+    {#key quadra?.controle_id}
+      <span in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>Controle: <strong>{operador}</strong>{temControle ? ' (você)' : ''}</span>
+    {/key}
+    {#if podeControlar && !temControle}
+      <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir o controle</button>
+    {/if}
+    {#if !wsConectado}<span role="status">Reconectando… aguarde a atualização.</span>{/if}
+    {#if erro}<p role="alert">{erro}</p>{/if}
+  </div>
+
   <!-- Exibição do Placar -->
-  {#if podeControlar}
+  {#if !estadoPartida}
+    <p role="status">Carregando placar…</p>
+  {:else if podeControlar}
     <!-- Placar do Controlador com Botões Grandes de Marcação e Desfazer -->
     <Placar
       {estadoPartida}
-      {podeControlar}
-      desabilitado={!wsConectado}
+      podeControlar={temControle}
+      desabilitado={!wsConectado || operando}
       {onMarcarPonto}
       {onDesfazerPonto}
       onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
@@ -297,6 +317,7 @@
   <!-- Modal/Gaveta da Linha do Tempo (CV1.DS4.US1) -->
   {#if modalLinhaDoTempoAberto}
     <LinhaDoTempo
+      {prefersReducedMotion}
       itens={linhaDoTempo}
       equipeA={estadoPartida?.equipe_a || 'Equipe A'}
       equipeB={estadoPartida?.equipe_b || 'Equipe B'}
@@ -308,13 +329,18 @@
 
   <!-- Lista de Participantes em Tempo Real (oculta em modo imersivo) -->
   {#if podeControlar || !modoImersivo}
-    <div in:slide={{ duration: 200 }} out:slide={{ duration: 200 }}>
-      <ListaPresentes {participantes} euId={eu?.id} />
+    <div in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
+      <ListaPresentes {prefersReducedMotion} {participantes} euId={eu?.id} podeAutorizar={podeControlar} desabilitado={!wsConectado || operando} {onAutorizarAdmin} />
     </div>
   {/if}
 </div>
 
 <style>
+  .controle-painel { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 10px; color: var(--text-primary); }
+  .controle-painel p { color: #fca5a5; width: 100%; text-align: center; }
+  .btn-assumir { min-height: 48px; padding: 10px 20px; border: 0; border-radius: 10px; color: white; background: #0369a1; font-weight: 700; cursor: pointer; }
+  .btn-assumir:disabled { opacity: .5; cursor: not-allowed; }
+
   .sala-container {
     padding: max(18px, env(safe-area-inset-top))
       max(20px, env(safe-area-inset-right))

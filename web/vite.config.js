@@ -5,7 +5,7 @@ import path from 'path';
 export default defineConfig({
   plugins: [svelte()],
   build: {
-    outDir: path.resolve(__dirname, '../app/static'),
+    outDir: path.resolve(import.meta.dirname, '../app/static'),
     emptyOutDir: true,
   },
   server: {

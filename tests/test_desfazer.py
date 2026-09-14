@@ -32,12 +32,26 @@ async def test_desfazer_ponto_sucesso():
         await client.post(f"/api/quadras/{quadra_id}/entrar", json={"apelido": "Eli"})
 
         # Marca 2 pontos para A e 1 para B (placar 2x1)
-        await client.post(f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"})
-        await client.post(f"/api/quadras/{quadra_id}/pontos", json={"equipe": "B"})
-        await client.post(f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"})
+        await client.post(
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "A"},
+        )
+        await client.post(
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "B"},
+        )
+        await client.post(
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "A"},
+        )
 
         # Desfaz 1º ponto (deve anular o último ponto de A -> placar 1x1)
-        resp_d1 = await client.post(f"/api/quadras/{quadra_id}/desfazer")
+        resp_d1 = await client.post(
+            f"/api/quadras/{quadra_id}/desfazer", headers={"x-control-version": "1"}
+        )
         assert resp_d1.status_code == 200
         data1 = resp_d1.json()
         assert data1["evento"]["tipo"] == TipoEvento.PONTO_DESFEITO
@@ -45,13 +59,17 @@ async def test_desfazer_ponto_sucesso():
         assert data1["estado_partida"]["pontos_b"] == 1
 
         # Desfaz 2º ponto (deve anular o ponto de B -> placar 1x0)
-        resp_d2 = await client.post(f"/api/quadras/{quadra_id}/desfazer")
+        resp_d2 = await client.post(
+            f"/api/quadras/{quadra_id}/desfazer", headers={"x-control-version": "1"}
+        )
         assert resp_d2.status_code == 200
         assert resp_d2.json()["estado_partida"]["pontos_a"] == 1
         assert resp_d2.json()["estado_partida"]["pontos_b"] == 0
 
         # Desfaz 3º ponto (deve anular o primeiro ponto de A -> placar 0x0)
-        resp_d3 = await client.post(f"/api/quadras/{quadra_id}/desfazer")
+        resp_d3 = await client.post(
+            f"/api/quadras/{quadra_id}/desfazer", headers={"x-control-version": "1"}
+        )
         assert resp_d3.status_code == 200
         assert resp_d3.json()["estado_partida"]["pontos_a"] == 0
         assert resp_d3.json()["estado_partida"]["pontos_b"] == 0
@@ -74,7 +92,9 @@ async def test_desfazer_quando_placar_zerado():
         await client.post(f"/api/quadras/{quadra_id}/entrar", json={"apelido": "Ana"})
 
         # Placar em 0x0 -> desfazer deve falhar com 400
-        resp_desfazer = await client.post(f"/api/quadras/{quadra_id}/desfazer")
+        resp_desfazer = await client.post(
+            f"/api/quadras/{quadra_id}/desfazer", headers={"x-control-version": "1"}
+        )
         assert resp_desfazer.status_code == 400
         assert "nenhum ponto" in resp_desfazer.json()["detail"].lower()
 
@@ -92,13 +112,17 @@ async def test_desfazer_reverte_vitoria():
         # Pontua 12 vezes para A -> partida encerrada
         for _ in range(12):
             resp = await client.post(
-                f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"}
+                f"/api/quadras/{quadra_id}/pontos",
+                headers={"x-control-version": "1"},
+                json={"equipe": "A"},
             )
         assert resp.json()["estado_partida"]["encerrada"] is True
         assert resp.json()["estado_partida"]["vencedor"] == "A"
 
         # Desfaz o 12º ponto
-        resp_desfazer = await client.post(f"/api/quadras/{quadra_id}/desfazer")
+        resp_desfazer = await client.post(
+            f"/api/quadras/{quadra_id}/desfazer", headers={"x-control-version": "1"}
+        )
         assert resp_desfazer.status_code == 200
         estado = resp_desfazer.json()["estado_partida"]
         assert estado["pontos_a"] == 11
@@ -107,7 +131,9 @@ async def test_desfazer_reverte_vitoria():
 
         # Confirma que novos pontos podem ser marcados novamente
         resp_novo_ponto = await client.post(
-            f"/api/quadras/{quadra_id}/pontos", json={"equipe": "B"}
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "B"},
         )
         assert resp_novo_ponto.status_code == 201
         assert resp_novo_ponto.json()["estado_partida"]["pontos_b"] == 1
@@ -123,13 +149,15 @@ async def test_desfazer_validacoes_seguranca():
         quadra_id = resp_q.json()["id"]
 
         # 1. Sem autenticação
-        resp_sem_auth = await client.post(f"/api/quadras/{quadra_id}/desfazer")
+        resp_sem_auth = await client.post(
+            f"/api/quadras/{quadra_id}/desfazer", headers={"x-control-version": "1"}
+        )
         assert resp_sem_auth.status_code == 401
 
         # 2. Sessão não registrada
         resp_desconhecida = await client.post(
             f"/api/quadras/{quadra_id}/desfazer",
-            headers={"x-session-id": "sessao-fantasma"},
+            headers={"x-control-version": "1", "x-session-id": "sessao-fantasma"},
         )
         assert resp_desconhecida.status_code == 403
 
@@ -149,13 +177,19 @@ def test_websocket_broadcast_desfazer():
             assert ws.receive_json()["tipo"] == "PRESENCA_ATUALIZADA"
 
             # Marca ponto
-            client.post(f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"})
+            client.post(
+                f"/api/quadras/{quadra_id}/pontos",
+                headers={"x-control-version": "1"},
+                json={"equipe": "A"},
+            )
             msg_ponto = ws.receive_json()
             assert msg_ponto["tipo"] == "PLACAR_ATUALIZADO"
             assert msg_ponto["payload"]["estado_partida"]["pontos_a"] == 1
 
             # Desfaz ponto
-            resp_d = client.post(f"/api/quadras/{quadra_id}/desfazer")
+            resp_d = client.post(
+                f"/api/quadras/{quadra_id}/desfazer", headers={"x-control-version": "1"}
+            )
             assert resp_d.status_code == 200
 
             # Recebe broadcast do placar revertido
@@ -194,7 +228,7 @@ async def test_espectador_nao_pode_marcar_nem_desfazer_ponto():
         r_admin = await client.post(
             f"/api/quadras/{quadra_id}/pontos",
             json={"equipe": "A"},
-            headers={"x-session-id": "sessao-admin"},
+            headers={"x-control-version": "1", "x-session-id": "sessao-admin"},
         )
         assert r_admin.status_code == 201
 
@@ -202,25 +236,23 @@ async def test_espectador_nao_pode_marcar_nem_desfazer_ponto():
         r_esp_marca = await client.post(
             f"/api/quadras/{quadra_id}/pontos",
             json={"equipe": "A"},
-            headers={"x-session-id": "sessao-espectador"},
+            headers={"x-control-version": "1", "x-session-id": "sessao-espectador"},
         )
         assert r_esp_marca.status_code == 403
-        assert "administradores e controladores" in r_esp_marca.json()["detail"].lower()
+        assert "administradores" in r_esp_marca.json()["detail"].lower()
 
         # 5. Espectador tenta desfazer ponto -> 403 Forbidden
         r_esp_desfaz = await client.post(
             f"/api/quadras/{quadra_id}/desfazer",
-            headers={"x-session-id": "sessao-espectador"},
+            headers={"x-control-version": "1", "x-session-id": "sessao-espectador"},
         )
         assert r_esp_desfaz.status_code == 403
-        assert (
-            "administradores e controladores" in r_esp_desfaz.json()["detail"].lower()
-        )
+        assert "administradores" in r_esp_desfaz.json()["detail"].lower()
 
         # 6. Admin desfaz o ponto com sucesso -> 200 OK
         r_admin_desfaz = await client.post(
             f"/api/quadras/{quadra_id}/desfazer",
-            headers={"x-session-id": "sessao-admin"},
+            headers={"x-control-version": "1", "x-session-id": "sessao-admin"},
         )
         assert r_admin_desfaz.status_code == 200
         assert r_admin_desfaz.json()["estado_partida"]["pontos_a"] == 0

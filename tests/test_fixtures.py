@@ -204,7 +204,11 @@ async def test_recriar_banco_recupera_arenas_e_quadras_automaticamente(tmp_path:
         q1_id = quadras[0]["id"]
 
         await client.post(f"/api/quadras/{q1_id}/entrar", json={"apelido": "Jogador 1"})
-        await client.post(f"/api/quadras/{q1_id}/pontos", json={"equipe": "A"})
+        await client.post(
+            f"/api/quadras/{q1_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "A"},
+        )
 
     # 2. Simula apagar o banco de dados completamente (reset de banco)
     import gc

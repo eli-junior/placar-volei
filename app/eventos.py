@@ -1,6 +1,7 @@
 import asyncio
 import json
 import uuid
+from contextlib import nullcontext
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from typing import Any
@@ -17,6 +18,7 @@ class TipoEvento:
     PAPEL_ALTERADO = "PAPEL_ALTERADO"
     ADMIN_SUCEDIDO = "ADMIN_SUCEDIDO"
     ADMIN_ASSUMIDO = "ADMIN_ASSUMIDO"
+    CONTROLE_ASSUMIDO = "CONTROLE_ASSUMIDO"
 
 
 @dataclass(frozen=True)
@@ -47,8 +49,12 @@ def append_evento_sync(
     tipo: str,
     payload: dict[str, Any],
     autor_id: str | None = None,
+    *,
+    connection=None,
 ) -> Evento:
-    with get_db(db_path) as conn:
+    with nullcontext(connection) if connection is not None else get_db(db_path) as conn:
+        if connection is None:
+            conn.execute("BEGIN IMMEDIATE")
         cursor = conn.cursor()
         cursor.execute(
             "SELECT COALESCE(MAX(seq), 0) FROM eventos WHERE partida_id = ?",
@@ -76,7 +82,8 @@ def append_evento_sync(
                 criado_em,
             ),
         )
-        conn.commit()
+        if connection is None:
+            conn.commit()
 
         return Evento(
             id=evento_id,
@@ -111,8 +118,10 @@ async def append_evento(
         )
 
 
-def carregar_eventos_sync(db_path: str, partida_id: str) -> list[Evento]:
-    with get_db(db_path) as conn:
+def carregar_eventos_sync(
+    db_path: str, partida_id: str, *, connection=None
+) -> list[Evento]:
+    with nullcontext(connection) if connection is not None else get_db(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute(
             """

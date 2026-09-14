@@ -226,6 +226,12 @@ def projetar_linha_do_tempo(
                 alvo = int(payload["alvo"])
             descricao = f"Regra alterada: alvo {alvo} pts"
 
+        elif evento.tipo == TipoEvento.CONTROLE_ASSUMIDO:
+            descricao = f"{autor_apelido} assumiu o controle"
+
+        elif evento.tipo == TipoEvento.PAPEL_ALTERADO:
+            descricao = f"{autor_apelido} autorizou {evento.payload.get('apelido', 'participante')} como admin"
+
         elif evento.tipo == TipoEvento.PARTIDA_ENCERRADA:
             venc = evento.payload.get("vencedor")
             venc_nome = equipe_a if venc == "A" else (equipe_b if venc == "B" else venc)

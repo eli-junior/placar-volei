@@ -7,8 +7,13 @@ from typing import Any
 from app.config import settings
 from app.db import get_db
 from app.eventos import TipoEvento, append_evento_sync, get_quadra_lock
+from app.identidade import hash_sessao
 
 # --- ARENAS (Legado/Compatibilidade) ---
+
+
+class CapacidadeEsgotada(ValueError):
+    pass
 
 
 def criar_arena_sync(db_path: str, nome: str) -> dict[str, Any]:
@@ -17,6 +22,7 @@ def criar_arena_sync(db_path: str, nome: str) -> dict[str, Any]:
         raise ValueError("Nome da arena não pode ser vazio.")
 
     with get_db(db_path) as conn:
+        conn.execute("BEGIN IMMEDIATE")
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM arenas")
         (total,) = cursor.fetchone()
@@ -35,12 +41,12 @@ def criar_arena_sync(db_path: str, nome: str) -> dict[str, Any]:
             "INSERT INTO arenas (id, nome, criado_em) VALUES (?, ?, ?)",
             (arena_id, nome_limpo, agora),
         )
+        if settings.default_arenas_file:
+            from app.fixtures import adicionar_arena_fixture_sync
+
+            adicionar_arena_fixture_sync(settings.default_arenas_file, nome_limpo)
+
         conn.commit()
-
-    if settings.default_arenas_file:
-        from app.fixtures import adicionar_arena_fixture_sync
-
-        adicionar_arena_fixture_sync(settings.default_arenas_file, nome_limpo)
 
     return {
         "id": arena_id,
@@ -121,6 +127,7 @@ def limpar_quadras_expiradas_sync(db_path: str) -> int:
         datetime.now(UTC) - timedelta(seconds=settings.quadra_ttl_seconds)
     ).isoformat()
     with get_db(db_path) as conn:
+        conn.execute("BEGIN IMMEDIATE")
         cursor = conn.cursor()
         cursor.execute("PRAGMA table_info(quadras);")
         colunas = [row["name"] for row in cursor.fetchall()]
@@ -177,11 +184,12 @@ def criar_quadra_sync(
     limpar_quadras_expiradas_sync(db_path)
 
     with get_db(db_path) as conn:
+        conn.execute("BEGIN IMMEDIATE")
         cursor = conn.cursor()
         cursor.execute("SELECT COUNT(*) FROM quadras")
         (total_quadras,) = cursor.fetchone()
         if total_quadras >= settings.max_quadras:
-            raise ValueError(
+            raise CapacidadeEsgotada(
                 f"Limite máximo de {settings.max_quadras} quadras atingido."
             )
 
@@ -192,7 +200,7 @@ def criar_quadra_sync(
             )
             (total_arena,) = cursor.fetchone()
             if total_arena >= settings.max_quadras_por_arena:
-                raise ValueError(
+                raise CapacidadeEsgotada(
                     f"Limite máximo de {settings.max_quadras_por_arena} quadras para esta arena atingido."
                 )
             cursor.execute("SELECT nome FROM arenas WHERE id = ?", (arena_id,))
@@ -215,14 +223,21 @@ def criar_quadra_sync(
 
         participante = None
         if apelido and session_id:
-            participante_id = f"{quadra_id}:{session_id}"
+            participante_id = str(uuid.uuid4())
             apelido_limpo = apelido.strip()
             conn.execute(
                 """
-                INSERT INTO participantes (id, quadra_id, apelido, papel, criado_em, ultimo_visto_em)
-                VALUES (?, ?, ?, 'ADMIN', ?, ?)
+                INSERT INTO participantes (id, quadra_id, apelido, papel, criado_em, ultimo_visto_em, session_hash)
+                VALUES (?, ?, ?, 'ADMIN', ?, ?, ?)
                 """,
-                (participante_id, quadra_id, apelido_limpo, agora, agora),
+                (
+                    participante_id,
+                    quadra_id,
+                    apelido_limpo,
+                    agora,
+                    agora,
+                    hash_sessao(session_id),
+                ),
             )
             participante = {
                 "id": participante_id,
@@ -232,30 +247,35 @@ def criar_quadra_sync(
                 "criado_em": agora,
                 "ultimo_visto_em": agora,
             }
-        conn.commit()
-
-    # Registra o evento de partida iniciada com regra padrão
-    append_evento_sync(
-        db_path,
-        quadra_id=quadra_id,
-        partida_id=partida_id,
-        tipo=TipoEvento.PARTIDA_INICIADA,
-        payload={
-            "alvo": 12,
-            "vantagem": True,
-            "teto": None,
-            "equipe_a": "Equipe A",
-            "equipe_b": "Equipe B",
-        },
-        autor_id=participante["id"] if participante else None,
-    )
-
-    if settings.default_arenas_file and arena_nome:
-        from app.fixtures import adicionar_quadra_fixture_sync
-
-        adicionar_quadra_fixture_sync(
-            settings.default_arenas_file, arena_nome, nome_limpo
+        if participante:
+            conn.execute(
+                "UPDATE quadras SET controle_id = ?, controle_versao = 1 WHERE id = ?",
+                (participante["id"], quadra_id),
+            )
+        # Registra o evento de partida iniciada com regra padrão
+        append_evento_sync(
+            db_path,
+            quadra_id=quadra_id,
+            partida_id=partida_id,
+            tipo=TipoEvento.PARTIDA_INICIADA,
+            payload={
+                "alvo": 12,
+                "vantagem": True,
+                "teto": None,
+                "equipe_a": "Equipe A",
+                "equipe_b": "Equipe B",
+            },
+            autor_id=participante["id"] if participante else None,
+            connection=conn,
         )
+        if settings.default_arenas_file and arena_nome:
+            from app.fixtures import adicionar_quadra_fixture_sync
+
+            adicionar_quadra_fixture_sync(
+                settings.default_arenas_file, arena_nome, nome_limpo
+            )
+
+        conn.commit()
 
     resultado = {
         "id": quadra_id,
@@ -265,6 +285,8 @@ def criar_quadra_sync(
         "criado_em": agora,
         "atualizado_em": agora,
         "partida_id": partida_id,
+        "controle_id": participante["id"] if participante else None,
+        "controle_versao": 1 if participante else 0,
     }
     if participante:
         resultado["participante"] = participante
@@ -294,7 +316,7 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT q.id, q.arena_id, q.nome, q.criado_em, q.atualizado_em, a.nome as arena_nome
+            SELECT q.id, q.arena_id, q.nome, q.criado_em, q.atualizado_em, q.controle_id, q.controle_versao, a.nome as arena_nome
             FROM quadras q
             LEFT JOIN arenas a ON a.id = q.arena_id
             WHERE q.id = ?
@@ -320,6 +342,8 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
             "criado_em": quadra["criado_em"],
             "atualizado_em": quadra["atualizado_em"],
             "partida_id": partida_id,
+            "controle_id": quadra["controle_id"],
+            "controle_versao": quadra["controle_versao"],
         }
 
 
@@ -376,23 +400,25 @@ def registrar_participante_sync(
     apelido: str,
 ) -> dict[str, Any]:
     limpar_quadras_expiradas_sync(db_path)
-    participante_id = f"{quadra_id}:{session_id}"
+    participante_id = str(uuid.uuid4())
     agora = datetime.now(UTC).isoformat()
     apelido_limpo = apelido.strip()
 
     with get_db(db_path) as conn:
+        conn.execute("BEGIN IMMEDIATE")
         cursor = conn.cursor()
         cursor.execute("SELECT id FROM quadras WHERE id = ?", (quadra_id,))
         if not cursor.fetchone():
             raise ValueError("Quadra não encontrada ou já expirou por inatividade.")
 
         cursor.execute(
-            "SELECT id, quadra_id, apelido, papel, criado_em, ultimo_visto_em FROM participantes WHERE id = ?",
-            (participante_id,),
+            "SELECT id, quadra_id, apelido, papel, criado_em, ultimo_visto_em FROM participantes WHERE quadra_id = ? AND session_hash = ?",
+            (quadra_id, hash_sessao(session_id)),
         )
         existente = cursor.fetchone()
 
         if existente:
+            participante_id = existente["id"]
             cursor.execute(
                 "UPDATE participantes SET apelido = ?, ultimo_visto_em = ? WHERE id = ?",
                 (apelido_limpo, agora, participante_id),
@@ -418,18 +444,31 @@ def registrar_participante_sync(
         )
         (total_participantes,) = cursor.fetchone()
         if total_participantes >= settings.max_participantes_por_quadra:
-            raise ValueError(
+            raise CapacidadeEsgotada(
                 f"Limite máximo de {settings.max_participantes_por_quadra} participantes para esta quadra atingido."
             )
 
         papel = "ADMIN" if total_participantes == 0 else "ESPECTADOR"
+        if papel == "ADMIN":
+            conn.execute(
+                "UPDATE quadras SET controle_id = ?, controle_versao = 1 WHERE id = ?",
+                (participante_id, quadra_id),
+            )
 
         cursor.execute(
             """
-            INSERT INTO participantes (id, quadra_id, apelido, papel, criado_em, ultimo_visto_em)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO participantes (id, quadra_id, apelido, papel, criado_em, ultimo_visto_em, session_hash)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (participante_id, quadra_id, apelido_limpo, papel, agora, agora),
+            (
+                participante_id,
+                quadra_id,
+                apelido_limpo,
+                papel,
+                agora,
+                agora,
+                hash_sessao(session_id),
+            ),
         )
         cursor.execute(
             "UPDATE quadras SET atualizado_em = ? WHERE id = ?",
@@ -469,12 +508,11 @@ def obter_participante_sync(
     quadra_id: str,
     session_id: str,
 ) -> dict[str, Any] | None:
-    participante_id = f"{quadra_id}:{session_id}"
     with get_db(db_path) as conn:
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT id, quadra_id, apelido, papel, criado_em, ultimo_visto_em FROM participantes WHERE id = ?",
-            (participante_id,),
+            "SELECT id, quadra_id, apelido, papel, criado_em, ultimo_visto_em FROM participantes WHERE quadra_id = ? AND session_hash = ?",
+            (quadra_id, hash_sessao(session_id)),
         )
         row = cursor.fetchone()
         if not row:

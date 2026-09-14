@@ -1,12 +1,15 @@
+import asyncio
 import uuid
 from dataclasses import asdict
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
+from app.comandos import executar_sync
 from app.config import settings
-from app.eventos import TipoEvento, append_evento, carregar_eventos
+from app.eventos import carregar_eventos, get_quadra_lock
 from app.hub import hub
+from app.identidade import SESSION_COOKIE
 from app.projecao import projetar_estado, projetar_linha_do_tempo
 from app.quadras import (
     criar_arena,
@@ -18,7 +21,6 @@ from app.quadras import (
     obter_participante,
     obter_quadra,
     registrar_participante,
-    tocar_quadra,
 )
 
 router = APIRouter(prefix="/api", tags=["arenas_e_quadras"])
@@ -44,7 +46,7 @@ class EntrarQuadraBody(BaseModel):
 
 def extrair_ou_gerar_session_id(request: Request) -> tuple[str, bool]:
     session_id = request.headers.get("x-session-id") or request.cookies.get(
-        "session_id"
+        SESSION_COOKIE
     )
     if session_id:
         return session_id, False
@@ -70,6 +72,10 @@ async def post_arenas(body: CriarArenaBody):
         )
     try:
         arena = await criar_arena(settings.db_path, nome)
+    except OSError:
+        raise HTTPException(
+            503, "Não foi possível salvar a configuração. Tente novamente."
+        ) from None
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -116,6 +122,10 @@ async def post_arena_quadra(arena_id: str, body: CriarQuadraBody):
     )
     try:
         quadra = await criar_quadra(settings.db_path, arena_id=arena_id, nome=nome)
+    except OSError:
+        raise HTTPException(
+            503, "Não foi possível salvar a configuração. Tente novamente."
+        ) from None
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -147,7 +157,7 @@ async def post_quadras(
         session_id, is_new = extrair_ou_gerar_session_id(request)
         if is_new:
             response.set_cookie(
-                key="session_id",
+                key=SESSION_COOKIE,
                 value=session_id,
                 httponly=True,
                 samesite="lax",
@@ -163,6 +173,10 @@ async def post_quadras(
             session_id=session_id,
             apelido=apelido,
         )
+    except OSError:
+        raise HTTPException(
+            503, "Não foi possível salvar a configuração. Tente novamente."
+        ) from None
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -206,7 +220,7 @@ async def post_entrar_quadra(
     session_id, is_new = extrair_ou_gerar_session_id(request)
     if is_new:
         response.set_cookie(
-            key="session_id",
+            key=SESSION_COOKIE,
             value=session_id,
             httponly=True,
             samesite="lax",
@@ -221,6 +235,10 @@ async def post_entrar_quadra(
             session_id=session_id,
             apelido=apelido,
         )
+    except OSError:
+        raise HTTPException(
+            503, "Não foi possível salvar a configuração. Tente novamente."
+        ) from None
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -250,7 +268,7 @@ async def post_entrar_quadra(
 @router.get("/quadras/{quadra_id}/eu")
 async def get_eu(quadra_id: str, request: Request):
     session_id = request.headers.get("x-session-id") or request.cookies.get(
-        "session_id"
+        SESSION_COOKIE
     )
     if not session_id:
         return {"participante": None, "quadra": None}
@@ -303,192 +321,49 @@ async def get_partida_quadra(quadra_id: str):
     }
 
 
-@router.post("/quadras/{quadra_id}/pontos", status_code=status.HTTP_201_CREATED)
-async def post_marcar_ponto(
-    quadra_id: str,
-    body: MarcarPontoBody,
-    request: Request,
-):
-    quadra = await obter_quadra(settings.db_path, quadra_id)
-    if not quadra:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Quadra não encontrada.",
-        )
-
-    partida_id = quadra.get("partida_id")
-    if not partida_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Nenhuma partida ativa encontrada para esta quadra.",
-        )
-
+async def executar_comando(quadra_id: str, request: Request, acao: str, **kwargs):
     session_id = request.headers.get("x-session-id") or request.cookies.get(
-        "session_id"
+        SESSION_COOKIE
     )
-    if not session_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Participante não autenticado.",
+    async with get_quadra_lock(quadra_id):
+        resultado = await asyncio.to_thread(
+            executar_sync,
+            settings.db_path,
+            quadra_id,
+            session_id,
+            acao,
+            versao=request.headers.get("x-control-version"),
+            **kwargs,
         )
-
-    participante = await obter_participante(settings.db_path, quadra_id, session_id)
-    if not participante:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Participante não registrado nesta quadra.",
+        online = await hub.participantes_online(quadra_id)
+        for p in resultado["participantes"]:
+            p["online"] = p["id"] in online
+        await hub.broadcast(
+            quadra_id, {"tipo": "PLACAR_ATUALIZADO", "payload": resultado}
         )
+        return resultado
 
-    if participante["papel"] not in ("ADMIN", "CONTROLADOR"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Apenas administradores e controladores podem marcar pontos.",
-        )
 
-    equipe = body.equipe.strip().upper()
-    if equipe not in ("A", "B"):
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Equipe deve ser 'A' ou 'B'.",
-        )
+@router.post("/quadras/{quadra_id}/pontos", status_code=201)
+async def post_marcar_ponto(quadra_id: str, body: MarcarPontoBody, request: Request):
+    return await executar_comando(quadra_id, request, "pontos", equipe=body.equipe)
 
-    eventos_atuais = await carregar_eventos(settings.db_path, partida_id)
-    estado_atual = projetar_estado(eventos_atuais)
-    if estado_atual.encerrada:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="A partida já está encerrada.",
-        )
 
-    evento = await append_evento(
-        settings.db_path,
-        quadra_id=quadra_id,
-        partida_id=partida_id,
-        tipo=TipoEvento.PONTO_MARCADO,
-        payload={"equipe": equipe},
-        autor_id=participante["id"],
+@router.post("/quadras/{quadra_id}/desfazer")
+async def post_desfazer_ponto(quadra_id: str, request: Request):
+    return await executar_comando(quadra_id, request, "desfazer")
+
+
+@router.post("/quadras/{quadra_id}/controle/assumir")
+async def post_assumir_controle(quadra_id: str, request: Request):
+    return await executar_comando(quadra_id, request, "assumir")
+
+
+@router.post("/quadras/{quadra_id}/participantes/{participante_id}/admin")
+async def post_autorizar_admin(quadra_id: str, participante_id: str, request: Request):
+    return await executar_comando(
+        quadra_id, request, "autorizar", alvo_id=participante_id
     )
-    await tocar_quadra(settings.db_path, quadra_id)
-
-    novo_estado = projetar_estado([*eventos_atuais, evento])
-    estado_dict = asdict(novo_estado)
-    evento_dict = asdict(evento)
-
-    participantes = await listar_participantes(settings.db_path, quadra_id)
-    apelidos_map = {p["id"]: p["apelido"] for p in participantes}
-    todos_eventos = [*eventos_atuais, evento]
-    linha_itens = projetar_linha_do_tempo(todos_eventos, apelidos_map)
-
-    # Broadcast para todos os clientes WebSocket conectados na quadra
-    await hub.broadcast(
-        quadra_id,
-        {
-            "tipo": "PLACAR_ATUALIZADO",
-            "payload": {
-                "evento": evento_dict,
-                "estado_partida": estado_dict,
-                "linha_do_tempo": linha_itens,
-            },
-        },
-    )
-
-    return {
-        "evento": evento_dict,
-        "estado_partida": estado_dict,
-        "linha_do_tempo": linha_itens,
-    }
-
-
-@router.post("/quadras/{quadra_id}/desfazer", status_code=status.HTTP_200_OK)
-async def post_desfazer_ponto(
-    quadra_id: str,
-    request: Request,
-):
-    quadra = await obter_quadra(settings.db_path, quadra_id)
-    if not quadra:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Quadra não encontrada.",
-        )
-
-    partida_id = quadra.get("partida_id")
-    if not partida_id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Nenhuma partida ativa encontrada para esta quadra.",
-        )
-
-    session_id = request.headers.get("x-session-id") or request.cookies.get(
-        "session_id"
-    )
-    if not session_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Participante não autenticado.",
-        )
-
-    participante = await obter_participante(settings.db_path, quadra_id, session_id)
-    if not participante:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Participante não registrado nesta quadra.",
-        )
-
-    if participante["papel"] not in ("ADMIN", "CONTROLADOR"):
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Apenas administradores e controladores podem desfazer pontos.",
-        )
-
-    eventos_atuais = await carregar_eventos(settings.db_path, partida_id)
-    estado_atual = projetar_estado(eventos_atuais)
-
-    if not estado_atual.eventos_ativos_seq:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Nenhum ponto para desfazer.",
-        )
-
-    # O ponto a ser anulado é o último ponto marcado ativo no log
-    ref_seq = estado_atual.eventos_ativos_seq[-1]
-
-    evento = await append_evento(
-        settings.db_path,
-        quadra_id=quadra_id,
-        partida_id=partida_id,
-        tipo=TipoEvento.PONTO_DESFEITO,
-        payload={"ref_seq": ref_seq},
-        autor_id=participante["id"],
-    )
-    await tocar_quadra(settings.db_path, quadra_id)
-
-    novo_estado = projetar_estado([*eventos_atuais, evento])
-    estado_dict = asdict(novo_estado)
-    evento_dict = asdict(evento)
-
-    participantes = await listar_participantes(settings.db_path, quadra_id)
-    apelidos_map = {p["id"]: p["apelido"] for p in participantes}
-    todos_eventos = [*eventos_atuais, evento]
-    linha_itens = projetar_linha_do_tempo(todos_eventos, apelidos_map)
-
-    # Broadcast para todos os clientes WebSocket conectados na quadra
-    await hub.broadcast(
-        quadra_id,
-        {
-            "tipo": "PLACAR_ATUALIZADO",
-            "payload": {
-                "evento": evento_dict,
-                "estado_partida": estado_dict,
-                "linha_do_tempo": linha_itens,
-            },
-        },
-    )
-
-    return {
-        "evento": evento_dict,
-        "estado_partida": estado_dict,
-        "linha_do_tempo": linha_itens,
-    }
 
 
 @router.get("/quadras/{quadra_id}/linha-do-tempo", status_code=status.HTTP_200_OK)

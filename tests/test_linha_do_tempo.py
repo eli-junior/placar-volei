@@ -138,11 +138,21 @@ async def test_api_endpoint_linha_do_tempo():
         assert data["itens"][0]["tipo"] == TipoEvento.PARTIDA_INICIADA
 
         # 4. Marca ponto para A e ponto para B
-        await client.post(f"/api/quadras/{quadra_id}/pontos", json={"equipe": "A"})
-        await client.post(f"/api/quadras/{quadra_id}/pontos", json={"equipe": "B"})
+        await client.post(
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "A"},
+        )
+        await client.post(
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "B"},
+        )
 
         # 5. Desfaz último ponto (B)
-        res_undo = await client.post(f"/api/quadras/{quadra_id}/desfazer")
+        res_undo = await client.post(
+            f"/api/quadras/{quadra_id}/desfazer", headers={"x-control-version": "1"}
+        )
         assert res_undo.status_code == 200
         assert "linha_do_tempo" in res_undo.json()
 

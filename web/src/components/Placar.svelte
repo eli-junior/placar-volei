@@ -95,7 +95,7 @@
   }
 </script>
 
-<section class="placar-card" in:slide={{ duration: 250 }}>
+<section class="placar-card" in:slide={{ duration: prefersReducedMotion ? 0 : 250 }}>
   <!-- Cabeçalho de regras da partida e botão Linha do Tempo -->
   <div class="placar-header">
     <div class="header-left">
@@ -120,7 +120,7 @@
 
   <!-- Banner de encerramento quando houver vencedor -->
   {#if encerrada && vencedorNome}
-    <div class="banner-vitoria" in:slide={{ duration: 250 }}>
+    <div class="banner-vitoria" in:slide={{ duration: prefersReducedMotion ? 0 : 250 }}>
       <span class="trofeu">🏆</span>
       <div class="vitoria-texto">
         <span class="vitoria-titulo">Fim de Jogo!</span>

@@ -5,12 +5,24 @@ import os
 import tempfile
 import uuid
 from datetime import UTC, datetime
+from functools import wraps
 from pathlib import Path
+from threading import RLock
 from typing import Any
 
 from app.db import get_db
 
 logger = logging.getLogger(__name__)
+_fixture_lock = RLock()
+
+
+def serializar_fixture(fn):
+    @wraps(fn)
+    def executar(*args, **kwargs):
+        with _fixture_lock:
+            return fn(*args, **kwargs)
+
+    return executar
 
 
 def resolver_caminho_fixture(caminho: str) -> str | None:
@@ -115,9 +127,14 @@ def salvar_fixtures_arenas(caminho: str, arenas: list[dict[str, Any]]) -> None:
         tf.write(conteudo)
         temp_name = tf.name
 
-    os.replace(temp_name, caminho_real)
+    try:
+        os.replace(temp_name, caminho_real)
+    finally:
+        if os.path.exists(temp_name):
+            os.unlink(temp_name)
 
 
+@serializar_fixture
 def adicionar_arena_fixture_sync(caminho: str, arena_nome: str) -> None:
     """Adiciona uma nova arena ao arquivo de fixtures se ainda não existir."""
     nome_limpo = arena_nome.strip()
@@ -134,6 +151,7 @@ def adicionar_arena_fixture_sync(caminho: str, arena_nome: str) -> None:
     salvar_fixtures_arenas(caminho_real, arenas)
 
 
+@serializar_fixture
 def adicionar_quadra_fixture_sync(
     caminho: str, arena_nome: str, quadra_nome: str
 ) -> None:
@@ -172,7 +190,13 @@ def sincronizar_fixtures_para_db_sync(db_path: str, fixture_path: str) -> None:
         )
         return
 
-    from app.quadras import criar_quadra_sync
+    from app.quadras import (
+        CapacidadeEsgotada,
+        criar_quadra_sync,
+        limpar_quadras_expiradas_sync,
+    )
+
+    limpar_quadras_expiradas_sync(db_path)
 
     # 1. Carrega todas as arenas existentes no SQLite (fecha a conexão em seguida)
     arenas_existentes: dict[str, str] = {}
@@ -214,7 +238,13 @@ def sincronizar_fixtures_para_db_sync(db_path: str, fixture_path: str) -> None:
             q_nome_limpo = q_nome.strip()
             chave = (arena_id, q_nome_limpo.lower())
             if chave not in quadras_existentes:
-                criar_quadra_sync(db_path, arena_id=arena_id, nome=q_nome_limpo)
+                try:
+                    criar_quadra_sync(db_path, arena_id=arena_id, nome=q_nome_limpo)
+                except CapacidadeEsgotada:
+                    logger.info(
+                        "Fixture adiada por falta de capacidade: %s", q_nome_limpo
+                    )
+                    continue
                 quadras_existentes.add(chave)
                 logger.info(
                     "Quadra criada a partir da fixture: %s na arena %s",

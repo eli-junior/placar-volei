@@ -1,10 +1,10 @@
 <script>
   import { slide, fade } from 'svelte/transition';
 
-  let { participantes = [], euId = null } = $props();
+  let { participantes = [], euId = null, prefersReducedMotion = false, podeAutorizar = false, desabilitado = false, onAutorizarAdmin = (id) => {} } = $props();
 </script>
 
-<div class="presentes-card" in:fade>
+<div class="presentes-card" in:fade={{ duration: prefersReducedMotion ? 0 : 200 }}>
   <div class="card-header">
     <div class="header-left">
       <span class="icon">👥</span>
@@ -18,7 +18,7 @@
       <p class="empty-text">Nenhum participante conectado ainda.</p>
     {:else}
       {#each participantes as p (p.id)}
-        <div class="participante-row" in:slide={{ duration: 200 }}>
+        <div class="participante-row" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
           <div class="participante-info">
             <span
               class="status-dot {p.online ? 'status-online' : 'status-offline'}"
@@ -32,6 +32,9 @@
             </span>
           </div>
 
+          {#if podeAutorizar && p.papel !== 'ADMIN'}
+            <button class="autorizar" disabled={desabilitado} onclick={() => onAutorizarAdmin(p.id)} aria-label={`Autorizar ${p.apelido} como admin`}>Tornar admin</button>
+          {/if}
           <span class="badge {p.papel === 'ADMIN' ? 'badge-admin' : 'badge-espectador'}">
             {p.papel}
           </span>
@@ -42,6 +45,8 @@
 </div>
 
 <style>
+  .autorizar { min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1px solid #38bdf8; background: transparent; color: #38bdf8; cursor: pointer; }
+  .participante-row { flex-wrap: wrap; gap: 10px; }
   .presentes-card {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
