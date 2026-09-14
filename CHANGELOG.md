@@ -8,7 +8,12 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-*(Nenhum desenvolvimento ativo no momento)*
+### feature/cv1-ds2-us1-promover-e-revogar-controladores
+- **História / Escopo**: CV1.DS2.US1 — Admin promove e revogar controladores
+- **Branch**: `feature/cv1-ds2-us1-promover-e-revogar-controladores`
+- **Passo Ariad**: Passo 2 - Planejamento
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 7bb92112-8818-44ae-87d5-4e2d9a077f33 | Data: 2026-09-14 18:38
+- **Handoff / Próximos Passos**: Apresentar plano no Checkpoint 1 e aguardar aprovação do Navigator para iniciar implementação.
 
 ## 0.3.0 - 2026-09-14
 
