@@ -7,6 +7,7 @@
     desabilitado = false,
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
+    onAbrirLinhaDoTempo = () => {},
   } = $props();
 
   let submetendo = $state(false);
@@ -94,14 +95,26 @@
 </script>
 
 <section class="placar-card" in:slide={{ duration: 250 }}>
-  <!-- Cabeçalho de regras da partida -->
+  <!-- Cabeçalho de regras da partida e botão Linha do Tempo -->
   <div class="placar-header">
-    <span class="placar-badge">Set Único</span>
-    <span class="placar-regra">
-      Alvo: {alvo} pts
-      {#if vantagem}• Vantagem de 2{/if}
-      {#if teto}• Teto: {teto}{/if}
-    </span>
+    <div class="header-left">
+      <span class="placar-badge">Set Único</span>
+      <span class="placar-regra">
+        Alvo: {alvo} pts
+        {#if vantagem}• Vantagem{/if}
+        {#if teto}• Teto: {teto}{/if}
+      </span>
+    </div>
+
+    <button
+      type="button"
+      class="btn-lt-toggle"
+      onclick={onAbrirLinhaDoTempo}
+      aria-label="Abrir linha do tempo da partida"
+    >
+      <span class="lt-icon">📜</span>
+      <span class="lt-label">Linha do Tempo</span>
+    </button>
   </div>
 
   <!-- Banner de encerramento quando houver vencedor -->
@@ -221,6 +234,49 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 4px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-lt-toggle {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn-lt-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .btn-lt-toggle:active {
+    transform: scale(0.96);
+  }
+
+  .lt-icon {
+    font-size: 0.85rem;
+  }
+
+  .lt-label {
+    letter-spacing: 0.02em;
   }
 
   .placar-badge {

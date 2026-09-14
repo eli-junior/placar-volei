@@ -1,0 +1,26 @@
+# Contexto de build enxuto para o Docker
+.env
+.env.*
+.git
+.gitignore
+docs/
+tests/
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.db
+*.db-wal
+*.db-shm
+*.sqlite
+data/
+node_modules/
+web/node_modules/
+web/dist/
+web/build/
+.vite/
+Dockerfile
+docker-compose.yml
+.dockerignore

@@ -6,9 +6,9 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Fase inicial. Fundação (`CV1.DS1.TS1`), criação de arenas, quadras e entrada por apelido (`CV1.DS1.US1`), marcação de pontos em tempo real (`CV1.DS1.US2`) e desfazer ponto a ponto até zerar com permissão por papel (`CV1.DS1.US3`) concluídas e testadas.
+Fase inicial. Fundação (`CV1.DS1.TS1`), criação de arenas, quadras e entrada por apelido (`CV1.DS1.US1`), marcação de pontos em tempo real (`CV1.DS1.US2`), desfazer ponto a ponto (`CV1.DS1.US3`), linha do tempo auditável ao vivo (`CV1.DS4.US1`) e empacotamento Docker multi-estágio (`CV1.DS1.TS2`) concluídos e testados.
 
-Próximo trabalho: `CV1.DS4.US1` — linha do tempo da partida.
+Próximo trabalho: `CV1.DS1.US4` — encerramento formal da partida e reinício para a próxima pelada.
 
 ## Como funciona
 

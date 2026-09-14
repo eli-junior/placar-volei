@@ -15,6 +15,7 @@
   let eu = $state(null);
   let participantes = $state([]);
   let estadoPartida = $state(null);
+  let linhaDoTempo = $state([]);
   let loading = $state(true);
   let submetendo = $state(false);
 
@@ -102,11 +103,17 @@
           if (msg.payload.estado_partida) {
             estadoPartida = msg.payload.estado_partida;
           }
+          if (msg.payload.linha_do_tempo) {
+            linhaDoTempo = msg.payload.linha_do_tempo;
+          }
         } else if (msg.tipo === 'PRESENCA_ATUALIZADA') {
           participantes = msg.payload.participantes || [];
         } else if (msg.tipo === 'PLACAR_ATUALIZADO') {
           if (msg.payload.estado_partida) {
             estadoPartida = msg.payload.estado_partida;
+          }
+          if (msg.payload.linha_do_tempo) {
+            linhaDoTempo = msg.payload.linha_do_tempo;
           }
         }
       } catch (e) {
@@ -240,6 +247,9 @@
         if (data.estado_partida) {
           estadoPartida = data.estado_partida;
         }
+        if (data.linha_do_tempo) {
+          linhaDoTempo = data.linha_do_tempo;
+        }
       } else {
         const err = await res.json();
         console.warn('Erro ao marcar ponto:', err.detail);
@@ -260,6 +270,9 @@
         const data = await res.json();
         if (data.estado_partida) {
           estadoPartida = data.estado_partida;
+        }
+        if (data.linha_do_tempo) {
+          linhaDoTempo = data.linha_do_tempo;
         }
       } else {
         const err = await res.json();
@@ -283,6 +296,7 @@
     eu = null;
     participantes = [];
     estadoPartida = null;
+    linhaDoTempo = [];
 
     if (arenaId) {
       window.history.pushState({}, '', `/arena/${arenaId}`);
@@ -352,6 +366,7 @@
       {eu}
       {participantes}
       {estadoPartida}
+      {linhaDoTempo}
       {wsConectado}
       onMarcarPonto={handleMarcarPonto}
       onDesfazerPonto={handleDesfazerPonto}

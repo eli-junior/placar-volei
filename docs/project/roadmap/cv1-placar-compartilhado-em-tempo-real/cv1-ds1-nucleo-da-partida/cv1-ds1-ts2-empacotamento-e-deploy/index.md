@@ -1,9 +1,9 @@
 ---
 code: CV1.DS1.TS2
 level: Technical Story
-status: Planned
-status_reason: necessária antes da primeira pelada real; surgiu como risco no plano da TS1
-updated: 2026-09-13
+status: Done
+status_reason: Dockerfile multi-estágio e docker-compose.yml criados e configurados com volume para SQLite
+updated: 2026-09-14
 related:
   - CV1.DS1.TS1
   - 2026-09-13T1425Z-stack-do-frontend

@@ -1,9 +1,9 @@
 ---
 code: CV1.DS4
 level: Delivery Story
-status: Planned
-status_reason: depende do event store entregue em DS1.TS1
-updated: 2026-09-13
+status: Done
+status_reason: entregue com CV1.DS4.US1 (linha do tempo ao vivo)
+updated: 2026-09-14
 related:
   - 2026-09-13T1400Z-log-de-eventos-como-fonte-da-verdade
 ---

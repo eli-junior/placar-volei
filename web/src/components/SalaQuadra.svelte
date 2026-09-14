@@ -2,17 +2,21 @@
   import { fade } from 'svelte/transition';
   import ListaPresentes from './ListaPresentes.svelte';
   import Placar from './Placar.svelte';
+  import LinhaDoTempo from './LinhaDoTempo.svelte';
 
   let {
     quadra,
     eu,
     participantes = [],
     estadoPartida = null,
+    linhaDoTempo = [],
     wsConectado = false,
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
     onVoltar,
   } = $props();
+
+  let modalLinhaDoTempoAberto = $state(false);
 
   const podeControlar = $derived(
     eu?.papel === 'ADMIN' || eu?.papel === 'CONTROLADOR'
@@ -55,14 +59,27 @@
     </div>
   </section>
 
-  <!-- Placar Interativo em Tempo Real (US2 & US3) -->
+  <!-- Placar Interativo em Tempo Real (US2 & US3 & US4.US1) -->
   <Placar
     {estadoPartida}
     {podeControlar}
     desabilitado={!wsConectado}
     {onMarcarPonto}
     {onDesfazerPonto}
+    onAbrirLinhaDoTempo={() => { modalLinhaDoTempoAberto = true; }}
   />
+
+  <!-- Modal/Gaveta da Linha do Tempo (CV1.DS4.US1) -->
+  {#if modalLinhaDoTempoAberto}
+    <LinhaDoTempo
+      itens={linhaDoTempo}
+      equipeA={estadoPartida?.equipe_a || 'Equipe A'}
+      equipeB={estadoPartida?.equipe_b || 'Equipe B'}
+      pontosA={estadoPartida?.pontos_a ?? 0}
+      pontosB={estadoPartida?.pontos_b ?? 0}
+      onFechar={() => { modalLinhaDoTempoAberto = false; }}
+    />
+  {/if}
 
   <!-- Lista de Participantes em Tempo Real -->
   <ListaPresentes {participantes} euId={eu?.id} />

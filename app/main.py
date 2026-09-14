@@ -11,7 +11,7 @@ from app.config import settings
 from app.db import init_db
 from app.eventos import carregar_eventos
 from app.hub import hub
-from app.projecao import projetar_estado
+from app.projecao import projetar_estado, projetar_linha_do_tempo
 from app.quadras import listar_participantes, obter_quadra
 
 
@@ -54,16 +54,20 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
     try:
         # Carrega estado inicial da quadra
         quadra = await obter_quadra(settings.db_path, quadra_id)
-        if quadra and quadra.get("partida_id"):
-            eventos = await carregar_eventos(settings.db_path, quadra["partida_id"])
-            estado_partida = projetar_estado(eventos)
-        else:
-            estado_partida = projetar_estado([])
-
         participantes = await listar_participantes(settings.db_path, quadra_id)
         online_set = await hub.participantes_online(quadra_id)
         for p in participantes:
             p["online"] = p["id"] in online_set
+
+        apelidos_map = {p["id"]: p["apelido"] for p in participantes}
+
+        if quadra and quadra.get("partida_id"):
+            eventos = await carregar_eventos(settings.db_path, quadra["partida_id"])
+            estado_partida = projetar_estado(eventos)
+            linha_do_tempo = projetar_linha_do_tempo(eventos, apelidos_map)
+        else:
+            estado_partida = projetar_estado([])
+            linha_do_tempo = []
 
         # Envia estado inicial ao cliente conectado
         await websocket.send_json(
@@ -83,6 +87,7 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
                         "encerrada": estado_partida.encerrada,
                         "vencedor": estado_partida.vencedor,
                     },
+                    "linha_do_tempo": linha_do_tempo,
                     "participantes": participantes,
                 },
             }

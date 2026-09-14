@@ -7,7 +7,7 @@ from pydantic import BaseModel, Field
 from app.config import settings
 from app.eventos import TipoEvento, append_evento, carregar_eventos
 from app.hub import hub
-from app.projecao import projetar_estado
+from app.projecao import projetar_estado, projetar_linha_do_tempo
 from app.quadras import (
     criar_arena,
     criar_quadra,
@@ -361,6 +361,11 @@ async def post_marcar_ponto(
     estado_dict = asdict(novo_estado)
     evento_dict = asdict(evento)
 
+    participantes = await listar_participantes(settings.db_path, quadra_id)
+    apelidos_map = {p["id"]: p["apelido"] for p in participantes}
+    todos_eventos = [*eventos_atuais, evento]
+    linha_itens = projetar_linha_do_tempo(todos_eventos, apelidos_map)
+
     # Broadcast para todos os clientes WebSocket conectados na quadra
     await hub.broadcast(
         quadra_id,
@@ -369,6 +374,7 @@ async def post_marcar_ponto(
             "payload": {
                 "evento": evento_dict,
                 "estado_partida": estado_dict,
+                "linha_do_tempo": linha_itens,
             },
         },
     )
@@ -376,6 +382,7 @@ async def post_marcar_ponto(
     return {
         "evento": evento_dict,
         "estado_partida": estado_dict,
+        "linha_do_tempo": linha_itens,
     }
 
 
@@ -445,6 +452,11 @@ async def post_desfazer_ponto(
     estado_dict = asdict(novo_estado)
     evento_dict = asdict(evento)
 
+    participantes = await listar_participantes(settings.db_path, quadra_id)
+    apelidos_map = {p["id"]: p["apelido"] for p in participantes}
+    todos_eventos = [*eventos_atuais, evento]
+    linha_itens = projetar_linha_do_tempo(todos_eventos, apelidos_map)
+
     # Broadcast para todos os clientes WebSocket conectados na quadra
     await hub.broadcast(
         quadra_id,
@@ -453,6 +465,7 @@ async def post_desfazer_ponto(
             "payload": {
                 "evento": evento_dict,
                 "estado_partida": estado_dict,
+                "linha_do_tempo": linha_itens,
             },
         },
     )
@@ -460,4 +473,26 @@ async def post_desfazer_ponto(
     return {
         "evento": evento_dict,
         "estado_partida": estado_dict,
+        "linha_do_tempo": linha_itens,
     }
+
+
+@router.get("/quadras/{quadra_id}/linha-do-tempo", status_code=status.HTTP_200_OK)
+async def get_linha_do_tempo(quadra_id: str):
+    quadra = await obter_quadra(settings.db_path, quadra_id)
+    if not quadra:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quadra não encontrada.",
+        )
+
+    partida_id = quadra.get("partida_id")
+    if not partida_id:
+        return {"itens": []}
+
+    eventos = await carregar_eventos(settings.db_path, partida_id)
+    participantes = await listar_participantes(settings.db_path, quadra_id)
+    apelidos_map = {p["id"]: p["apelido"] for p in participantes}
+
+    itens = projetar_linha_do_tempo(eventos, apelidos_map)
+    return {"itens": itens}
