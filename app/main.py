@@ -114,10 +114,12 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
             except TimeoutError:
                 pass
             atual = await obter_quadra(settings.db_path, quadra_id)
-            if not atual or atual["partida_id"] != inicial["partida_id"]:
+            if not atual:
                 await websocket.send_json({"tipo": "SALA_EXPIRADA", "payload": {}})
                 await websocket.close(code=4404)
                 return
+            if atual["partida_id"] != inicial["partida_id"]:
+                inicial["partida_id"] = atual["partida_id"]
     except (WebSocketDisconnect, RuntimeError, OSError):
         pass
     finally:

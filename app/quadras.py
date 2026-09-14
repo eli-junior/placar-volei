@@ -328,7 +328,7 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
             return None
 
         cursor.execute(
-            "SELECT id FROM partidas WHERE quadra_id = ? AND status = 'EM_ANDAMENTO' ORDER BY criado_em DESC LIMIT 1",
+            "SELECT id FROM partidas WHERE quadra_id = ? ORDER BY criado_em DESC LIMIT 1",
             (quadra_id,),
         )
         partida = cursor.fetchone()

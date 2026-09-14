@@ -15,7 +15,7 @@ def snapshot(conn, quadra_id):
     if not quadra:
         raise HTTPException(404, "Sala não encontrada ou expirada.")
     partida = conn.execute(
-        "SELECT id FROM partidas WHERE quadra_id = ? AND status = 'EM_ANDAMENTO' ORDER BY criado_em DESC LIMIT 1",
+        "SELECT id FROM partidas WHERE quadra_id = ? ORDER BY criado_em DESC LIMIT 1",
         (quadra_id,),
     ).fetchone()
     eventos = carregar_eventos_sync(settings.db_path, partida["id"], connection=conn)
@@ -126,6 +126,50 @@ def executar_sync(
                     "papel": "ADMIN",
                 },
             )
+        elif acao == "reiniciar":
+            if quadra["controle_id"] != autor["id"]:
+                raise HTTPException(
+                    403, "Apenas quem está no controle pode iniciar uma nova partida."
+                )
+            estado = atual["estado_partida"]
+            if not estado["encerrada"]:
+                raise HTTPException(400, "A partida atual ainda não foi encerrada.")
+
+            agora = datetime.now(UTC).isoformat()
+            conn.execute(
+                "UPDATE partidas SET status = 'ENCERRADA', encerrado_em = COALESCE(encerrado_em, ?) WHERE id = ?",
+                (agora, atual["partida_id"]),
+            )
+            import uuid
+
+            nova_partida_id = str(uuid.uuid4())
+            conn.execute(
+                "INSERT INTO partidas (id, quadra_id, status, criado_em) VALUES (?, ?, 'EM_ANDAMENTO', ?)",
+                (nova_partida_id, quadra_id, agora),
+            )
+            payload_nova = {
+                "alvo": estado["alvo"],
+                "vantagem": estado["vantagem"],
+                "teto": estado["teto"],
+                "equipe_a": estado["equipe_a"],
+                "equipe_b": estado["equipe_b"],
+            }
+            evento = append_evento_sync(
+                db_path,
+                quadra_id,
+                nova_partida_id,
+                TipoEvento.PARTIDA_INICIADA,
+                payload_nova,
+                autor["id"],
+                connection=conn,
+            )
+            conn.execute(
+                "UPDATE quadras SET atualizado_em = ? WHERE id = ?",
+                (agora, quadra_id),
+            )
+            resultado = snapshot(conn, quadra_id)
+            resultado["evento"] = asdict(evento)
+            return resultado
         else:
             raise ValueError("Comando desconhecido.")
         evento = append_evento_sync(
@@ -137,6 +181,47 @@ def executar_sync(
             autor["id"],
             connection=conn,
         )
+
+        # Se foi ponto marcado, verifica se a partida encerrou para gravar PARTIDA_ENCERRADA
+        if tipo == TipoEvento.PONTO_MARCADO:
+            eventos_partida = carregar_eventos_sync(
+                db_path, atual["partida_id"], connection=conn
+            )
+            novo_estado = projetar_estado(eventos_partida)
+            if novo_estado.encerrada:
+                append_evento_sync(
+                    db_path,
+                    quadra_id,
+                    atual["partida_id"],
+                    TipoEvento.PARTIDA_ENCERRADA,
+                    {
+                        "vencedor": novo_estado.vencedor,
+                        "pontos_a": novo_estado.pontos_a,
+                        "pontos_b": novo_estado.pontos_b,
+                        "alvo": novo_estado.alvo,
+                        "vantagem": novo_estado.vantagem,
+                        "teto": novo_estado.teto,
+                    },
+                    autor["id"],
+                    connection=conn,
+                )
+                conn.execute(
+                    "UPDATE partidas SET status = 'ENCERRADA', encerrado_em = ? WHERE id = ?",
+                    (datetime.now(UTC).isoformat(), atual["partida_id"]),
+                )
+
+        # Se foi ponto desfeito, verifica se a partida foi reaberta
+        elif tipo == TipoEvento.PONTO_DESFEITO:
+            eventos_partida = carregar_eventos_sync(
+                db_path, atual["partida_id"], connection=conn
+            )
+            novo_estado = projetar_estado(eventos_partida)
+            if not novo_estado.encerrada:
+                conn.execute(
+                    "UPDATE partidas SET status = 'EM_ANDAMENTO', encerrado_em = NULL WHERE id = ?",
+                    (atual["partida_id"],),
+                )
+
         conn.execute(
             "UPDATE quadras SET atualizado_em = ? WHERE id = ?",
             (datetime.now(UTC).isoformat(), quadra_id),

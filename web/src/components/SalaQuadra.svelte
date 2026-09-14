@@ -14,6 +14,7 @@
     wsConectado = false,
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
+    onIniciarNovaPartida = () => {},
     onVoltar,
     onAssumirControle = () => {},
     onAutorizarAdmin = (id) => {},
@@ -300,6 +301,7 @@
       desabilitado={!wsConectado || operando}
       {onMarcarPonto}
       {onDesfazerPonto}
+      {onIniciarNovaPartida}
       onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
     />
   {:else}

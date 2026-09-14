@@ -6,9 +6,9 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Fase inicial. Fundação (`CV1.DS1.TS1`), criação de arenas, quadras e entrada por apelido (`CV1.DS1.US1`), marcação de pontos em tempo real (`CV1.DS1.US2`), desfazer ponto a ponto (`CV1.DS1.US3`), linha do tempo auditável ao vivo (`CV1.DS4.US1`), empacotamento Docker multi-estágio (`CV1.DS1.TS2`), modo imersivo com placar dobrável manual para espectador (`CV1.DS1.US5`) e fixtures declarativas de arenas e quadras (`CV1.DS1.TS3`) concluídos e testados.
+Fase inicial. Núcleo completo da partida (`CV1.DS1`) concluído e testado: fundação (`TS1`), criação de arenas, quadras e salas por código PIN (`US1`), marcação de pontos em tempo real (`US2`), desfazer ponto a ponto (`US3`), encerramento de partida e reinício sob demanda (`US4`), empacotamento Docker multi-estágio (`TS2`), modo imersivo com placar dobrável manual para espectador (`US5`), fixtures declarativas (`TS3`) e linha do tempo auditável ao vivo (`CV1.DS4.US1`).
 
-Próximo trabalho: `CV1.DS1.US4` — encerramento formal da partida e reinício para a próxima pelada.
+Próximo trabalho: `CV1.DS2` — controle e permissões (promover e revogar controladores, sucessão de admin e rate-limiting).
 
 ## Como funciona
 
