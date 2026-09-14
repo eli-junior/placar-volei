@@ -6,16 +6,16 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Fase inicial. Núcleo completo da partida (`CV1.DS1`) concluído e testado: fundação (`TS1`), criação de arenas, quadras e salas por código PIN (`US1`), marcação de pontos em tempo real (`US2`), desfazer ponto a ponto (`US3`), encerramento de partida e reinício sob demanda (`US4`), empacotamento Docker multi-estágio (`TS2`), modo imersivo com placar dobrável manual para espectador (`US5`), fixtures declarativas (`TS3`) e linha do tempo auditável ao vivo (`CV1.DS4.US1`).
+Delivery Story `CV1.DS2` (controle e permissões) em andamento: promoção e revogação de controladores (`US1`) concluída e testada. Núcleo completo da partida (`CV1.DS1`) já entregue: fundação (`TS1`), criação de salas por código PIN (`US1`), marcação em tempo real (`US2`), desfazer ponto a ponto (`US3`), encerramento de partida e reinício sob demanda (`US4`), empacotamento Docker multi-estágio (`TS2`), modo imersivo com placar dobrável manual (`US5`), fixtures declarativas (`TS3`) e linha do tempo auditável (`CV1.DS4.US1`).
 
-Próximo trabalho: `CV1.DS2` — controle e permissões (promover e revogar controladores, sucessão de admin e rate-limiting).
+Próximo trabalho: `CV1.DS2.US2` — sucessão automática de admin após ausência.
 
 ## Como funciona
 
 - **Criar Placar** — o criador informa um apelido, a aplicação gera um código numérico aleatório de 5 dígitos (ex: `48291`) exibido com destaque no topo e ele assume o papel de **Admin**.
 - **Acompanhar** — qualquer pessoa digita o código de 5 dígitos e seu apelido na tela inicial, ingressando imediatamente como **Espectador**.
 - **Registro** — todo participante informa um apelido. Sem cadastro, sem senha.
-- **Papéis** — o criador vira admin e controla os pontos. Espectadores acompanham o placar ao vivo.
+- **Papéis** — o criador é Admin. O Admin pode promover Espectadores a **Controlador** (e revogar permissões a qualquer momento). Admins e Controladores podem marcar e desfazer pontos. Espectadores acompanham o placar ao vivo.
 - **Capacidade e Ciclo de Vida** — suporta até 20 salas ativas e 20 pessoas por sala. Salas sem lances há mais de 1 hora são limpas automaticamente.
 - **Partida** — set único até a pontuação-alvo configurada, com vantagem de 2 opcional e teto opcional.
 - **Correção** — admin desfaz ponto a ponto até zerar. Nada é apagado: a correção vira registro.

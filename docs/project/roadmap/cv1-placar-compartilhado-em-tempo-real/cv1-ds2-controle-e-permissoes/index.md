@@ -1,9 +1,9 @@
 ---
 code: CV1.DS2
 level: Delivery Story
-status: Planned
-status_reason: depende do núcleo entregue em DS1
-updated: 2026-09-13
+status: Active
+status_reason: em andamento; US1 concluída e validada
+updated: 2026-09-14
 related:
   - 2026-09-13T1410Z-sucessao-automatica-de-admin
   - 2026-09-13T1415Z-owner-takeover-por-codigo-mestre
@@ -34,3 +34,6 @@ Contas persistentes entre partidas, papéis adicionais, banimento de participant
 ## Notes
 
 Ordem sugerida: US1 → US2 → TS1 → US3.
+
+- `US1` (Admin promove e revoga controladores): Concluída e validada em 2026-09-14.
+- Próximo item do arco: `US2` (Sucessão automática de admin após ausência).
