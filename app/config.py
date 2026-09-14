@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     )
 
     db_path: str = "data/placar.db"
+    default_arenas_file: str = "defaultArenas.json"
     owner_secret: str = "troque-este-segredo-em-producao"
     admin_timeout_seconds: int = 120
     host: str = "0.0.0.0"

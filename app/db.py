@@ -1,6 +1,8 @@
 import asyncio
 import os
 import sqlite3
+from collections.abc import Generator
+from contextlib import contextmanager
 
 from app.config import settings
 
@@ -54,7 +56,8 @@ CREATE INDEX IF NOT EXISTS idx_participantes_quadra ON participantes (quadra_id)
 """
 
 
-def get_db(db_path: str | None = None) -> sqlite3.Connection:
+@contextmanager
+def get_db(db_path: str | None = None) -> Generator[sqlite3.Connection, None, None]:
     target_path = db_path if db_path is not None else settings.db_path
     if target_path != ":memory:":
         parent_dir = os.path.dirname(target_path)
@@ -65,11 +68,16 @@ def get_db(db_path: str | None = None) -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA foreign_keys=ON;")
-    return conn
+    try:
+        with conn:
+            yield conn
+    finally:
+        conn.close()
 
 
-def init_db_sync(db_path: str | None = None) -> None:
-    with get_db(db_path) as conn:
+def init_db_sync(db_path: str | None = None, fixture_path: str | None = None) -> None:
+    target_path = db_path if db_path is not None else settings.db_path
+    with get_db(target_path) as conn:
         conn.executescript(SCHEMA_SQL)
         # Migração idempotente se arena_id ainda não existir na tabela quadras
         cursor = conn.cursor()
@@ -81,6 +89,14 @@ def init_db_sync(db_path: str | None = None) -> None:
             )
         conn.commit()
 
+    target_fixture = (
+        fixture_path if fixture_path is not None else settings.default_arenas_file
+    )
+    if target_fixture and os.path.exists(target_fixture):
+        from app.fixtures import sincronizar_fixtures_para_db_sync
 
-async def init_db(db_path: str | None = None) -> None:
-    await asyncio.to_thread(init_db_sync, db_path)
+        sincronizar_fixtures_para_db_sync(target_path, target_fixture)
+
+
+async def init_db(db_path: str | None = None, fixture_path: str | None = None) -> None:
+    await asyncio.to_thread(init_db_sync, db_path, fixture_path)

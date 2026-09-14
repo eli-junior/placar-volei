@@ -59,6 +59,9 @@ COPY --from=python-builder --chown=placar:placar /srv/.venv /srv/.venv
 # Código da aplicação
 COPY --chown=placar:placar app/ /srv/app/
 
+# Fixture padrão de arenas e quadras para reinicialização do banco
+COPY --chown=placar:placar defaultArenas.json /srv/defaultArenas.json
+
 # Estáticos compilados do frontend (a única coisa trazida do estágio Node)
 COPY --from=web-builder --chown=placar:placar /src/app/static/ /srv/app/static/
 

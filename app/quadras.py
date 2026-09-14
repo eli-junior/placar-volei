@@ -28,6 +28,11 @@ def criar_arena_sync(db_path: str, nome: str) -> dict[str, Any]:
         )
         conn.commit()
 
+    if settings.default_arenas_file:
+        from app.fixtures import adicionar_arena_fixture_sync
+
+        adicionar_arena_fixture_sync(settings.default_arenas_file, nome_limpo)
+
     return {
         "id": arena_id,
         "nome": nome_limpo,
@@ -133,6 +138,10 @@ def criar_quadra_sync(
         )
         conn.commit()
 
+        cursor.execute("SELECT nome FROM arenas WHERE id = ?", (arena_id,))
+        row_arena = cursor.fetchone()
+        arena_nome = row_arena["nome"] if row_arena else None
+
     # Registra o evento de partida iniciada com regra padrão
     append_evento_sync(
         db_path,
@@ -148,6 +157,13 @@ def criar_quadra_sync(
         },
         autor_id=None,
     )
+
+    if settings.default_arenas_file and arena_nome:
+        from app.fixtures import adicionar_quadra_fixture_sync
+
+        adicionar_quadra_fixture_sync(
+            settings.default_arenas_file, arena_nome, nome_limpo
+        )
 
     return {
         "id": quadra_id,

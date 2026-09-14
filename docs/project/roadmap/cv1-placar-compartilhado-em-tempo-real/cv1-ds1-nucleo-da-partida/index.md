@@ -36,6 +36,6 @@ Permissões (todos que entram podem pontuar nesta DS), configuração de regras 
 
 Stack do frontend decidida: Svelte 5. O contrato de eventos WebSocket segue sendo o limite entre backend e frontend.
 
-Ordem sugerida: TS1 → US1 → US2 → US3 → US4, com TS2 puxada antes da primeira validação em quadra real (validar de celular exige a aplicação fora do localhost).
+Ordem sugerida: TS1 → US1 → US2 → US3 → US5 → TS2 → TS3 → US4.
 
-`TS1` tem plano aprovado e guia de teste registrados; entra direto em implementação quando puxada.
+`TS1`, `US1`, `US2`, `US3`, `US5`, `TS2` e `TS3` estão concluídas e validadas. `US4` é a próxima story planejada.
