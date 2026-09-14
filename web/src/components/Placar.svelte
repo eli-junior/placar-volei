@@ -511,4 +511,52 @@
     letter-spacing: 0.02em;
   }
 
+  /*
+   * Celular deitado: a altura é o recurso escasso. Compacta a moldura e os
+   * botões para que placar, +1 e desfazer caibam sem rolagem.
+   */
+  @media (orientation: landscape) and (max-height: 500px) {
+    .placar-card {
+      padding: 12px 14px 14px 14px;
+      gap: 10px;
+    }
+
+    .placar-header {
+      gap: 8px;
+    }
+
+    .placar-grid {
+      gap: 10px;
+    }
+
+    .equipe-col {
+      padding: 8px 10px;
+      gap: 6px;
+    }
+
+    .btn-marcar {
+      height: 60px;
+    }
+
+    .btn-plus {
+      font-size: 1.7rem;
+    }
+
+    .vs-col.vs-com-botoes {
+      padding-bottom: 50px;
+    }
+
+    .btn-desfazer {
+      height: 42px;
+      font-size: 0.85rem;
+    }
+
+    .banner-vitoria {
+      padding: 8px 14px;
+    }
+
+    .trofeu {
+      font-size: 1.4rem;
+    }
+  }
 </style>

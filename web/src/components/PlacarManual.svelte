@@ -7,6 +7,7 @@
     quadra = null,
     prefersReducedMotion = false,
     modoImersivo = true,
+    paisagem = false,
     onAbrirLinhaDoTempo = () => {},
   } = $props();
 
@@ -25,7 +26,13 @@
   );
 </script>
 
-<div class="placar-manual-container {modoImersivo ? 'modo-imersivo' : ''}">
+<div
+  class="placar-manual-container"
+  class:modo-imersivo={modoImersivo}
+  class:layout-paisagem={paisagem}
+  class:layout-retrato={!paisagem}
+  class:com-vencedor={encerrada && Boolean(vencedorNome)}
+>
   <!-- Placa do Topo: Identificação e Regras -->
   <div class="placa-topo">
     <div class="quadra-badge">
@@ -54,58 +61,61 @@
     </div>
   {/if}
 
-  <!-- Cavalete / Mesa do Placar Manual -->
-  <div class="cavalete-mesa">
-    <!-- Barra Superior de Fixação dos Anéis -->
-    <div class="barra-suporte-aneis">
-      <div class="parafuso parafuso-esq"></div>
-      <div class="trilho-metalico"></div>
-      <div class="parafuso parafuso-dir"></div>
-    </div>
-
-    <!-- Seção dos Cartões e Equipes -->
-    <div class="painel-cartoes">
-      <!-- Coluna Equipe A -->
-      <div class="coluna-equipe {vencedor === 'A' ? 'time-vencedor' : ''}">
-        <div class="etiqueta-equipe etiqueta-a">
-          <span class="etiqueta-texto">{equipeA}</span>
-        </div>
-
-        <CartaoDobravel
-          valor={pontosA}
-          equipe={equipeA}
-          tema="a"
-          tamanho="grande"
-          {prefersReducedMotion}
-        />
+  <!-- Palco: absorve a sobra vertical e mantém o cavalete centralizado -->
+  <div class="palco">
+    <!-- Cavalete / Mesa do Placar Manual -->
+    <div class="cavalete-mesa">
+      <!-- Barra Superior de Fixação dos Anéis -->
+      <div class="barra-suporte-aneis">
+        <div class="parafuso parafuso-esq"></div>
+        <div class="trilho-metalico"></div>
+        <div class="parafuso parafuso-dir"></div>
       </div>
 
-      <!-- Divisor Central do Placar ("×" ou divisor da bancada) -->
-      <div class="divisor-central">
-        <div class="vs-badge">
-          <span class="vs-simbolo">×</span>
+      <!-- Seção dos Cartões e Equipes -->
+      <div class="painel-cartoes">
+        <!-- Coluna Equipe A -->
+        <div class="coluna-equipe {vencedor === 'A' ? 'time-vencedor' : ''}">
+          <div class="etiqueta-equipe etiqueta-a">
+            <span class="etiqueta-texto">{equipeA}</span>
+          </div>
+
+          <CartaoDobravel
+            valor={pontosA}
+            equipe={equipeA}
+            tema="a"
+            tamanho="fluido"
+            {prefersReducedMotion}
+          />
+        </div>
+
+        <!-- Divisor Central do Placar ("×" ou divisor da bancada) -->
+        <div class="divisor-central">
+          <div class="vs-badge">
+            <span class="vs-simbolo">×</span>
+          </div>
+        </div>
+
+        <!-- Coluna Equipe B -->
+        <div class="coluna-equipe {vencedor === 'B' ? 'time-vencedor' : ''}">
+          <div class="etiqueta-equipe etiqueta-b">
+            <span class="etiqueta-texto">{equipeB}</span>
+          </div>
+
+          <CartaoDobravel
+            valor={pontosB}
+            equipe={equipeB}
+            tema="b"
+            tamanho="fluido"
+            {prefersReducedMotion}
+          />
         </div>
       </div>
 
-      <!-- Coluna Equipe B -->
-      <div class="coluna-equipe {vencedor === 'B' ? 'time-vencedor' : ''}">
-        <div class="etiqueta-equipe etiqueta-b">
-          <span class="etiqueta-texto">{equipeB}</span>
-        </div>
-
-        <CartaoDobravel
-          valor={pontosB}
-          equipe={equipeB}
-          tema="b"
-          tamanho="grande"
-          {prefersReducedMotion}
-        />
+      <!-- Base Dobrável com Efeito de Sombra e Perspectiva -->
+      <div class="base-cavalete">
+        <div class="base-vinco"></div>
       </div>
-    </div>
-
-    <!-- Base Dobrável com Efeito de Sombra e Perspectiva -->
-    <div class="base-cavalete">
-      <div class="base-vinco"></div>
     </div>
   </div>
 
@@ -131,7 +141,20 @@
 </div>
 
 <style>
+  /*
+   * --tela-w / --tela-h são herdados do SalaQuadra, que os mede em px e
+   * inverte os eixos quando o placar está girado. Os fallbacks abaixo valem
+   * apenas se o componente for usado fora dele.
+   */
   .placar-manual-container {
+    /* Cartão fora do modo imersivo: acompanha a largura, sem exageros. */
+    --cartao-w: clamp(118px, calc((var(--tela-w, 100vw) - 104px) / 2), 180px);
+    --cartao-h: calc(var(--cartao-w) * 1.22);
+    --cartao-num: calc(var(--cartao-w) * 0.78);
+    --etiqueta-w: var(--cartao-w);
+    --divisor-w: 32px;
+    --cavalete-max: 460px;
+
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -140,11 +163,101 @@
     padding: 10px 0;
   }
 
+  /*
+   * MODO IMERSIVO — o placar ocupa a tela inteira.
+   *
+   * O tamanho do cartão é o menor entre o que cabe na largura (duas colunas,
+   * divisor e molduras) e o que cabe na altura (topo, rodapé e o cavalete).
+   * Assim o mesmo cálculo serve para retrato e paisagem, inclusive com a
+   * tela girada por software.
+   */
   .placar-manual-container.modo-imersivo {
-    min-height: 80vh;
+    --cartao-w: clamp(
+      92px,
+      min(
+        calc((var(--tela-w, 100vw) - var(--moldura-w)) / 2),
+        calc((var(--tela-h, 100vh) - var(--moldura-h)) / 1.22)
+      ),
+      var(--cartao-max)
+    );
+    --cartao-h: min(
+      calc(var(--cartao-w) * var(--razao-max)),
+      calc(var(--tela-h, 100vh) - var(--moldura-h))
+    );
+    --cartao-num: min(calc(var(--cartao-w) * 0.65), calc(var(--cartao-h) * 0.62));
+    --etiqueta-w: var(--cartao-w);
+
+    height: 100%;
+    justify-content: space-between;
+    gap: 0;
+    padding: 0;
+  }
+
+  /*
+   * --moldura-w soma tudo que disputa a largura com os dois cartões:
+   * padding da sala + padding do cavalete + gaps do grid + divisor central.
+   * --moldura-h faz o mesmo na vertical: topo, rodapé, trilho, etiqueta e gaps.
+   * Se estes números mentirem, a etiqueta e o cartão saem de esquadro.
+   */
+
+  /* Retrato: a largura é o limite. Cartão mais alto para preencher a sobra. */
+  .modo-imersivo.layout-retrato {
+    --divisor-w: 26px;
+    --moldura-w: 74px; /* 12 sala + 16 cavalete + 12 gaps + 34 divisor */
+    --moldura-h: 212px; /* 16 sala + 52 topo + 36 rodapé + 104 cavalete + folga */
+    --cartao-max: 280px;
+    --razao-max: 1.34;
+    --cavalete-max: 560px;
+  }
+
+  .modo-imersivo.layout-retrato.com-vencedor {
+    --moldura-h: 276px; /* 212 + ~64px banner de vitória */
+  }
+
+  /* Em pé a largura manda: aperta a moldura para o número crescer */
+  .modo-imersivo.layout-retrato .cavalete-mesa {
+    padding: 10px 8px 12px 8px;
+  }
+
+  .modo-imersivo.layout-retrato .painel-cartoes {
+    gap: 6px;
+  }
+
+  /* Paisagem: a altura é o limite. Enxuga o topo e o rodapé e alarga o cavalete. */
+  .modo-imersivo.layout-paisagem {
+    --divisor-w: 54px;
+    --moldura-w: 140px; /* 24 sala + 28 cavalete + 24 gaps + 64 divisor */
+    --moldura-h: 142px; /* 16 sala + 24 topo + 22 rodapé + 74 cavalete + folga */
+    --cartao-max: 400px;
+    --razao-max: 1.3;
+    --cavalete-max: 920px;
+  }
+
+  .modo-imersivo.layout-paisagem.com-vencedor {
+    --moldura-h: 198px; /* 142 + ~56px banner de vitória */
+  }
+
+  /* Deitado sobra pouca altura: cada pixel de moldura vira número no cartão */
+  .modo-imersivo.layout-paisagem .coluna-equipe {
+    gap: 5px;
+  }
+
+  .modo-imersivo.layout-paisagem .base-cavalete {
+    display: none;
+  }
+
+  /* Palco central: absorve toda a sobra vertical */
+  .palco {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
     justify-content: center;
-    gap: 24px;
-    padding: 20px 0;
+  }
+
+  .placar-manual-container:not(.modo-imersivo) .palco {
+    flex: 0 0 auto;
   }
 
   /* Placa do Topo */
@@ -153,6 +266,20 @@
     flex-direction: column;
     align-items: center;
     gap: 6px;
+    flex: 0 0 auto;
+  }
+
+  .modo-imersivo .placa-topo {
+    padding-top: 6px;
+  }
+
+  .modo-imersivo.layout-paisagem .placa-topo {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-top: 2px;
   }
 
   .quadra-badge {
@@ -163,6 +290,10 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 999px;
     padding: 4px 14px;
+  }
+
+  .modo-imersivo.layout-paisagem .quadra-badge {
+    padding: 2px 12px;
   }
 
   .icone-arena {
@@ -185,6 +316,11 @@
     font-weight: 700;
     color: var(--text-secondary);
     letter-spacing: 0.06em;
+  }
+
+  .modo-imersivo.layout-paisagem .nome-quadra,
+  .modo-imersivo.layout-paisagem .regras-badge {
+    font-size: 0.7rem;
   }
 
   .regra-set {
@@ -212,10 +348,20 @@
     justify-content: center;
     gap: 14px;
     box-shadow: 0 4px 20px rgba(249, 115, 22, 0.35);
+    flex: 0 0 auto;
+  }
+
+  .modo-imersivo.layout-paisagem .banner-vitoria {
+    padding: 6px 14px;
+    gap: 10px;
   }
 
   .trofeu {
     font-size: 2.2rem;
+  }
+
+  .modo-imersivo.layout-paisagem .trofeu {
+    font-size: 1.5rem;
   }
 
   .vitoria-info {
@@ -237,52 +383,70 @@
     color: #ffffff;
   }
 
+  .modo-imersivo.layout-paisagem .vitoria-time {
+    font-size: 1rem;
+  }
+
   /* Cavalete / Bancada do Placar */
   .cavalete-mesa {
     width: 100%;
-    max-width: 440px;
+    max-width: var(--cavalete-max, 460px);
     background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
     border: 2px solid rgba(255, 255, 255, 0.12);
     border-radius: 18px;
     box-shadow:
       0 16px 40px rgba(0, 0, 0, 0.6),
       inset 0 1px 1px rgba(255, 255, 255, 0.15);
-    padding: 12px 14px 18px 14px;
+    padding: 10px 12px 14px 12px;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     position: relative;
+  }
+
+  /* Em tela cheia o cavalete abraça os cartões em vez de esticar sozinho */
+  .modo-imersivo .cavalete-mesa {
+    width: fit-content;
+    max-width: min(100%, var(--cavalete-max));
+  }
+
+  .modo-imersivo.layout-paisagem .cavalete-mesa {
+    padding: 8px 14px 10px 14px;
+    gap: 6px;
   }
 
   /* Barra Metálica Superior */
   .barra-suporte-aneis {
     width: 100%;
-    height: 14px;
+    height: 12px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     padding: 0 10px;
     position: relative;
+    flex: 0 0 auto;
   }
 
+  /* Trilho recuado e escuro: é a barra de fixação do cavalete, não um slider */
   .trilho-metalico {
     position: absolute;
-    left: 20px;
-    right: 20px;
-    height: 4px;
-    background: linear-gradient(90deg, #475569 0%, #94a3b8 50%, #475569 100%);
+    left: 14%;
+    right: 14%;
+    height: 3px;
+    background: linear-gradient(90deg, #1e293b 0%, #64748b 35%, #64748b 65%, #1e293b 100%);
     border-radius: 2px;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
+    opacity: 0.85;
   }
 
   .parafuso {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #cbd5e1;
-    border: 1px solid #475569;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.6);
+    width: 7px;
+    height: 7px;
+    border-radius: 2px;
+    background: #334155;
+    border: 1px solid rgba(148, 163, 184, 0.45);
+    box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.7);
     z-index: 2;
   }
 
@@ -292,7 +456,12 @@
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
-    gap: 10px;
+    justify-items: center;
+    gap: 8px;
+  }
+
+  .modo-imersivo.layout-paisagem .painel-cartoes {
+    gap: 12px;
   }
 
   .coluna-equipe {
@@ -300,6 +469,7 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
+    min-width: 0;
     transition: transform 0.2s ease;
   }
 
@@ -308,14 +478,19 @@
   }
 
   /* Etiquetas das Equipes no estilo plaqueta de mesa */
+  /* Casa exatamente com a largura do cartão — é o que mantém o esquadro */
   .etiqueta-equipe {
-    width: 100%;
-    max-width: 140px;
+    width: var(--etiqueta-w, 100%);
+    max-width: 100%;
     padding: 6px 8px;
     border-radius: 6px;
     text-align: center;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
     border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .modo-imersivo.layout-paisagem .etiqueta-equipe {
+    padding: 4px 8px;
   }
 
   .etiqueta-a {
@@ -329,7 +504,7 @@
   }
 
   .etiqueta-texto {
-    font-size: 0.84rem;
+    font-size: clamp(0.72rem, calc(var(--cartao-w) * 0.075), 1.25rem);
     font-weight: 800;
     color: #ffffff;
     text-transform: uppercase;
@@ -349,8 +524,8 @@
   }
 
   .vs-badge {
-    width: 32px;
-    height: 32px;
+    width: var(--divisor-w);
+    height: var(--divisor-w);
     border-radius: 50%;
     background: rgba(15, 23, 42, 0.8);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -360,20 +535,25 @@
   }
 
   .vs-simbolo {
-    font-size: 1.2rem;
+    font-size: calc(var(--divisor-w) * 0.55);
     font-weight: 700;
     color: var(--text-muted);
     line-height: 1;
   }
 
-  /* Base do Cavalete */
+  /* Base do Cavalete: sombra de apoio, não uma barra de rolagem */
   .base-cavalete {
-    width: 96%;
+    width: 62%;
     height: 6px;
-    background: #0b1120;
-    border-radius: 3px;
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.9);
-    margin-top: 4px;
+    background: radial-gradient(
+      ellipse at center,
+      rgba(0, 0, 0, 0.75) 0%,
+      rgba(0, 0, 0, 0.35) 55%,
+      rgba(0, 0, 0, 0) 100%
+    );
+    border-radius: 50%;
+    margin-top: 2px;
+    flex: 0 0 auto;
   }
 
   /* Rodapé do Modo Imersivo */
@@ -382,6 +562,11 @@
     justify-content: center;
     align-items: center;
     min-height: 36px;
+    flex: 0 0 auto;
+  }
+
+  .modo-imersivo.layout-paisagem .rodape-imersivo {
+    min-height: 26px;
   }
 
   .dica-toque {
@@ -396,6 +581,11 @@
     font-weight: 500;
     color: var(--text-muted);
     animation: pulsarSuave 2.5s infinite ease-in-out;
+  }
+
+  .modo-imersivo.layout-paisagem .dica-toque {
+    padding: 3px 12px;
+    font-size: 0.7rem;
   }
 
   @keyframes pulsarSuave {
@@ -426,5 +616,12 @@
   .btn-lt-espectador:hover {
     background: rgba(255, 255, 255, 0.12);
     color: #ffffff;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dica-toque {
+      animation: none;
+      opacity: 0.75;
+    }
   }
 </style>

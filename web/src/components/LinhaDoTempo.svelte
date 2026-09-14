@@ -168,7 +168,10 @@
     align-items: flex-end;
     justify-content: center;
     z-index: 200;
-    padding: 0;
+    padding: max(12px, env(safe-area-inset-top))
+      max(12px, env(safe-area-inset-right))
+      0
+      max(12px, env(safe-area-inset-left));
   }
 
   @media (min-width: 640px) {
@@ -184,7 +187,7 @@
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     width: 100%;
     max-width: 580px;
-    max-height: 88vh;
+    max-height: min(88vh, calc(var(--tela-h, 100vh) - 16px));
     display: flex;
     flex-direction: column;
     box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.6);
@@ -194,8 +197,24 @@
   @media (min-width: 640px) {
     .modal-sheet {
       border-radius: var(--radius-lg);
-      max-height: 82vh;
+      max-height: min(82vh, calc(var(--tela-h, 100vh) - 24px));
       box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  @media (max-height: 520px) {
+    .modal-sheet {
+      max-height: calc(100vh - 12px);
+    }
+    .sheet-header {
+      padding: 10px 16px;
+    }
+    .sheet-footer {
+      padding: 8px 16px;
+    }
+    .sheet-body {
+      padding: 10px 14px;
+      gap: 6px;
     }
   }
 

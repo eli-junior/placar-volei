@@ -31,6 +31,7 @@ body {
   color: var(--text-primary);
   font-family: var(--font-family);
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
@@ -41,9 +42,25 @@ body {
   max-width: 540px;
   margin: 0 auto;
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   position: relative;
+}
+
+/* O placar do espectador é tela cheia: sem trilho de 540px e sem rolagem. */
+body.placar-espectador #app {
+  max-width: none;
+}
+
+/* Com a tela girada por software o quadro sai do fluxo (position: fixed):
+   o documento não deve rolar nem reservar altura para ele. */
+body.placar-girado {
+  overflow: hidden;
+}
+
+body.placar-girado #app {
+  min-height: 0;
 }
 
 button {

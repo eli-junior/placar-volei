@@ -3,7 +3,7 @@
     valor = 0,
     equipe = '',
     tema = 'a', // 'a' (ciano) ou 'b' (laranja)
-    tamanho = 'normal', // 'normal' | 'grande'
+    tamanho = 'normal', // 'normal' | 'grande' | 'fluido'
     prefersReducedMotion = false,
   } = $props();
 
@@ -112,7 +112,15 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-top: 14px; /* Espaço para o arco dos anéis */
+
+    /* Métricas do cartão — os tamanhos fixos apenas sobrescrevem estes valores.
+       O tamanho "fluido" recebe --cartao-w / --cartao-h do contêiner. */
+    --anel-w: 14px;
+    --anel-h: 28px;
+    --furo-inset: 20px;
+    --topo-anel: 14px;
+
+    padding-top: var(--topo-anel); /* Espaço para o arco dos anéis */
   }
 
   /* Tamanho Normal (usado no controlador) */
@@ -160,23 +168,45 @@
     }
   }
 
+  /* Tamanho Fluido — dimensões vêm do contêiner via --cartao-w / --cartao-h.
+     Usado no placar do espectador, que se ajusta à tela disponível. */
+  .tamanho-fluido {
+    --anel-w: clamp(11px, calc(var(--cartao-w, 148px) * 0.09), 24px);
+    --anel-h: calc(var(--anel-w) * 2);
+    --furo-inset: clamp(16px, calc(var(--cartao-w, 148px) * 0.14), 46px);
+    --topo-anel: calc(var(--anel-h) * 0.5);
+
+    width: var(--cartao-w, 148px);
+    height: var(--cartao-h, 180px);
+  }
+
+  .tamanho-fluido .cartao-placa {
+    width: 100%;
+    height: calc(var(--cartao-h, 180px) - var(--topo-anel));
+    border-radius: clamp(10px, calc(var(--cartao-w, 148px) * 0.08), 24px);
+  }
+
+  .tamanho-fluido .numero-texto {
+    font-size: var(--cartao-num, 7.2rem);
+  }
+
   /* Anéis Metálicos Superiores (Espiral / Argolas do placar manual) */
   .aneis-container {
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
-    height: 32px;
+    height: calc(var(--anel-h) + 4px);
     display: flex;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 var(--furo-inset);
     pointer-events: none;
     z-index: 10;
   }
 
   .anel {
-    width: 14px;
-    height: 28px;
+    width: var(--anel-w);
+    height: var(--anel-h);
     position: relative;
   }
 
@@ -195,7 +225,7 @@
   /* Cartão de Pontuação (Placa de PVC/Papelão do placar clássico) */
   .cartao-placa {
     position: absolute;
-    top: 14px;
+    top: var(--topo-anel);
     left: 0;
     border-radius: 12px;
     overflow: hidden;
@@ -216,7 +246,7 @@
 
   .cartao-animado {
     z-index: 2;
-    transform-origin: 50% 12px; /* Centro da linha dos anéis */
+    transform-origin: 50% calc(var(--anel-h) * 0.43); /* Centro da linha dos anéis */
     will-change: transform, opacity, filter;
   }
 
@@ -248,19 +278,19 @@
   /* Furos/Ilhoses dos anéis no cartão */
   .ilhoses-container {
     position: absolute;
-    top: 5px;
+    top: calc(var(--anel-w) * 0.36);
     left: 0;
     right: 0;
     display: flex;
     justify-content: space-between;
-    padding: 0 20px;
+    padding: 0 var(--furo-inset);
     z-index: 3;
     pointer-events: none;
   }
 
   .ilhos {
-    width: 14px;
-    height: 14px;
+    width: var(--anel-w);
+    height: var(--anel-w);
     border-radius: 50%;
     background: #020617;
     border: 2px solid #64748b;
@@ -291,15 +321,20 @@
     justify-content: center;
     position: relative;
     z-index: 2;
-    padding-top: 6px;
+    padding-top: calc(var(--topo-anel) * 0.42);
+    padding-left: 4px;
+    padding-right: 4px;
+    box-sizing: border-box;
   }
 
   .numero-texto {
     font-family: var(--font-display);
     font-weight: 800;
     line-height: 0.9;
-    letter-spacing: -0.02em;
+    letter-spacing: -0.03em;
     font-variant-numeric: tabular-nums;
+    max-width: 100%;
+    text-align: center;
   }
 
   /* Animações Mecânicas de Virada de Cartão (Flip 3D) */

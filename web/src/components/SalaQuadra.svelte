@@ -17,12 +17,44 @@
     onVoltar,
   } = $props();
 
+  const CHAVE_GIRO = 'placar:girado';
+
+  function lerGiroSalvo() {
+    if (typeof localStorage === 'undefined') return false;
+    try {
+      return localStorage.getItem(CHAVE_GIRO) === '1';
+    } catch {
+      return false;
+    }
+  }
+
   let modalLinhaDoTempoAberto = $state(false);
   let prefersReducedMotion = $state(false);
+
+  // Dimensões da janela física
+  let viewportW = $state(typeof window !== 'undefined' ? window.innerWidth : 390);
+  let viewportH = $state(typeof window !== 'undefined' ? window.innerHeight : 720);
+
+  // Giro por software: permite usar o celular deitado no cavalete mesmo com a
+  // rotação automática travada no iOS. Só faz sentido para quem assiste e
+  // enquanto o aparelho estiver fisicamente em pé (retrato).
+  const giroInicial = lerGiroSalvo();
+  let girado = $state(giroInicial);
 
   const podeControlar = $derived(
     eu?.papel === 'ADMIN' || eu?.papel === 'CONTROLADOR'
   );
+
+  // Se o aparelho/monitor já é fisicamente paisagem (Desktop, tablet ou celular com auto-rotate)
+  const paisagemNativa = $derived(viewportW > viewportH);
+
+  // O giro manual por software só se ativa em retrato físico
+  const telaGirada = $derived(girado && !podeControlar && !paisagemNativa);
+
+  // Dimensões úteis do placar. Quando a tela está girada por software, os eixos se invertem.
+  const telaW = $derived(telaGirada ? viewportH : viewportW);
+  const telaH = $derived(telaGirada ? viewportW : viewportH);
+  const paisagem = $derived(telaW > 0 && telaW > telaH);
 
   // Modo Imersivo ativo por padrão para espectadores (US5)
   let modoImersivo = $state(true);
@@ -40,6 +72,43 @@
     }
   });
 
+  // Mede a tela e reage a rotação do aparelho, barra de endereço e giro manual
+  $effect(() => {
+    if (typeof window === 'undefined') return;
+
+    const medir = () => {
+      viewportW = window.innerWidth;
+      viewportH = window.innerHeight;
+    };
+
+    medir();
+    window.addEventListener('resize', medir);
+    window.addEventListener('orientationchange', medir);
+    window.visualViewport?.addEventListener('resize', medir);
+
+    return () => {
+      window.removeEventListener('resize', medir);
+      window.removeEventListener('orientationchange', medir);
+      window.visualViewport?.removeEventListener('resize', medir);
+    };
+  });
+
+  // O placar do espectador é tela cheia: libera a largura máxima do #app e
+  // trava a rolagem do documento enquanto a tela estiver girada.
+  $effect(() => {
+    if (typeof document === 'undefined') return;
+
+    const corpo = document.body;
+    const espectador = !podeControlar;
+
+    corpo.classList.toggle('placar-espectador', espectador);
+    corpo.classList.toggle('placar-girado', telaGirada);
+
+    return () => {
+      corpo.classList.remove('placar-espectador', 'placar-girado');
+    };
+  });
+
   // Atualiza estado imersivo caso o papel mude dinamicamente
   $effect(() => {
     if (podeControlar) {
@@ -47,6 +116,13 @@
       if (timerInatividade) clearTimeout(timerInatividade);
     }
   });
+
+  function alternarGiro() {
+    girado = !girado;
+    try {
+      localStorage.setItem(CHAVE_GIRO, girado ? '1' : '0');
+    } catch {}
+  }
 
   // Gerencia a revelação dos controles e retorno ao modo imersivo após 3s (US5)
   function tratarInteracaoUsuario(event) {
@@ -94,7 +170,10 @@
 <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
-  class="sala-container {modoImersivo && !podeControlar ? 'em-modo-imersivo' : ''}"
+  class="sala-container"
+  class:em-modo-imersivo={modoImersivo && !podeControlar}
+  class:tela-girada={telaGirada}
+  style="--tela-w: {telaW}px; --tela-h: {telaH}px;"
   in:fade={{ duration: 200 }}
   onclick={tratarInteracaoUsuario}
   onpointerdown={tratarInteracaoUsuario}
@@ -120,11 +199,29 @@
         <span>Quadras</span>
       </button>
 
-      <div class="ws-status">
-        <span
-          class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"
-        ></span>
-        <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Conectando...'}</span>
+      <div class="header-acoes">
+        {#if !podeControlar && !paisagemNativa}
+          <button
+            type="button"
+            class="btn-girar"
+            class:ativo={girado}
+            onclick={alternarGiro}
+            aria-pressed={girado}
+            aria-label={girado
+              ? 'Voltar o placar para retrato'
+              : 'Girar o placar para paisagem'}
+          >
+            <span class="girar-icone">⟳</span>
+            <span class="girar-texto">{girado ? 'Retrato' : 'Paisagem'}</span>
+          </button>
+        {/if}
+
+        <div class="ws-status">
+          <span
+            class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"
+          ></span>
+          <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Conectando...'}</span>
+        </div>
       </div>
     </header>
 
@@ -167,6 +264,7 @@
       {quadra}
       {prefersReducedMotion}
       {modoImersivo}
+      {paisagem}
       onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
     />
   {/if}
@@ -193,25 +291,62 @@
 
 <style>
   .sala-container {
-    padding: 18px 20px 32px 20px;
+    padding: max(18px, env(safe-area-inset-top))
+      max(20px, env(safe-area-inset-right))
+      max(32px, env(safe-area-inset-bottom))
+      max(20px, env(safe-area-inset-left));
     display: flex;
     flex-direction: column;
     gap: 22px;
     min-height: 100vh;
+    min-height: 100dvh;
     transition: padding 0.25s ease;
   }
 
+  /*
+   * Giro por software: o quadro inteiro vira 90°, então o celular pode ficar
+   * deitado no cavalete mesmo com a rotação do iOS travada. As medidas vêm do
+   * SalaQuadra já com os eixos invertidos.
+   */
+  .sala-container.tela-girada {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: var(--tela-w);
+    height: var(--tela-h);
+    min-height: 0;
+    transform-origin: 0 0;
+    transform: rotate(90deg) translate(0, -100%);
+    overflow-y: auto;
+    overflow-x: hidden;
+    z-index: 5;
+  }
+
   .sala-container.em-modo-imersivo {
-    padding: 12px 16px;
+    padding: max(8px, env(safe-area-inset-top))
+      max(6px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom))
+      max(6px, env(safe-area-inset-left));
     justify-content: center;
     cursor: pointer;
     gap: 0;
+    height: var(--tela-h);
+    min-height: 0;
+    overflow: hidden;
   }
 
   .sala-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 10px;
+    flex: 0 0 auto;
+  }
+
+  .header-acoes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
   }
 
   .btn-voltar {
@@ -234,6 +369,38 @@
     font-size: 1.1rem;
   }
 
+  /* Alternador de orientação do placar */
+  .btn-girar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    padding: 6px 12px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    touch-action: manipulation;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  }
+
+  .btn-girar:hover {
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-girar.ativo {
+    color: var(--accent-orange);
+    border-color: var(--border-active);
+    background: rgba(249, 115, 22, 0.12);
+  }
+
+  .girar-icone {
+    font-size: 0.95rem;
+    line-height: 1;
+  }
+
   .ws-status {
     display: flex;
     align-items: center;
@@ -254,6 +421,7 @@
     display: flex;
     flex-direction: column;
     gap: 14px;
+    flex: 0 0 auto;
   }
 
   .quadra-tag {
@@ -296,5 +464,34 @@
     font-size: 1.15rem;
     font-weight: 700;
     color: #ffffff;
+  }
+
+  /* Com a tela girada o espaço vertical é curto: enxuga o cabeçalho revelado */
+  .tela-girada .quadra-title {
+    font-size: 1.25rem;
+  }
+
+  .tela-girada .meu-perfil-card {
+    padding: 8px 14px;
+  }
+
+  .tela-girada:not(.em-modo-imersivo) {
+    gap: 12px;
+    padding: 10px 16px 20px 16px;
+  }
+
+  @media (max-height: 460px) and (orientation: landscape) {
+    .sala-container:not(.em-modo-imersivo) {
+      gap: 12px;
+      padding: 10px 16px 20px 16px;
+    }
+
+    .quadra-title {
+      font-size: 1.25rem;
+    }
+
+    .meu-perfil-card {
+      padding: 8px 14px;
+    }
   }
 </style>
