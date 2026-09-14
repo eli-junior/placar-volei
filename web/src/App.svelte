@@ -69,7 +69,7 @@
         const msg = JSON.parse(event.data);
         if (msg.tipo === 'SALA_EXPIRADA') return salaExpirada();
         if (msg.tipo === 'ESTADO_INICIAL') {
-          if (!msg.payload.quadra || msg.payload.partida_id !== quadraAtual?.partida_id) return salaExpirada();
+          if (!msg.payload.quadra || msg.payload.quadra.id !== quadraAtual?.id) return salaExpirada();
           aplicarSnapshot(msg.payload);
           wsConectado = true;
         } else if (msg.tipo === 'PLACAR_ATUALIZADO') {
@@ -161,18 +161,19 @@
         headers: { 'Content-Type': 'application/json', 'x-control-version': String(sala.controle_versao) },
         body: body ? JSON.stringify(body) : undefined,
       });
-      if (quadraAtual?.partida_id !== sala.partida_id) return;
+      if (quadraAtual?.id !== sala.id) return;
       if (res.status === 404 && !rota.startsWith('participantes/')) return salaExpirada();
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Não foi possível realizar a ação.');
       aplicarSnapshot(data);
     } catch (e) {
-      if (quadraAtual?.partida_id === sala.partida_id) erro = e.message || 'Falha de conexão. Confira o placar antes de tentar novamente.';
+      if (quadraAtual?.id === sala.id) erro = e.message || 'Falha de conexão. Confira o placar antes de tentar novamente.';
     } finally { operando = false; }
   }
 
   const handleMarcarPonto = equipe => executar('pontos', { equipe });
   const handleDesfazerPonto = () => executar('desfazer');
+  const handleIniciarNovaPartida = () => executar('reiniciar');
   const handleAssumirControle = () => executar('controle/assumir');
   const handleAutorizarAdmin = id => executar(`participantes/${id}/admin`);
 
@@ -198,15 +199,15 @@
     carregarRota();
     window.addEventListener('popstate', carregarRota);
     return () => {
-      desconectar();
       window.removeEventListener('popstate', carregarRota);
+      desconectar();
     };
   });
 </script>
 
 <main>
   {#if quadraAtual}
-    <!-- Sala da Quadra com Placar e Presença ao Vivo -->
+    <!-- Sala da Quadra em Tempo Real -->
     <SalaQuadra
       quadra={quadraAtual}
       {eu}
@@ -216,6 +217,7 @@
       {wsConectado}
       onMarcarPonto={handleMarcarPonto}
       onDesfazerPonto={handleDesfazerPonto}
+      onIniciarNovaPartida={handleIniciarNovaPartida}
       onVoltar={() => handleVoltarParaHome()}
       onAssumirControle={handleAssumirControle}
       onAutorizarAdmin={handleAutorizarAdmin}

@@ -354,6 +354,11 @@ async def post_desfazer_ponto(quadra_id: str, request: Request):
     return await executar_comando(quadra_id, request, "desfazer")
 
 
+@router.post("/quadras/{quadra_id}/reiniciar")
+async def post_reiniciar_partida(quadra_id: str, request: Request):
+    return await executar_comando(quadra_id, request, "reiniciar")
+
+
 @router.post("/quadras/{quadra_id}/controle/assumir")
 async def post_assumir_controle(quadra_id: str, request: Request):
     return await executar_comando(quadra_id, request, "assumir")

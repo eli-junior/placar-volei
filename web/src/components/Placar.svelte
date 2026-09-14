@@ -8,6 +8,7 @@
     desabilitado = false,
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
+    onIniciarNovaPartida = () => {},
     onAbrirLinhaDoTempo = () => {},
   } = $props();
 
@@ -15,6 +16,18 @@
   let feedbackEquipe = $state(null);
   let feedbackTimer = null;
   let prefersReducedMotion = $state(false);
+
+  async function handleIniciarNovaPartida() {
+    if (submetendo || desabilitado) return;
+    try {
+      submetendo = true;
+      await onIniciarNovaPartida();
+    } finally {
+      setTimeout(() => {
+        submetendo = false;
+      }, 250);
+    }
+  }
 
   $effect(() => {
     if (typeof window !== 'undefined') {
@@ -121,11 +134,30 @@
   <!-- Banner de encerramento quando houver vencedor -->
   {#if encerrada && vencedorNome}
     <div class="banner-vitoria" in:slide={{ duration: prefersReducedMotion ? 0 : 250 }}>
-      <span class="trofeu">🏆</span>
-      <div class="vitoria-texto">
-        <span class="vitoria-titulo">Fim de Jogo!</span>
-        <span class="vitoria-vencedor">Vitória da {vencedorNome}</span>
+      <div class="vitoria-cabecalho">
+        <span class="trofeu">🏆</span>
+        <div class="vitoria-texto">
+          <span class="vitoria-titulo">Fim de Jogo!</span>
+          <span class="vitoria-vencedor">Vitória da {vencedorNome}</span>
+        </div>
       </div>
+
+      {#if podeControlar}
+        <button
+          type="button"
+          class="btn-nova-partida"
+          disabled={desabilitado || submetendo}
+          onclick={handleIniciarNovaPartida}
+          aria-label="Iniciar Nova Partida"
+        >
+          <span class="icone-nova-partida">▶</span>
+          <span class="texto-nova-partida">Iniciar Nova Partida</span>
+        </button>
+      {:else}
+        <div class="aguardando-container">
+          <span class="aguardando-nova-partida">Aguardando início da próxima partida…</span>
+        </div>
+      {/if}
     </div>
   {/if}
 
@@ -288,18 +320,26 @@
 
   /* Banner de Vitória */
   .banner-vitoria {
-    background: linear-gradient(90deg, rgba(245, 158, 11, 0.2) 0%, rgba(234, 88, 12, 0.2) 100%);
-    border: 1px solid var(--accent-orange);
+    background: linear-gradient(135deg, rgba(245, 158, 11, 0.25) 0%, rgba(234, 88, 12, 0.25) 100%);
+    border: 1.5px solid var(--accent-orange);
     border-radius: var(--radius-md);
-    padding: 12px 16px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(245, 158, 11, 0.2);
+  }
+
+  .vitoria-cabecalho {
     display: flex;
     align-items: center;
     gap: 12px;
   }
 
   .trofeu {
-    font-size: 1.8rem;
+    font-size: 2rem;
     line-height: 1;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
   }
 
   .vitoria-texto {
@@ -309,17 +349,67 @@
   }
 
   .vitoria-titulo {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     font-weight: 700;
     text-transform: uppercase;
     color: var(--accent-orange);
-    letter-spacing: 0.06em;
+    letter-spacing: 0.08em;
   }
 
   .vitoria-vencedor {
-    font-size: 1.05rem;
+    font-size: 1.15rem;
     font-weight: 800;
     color: #ffffff;
+  }
+
+  .btn-nova-partida {
+    background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+    color: #ffffff;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 12px 18px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 4px 14px rgba(234, 88, 12, 0.45);
+    transition: transform 0.15s ease, filter 0.15s ease;
+    width: 100%;
+  }
+
+  .btn-nova-partida:hover:not(:disabled) {
+    filter: brightness(1.1);
+    transform: translateY(-1px);
+  }
+
+  .btn-nova-partida:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .btn-nova-partida:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .icone-nova-partida {
+    font-size: 0.9rem;
+  }
+
+  .texto-nova-partida {
+    letter-spacing: 0.02em;
+  }
+
+  .aguardando-container {
+    padding: 4px 0 0 0;
+  }
+
+  .aguardando-nova-partida {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-style: italic;
   }
 
   /* Grid Principal do Placar */
