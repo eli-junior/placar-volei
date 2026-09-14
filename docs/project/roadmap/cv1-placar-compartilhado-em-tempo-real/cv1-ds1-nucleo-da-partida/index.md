@@ -1,9 +1,9 @@
 ---
 code: CV1.DS1
 level: Delivery Story
-status: Active
-status_reason: primeiro arco de entrega; nada mais funciona sem o núcleo
-updated: 2026-09-13
+status: Done
+status_reason: todas as stories entregues e validadas (TS1, US1, US2, US3, US5, TS2, TS3, US4)
+updated: 2026-09-14
 related:
   - 2026-09-13T1400Z-log-de-eventos-como-fonte-da-verdade
   - 2026-09-13T1420Z-sqlite-como-persistencia
@@ -38,4 +38,4 @@ Stack do frontend decidida: Svelte 5. O contrato de eventos WebSocket segue send
 
 Ordem sugerida: TS1 → US1 → US2 → US3 → US5 → TS2 → TS3 → US4.
 
-`TS1`, `US1`, `US2`, `US3`, `US5`, `TS2` e `TS3` estão concluídas e validadas. `US4` é a próxima story planejada.
+Todas as stories deste primeiro arco foram concluídas e validadas com sucesso (`TS1`, `US1`, `US2`, `US3`, `US5`, `TS2`, `TS3` e `US4`). Arco de entrega fechado.

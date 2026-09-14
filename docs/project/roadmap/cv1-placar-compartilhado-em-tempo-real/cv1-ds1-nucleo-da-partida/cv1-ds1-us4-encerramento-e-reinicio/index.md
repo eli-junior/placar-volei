@@ -1,8 +1,8 @@
 ---
 code: CV1.DS1.US4
 level: User Story
-status: Active
-status_reason: em andamento na branch feature/cv1-ds1-us4-encerramento-e-reinicio
+status: Done
+status_reason: implementada, testada e validada pelo Navigator
 updated: 2026-09-14
 related:
   - CV1.DS3.US1
