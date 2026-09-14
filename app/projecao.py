@@ -230,7 +230,18 @@ def projetar_linha_do_tempo(
             descricao = f"{autor_apelido} assumiu o controle"
 
         elif evento.tipo == TipoEvento.PAPEL_ALTERADO:
-            descricao = f"{autor_apelido} autorizou {evento.payload.get('apelido', 'participante')} como admin"
+            novo_papel = evento.payload.get("papel")
+            alvo_nome = evento.payload.get("apelido", "participante")
+            if novo_papel == "CONTROLADOR":
+                descricao = f"{autor_apelido} promoveu {alvo_nome} a controlador"
+            elif novo_papel == "ESPECTADOR":
+                descricao = f"{autor_apelido} revogou controlador de {alvo_nome}"
+            elif novo_papel == "ADMIN":
+                descricao = f"{autor_apelido} autorizou {alvo_nome} como admin"
+            else:
+                descricao = (
+                    f"{autor_apelido} alterou papel de {alvo_nome} para {novo_papel}"
+                )
 
         elif evento.tipo == TipoEvento.PARTIDA_ENCERRADA:
             venc = evento.payload.get("vencedor")

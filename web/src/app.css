@@ -112,6 +112,12 @@ input:focus {
   border: 1px solid rgba(249, 115, 22, 0.3);
 }
 
+.badge-controlador {
+  background: rgba(56, 189, 248, 0.15);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.3);
+}
+
 .badge-espectador {
   background: rgba(148, 163, 184, 0.12);
   color: #cbd5e1;

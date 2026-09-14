@@ -371,6 +371,44 @@ async def post_autorizar_admin(quadra_id: str, participante_id: str, request: Re
     )
 
 
+@router.post("/quadras/{quadra_id}/participantes/{participante_id}/promover")
+async def post_promover_controlador(
+    quadra_id: str, participante_id: str, request: Request
+):
+    return await executar_comando(
+        quadra_id, request, "promover", alvo_id=participante_id
+    )
+
+
+@router.post("/quadras/{quadra_id}/participantes/{participante_id}/revogar")
+async def post_revogar_controlador(
+    quadra_id: str, participante_id: str, request: Request
+):
+    return await executar_comando(
+        quadra_id, request, "revogar", alvo_id=participante_id
+    )
+
+
+class AlterarPapelBody(BaseModel):
+    papel: str
+
+
+@router.post("/quadras/{quadra_id}/participantes/{participante_id}/papel")
+async def post_alterar_papel(
+    quadra_id: str, participante_id: str, body: AlterarPapelBody, request: Request
+):
+    papel_desejado = body.papel.strip().upper()
+    if papel_desejado == "CONTROLADOR":
+        acao = "promover"
+    elif papel_desejado == "ESPECTADOR":
+        acao = "revogar"
+    elif papel_desejado == "ADMIN":
+        acao = "autorizar"
+    else:
+        raise HTTPException(status_code=422, detail=f"Papel inválido: {body.papel}")
+    return await executar_comando(quadra_id, request, acao, alvo_id=participante_id)
+
+
 @router.get("/quadras/{quadra_id}/linha-do-tempo", status_code=status.HTTP_200_OK)
 async def get_linha_do_tempo(quadra_id: str):
     quadra = await obter_quadra(settings.db_path, quadra_id)

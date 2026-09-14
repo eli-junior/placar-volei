@@ -1,7 +1,16 @@
 <script>
   import { slide, fade } from 'svelte/transition';
 
-  let { participantes = [], euId = null, prefersReducedMotion = false, podeAutorizar = false, desabilitado = false, onAutorizarAdmin = (id) => {} } = $props();
+  let {
+    participantes = [],
+    euId = null,
+    prefersReducedMotion = false,
+    podeAutorizar = false,
+    desabilitado = false,
+    onPromoverControlador = (id) => {},
+    onRevogarControlador = (id) => {},
+    onAutorizarAdmin = (id) => {},
+  } = $props();
 </script>
 
 <div class="presentes-card" in:fade={{ duration: prefersReducedMotion ? 0 : 200 }}>
@@ -32,10 +41,30 @@
             </span>
           </div>
 
-          {#if podeAutorizar && p.papel !== 'ADMIN'}
-            <button class="autorizar" disabled={desabilitado} onclick={() => onAutorizarAdmin(p.id)} aria-label={`Autorizar ${p.apelido} como admin`}>Tornar admin</button>
+          {#if podeAutorizar && p.id !== euId}
+            {#if p.papel === 'ESPECTADOR'}
+              <button
+                type="button"
+                class="btn-papel btn-promover"
+                disabled={desabilitado}
+                onclick={() => onPromoverControlador(p.id)}
+                aria-label={`Promover ${p.apelido} a controlador`}
+              >
+                Tornar controlador
+              </button>
+            {:else if p.papel === 'CONTROLADOR'}
+              <button
+                type="button"
+                class="btn-papel btn-revogar"
+                disabled={desabilitado}
+                onclick={() => onRevogarControlador(p.id)}
+                aria-label={`Revogar controlador de ${p.apelido}`}
+              >
+                Revogar controlador
+              </button>
+            {/if}
           {/if}
-          <span class="badge {p.papel === 'ADMIN' ? 'badge-admin' : 'badge-espectador'}">
+          <span class="badge {p.papel === 'ADMIN' ? 'badge-admin' : p.papel === 'CONTROLADOR' ? 'badge-controlador' : 'badge-espectador'}">
             {p.papel}
           </span>
         </div>
@@ -45,7 +74,37 @@
 </div>
 
 <style>
-  .autorizar { min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1px solid #38bdf8; background: transparent; color: #38bdf8; cursor: pointer; }
+  .btn-papel {
+    min-height: 40px;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+  .btn-promover {
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    background: rgba(56, 189, 248, 0.1);
+    color: #38bdf8;
+  }
+  .btn-promover:hover:not(:disabled) {
+    background: rgba(56, 189, 248, 0.2);
+    border-color: #38bdf8;
+  }
+  .btn-revogar {
+    border: 1px solid rgba(248, 113, 113, 0.4);
+    background: rgba(248, 113, 113, 0.1);
+    color: #f87171;
+  }
+  .btn-revogar:hover:not(:disabled) {
+    background: rgba(248, 113, 113, 0.2);
+    border-color: #f87171;
+  }
+  .btn-papel:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   .participante-row { flex-wrap: wrap; gap: 10px; }
   .presentes-card {
     background: var(--bg-surface);

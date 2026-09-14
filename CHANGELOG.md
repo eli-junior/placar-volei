@@ -10,6 +10,29 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 *(Nenhum desenvolvimento ativo no momento)*
 
+## 0.3.1 - 2026-09-14
+
+Boundary: patch (entrega de CV1.DS2.US1: controle e permissões de quadra com promoção e revogação de controladores)
+
+Authors: Eli (Navigator); Antigravity (Driver)
+
+Git source: feature/cv1-ds2-us1-promover-e-revogar-controladores (merge into master)
+
+### Added
+
+- [US1] Suporte completo ao papel de `CONTROLADOR` no motor de comandos, permitindo marcação e anulação de pontos e disputa de controle ativo.
+- [US1] Endpoints REST `POST /api/quadras/{id}/participantes/{alvo_id}/promover` e `.../revogar` (e `/papel` genérico) restritos exclusivamente ao `ADMIN`.
+- [US1] Transferência automática de turno ao promover controlador (permitindo pontuação imediata sem recarregar a tela ou cliques adicionais) e retorno seguro ao admin na revogação.
+- [US1] Proteção rigorosa no servidor contra requisições forjadas: espectadores recebem HTTP 403 ao tentar pontuar, anular pontos ou assumir o controle.
+- [US1] Interface reativa em Svelte 5: botões "Tornar controlador" e "Revogar controlador" visíveis apenas para o Admin; badges estilizados para `ADMIN`, `CONTROLADOR` e `ESPECTADOR`.
+- [US1] Suíte de testes automatizados em `tests/test_promover_revogar_controladores.py` cobrindo ciclos de permissão, concorrência e eventos via WebSocket.
+
+### Changed
+
+- Projeção de `PAPEL_ALTERADO` na Linha do Tempo detalha quem promoveu ou revogou cada participante.
+- Bump de versão para `0.3.1` em `pyproject.toml` e `app/config.py`.
+- Roadmap e README atualizados refletindo `CV1.DS2` como ativa e `US1` como concluída.
+
 ## 0.3.0 - 2026-09-14
 
 Boundary: minor (conclusão da CV1.DS1 - Núcleo da Partida: pontuação, rotação de saque, desfecho/encerramento e reinício sob demanda)

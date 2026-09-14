@@ -1,9 +1,9 @@
 ---
 code: CV1.DS2.US1
 level: User Story
-status: Planned
-status_reason:
-updated: 2026-09-13
+status: Done
+status_reason: implementado, verificado com testes automatizados e rota de três clientes
+updated: 2026-09-14
 related:
   - 2026-09-13T1405Z-identidade-por-apelido-e-sessao
 ---
