@@ -1,5 +1,6 @@
 <script>
   import { fly, fade, slide } from 'svelte/transition';
+  import CartaoDobravel from './CartaoDobravel.svelte';
 
   let {
     estadoPartida = null,
@@ -136,17 +137,13 @@
     >
       <span class="equipe-nome">{equipeA}</span>
 
-      <div class="flipper-container" aria-live="polite">
-        {#key pontosA}
-          <span
-            class="flipper-numero num-a"
-            in:fly={{ y: prefersReducedMotion ? 0 : -28, duration: prefersReducedMotion ? 0 : 220 }}
-            out:fly={{ y: prefersReducedMotion ? 0 : 28, duration: prefersReducedMotion ? 0 : 220 }}
-          >
-            {pontosA}
-          </span>
-        {/key}
-      </div>
+      <CartaoDobravel
+        valor={pontosA}
+        equipe={equipeA}
+        tema="a"
+        tamanho="normal"
+        {prefersReducedMotion}
+      />
 
       {#if podeControlar}
         <button
@@ -173,17 +170,13 @@
     >
       <span class="equipe-nome">{equipeB}</span>
 
-      <div class="flipper-container" aria-live="polite">
-        {#key pontosB}
-          <span
-            class="flipper-numero num-b"
-            in:fly={{ y: prefersReducedMotion ? 0 : -28, duration: prefersReducedMotion ? 0 : 220 }}
-            out:fly={{ y: prefersReducedMotion ? 0 : 28, duration: prefersReducedMotion ? 0 : 220 }}
-          >
-            {pontosB}
-          </span>
-        {/key}
-      </div>
+      <CartaoDobravel
+        valor={pontosB}
+        equipe={equipeB}
+        tema="b"
+        tamanho="normal"
+        {prefersReducedMotion}
+      />
 
       {#if podeControlar}
         <button
@@ -379,36 +372,6 @@
     text-overflow: ellipsis;
   }
 
-  /* Flipper com Grid Area 1 / 1 para sobreposição perfeita no slide */
-  .flipper-container {
-    display: grid;
-    place-items: center;
-    height: 5.4rem;
-    width: 100%;
-    overflow: hidden;
-    position: relative;
-  }
-
-  .flipper-numero {
-    grid-area: 1 / 1;
-    font-family: var(--font-display);
-    font-size: 5.2rem;
-    font-weight: 800;
-    line-height: 1;
-    color: #ffffff;
-    user-select: none;
-    will-change: transform, opacity;
-  }
-
-  .num-a {
-    color: #f0fdfa;
-    text-shadow: 0 2px 16px rgba(6, 182, 212, 0.35);
-  }
-
-  .num-b {
-    color: #fff7ed;
-    text-shadow: 0 2px 16px rgba(249, 115, 22, 0.35);
-  }
 
   .vs-col {
     display: flex;
@@ -490,10 +453,6 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .flipper-numero {
-      transition: none !important;
-      animation: none !important;
-    }
     .btn-marcar,
     .btn-desfazer {
       transition: none !important;

@@ -1,7 +1,8 @@
 <script>
-  import { fade } from 'svelte/transition';
+  import { fade, slide } from 'svelte/transition';
   import ListaPresentes from './ListaPresentes.svelte';
   import Placar from './Placar.svelte';
+  import PlacarManual from './PlacarManual.svelte';
   import LinhaDoTempo from './LinhaDoTempo.svelte';
 
   let {
@@ -17,57 +18,158 @@
   } = $props();
 
   let modalLinhaDoTempoAberto = $state(false);
+  let prefersReducedMotion = $state(false);
 
   const podeControlar = $derived(
     eu?.papel === 'ADMIN' || eu?.papel === 'CONTROLADOR'
   );
+
+  // Modo Imersivo ativo por padrão para espectadores (US5)
+  let modoImersivo = $state(true);
+  let timerInatividade = null;
+
+  $effect(() => {
+    if (typeof window !== 'undefined') {
+      const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+      prefersReducedMotion = mq.matches;
+      const handler = (e) => {
+        prefersReducedMotion = e.matches;
+      };
+      mq.addEventListener('change', handler);
+      return () => mq.removeEventListener('change', handler);
+    }
+  });
+
+  // Atualiza estado imersivo caso o papel mude dinamicamente
+  $effect(() => {
+    if (podeControlar) {
+      modoImersivo = false;
+      if (timerInatividade) clearTimeout(timerInatividade);
+    }
+  });
+
+  // Gerencia a revelação dos controles e retorno ao modo imersivo após 3s (US5)
+  function tratarInteracaoUsuario(event) {
+    if (podeControlar) return;
+
+    // Se estava em modo imersivo, sai dele
+    if (modoImersivo) {
+      modoImersivo = false;
+    }
+
+    // Reinicia o temporizador de 3 segundos de inatividade
+    if (timerInatividade) {
+      clearTimeout(timerInatividade);
+    }
+
+    timerInatividade = setTimeout(() => {
+      // Retorna ao modo imersivo apenas se nenhum modal estiver aberto
+      if (!modalLinhaDoTempoAberto) {
+        modoImersivo = true;
+      }
+    }, 3000);
+  }
+
+  function handleAbrirLinhaDoTempo() {
+    if (timerInatividade) {
+      clearTimeout(timerInatividade);
+    }
+    modalLinhaDoTempoAberto = true;
+  }
+
+  function handleFecharLinhaDoTempo() {
+    modalLinhaDoTempoAberto = false;
+    if (!podeControlar) {
+      tratarInteracaoUsuario();
+    }
+  }
+
+  $effect(() => {
+    return () => {
+      if (timerInatividade) clearTimeout(timerInatividade);
+    };
+  });
 </script>
 
-<div class="sala-container" in:fade={{ duration: 200 }}>
-  <!-- Top Bar -->
-  <header class="sala-header">
-    <button class="btn-voltar" onclick={onVoltar}>
-      <span class="seta">←</span>
-      <span>Quadras</span>
-    </button>
+<!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<div
+  class="sala-container {modoImersivo && !podeControlar ? 'em-modo-imersivo' : ''}"
+  in:fade={{ duration: 200 }}
+  onclick={tratarInteracaoUsuario}
+  onpointerdown={tratarInteracaoUsuario}
+  onkeydown={(e) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+      tratarInteracaoUsuario(e);
+    }
+  }}
+  tabindex="-1"
+  role="region"
+  aria-label="Quadra de Vôlei"
+>
+  <!-- Top Bar com Botão Voltar e Status de Conexão -->
+  {#if podeControlar || !modoImersivo}
+    <header class="sala-header" in:slide={{ duration: 200 }} out:slide={{ duration: 200 }}>
+      <button
+        type="button"
+        class="btn-voltar"
+        onclick={onVoltar}
+        aria-label="Voltar para a lista de quadras"
+      >
+        <span class="seta">←</span>
+        <span>Quadras</span>
+      </button>
 
-    <div class="ws-status">
-      <span
-        class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"
-      ></span>
-      <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Conectando...'}</span>
-    </div>
-  </header>
-
-  <!-- Quadra Title & My Role -->
-  <section class="quadra-hero">
-    <div class="quadra-title-row">
-      <span class="quadra-tag">
-        🏟️ {quadra.arena_nome ? quadra.arena_nome + ' • ' : ''}Quadra Ativa
-      </span>
-      <h2 class="quadra-title">{quadra.nome}</h2>
-    </div>
-
-    <div class="meu-perfil-card">
-      <div class="meu-perfil-info">
-        <span class="label-voce">Você está conectado como:</span>
-        <span class="meu-apelido">{eu?.apelido || 'Participante'}</span>
+      <div class="ws-status">
+        <span
+          class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"
+        ></span>
+        <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Conectando...'}</span>
       </div>
-      <span class="badge {eu?.papel === 'ADMIN' ? 'badge-admin' : 'badge-espectador'}">
-        {eu?.papel || 'ESPECTADOR'}
-      </span>
-    </div>
-  </section>
+    </header>
 
-  <!-- Placar Interativo em Tempo Real (US2 & US3 & US4.US1) -->
-  <Placar
-    {estadoPartida}
-    {podeControlar}
-    desabilitado={!wsConectado}
-    {onMarcarPonto}
-    {onDesfazerPonto}
-    onAbrirLinhaDoTempo={() => { modalLinhaDoTempoAberto = true; }}
-  />
+    <!-- Quadra Title & Meu Perfil -->
+    <section class="quadra-hero" in:slide={{ duration: 200 }} out:slide={{ duration: 200 }}>
+      <div class="quadra-title-row">
+        <span class="quadra-tag">
+          🏟️ {quadra.arena_nome ? quadra.arena_nome + ' • ' : ''}Quadra Ativa
+        </span>
+        <h2 class="quadra-title">{quadra.nome}</h2>
+      </div>
+
+      <div class="meu-perfil-card">
+        <div class="meu-perfil-info">
+          <span class="label-voce">Você está conectado como:</span>
+          <span class="meu-apelido">{eu?.apelido || 'Participante'}</span>
+        </div>
+        <span class="badge {eu?.papel === 'ADMIN' ? 'badge-admin' : 'badge-espectador'}">
+          {eu?.papel || 'ESPECTADOR'}
+        </span>
+      </div>
+    </section>
+  {/if}
+
+  <!-- Exibição do Placar -->
+  {#if podeControlar}
+    <!-- Placar do Controlador com Botões Grandes de Marcação e Desfazer -->
+    <Placar
+      {estadoPartida}
+      {podeControlar}
+      desabilitado={!wsConectado}
+      {onMarcarPonto}
+      {onDesfazerPonto}
+      onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
+    />
+  {:else}
+    <!-- Placar Dobrável Manual Retrô do Espectador (US5) -->
+    <PlacarManual
+      {estadoPartida}
+      {quadra}
+      {prefersReducedMotion}
+      {modoImersivo}
+      onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
+    />
+  {/if}
 
   <!-- Modal/Gaveta da Linha do Tempo (CV1.DS4.US1) -->
   {#if modalLinhaDoTempoAberto}
@@ -77,12 +179,16 @@
       equipeB={estadoPartida?.equipe_b || 'Equipe B'}
       pontosA={estadoPartida?.pontos_a ?? 0}
       pontosB={estadoPartida?.pontos_b ?? 0}
-      onFechar={() => { modalLinhaDoTempoAberto = false; }}
+      onFechar={handleFecharLinhaDoTempo}
     />
   {/if}
 
-  <!-- Lista de Participantes em Tempo Real -->
-  <ListaPresentes {participantes} euId={eu?.id} />
+  <!-- Lista de Participantes em Tempo Real (oculta em modo imersivo) -->
+  {#if podeControlar || !modoImersivo}
+    <div in:slide={{ duration: 200 }} out:slide={{ duration: 200 }}>
+      <ListaPresentes {participantes} euId={eu?.id} />
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -91,6 +197,15 @@
     display: flex;
     flex-direction: column;
     gap: 22px;
+    min-height: 100vh;
+    transition: padding 0.25s ease;
+  }
+
+  .sala-container.em-modo-imersivo {
+    padding: 12px 16px;
+    justify-content: center;
+    cursor: pointer;
+    gap: 0;
   }
 
   .sala-header {

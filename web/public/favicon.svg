@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="gradCyan" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee"/>
+      <stop offset="100%" stop-color="#0891b2"/>
+    </linearGradient>
+    <linearGradient id="gradOrange" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Fundo Circular Escuro com Borda Brilhante -->
+  <circle cx="32" cy="32" r="30" fill="#0f172a" stroke="#334155" stroke-width="2"/>
+
+  <!-- Bola de Vôlei com Painéis Estilizados (Ciano, Laranja e Branco) -->
+  <g transform="translate(32, 32) scale(0.72) translate(-32, -32)">
+    <circle cx="32" cy="32" r="30" fill="#ffffff" stroke="#0f172a" stroke-width="2.5"/>
+
+    <!-- Seção Superior (Ciano) -->
+    <path d="M 32 2 A 30 30 0 0 1 58 17 C 46 22 36 28 32 32 C 28 20 28 10 32 2 Z" fill="url(#gradCyan)" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M 32 2 C 24 10 22 20 22 32 C 14 26 8 18 6 17 A 30 30 0 0 1 32 2 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
+
+    <!-- Seção Inferior Direita (Laranja) -->
+    <path d="M 62 32 A 30 30 0 0 1 47 58 C 42 46 36 36 32 32 C 44 28 54 28 62 32 Z" fill="url(#gradOrange)" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M 62 32 C 54 24 44 22 32 22 C 38 14 46 8 47 6 A 30 30 0 0 1 62 32 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
+
+    <!-- Seção Inferior Esquerda (Ciano / Laranja / Branco) -->
+    <path d="M 2 32 A 30 30 0 0 0 17 58 C 22 46 28 36 32 32 C 20 28 10 28 2 32 Z" fill="url(#gradCyan)" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M 32 62 A 30 30 0 0 0 58 47 C 46 42 36 36 32 32 C 28 44 28 54 32 62 Z" fill="url(#gradOrange)" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
+    <path d="M 32 62 C 24 54 22 44 22 32 C 14 38 8 46 6 47 A 30 30 0 0 0 32 62 Z" fill="#f8fafc" stroke="#0f172a" stroke-width="2.5" stroke-linejoin="round"/>
+  </g>
+</svg>
