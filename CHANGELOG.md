@@ -8,7 +8,12 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-*(Nenhum desenvolvimento ativo no momento)*
+### feature/cv1-ds1-us4-encerramento-e-reinicio
+- **História / Escopo**: CV1.DS1.US4 — Encerramento automático e reinício da partida
+- **Branch**: `feature/cv1-ds1-us4-encerramento-e-reinicio`
+- **Passo Ariad**: Passo 2 - Planejamento
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: e9ccd4d0-3e99-4c46-be20-c312feffd1e5 | Data: 2026-09-14 17:45
+- **Handoff / Próximos Passos**: Checkpoint 1 (Plano) apresentado ao Navigator. Aguardar aprovação do plano para iniciar Passo 3 - Implementação.
 
 ## 0.2.1 - 2026-09-14
 
