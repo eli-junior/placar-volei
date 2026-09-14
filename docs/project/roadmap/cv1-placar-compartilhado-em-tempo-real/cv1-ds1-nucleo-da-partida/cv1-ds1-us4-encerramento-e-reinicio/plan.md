@@ -2,11 +2,11 @@
 code: CV1.DS1.US4
 kind: plan
 status: Proposed
-approved_by: Navigator (Pendente)
+approved_by: Navigator (Ajustado)
 updated: 2026-09-14
 ---
 
-# Plano — CV1.DS1.US4 Encerramento automático e reinício da partida
+# Plano — CV1.DS1.US4 Encerramento da partida e reinício sob demanda
 
 ## Nível e Versão
 
@@ -24,38 +24,40 @@ updated: 2026-09-14
 2. **Endpoint REST para Reinício / Nova Partida na Quadra:**
    - `POST /api/quadras/{quadra_id}/reiniciar`:
      - Autenticação e autorização via sessão (Admin/Controlador).
-     - Sob o lock da quadra (`get_quadra_lock`), valida se a partida atual já foi encerrada (idempotente: se já estiver em 0x0 de uma nova partida, retorna o snapshot).
+     - Sob o lock da quadra (`get_quadra_lock`), valida se a partida atual já foi encerrada.
      - Garante que a partida anterior está arquivada no banco com seu log append-only completo.
      - Cria um novo registro em `partidas` com `id = uuid()`, `status = 'EM_ANDAMENTO'`, `criado_em = <agora>`.
      - Grava o evento `PARTIDA_INICIADA` para a nova partida herdando a configuração de regras da partida anterior (`alvo`, `vantagem`, `teto`, `equipe_a`, `equipe_b`).
      - Transmite broadcast WebSocket com `PLACAR_ATUALIZADO` apontando para a nova partida em 0x0.
 
 3. **WebSocket Contínuo entre Partidas:**
-   - Em `app/main.py`, remove a desconexão equivocada de WebSocket quando `partida_id` muda (que tratava como sala expirada). A sala só é considerada expirada se a quadra foi removida (`atual is None`).
+   - Em `app/main.py`, remove a desconexão equivocada de WebSocket quando `partida_id` muda. A sala só é considerada expirada se a quadra foi removida (`atual is None`).
    - Todos os clientes conectados à quadra continuam ouvindo os broadcasts normalmente e recebem a transição da nova partida em tempo real.
 
 4. **Frontend (Svelte 5):**
    - **Anúncio de Vitória Festivo e Destacado:**
-     - Quando `encerrada` é verdadeira, exibe banner comemorativo com o nome da equipe vencedora, ícone de troféu e animação de celebração respeitando `prefers-reduced-motion`.
+     - Quando `encerrada` é verdadeira, exibe banner comemorativo com o nome da equipe vencedora, ícone de troféu e celebração visual respeitando `prefers-reduced-motion`.
      - Desabilita os botões de marcação "+1" enquanto a partida estiver encerrada.
-   - **Transição Automática e Controle:**
-     - Temporizador visual regressivo: *"Próxima partida em 5s..."* (atendendo ao requisito de produto *"sem ninguém precisar mexer em nada"*).
-     - Botão imediato *"Iniciar Nova Partida Agora"* para quem preferir iniciar sem aguardar a contagem.
-     - O botão *"↺ Desfazer Último Ponto"* permanece ativo e visível para o admin durante a contagem. Se acionado, anula o ponto, cancela a contagem e reabre o jogo em andamento.
-     - Ao zerar o contador, o cliente admin dispara automaticamente `POST /api/quadras/{quadra_id}/reiniciar`.
-     - Ao receber a nova partida via WebSocket, todas as telas resetam com transição fluida para 0x0.
+   - **Controle Sob Demanda (Sem Reinício Automático):**
+     - Exibe o botão de destaque **"Iniciar Nova Partida"** para o administrador / controlador.
+     - Para espectadores, exibe indicação de que o jogo acabou e aguarda o início da próxima partida.
+     - O botão *"↺ Desfazer Último Ponto"* permanece ativo e visível para o admin; se acionado, anula o ponto da vitória, cancela o encerramento e reabre o jogo em andamento (ex: de 12x10 volta para 11x10).
+     - Quando o admin clica no botão "Iniciar Nova Partida", chama `POST /api/quadras/{quadra_id}/reiniciar`.
+     - Ao receber a nova partida via WebSocket, todas as telas transitam com fluidez para 0x0.
 
 ## Comportamento de Aceite (BDD)
 
 ```gherkin
-Scenario: Vitória direta (12x10) e reinício automático
+Scenario: Vitória direta (12x10) e reinício sob demanda
   Given uma quadra configurada para 12 pontos com vantagem de 2
   When o Time A marca ponto e o placar atinge 12x10
   Then todas as telas anunciam a vitória do Time A
   And o evento PARTIDA_ENCERRADA é gravado no log
   And a partida atual é marcada como ENCERRADA
-  And o sistema inicia uma contagem regressiva de 5 segundos
-  And ao final da contagem, uma nova partida inicia em 0x0 na mesma quadra com as mesmas regras
+  And o placar permanece na tela com o resultado final
+  And um botão "Iniciar Nova Partida" é exibido para o controlador
+  When o controlador clica em "Iniciar Nova Partida"
+  Then uma nova partida inicia em 0x0 na mesma quadra com as mesmas regras em todas as telas
 
 Scenario: Vantagem após empate (14x12)
   Given uma quadra com partida empatada em 11x11 (alvo 12 com vantagem)
@@ -71,28 +73,26 @@ Scenario: Encerramento com teto atingido (15x14)
   When o placar chega a 14x14 e o Time A marca ponto (15x14)
   Then a partida encerra imediatamente com vitória do Time A pelo teto configurado
 
-Scenario: Desfazer ponto da vitória durante o anúncio
+Scenario: Desfazer ponto da vitória
   Given uma partida recém-encerrada em 12x10 com anúncio de vitória exibido
   When o admin toca em "Desfazer Último Ponto"
   Then o 12º ponto é anulado via PONTO_DESFEITO
   And o placar retorna para 11x10 em andamento
-  And o anúncio de vitória e a contagem regressiva são cancelados
-  And os botões de marcação são reabilitados em todas as telas
+  And o anúncio de vitória é removido e o botão "Iniciar Nova Partida" desaparece
+  And os botões de marcação "+1" são reabilitados em todas as telas
 ```
 
 ## Decisões de Design
 
-### 1. Gravação Explícita de `PARTIDA_ENCERRADA` no Log
-- Além da projeção em memória avaliar a condição de vitória dinamicamente, gravar um evento explícito `PARTIDA_ENCERRADA` no log garante que o término da partida seja um fato histórico imutável com carimbo UTC e autor/sistema.
-- *Por que:* Cumpre o princípio *"O placar é auditável, não apenas atual"* e fecha formalmente o log de eventos daquela partida antes de arquivá-la.
+### 1. Reinício Sob Demanda por Botão Explícito
+- A partida finalizada permanece em exibição na tela com o placar final e o vencedor anunciado até que o responsável decida iniciar o próximo jogo clicando no botão "Iniciar Nova Partida".
+- *Decisão do Navigator:* Não utilizar reinício automático por timer. A quadra tem o seu tempo de descanso, conversa ou troca de jogadores entre partidas.
 
-### 2. Transição com Janela de Anúncio e Desfazer
-- A partida não é zerada instantaneamente em 0 ms no mesmo milissegundo em que o ponto entra. Ela exibe o anúncio de vitória por 5 segundos com uma contagem regressiva visível, permitindo que todos vejam quem ganhou e que o admin corrija um toque errado antes do início da próxima partida.
-- *Por que:* Atende simultaneamente ao requisito *"sem ninguém precisar mexer em nada"* e ao princípio *"Corrigir é tão barato quanto marcar"*.
+### 2. Gravação Explícita de `PARTIDA_ENCERRADA` no Log
+- Gravar um evento explícito `PARTIDA_ENCERRADA` no log garante que o término da partida seja um fato histórico imutável com carimbo UTC e autor/sistema.
 
 ### 3. Preservação da Sala (Quadra) e Participantes
 - Ao reiniciar a partida, o código numérico de 5 dígitos da quadra, o nome da quadra e a lista de participantes permanecem intactos. Apenas a entidade `partida_id` é renovada.
-- *Por que:* O grupo que está na pelada não precisa sair da sala, digitar PIN de novo ou escolher apelido novamente para jogar a próxima partida.
 
 ## Fora de Escopo
 
