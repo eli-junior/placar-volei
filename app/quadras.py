@@ -3,6 +3,7 @@ import uuid
 from datetime import UTC, datetime
 from typing import Any
 
+from app.config import settings
 from app.db import get_db
 from app.eventos import TipoEvento, append_evento_sync, get_quadra_lock
 
@@ -10,11 +11,17 @@ from app.eventos import TipoEvento, append_evento_sync, get_quadra_lock
 
 
 def criar_arena_sync(db_path: str, nome: str) -> dict[str, Any]:
-    arena_id = str(uuid.uuid4())
-    agora = datetime.now(UTC).isoformat()
-    nome_limpo = nome.strip()
-
     with get_db(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute("SELECT COUNT(*) FROM arenas")
+        (total_arenas,) = cursor.fetchone()
+        if total_arenas >= settings.max_arenas:
+            raise ValueError(f"Limite máximo de {settings.max_arenas} arenas atingido.")
+
+        arena_id = str(uuid.uuid4())
+        agora = datetime.now(UTC).isoformat()
+        nome_limpo = nome.strip()
+
         conn.execute(
             "INSERT INTO arenas (id, nome, criado_em) VALUES (?, ?, ?)",
             (arena_id, nome_limpo, agora),
@@ -105,6 +112,17 @@ def criar_quadra_sync(
     nome_limpo = nome.strip()
 
     with get_db(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT COUNT(*) FROM quadras WHERE arena_id = ?",
+            (arena_id,),
+        )
+        (total_quadras,) = cursor.fetchone()
+        if total_quadras >= settings.max_quadras_por_arena:
+            raise ValueError(
+                f"Limite máximo de {settings.max_quadras_por_arena} quadras para esta arena atingido."
+            )
+
         conn.execute(
             "INSERT INTO quadras (id, arena_id, nome, criado_em) VALUES (?, ?, ?, ?)",
             (quadra_id, arena_id, nome_limpo, agora),
@@ -261,12 +279,17 @@ def registrar_participante_sync(
                 "ultimo_visto_em": agora,
             }
 
-        # Primeiro participante vira ADMIN, demais viram ESPECTADOR
+        # Valida limite máximo de participantes para esta quadra
         cursor.execute(
             "SELECT COUNT(*) FROM participantes WHERE quadra_id = ?",
             (quadra_id,),
         )
         (total_participantes,) = cursor.fetchone()
+        if total_participantes >= settings.max_participantes_por_quadra:
+            raise ValueError(
+                f"Limite máximo de {settings.max_participantes_por_quadra} participantes para esta quadra atingido."
+            )
+
         papel = "ADMIN" if total_participantes == 0 else "ESPECTADOR"
 
         cursor.execute(

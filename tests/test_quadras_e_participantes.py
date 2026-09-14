@@ -198,3 +198,73 @@ def test_websocket_presenca_estado_inicial():
             assert participantes[0]["apelido"] == "Marina"
             assert participantes[0]["papel"] == "ADMIN"
             assert participantes[0]["online"] is True
+
+
+@pytest.mark.asyncio
+async def test_limites_capacidade():
+    """Verifica bloqueio quando os limites de arenas, quadras ou participantes são atingidos."""
+    # Configura limites baixos para teste
+    settings.max_arenas = 2
+    settings.max_quadras_por_arena = 2
+    settings.max_participantes_por_quadra = 2
+
+    async with httpx.AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        # 1. Limite de Arenas (máx 2)
+        r_a1 = await client.post("/api/arenas", json={"nome": "Arena 1"})
+        assert r_a1.status_code == 201
+        arena1_id = r_a1.json()["id"]
+
+        r_a2 = await client.post("/api/arenas", json={"nome": "Arena 2"})
+        assert r_a2.status_code == 201
+
+        r_a3 = await client.post("/api/arenas", json={"nome": "Arena 3"})
+        assert r_a3.status_code == 400
+        assert "limite máximo" in r_a3.json()["detail"].lower()
+
+        # 2. Limite de Quadras por Arena (máx 2)
+        r_q1 = await client.post(
+            f"/api/arenas/{arena1_id}/quadras", json={"nome": "Quadra 1"}
+        )
+        assert r_q1.status_code == 201
+        quadra1_id = r_q1.json()["id"]
+
+        r_q2 = await client.post(
+            f"/api/arenas/{arena1_id}/quadras", json={"nome": "Quadra 2"}
+        )
+        assert r_q2.status_code == 201
+
+        r_q3 = await client.post(
+            f"/api/arenas/{arena1_id}/quadras", json={"nome": "Quadra 3"}
+        )
+        assert r_q3.status_code == 400
+        assert "limite máximo" in r_q3.json()["detail"].lower()
+
+        # 3. Limite de Participantes por Quadra (máx 2)
+        r_p1 = await client.post(
+            f"/api/quadras/{quadra1_id}/entrar",
+            json={"apelido": "User 1"},
+            headers={"x-session-id": "s1"},
+        )
+        assert r_p1.status_code == 200
+
+        r_p2 = await client.post(
+            f"/api/quadras/{quadra1_id}/entrar",
+            json={"apelido": "User 2"},
+            headers={"x-session-id": "s2"},
+        )
+        assert r_p2.status_code == 200
+
+        r_p3 = await client.post(
+            f"/api/quadras/{quadra1_id}/entrar",
+            json={"apelido": "User 3"},
+            headers={"x-session-id": "s3"},
+        )
+        assert r_p3.status_code == 400
+        assert "limite máximo" in r_p3.json()["detail"].lower()
+
+        # Restaura limites padrão
+        settings.max_arenas = 50
+        settings.max_quadras_por_arena = 20
+        settings.max_participantes_por_quadra = 50

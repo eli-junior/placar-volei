@@ -1,8 +1,8 @@
 ---
 code: CV1.DS1.US3
 level: User Story
-status: Planned
-status_reason:
+status: Done
+status_reason: implementado, verificado com 34 testes e validado pelo Navigator
 updated: 2026-09-13
 related:
   - 2026-09-13T1400Z-log-de-eventos-como-fonte-da-verdade

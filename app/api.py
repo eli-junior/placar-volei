@@ -66,7 +66,13 @@ async def post_arenas(body: CriarArenaBody):
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Nome da arena não pode ser vazio.",
         )
-    arena = await criar_arena(settings.db_path, nome)
+    try:
+        arena = await criar_arena(settings.db_path, nome)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
     return arena
 
 
@@ -107,7 +113,13 @@ async def post_arena_quadra(arena_id: str, body: CriarQuadraBody):
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Nome da quadra não pode ser vazio.",
         )
-    quadra = await criar_quadra(settings.db_path, arena_id=arena_id, nome=nome)
+    try:
+        quadra = await criar_quadra(settings.db_path, arena_id=arena_id, nome=nome)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
     return quadra
 
 
@@ -129,15 +141,21 @@ async def post_quadras(body: CriarQuadraBody):
             detail="Nome da quadra não pode ser vazio.",
         )
     arena_id = body.arena_id
-    if not arena_id:
-        arenas = await listar_arenas(settings.db_path)
-        if arenas:
-            arena_id = arenas[0]["id"]
-        else:
-            nova_arena = await criar_arena(settings.db_path, "Arena Principal")
-            arena_id = nova_arena["id"]
+    try:
+        if not arena_id:
+            arenas = await listar_arenas(settings.db_path)
+            if arenas:
+                arena_id = arenas[0]["id"]
+            else:
+                nova_arena = await criar_arena(settings.db_path, "Arena Principal")
+                arena_id = nova_arena["id"]
 
-    quadra = await criar_quadra(settings.db_path, arena_id=arena_id, nome=nome)
+        quadra = await criar_quadra(settings.db_path, arena_id=arena_id, nome=nome)
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
     return quadra
 
 
@@ -184,12 +202,18 @@ async def post_entrar_quadra(
             max_age=86400 * 30,
         )
 
-    participante = await registrar_participante(
-        settings.db_path,
-        quadra_id=quadra_id,
-        session_id=session_id,
-        apelido=apelido,
-    )
+    try:
+        participante = await registrar_participante(
+            settings.db_path,
+            quadra_id=quadra_id,
+            session_id=session_id,
+            apelido=apelido,
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=str(e),
+        )
 
     # Notifica outros participantes da presença atualizada
     participantes = await listar_participantes(settings.db_path, quadra_id)
@@ -303,6 +327,12 @@ async def post_marcar_ponto(
             detail="Participante não registrado nesta quadra.",
         )
 
+    if participante["papel"] not in ("ADMIN", "CONTROLADOR"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas administradores e controladores podem marcar pontos.",
+        )
+
     equipe = body.equipe.strip().upper()
     if equipe not in ("A", "B"):
         raise HTTPException(
@@ -324,6 +354,90 @@ async def post_marcar_ponto(
         partida_id=partida_id,
         tipo=TipoEvento.PONTO_MARCADO,
         payload={"equipe": equipe},
+        autor_id=participante["id"],
+    )
+
+    novo_estado = projetar_estado([*eventos_atuais, evento])
+    estado_dict = asdict(novo_estado)
+    evento_dict = asdict(evento)
+
+    # Broadcast para todos os clientes WebSocket conectados na quadra
+    await hub.broadcast(
+        quadra_id,
+        {
+            "tipo": "PLACAR_ATUALIZADO",
+            "payload": {
+                "evento": evento_dict,
+                "estado_partida": estado_dict,
+            },
+        },
+    )
+
+    return {
+        "evento": evento_dict,
+        "estado_partida": estado_dict,
+    }
+
+
+@router.post("/quadras/{quadra_id}/desfazer", status_code=status.HTTP_200_OK)
+async def post_desfazer_ponto(
+    quadra_id: str,
+    request: Request,
+):
+    quadra = await obter_quadra(settings.db_path, quadra_id)
+    if not quadra:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Quadra não encontrada.",
+        )
+
+    partida_id = quadra.get("partida_id")
+    if not partida_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Nenhuma partida ativa encontrada para esta quadra.",
+        )
+
+    session_id = request.cookies.get("session_id") or request.headers.get(
+        "x-session-id"
+    )
+    if not session_id:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Participante não autenticado.",
+        )
+
+    participante = await obter_participante(settings.db_path, quadra_id, session_id)
+    if not participante:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Participante não registrado nesta quadra.",
+        )
+
+    if participante["papel"] not in ("ADMIN", "CONTROLADOR"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Apenas administradores e controladores podem desfazer pontos.",
+        )
+
+    eventos_atuais = await carregar_eventos(settings.db_path, partida_id)
+    estado_atual = projetar_estado(eventos_atuais)
+
+    if not estado_atual.eventos_ativos_seq:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Nenhum ponto para desfazer.",
+        )
+
+    # O ponto a ser anulado é o último ponto marcado ativo no log
+    ref_seq = estado_atual.eventos_ativos_seq[-1]
+
+    evento = await append_evento(
+        settings.db_path,
+        quadra_id=quadra_id,
+        partida_id=partida_id,
+        tipo=TipoEvento.PONTO_DESFEITO,
+        payload={"ref_seq": ref_seq},
         autor_id=participante["id"],
     )
 

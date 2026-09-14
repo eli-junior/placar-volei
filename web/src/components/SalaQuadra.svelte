@@ -10,8 +10,13 @@
     estadoPartida = null,
     wsConectado = false,
     onMarcarPonto = () => {},
+    onDesfazerPonto = () => {},
     onVoltar,
   } = $props();
+
+  const podeControlar = $derived(
+    eu?.papel === 'ADMIN' || eu?.papel === 'CONTROLADOR'
+  );
 </script>
 
 <div class="sala-container" in:fade={{ duration: 200 }}>
@@ -50,11 +55,13 @@
     </div>
   </section>
 
-  <!-- Placar Interativo em Tempo Real (US2) -->
+  <!-- Placar Interativo em Tempo Real (US2 & US3) -->
   <Placar
     {estadoPartida}
+    {podeControlar}
     desabilitado={!wsConectado}
     {onMarcarPonto}
+    {onDesfazerPonto}
   />
 
   <!-- Lista de Participantes em Tempo Real -->

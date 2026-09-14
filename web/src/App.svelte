@@ -249,6 +249,27 @@
     }
   }
 
+  async function handleDesfazerPonto() {
+    if (!quadraAtual) return;
+    try {
+      const res = await fetch(`/api/quadras/${quadraAtual.id}/desfazer`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        if (data.estado_partida) {
+          estadoPartida = data.estado_partida;
+        }
+      } else {
+        const err = await res.json();
+        console.warn('Erro ao desfazer ponto:', err.detail);
+      }
+    } catch (e) {
+      console.error('Erro de rede ao desfazer ponto:', e);
+    }
+  }
+
   function handleVoltarParaQuadras() {
     if (wsSocket) {
       wsSocket.close();
@@ -333,6 +354,7 @@
       {estadoPartida}
       {wsConectado}
       onMarcarPonto={handleMarcarPonto}
+      onDesfazerPonto={handleDesfazerPonto}
       onVoltar={handleVoltarParaQuadras}
     />
   {:else if arenaAtual}

@@ -5,12 +5,24 @@
   let apelido = $state('');
   let erro = $state('');
 
+  $effect(() => {
+    if (typeof localStorage !== 'undefined' && !apelido) {
+      const salvo = localStorage.getItem('placar_ultimo_apelido');
+      if (salvo) apelido = salvo;
+    }
+  });
+
   function handleSubmit(e) {
     e.preventDefault();
     const apelidoLimpo = apelido.trim();
     if (!apelidoLimpo) {
       erro = 'Informe seu apelido para entrar na quadra.';
       return;
+    }
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem('placar_ultimo_apelido', apelidoLimpo);
+      } catch {}
     }
     erro = '';
     onEntrar(apelidoLimpo);

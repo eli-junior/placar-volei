@@ -3,8 +3,10 @@
 
   let {
     estadoPartida = null,
+    podeControlar = false,
     desabilitado = false,
     onMarcarPonto = () => {},
+    onDesfazerPonto = () => {},
   } = $props();
 
   let submetendo = $state(false);
@@ -26,6 +28,11 @@
 
   const pontosA = $derived(estadoPartida?.pontos_a ?? 0);
   const pontosB = $derived(estadoPartida?.pontos_b ?? 0);
+  const totalPontos = $derived(pontosA + pontosB);
+  const podeDesfazer = $derived(
+    podeControlar && totalPontos > 0 && !desabilitado && !submetendo
+  );
+
   const equipeA = $derived(estadoPartida?.equipe_a || 'Equipe A');
   const equipeB = $derived(estadoPartida?.equipe_b || 'Equipe B');
   const alvo = $derived(estadoPartida?.alvo ?? 12);
@@ -37,6 +44,25 @@
   const vencedorNome = $derived(
     vencedor === 'A' ? equipeA : vencedor === 'B' ? equipeB : null
   );
+
+  async function handleToqueDesfazer() {
+    if (!podeDesfazer || submetendo) return;
+
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate(30);
+      } catch {}
+    }
+
+    try {
+      submetendo = true;
+      await onDesfazerPonto();
+    } finally {
+      setTimeout(() => {
+        submetendo = false;
+      }, 250);
+    }
+  }
 
   async function handleToquePonto(equipe) {
     if (submetendo || desabilitado || encerrada) return;
@@ -109,20 +135,22 @@
         {/key}
       </div>
 
-      <button
-        type="button"
-        class="btn-marcar btn-marcar-a"
-        disabled={desabilitado || encerrada || submetendo}
-        onclick={() => handleToquePonto('A')}
-        aria-label="Marcar ponto para {equipeA}"
-      >
-        <span class="btn-plus">+1</span>
-        <span class="btn-sub">{equipeA}</span>
-      </button>
+      {#if podeControlar}
+        <button
+          type="button"
+          class="btn-marcar btn-marcar-a"
+          disabled={desabilitado || encerrada || submetendo}
+          onclick={() => handleToquePonto('A')}
+          aria-label="Marcar ponto para {equipeA}"
+        >
+          <span class="btn-plus">+1</span>
+          <span class="btn-sub">{equipeA}</span>
+        </button>
+      {/if}
     </div>
 
     <!-- Divisor Central -->
-    <div class="vs-col">
+    <div class="vs-col {podeControlar ? 'vs-com-botoes' : ''}">
       <span class="vs-simbolo">×</span>
     </div>
 
@@ -144,18 +172,36 @@
         {/key}
       </div>
 
-      <button
-        type="button"
-        class="btn-marcar btn-marcar-b"
-        disabled={desabilitado || encerrada || submetendo}
-        onclick={() => handleToquePonto('B')}
-        aria-label="Marcar ponto para {equipeB}"
-      >
-        <span class="btn-plus">+1</span>
-        <span class="btn-sub">{equipeB}</span>
-      </button>
+      {#if podeControlar}
+        <button
+          type="button"
+          class="btn-marcar btn-marcar-b"
+          disabled={desabilitado || encerrada || submetendo}
+          onclick={() => handleToquePonto('B')}
+          aria-label="Marcar ponto para {equipeB}"
+        >
+          <span class="btn-plus">+1</span>
+          <span class="btn-sub">{equipeB}</span>
+        </button>
+      {/if}
     </div>
   </div>
+
+  {#if podeControlar}
+    <!-- Ação de Correção: Desfazer Último Ponto (US3) -->
+    <div class="desfazer-container">
+      <button
+        type="button"
+        class="btn-desfazer"
+        disabled={!podeDesfazer}
+        onclick={handleToqueDesfazer}
+        aria-label="Desfazer último ponto marcado"
+      >
+        <span class="desfazer-icone">↺</span>
+        <span class="desfazer-texto">Desfazer Último Ponto</span>
+      </button>
+    </div>
+  {/if}
 </section>
 
 <style>
@@ -312,6 +358,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
+  }
+
+  .vs-col.vs-com-botoes {
     padding-bottom: 74px; /* alinha com os números */
   }
 
@@ -389,8 +438,62 @@
       transition: none !important;
       animation: none !important;
     }
-    .btn-marcar {
+    .btn-marcar,
+    .btn-desfazer {
       transition: none !important;
     }
   }
+
+  /* Estilos do Botão Desfazer (US3) */
+  .desfazer-container {
+    display: flex;
+    justify-content: center;
+    padding-top: 4px;
+  }
+
+  .btn-desfazer {
+    width: 100%;
+    height: 48px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  }
+
+  .btn-desfazer:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .btn-desfazer:active:not(:disabled) {
+    transform: scale(0.98);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .btn-desfazer:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  .desfazer-icone {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .desfazer-texto {
+    letter-spacing: 0.02em;
+  }
+
 </style>

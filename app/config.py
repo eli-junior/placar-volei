@@ -14,5 +14,10 @@ class Settings(BaseSettings):
     host: str = "0.0.0.0"
     port: int = 8000
 
+    # Limites de capacidade para proteção da instância
+    max_arenas: int = 50
+    max_quadras_por_arena: int = 20
+    max_participantes_por_quadra: int = 50
+
 
 settings = Settings()

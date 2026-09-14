@@ -6,9 +6,9 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Fase inicial. Fundação (`CV1.DS1.TS1`), criação de arenas, quadras e entrada por apelido (`CV1.DS1.US1`) e marcação de pontos em tempo real (`CV1.DS1.US2`) concluídas e testadas.
+Fase inicial. Fundação (`CV1.DS1.TS1`), criação de arenas, quadras e entrada por apelido (`CV1.DS1.US1`), marcação de pontos em tempo real (`CV1.DS1.US2`) e desfazer ponto a ponto até zerar com permissão por papel (`CV1.DS1.US3`) concluídas e testadas.
 
-Próximo trabalho: `CV1.DS1.US3` — desfazer ponto a ponto até zerar.
+Próximo trabalho: `CV1.DS4.US1` — linha do tempo da partida.
 
 ## Como funciona
 
