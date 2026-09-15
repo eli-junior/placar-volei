@@ -189,9 +189,13 @@ def projetar_linha_do_tempo(
                 alvo = int(payload["alvo"])
             if "vantagem" in payload and payload["vantagem"] is not None:
                 vantagem = bool(payload["vantagem"])
+            teto = None
+            if "teto" in payload and payload["teto"] is not None:
+                teto = int(payload["teto"])
 
             desc_vantagem = " com vantagem de 2" if vantagem else ""
-            descricao = f"Partida iniciada até {alvo} pts{desc_vantagem}"
+            desc_teto = f" (teto {teto})" if teto else ""
+            descricao = f"Partida iniciada até {alvo} pts{desc_vantagem}{desc_teto}"
 
         elif evento.tipo == TipoEvento.PONTO_MARCADO:
             equipe = str(evento.payload.get("equipe", "")).upper()

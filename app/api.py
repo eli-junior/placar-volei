@@ -63,6 +63,15 @@ class CriarQuadraBody(BaseModel):
     time_b_jogador2: str | None = Field(default=None, max_length=30)
     equipe_a: str | None = Field(default=None, max_length=60)
     equipe_b: str | None = Field(default=None, max_length=60)
+    alvo: int = Field(
+        default=12, ge=1, le=100, description="Pontuação-alvo para vitória"
+    )
+    vantagem: bool = Field(
+        default=True, description="Exigência de 2 pontos de vantagem"
+    )
+    teto: int | None = Field(
+        default=None, ge=1, le=200, description="Teto máximo de pontuação"
+    )
 
 
 class ReiniciarPartidaBody(BaseModel):
@@ -143,6 +152,11 @@ async def get_arena_quadras(arena_id: str):
 
 @router.post("/arenas/{arena_id}/quadras", status_code=status.HTTP_201_CREATED)
 async def post_arena_quadra(arena_id: str, body: CriarQuadraBody):
+    if body.teto is not None and body.teto < body.alvo:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="O teto da vantagem não pode ser menor que a pontuação-alvo.",
+        )
     arena = await obter_arena(settings.db_path, arena_id)
     if not arena:
         raise HTTPException(
@@ -169,6 +183,9 @@ async def post_arena_quadra(arena_id: str, body: CriarQuadraBody):
             equipe_b=nome_b,
             jogadores_a=j_a,
             jogadores_b=j_b,
+            alvo=body.alvo,
+            vantagem=body.vantagem,
+            teto=body.teto,
         )
     except OSError:
         raise HTTPException(
@@ -197,6 +214,11 @@ async def post_quadras(
     request: Request,
     response: Response,
 ):
+    if body.teto is not None and body.teto < body.alvo:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="O teto da vantagem não pode ser menor que a pontuação-alvo.",
+        )
     apelido = body.apelido.strip() if body.apelido and body.apelido.strip() else None
     nome = body.nome.strip() if body.nome and body.nome.strip() else None
 
@@ -231,6 +253,9 @@ async def post_quadras(
             equipe_b=nome_b,
             jogadores_a=j_a,
             jogadores_b=j_b,
+            alvo=body.alvo,
+            vantagem=body.vantagem,
+            teto=body.teto,
         )
     except OSError:
         raise HTTPException(
