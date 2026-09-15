@@ -8,7 +8,12 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-Nenhum desenvolvimento ativo no momento.
+### feature/cv2-ds1-blindagem-e-confiabilidade
+- **História / Escopo**: CV2.DS1 — Blindagem e Confiabilidade do Placar (remoção de `codigo_mestre` do WS [C1], proteção contra fantasmas e lotação [C2], prevenção e feedback visual contra toques perdidos no +1 [C3] e normalização de erros 422 [A7])
+- **Branch**: `feature/cv2-ds1-blindagem-e-confiabilidade`
+- **Passo Ariad**: Passo 2 - Planejamento
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: c99eaae7-a2c8-4084-8884-819f5cc9e494 | Data: 2026-09-15 17:45
+- **Handoff / Próximos Passos**: Checkpoint 1 apresentado ao Navigator. Aguardando aprovação para iniciar a implementação no backend e frontend.
 
 ## 0.4.2 - 2026-09-15
 
