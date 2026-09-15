@@ -5,7 +5,13 @@
   let {
     estadoPartida = null,
     podeControlar = false,
+    // `desabilitado` = não dá para agir agora (socket caído ou sem controle).
     desabilitado = false,
+    // `enviando` = há comando em voo. Não bloqueia o toque seguinte: apenas
+    // pinta o botão de "processando" (aria-busy + pulso).
+    enviando = false,
+    // Quantos toques já aceitos ainda aguardam resposta do servidor.
+    pendentes = 0,
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
     onIniciarNovaPartida = () => {},
@@ -14,20 +20,20 @@
     onAlternarLados = () => {},
   } = $props();
 
-  let submetendo = $state(false);
   let feedbackEquipe = $state(null);
   let feedbackTimer = null;
   let prefersReducedMotion = $state(false);
 
-  async function handleIniciarNovaPartida() {
-    if (submetendo || desabilitado) return;
-    try {
-      submetendo = true;
-      await onIniciarNovaPartida();
-    } finally {
-      setTimeout(() => {
-        submetendo = false;
-      }, 250);
+  function handleIniciarNovaPartida() {
+    if (enviando || desabilitado) return;
+    onIniciarNovaPartida();
+  }
+
+  function vibrar(ms) {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+      try {
+        navigator.vibrate(ms);
+      } catch {}
     }
   }
 
@@ -46,9 +52,7 @@
   const pontosA = $derived(estadoPartida?.pontos_a ?? 0);
   const pontosB = $derived(estadoPartida?.pontos_b ?? 0);
   const totalPontos = $derived(pontosA + pontosB);
-  const podeDesfazer = $derived(
-    podeControlar && totalPontos > 0 && !desabilitado && !submetendo
-  );
+  const podeDesfazer = $derived(podeControlar && totalPontos > 0 && !desabilitado);
 
   const equipeA = $derived(estadoPartida?.equipe_a || 'Equipe A');
   const equipeB = $derived(estadoPartida?.equipe_b || 'Equipe B');
@@ -62,51 +66,29 @@
     vencedor === 'A' ? equipeA : vencedor === 'B' ? equipeB : null
   );
 
-  async function handleToqueDesfazer() {
-    if (!podeDesfazer || submetendo) return;
-
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      try {
-        navigator.vibrate(30);
-      } catch {}
-    }
-
-    try {
-      submetendo = true;
-      await onDesfazerPonto();
-    } finally {
-      setTimeout(() => {
-        submetendo = false;
-      }, 250);
-    }
+  function handleToqueDesfazer() {
+    if (!podeDesfazer) return;
+    vibrar(30);
+    onDesfazerPonto();
   }
 
-  async function handleToquePonto(equipe) {
-    if (submetendo || desabilitado || encerrada) return;
+  /*
+   * Um toque nunca é engolido por já haver outro em voo: o comando é entregue
+   * ao pai, que serializa a fila. Aqui só cuidamos do retorno imediato — vibração,
+   * flash no card da equipe e `aria-busy` no botão enquanto o envio acontece.
+   */
+  function handleToquePonto(equipe) {
+    if (desabilitado || encerrada) return;
 
-    // Feedback háptico tátil leve no celular (se suportado pelo navegador)
-    if (typeof navigator !== 'undefined' && navigator.vibrate) {
-      try {
-        navigator.vibrate(35);
-      } catch {}
-    }
+    vibrar(35);
 
-    // Feedback visual imediato no card da equipe
     feedbackEquipe = equipe;
     if (feedbackTimer) clearTimeout(feedbackTimer);
     feedbackTimer = setTimeout(() => {
       feedbackEquipe = null;
     }, 300);
 
-    try {
-      submetendo = true;
-      await onMarcarPonto(equipe);
-    } finally {
-      // Debounce curto para evitar duplo toque acidental
-      setTimeout(() => {
-        submetendo = false;
-      }, 250);
-    }
+    onMarcarPonto(equipe);
   }
 </script>
 
@@ -163,7 +145,8 @@
         <button
           type="button"
           class="btn-nova-partida"
-          disabled={desabilitado || submetendo}
+          disabled={desabilitado || enviando}
+          aria-busy={enviando}
           onclick={handleIniciarNovaPartida}
           aria-label="Iniciar Nova Partida"
         >
@@ -175,6 +158,26 @@
           <span class="aguardando-nova-partida">Aguardando início da próxima partida…</span>
         </div>
       {/if}
+    </div>
+  {/if}
+
+  <!-- Estado do transporte: quem opera precisa saber se o toque saiu ou não -->
+  {#if podeControlar && desabilitado}
+    <div class="aviso-conexao" role="status">
+      <span class="aviso-icone" aria-hidden="true">⟳</span>
+      <span>
+        Sem conexão com a sala. Os botões de ponto estão bloqueados e voltam
+        sozinhos assim que a reconexão acontecer — nada é marcado às cegas.
+      </span>
+    </div>
+  {:else if podeControlar && enviando}
+    <div class="aviso-envio" role="status">
+      <span class="aviso-icone pulsando" aria-hidden="true">●</span>
+      <span>
+        {pendentes > 1
+          ? `Enviando ${pendentes} toques na fila…`
+          : 'Enviando o toque…'}
+      </span>
     </div>
   {/if}
 
@@ -198,7 +201,8 @@
         <button
           type="button"
           class="btn-marcar btn-marcar-a"
-          disabled={desabilitado || encerrada || submetendo}
+          disabled={desabilitado || encerrada}
+          aria-busy={enviando}
           onclick={() => handleToquePonto('A')}
           aria-label="Marcar ponto para {equipeA}"
         >
@@ -231,7 +235,8 @@
         <button
           type="button"
           class="btn-marcar btn-marcar-b"
-          disabled={desabilitado || encerrada || submetendo}
+          disabled={desabilitado || encerrada}
+          aria-busy={enviando}
           onclick={() => handleToquePonto('B')}
           aria-label="Marcar ponto para {equipeB}"
         >
@@ -249,6 +254,7 @@
         type="button"
         class="btn-desfazer"
         disabled={!podeDesfazer}
+        aria-busy={enviando}
         onclick={handleToqueDesfazer}
         aria-label="Desfazer último ponto marcado"
       >
@@ -531,6 +537,60 @@
     color: var(--text-muted);
   }
 
+  /* Avisos de transporte: conexão caída e envio em andamento */
+  .aviso-conexao,
+  .aviso-envio {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: var(--radius-md);
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .aviso-conexao {
+    color: #fde68a;
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+  }
+
+  .aviso-envio {
+    color: #a5f3fc;
+    background: rgba(6, 182, 212, 0.12);
+    border: 1px solid rgba(6, 182, 212, 0.35);
+  }
+
+  .aviso-icone {
+    font-size: 1rem;
+    line-height: 1;
+    flex: 0 0 auto;
+  }
+
+  .aviso-conexao .aviso-icone {
+    animation: girar-aviso 1.1s linear infinite;
+  }
+
+  .aviso-icone.pulsando {
+    animation: pulsar-aviso 0.9s ease-in-out infinite;
+  }
+
+  @keyframes girar-aviso {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  @keyframes pulsar-aviso {
+    0%, 100% {
+      opacity: 0.35;
+    }
+    50% {
+      opacity: 1;
+    }
+  }
+
   /* Botões Grandes para Uma Mão */
   .btn-marcar {
     width: 100%;
@@ -558,6 +618,41 @@
     cursor: not-allowed;
     transform: none;
     filter: grayscale(0.6);
+  }
+
+  /*
+   * Pulso de envio: o toque já saiu e o servidor ainda não respondeu. O botão
+   * continua clicável de propósito — o próximo toque entra na fila.
+   */
+  .btn-marcar[aria-busy='true'],
+  .btn-nova-partida[aria-busy='true'],
+  .btn-desfazer[aria-busy='true'] {
+    animation: pulso-envio 0.9s ease-in-out infinite;
+  }
+
+  .btn-marcar[aria-busy='true']::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 6px 0;
+    height: 3px;
+    margin: 0 auto;
+    width: 38%;
+    border-radius: 2px;
+    background: rgba(255, 255, 255, 0.85);
+    animation: pulso-envio 0.9s ease-in-out infinite;
+  }
+
+  .btn-marcar {
+    position: relative;
+  }
+
+  @keyframes pulso-envio {
+    0%, 100% {
+      filter: brightness(1);
+    }
+    50% {
+      filter: brightness(1.25);
+    }
   }
 
   .btn-marcar-a {
@@ -598,6 +693,20 @@
     .btn-marcar,
     .btn-desfazer {
       transition: none !important;
+    }
+
+    /* Sem movimento, o estado de envio continua legível por contraste fixo. */
+    .btn-marcar[aria-busy='true'],
+    .btn-nova-partida[aria-busy='true'],
+    .btn-desfazer[aria-busy='true'],
+    .btn-marcar[aria-busy='true']::after,
+    .aviso-conexao .aviso-icone,
+    .aviso-icone.pulsando {
+      animation: none !important;
+    }
+
+    .btn-marcar[aria-busy='true'] {
+      filter: brightness(1.2);
     }
   }
 

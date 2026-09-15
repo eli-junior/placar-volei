@@ -296,11 +296,33 @@ async def listar_quadras(db_path: str) -> list[dict[str, Any]]:
     return await asyncio.to_thread(listar_quadras_sync, db_path)
 
 
+def contar_presentes(registrados, ids_online: frozenset[str], limite: str) -> int:
+    """Conta quem de fato ocupa vaga na quadra.
+
+    Ocupa vaga quem tem conexão ativa no hub (`ids_online`, recebido pronto de
+    quem chamou) ou deu sinal de vida depois de `limite`. Quem fechou o
+    navegador e saiu da janela de inatividade não conta mais — era essa
+    contagem por linha da tabela que produzia lotação fantasma.
+    """
+    return sum(
+        1
+        for r in registrados
+        if r["id"] in ids_online or (r["ultimo_visto_em"] or "") >= limite
+    )
+
+
+def limite_de_presenca(agora: datetime | None = None) -> str:
+    """Instante a partir do qual um `ultimo_visto_em` ainda conta como presença."""
+    referencia = agora or datetime.now(UTC)
+    return (referencia - timedelta(seconds=settings.presenca_ttl_seconds)).isoformat()
+
+
 def registrar_participante_sync(
     db_path: str,
     quadra_id: str,
     session_id: str,
     apelido: str,
+    ids_online: frozenset[str] | set[str] | None = None,
 ) -> dict[str, Any]:
     limpar_quadras_expiradas_sync(db_path)
     participante_id = str(uuid.uuid4())
@@ -340,13 +362,20 @@ def registrar_participante_sync(
                 "ultimo_visto_em": agora,
             }
 
-        # Valida limite máximo de participantes para esta quadra
+        # Valida limite máximo de participantes para esta quadra.
+        # A capacidade olha presença efetiva; o papel inicial continua olhando a
+        # sala inteira, para que um fantasma expirado não promova o recém-chegado
+        # a ADMIN por engano.
         cursor.execute(
-            "SELECT COUNT(*) FROM participantes WHERE quadra_id = ?",
+            "SELECT id, ultimo_visto_em FROM participantes WHERE quadra_id = ?",
             (quadra_id,),
         )
-        (total_participantes,) = cursor.fetchone()
-        if total_participantes >= settings.max_participantes_por_quadra:
+        registrados = cursor.fetchall()
+        total_participantes = len(registrados)
+        total_presentes = contar_presentes(
+            registrados, frozenset(ids_online or ()), limite_de_presenca()
+        )
+        if total_presentes >= settings.max_participantes_por_quadra:
             raise CapacidadeEsgotada(
                 f"Limite máximo de {settings.max_participantes_por_quadra} participantes para esta quadra atingido."
             )
@@ -394,7 +423,14 @@ async def registrar_participante(
     quadra_id: str,
     session_id: str,
     apelido: str,
+    ids_online: frozenset[str] | set[str] | None = None,
 ) -> dict[str, Any]:
+    """Registra o participante.
+
+    `ids_online` é injetado por quem chama (a borda HTTP, que conhece o hub).
+    A camada de persistência não importa o hub nem toca no event loop de dentro
+    da thread da transação: presença entra aqui como valor, não como chamada.
+    """
     lock = get_quadra_lock(quadra_id)
     async with lock:
         return await asyncio.to_thread(
@@ -403,6 +439,7 @@ async def registrar_participante(
             quadra_id,
             session_id,
             apelido,
+            frozenset(ids_online or ()),
         )
 
 

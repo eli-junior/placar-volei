@@ -26,6 +26,89 @@ from app.rate_limit import owner_rate_limiter
 router = APIRouter(prefix="/api", tags=["quadras"])
 
 
+# --- NORMALIZAÇÃO DE ERROS DE VALIDAÇÃO (HTTP 422) ---
+
+# Tradução dos tipos de erro do Pydantic para frases curtas em português.
+# O que chega ao cliente é sempre texto legível; `detail` nunca é objeto.
+_MENSAGENS_VALIDACAO = {
+    "missing": lambda ctx: "é obrigatório",
+    "string_too_short": lambda ctx: (
+        f"deve ter pelo menos {ctx.get('min_length', 1)} caractere(s)"
+    ),
+    "string_too_long": lambda ctx: (
+        f"deve ter no máximo {ctx.get('max_length', 0)} caractere(s)"
+    ),
+    "too_short": lambda ctx: f"deve ter pelo menos {ctx.get('min_length', 1)} item(ns)",
+    "too_long": lambda ctx: f"deve ter no máximo {ctx.get('max_length', 0)} item(ns)",
+    "greater_than": lambda ctx: f"deve ser maior que {ctx.get('gt')}",
+    "greater_than_equal": lambda ctx: f"deve ser no mínimo {ctx.get('ge')}",
+    "less_than": lambda ctx: f"deve ser menor que {ctx.get('lt')}",
+    "less_than_equal": lambda ctx: f"deve ser no máximo {ctx.get('le')}",
+    "int_parsing": lambda ctx: "deve ser um número inteiro",
+    "int_type": lambda ctx: "deve ser um número inteiro",
+    "float_parsing": lambda ctx: "deve ser um número",
+    "bool_parsing": lambda ctx: "deve ser verdadeiro ou falso",
+    "bool_type": lambda ctx: "deve ser verdadeiro ou falso",
+    "string_type": lambda ctx: "deve ser um texto",
+    "json_invalid": lambda ctx: "não é um JSON válido",
+}
+
+# Rótulos amigáveis para os campos que o usuário realmente digita.
+_ROTULOS_CAMPOS = {
+    "apelido": "Apelido",
+    "nome": "Nome da sala",
+    "alvo": "Pontuação-alvo",
+    "teto": "Teto da vantagem",
+    "vantagem": "Vantagem de 2 pontos",
+    "equipe": "Equipe",
+    "equipe_a": "Nome da equipe A",
+    "equipe_b": "Nome da equipe B",
+    "papel": "Papel",
+    "time_a_jogador1": "Jogador 1 da equipe A",
+    "time_a_jogador2": "Jogador 2 da equipe A",
+    "time_b_jogador1": "Jogador 1 da equipe B",
+    "time_b_jogador2": "Jogador 2 da equipe B",
+}
+
+
+def _nome_do_campo(loc: tuple) -> str:
+    partes = [str(p) for p in loc if str(p) not in ("body", "query", "path", "header")]
+    return ".".join(partes) if partes else "requisição"
+
+
+def normalizar_erros_validacao(erros: list[dict]) -> dict:
+    """Converte os erros do Pydantic em um formato estável e legível.
+
+    Formato de saída:
+    `{"detail": "<frase única>", "erros": [{"campo", "rotulo", "mensagem"}]}`.
+    `detail` é sempre uma string porque é o que o frontend renderiza — era a
+    lista de dicionários do FastAPI que virava `"[object Object]"` na tela.
+    """
+    detalhados = []
+    for erro in erros:
+        campo = _nome_do_campo(tuple(erro.get("loc", ())))
+        rotulo = _ROTULOS_CAMPOS.get(campo, campo)
+        construtor = _MENSAGENS_VALIDACAO.get(erro.get("type", ""))
+        if construtor:
+            mensagem = construtor(erro.get("ctx") or {})
+        else:
+            mensagem = str(erro.get("msg") or "é inválido")
+        detalhados.append(
+            {
+                "campo": campo,
+                "rotulo": rotulo,
+                "mensagem": mensagem,
+                "tipo": erro.get("type", "value_error"),
+            }
+        )
+
+    if not detalhados:
+        return {"detail": "Dados inválidos na requisição.", "erros": []}
+
+    frase = " ".join(f"{d['rotulo']} {d['mensagem']}." for d in detalhados)
+    return {"detail": frase, "erros": detalhados}
+
+
 class MarcarPontoBody(BaseModel):
     equipe: str = Field(..., description="Equipe que marcou ponto: 'A' ou 'B'")
 
@@ -203,12 +286,18 @@ async def post_entrar_quadra(
             max_age=86400 * 30,
         )
 
+    # A presença é lida aqui, na borda assíncrona que conhece o hub, e desce
+    # como valor para a transação síncrona de capacidade. Assim a persistência
+    # não depende do transporte e nenhuma thread bloqueia esperando o event loop.
+    ids_online = await hub.participantes_online(quadra_id)
+
     try:
         participante = await registrar_participante(
             settings.db_path,
             quadra_id=quadra_id,
             session_id=session_id,
             apelido=apelido,
+            ids_online=ids_online,
         )
     except OSError:
         raise HTTPException(

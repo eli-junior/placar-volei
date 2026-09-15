@@ -9,9 +9,36 @@ from app.eventos import TipoEvento, append_evento_sync, carregar_eventos_sync
 from app.identidade import hash_sessao
 from app.projecao import projetar_estado, projetar_linha_do_tempo
 
+# Allowlist de campos da tabela `quadras` que podem sair da borda do servidor.
+# Qualquer coluna nova (sensível ou não) fica de fora do payload por padrão:
+# para expor um campo é preciso adicioná-lo aqui conscientemente. Foi a ausência
+# desse contrato explícito que fez `codigo_mestre` vazar no snapshot do
+# WebSocket quando a coluna foi criada (débito `debt-codigo-mestre-no-websocket`).
+CAMPOS_PUBLICOS_QUADRA = (
+    "id",
+    "nome",
+    "criado_em",
+    "atualizado_em",
+    "controle_id",
+    "controle_versao",
+)
+
+_SELECT_QUADRA_PUBLICA = (
+    f"SELECT {', '.join(CAMPOS_PUBLICOS_QUADRA)} FROM quadras WHERE id = ?"
+)
+
+
+def projetar_quadra_publica(row) -> dict:
+    """Projeta a linha de `quadras` na allowlist pública.
+
+    Nunca receber `SELECT *` refletido direto no payload é o ponto: mesmo que a
+    consulta traga colunas a mais, apenas os campos declarados saem daqui.
+    """
+    return {campo: row[campo] for campo in CAMPOS_PUBLICOS_QUADRA}
+
 
 def snapshot(conn, quadra_id):
-    quadra = conn.execute("SELECT * FROM quadras WHERE id = ?", (quadra_id,)).fetchone()
+    quadra = conn.execute(_SELECT_QUADRA_PUBLICA, (quadra_id,)).fetchone()
     if not quadra:
         raise HTTPException(404, "Sala não encontrada ou expirada.")
     partida = conn.execute(
@@ -26,7 +53,7 @@ def snapshot(conn, quadra_id):
             (quadra_id,),
         )
     ]
-    sala = dict(quadra)
+    sala = projetar_quadra_publica(quadra)
     sala["partida_id"] = partida["id"]
     return {
         "quadra": sala,
@@ -60,9 +87,7 @@ def executar_sync(
     # O lock de escrita cobre autorização, leitura do log e toda a alteração.
     with get_db(db_path) as conn:
         conn.execute("BEGIN IMMEDIATE")
-        quadra = conn.execute(
-            "SELECT * FROM quadras WHERE id = ?", (quadra_id,)
-        ).fetchone()
+        quadra = conn.execute(_SELECT_QUADRA_PUBLICA, (quadra_id,)).fetchone()
         limite = (
             datetime.now(UTC) - timedelta(seconds=settings.quadra_ttl_seconds)
         ).isoformat()

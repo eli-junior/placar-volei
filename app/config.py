@@ -20,6 +20,10 @@ class Settings(BaseSettings):
     max_quadras: int = 20
     max_participantes_por_quadra: int = 20
     quadra_ttl_seconds: int = 3600  # 1 hora sem atualização
+    # Janela de presença efetiva. Um participante sem conexão ativa no hub e sem
+    # sinal de vida (`ultimo_visto_em`) dentro desta janela deixa de ocupar vaga
+    # na quadra, para que a rotatividade da pelada não produza lotação fantasma.
+    presenca_ttl_seconds: int = 120
 
 
 settings = Settings()
