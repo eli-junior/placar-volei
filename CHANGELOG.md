@@ -8,12 +8,25 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-### feature/cv1-ds2-us2-sucessao-automatica-de-admin
-- **História / Escopo**: CV1.DS2.US2 — Sucessão automática de admin após 2 minutos offline
-- **Branch**: `feature/cv1-ds2-us2-sucessao-automatica-de-admin`
-- **Passo Ariad**: Passo 7 - Conclusão e Merge
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 2dbdb498-c56e-45d7-bd2a-0182cdd41b8f | Data: 2026-09-15 11:17
-- **Handoff / Próximos Passos**: Submeter proposta de histórico e merge na master no Checkpoint 4; após confirmação do Navigator, realizar merge e mover registro para a versão 0.3.3 fechada.
+*(Nenhuma branch ativa no momento)*
+
+## 0.3.3 - 2026-09-15
+
+Boundary: patch (entrega de CV1.DS2.US2: sucessão automática de admin após 2 minutos de ausência)
+
+Authors: Eli (Navigator); Antigravity (Driver)
+
+Git source: feature/cv1-ds2-us2-sucessao-automatica-de-admin (merge into master)
+
+### Added
+
+- [US2] Rastreio de presença e ausência com atualização de `ultimo_visto_em` no banco em eventos de conexão e desconexão de WebSocket.
+- [US2] Rotina periódica em background no lifespan do FastAPI para checagem contínua de tolerância de ausência do administrador (`settings.admin_timeout_seconds`, padrão 120s).
+- [US2] Eleição determinística do controlador online mais antigo (`criado_em ASC`) como novo administrador da sala.
+- [US2] Rebaixamento atômico e seguro do admin ausente para `CONTROLADOR`, garantindo que ao reconectar não recupere o posto sem autorização.
+- [US2] Gravação do evento auditável `ADMIN_SUCEDIDO` e projeção narrativa na Linha do Tempo da partida.
+- [US2] Suporte a estado degradado sem admin online (posto vago), mantendo a capacidade dos controladores de pontuar e desfazer pontos normalmente.
+- [US2] Suíte de testes automatizados em `tests/test_sucessao_admin.py` cobrindo antiguidade, reconexão de ex-admin, tolerância e propagação via WebSocket.
 
 ## 0.3.2 - 2026-09-14
 
