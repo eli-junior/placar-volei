@@ -53,8 +53,23 @@
     }
   }
 
+  let regraAlvo = $state(12);
+  let regraVantagem = $state(true);
+  let regraTeto = $state('');
+
+  const tetoNumerico = $derived(
+    regraTeto !== '' && regraTeto !== null && regraTeto !== undefined
+      ? Number(regraTeto)
+      : null
+  );
+
+  const tetoInvalido = $derived(
+    regraVantagem && tetoNumerico !== null && tetoNumerico < regraAlvo
+  );
+
   function handleSubmeterCriar(e) {
     e.preventDefault();
+    if (tetoInvalido) return;
     const apelido = apelidoCriador.trim();
     const jA1 = timeAJogador1.trim();
     const jB1 = timeBJogador1.trim();
@@ -71,6 +86,9 @@
       time_a_jogador2: timeAJogador2.trim() || undefined,
       time_b_jogador1: jB1,
       time_b_jogador2: timeBJogador2.trim() || undefined,
+      alvo: Number(regraAlvo) || 12,
+      vantagem: Boolean(regraVantagem),
+      teto: regraVantagem && tetoNumerico !== null ? tetoNumerico : null,
     });
   }
 
@@ -242,6 +260,102 @@
           </div>
         </div>
 
+        <!-- Regras da Partida -->
+        <div class="secao-regras">
+          <div class="secao-header">
+            <span class="secao-icone">⚙️</span>
+            <div>
+              <h3 class="secao-titulo">Regras da Partida</h3>
+              <p class="secao-subtitulo">Defina a pontuação e condições de encerramento da partida nesta sala.</p>
+            </div>
+          </div>
+
+          <!-- Seleção da Pontuação-Alvo -->
+          <div class="campo-grupo">
+            <span class="label-com-dica">Pontuação-alvo (pontos para vencer)</span>
+            <div class="pills-alvo">
+              {#each [12, 15, 21, 25] as preset}
+                <button
+                  type="button"
+                  class="btn-pill-alvo"
+                  class:selecionado={regraAlvo === preset}
+                  onclick={() => { regraAlvo = preset; }}
+                  disabled={submetendo}
+                >
+                  {preset} pts
+                </button>
+              {/each}
+              <button
+                type="button"
+                class="btn-pill-alvo"
+                class:selecionado={![12, 15, 21, 25].includes(regraAlvo)}
+                onclick={() => {
+                  if ([12, 15, 21, 25].includes(regraAlvo)) {
+                    regraAlvo = 18;
+                  }
+                }}
+                disabled={submetendo}
+              >
+                Personalizado
+              </button>
+            </div>
+
+            {#if ![12, 15, 21, 25].includes(regraAlvo)}
+              <div class="campo-personalizado" in:slide={{ duration: 150 }}>
+                <input
+                  id="alvo-personalizado"
+                  type="number"
+                  min="1"
+                  max="100"
+                  bind:value={regraAlvo}
+                  placeholder="Ex: 18"
+                  disabled={submetendo}
+                  required
+                />
+              </div>
+            {/if}
+          </div>
+
+          <!-- Checkbox Vantagem de 2 -->
+          <div class="campo-checkbox">
+            <label class="checkbox-container">
+              <input
+                type="checkbox"
+                bind:checked={regraVantagem}
+                disabled={submetendo}
+              />
+              <span class="checkbox-label">
+                <strong>Exigir vantagem de 2 pontos</strong>
+                <small class="checkbox-desc">A partida só encerra quando uma equipe abrir pelo menos 2 pontos de diferença.</small>
+              </span>
+            </label>
+          </div>
+
+          <!-- Teto Máximo (Opcional, visível se vantagem ativada) -->
+          {#if regraVantagem}
+            <div class="campo-grupo campo-teto" in:slide={{ duration: 150 }}>
+              <label for="teto-pontos">
+                Teto da pontuação (opcional)
+                <span class="campo-dica">Se atingido, encerra a partida mesmo com apenas 1 ponto de vantagem.</span>
+              </label>
+              <input
+                id="teto-pontos"
+                type="number"
+                min={regraAlvo}
+                max="200"
+                bind:value={regraTeto}
+                placeholder="Ex: {regraAlvo + 3} (deixe vazio para sem teto)"
+                disabled={submetendo}
+              />
+              {#if tetoInvalido}
+                <p class="aviso-erro-campo" in:slide={{ duration: 150 }}>
+                  ⚠️ O teto não pode ser menor que a pontuação-alvo ({regraAlvo} pts).
+                </p>
+              {/if}
+            </div>
+          {/if}
+        </div>
+
         <div class="card-info-box">
           <span class="info-icone">ℹ️</span>
           <span>Máximo de 20 pessoas por sala. Salas sem atualização por mais de 1h são removidas.</span>
@@ -250,7 +364,7 @@
         <button
           type="submit"
           class="btn-principal"
-          disabled={submetendo || !apelidoCriador.trim() || !timeAJogador1.trim() || !timeBJogador1.trim()}
+          disabled={submetendo || !apelidoCriador.trim() || !timeAJogador1.trim() || !timeBJogador1.trim() || tetoInvalido}
         >
           {submetendo ? 'Criando sala...' : 'Criar Placar e Iniciar'}
         </button>
@@ -618,6 +732,112 @@
     background: rgba(234, 88, 12, 0.2);
     color: #fb923c;
     border: 1px solid rgba(234, 88, 12, 0.4);
+  }
+
+  .secao-regras {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1rem;
+  }
+
+  .label-com-dica {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #e2e8f0;
+  }
+
+  .pills-alvo {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    margin-top: 0.35rem;
+  }
+
+  .btn-pill-alvo {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #94a3b8;
+    padding: 0.55rem 0.85rem;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+  }
+
+  .btn-pill-alvo:hover:not(:disabled) {
+    border-color: #64748b;
+    color: #f1f5f9;
+  }
+
+  .btn-pill-alvo.selecionado {
+    background: #0284c7;
+    border-color: #38bdf8;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
+  }
+
+  .campo-personalizado {
+    margin-top: 0.5rem;
+  }
+
+  .campo-checkbox {
+    background: #0f172a;
+    border: 1px solid #1e293b;
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+  }
+
+  .checkbox-container {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+  }
+
+  .checkbox-container input[type="checkbox"] {
+    width: 1.2rem;
+    height: 1.2rem;
+    accent-color: #0284c7;
+    margin-top: 0.15rem;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+
+  .checkbox-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .checkbox-label strong {
+    font-size: 0.92rem;
+    color: #f1f5f9;
+  }
+
+  .checkbox-desc {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    line-height: 1.35;
+  }
+
+  .campo-dica {
+    display: block;
+    font-size: 0.76rem;
+    color: #94a3b8;
+    font-weight: normal;
+    margin-top: 0.15rem;
+  }
+
+  .aviso-erro-campo {
+    color: #f87171;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin: 0.35rem 0 0 0;
   }
 
   .card-info-box {

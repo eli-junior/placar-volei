@@ -184,7 +184,13 @@ def criar_quadra_sync(
     equipe_b: str = "Equipe B",
     jogadores_a: list[str] | None = None,
     jogadores_b: list[str] | None = None,
+    alvo: int = 12,
+    vantagem: bool = True,
+    teto: int | None = None,
 ) -> dict[str, Any]:
+    if teto is not None and teto < alvo:
+        raise ValueError("O teto da vantagem não pode ser menor que a pontuação-alvo.")
+
     limpar_quadras_expiradas_sync(db_path)
 
     with get_db(db_path) as conn:
@@ -256,16 +262,16 @@ def criar_quadra_sync(
                 "UPDATE quadras SET controle_id = ?, controle_versao = 1 WHERE id = ?",
                 (participante["id"], quadra_id),
             )
-        # Registra o evento de partida iniciada com regra padrão
+        # Registra o evento de partida iniciada com as regras configuradas
         append_evento_sync(
             db_path,
             quadra_id=quadra_id,
             partida_id=partida_id,
             tipo=TipoEvento.PARTIDA_INICIADA,
             payload={
-                "alvo": 12,
-                "vantagem": True,
-                "teto": None,
+                "alvo": alvo,
+                "vantagem": vantagem,
+                "teto": teto,
                 "equipe_a": equipe_a or "Equipe A",
                 "equipe_b": equipe_b or "Equipe B",
                 "jogadores_a": jogadores_a or [],
@@ -309,6 +315,9 @@ async def criar_quadra(
     equipe_b: str = "Equipe B",
     jogadores_a: list[str] | None = None,
     jogadores_b: list[str] | None = None,
+    alvo: int = 12,
+    vantagem: bool = True,
+    teto: int | None = None,
 ) -> dict[str, Any]:
     return await asyncio.to_thread(
         criar_quadra_sync,
@@ -321,6 +330,9 @@ async def criar_quadra(
         equipe_b=equipe_b,
         jogadores_a=jogadores_a,
         jogadores_b=jogadores_b,
+        alvo=alvo,
+        vantagem=vantagem,
+        teto=teto,
     )
 
 

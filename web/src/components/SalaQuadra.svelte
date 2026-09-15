@@ -305,9 +305,16 @@
 
       <div class="quadra-title-row">
         <h2 class="quadra-title">{quadra.nome}</h2>
-        <span class="quadra-tag">
-          🏟️ {quadra.arena_nome ? quadra.arena_nome + ' • ' : ''}Ativa
-        </span>
+        <div class="quadra-tags-group">
+          {#if estadoPartida}
+            <span class="regra-tag">
+              🎯 Até {estadoPartida.alvo} pts • {estadoPartida.vantagem ? 'Vantagem' : 'Sem vantagem'}{estadoPartida.teto ? ` • Teto ${estadoPartida.teto}` : ''}
+            </span>
+          {/if}
+          <span class="quadra-tag">
+            🏟️ {quadra.arena_nome ? quadra.arena_nome + ' • ' : ''}Ativa
+          </span>
+        </div>
       </div>
 
       <div class="meu-perfil-card">
@@ -585,6 +592,24 @@
     background: #0284c7;
     border-color: #0284c7;
     color: #ffffff;
+  }
+
+  .quadra-tags-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .regra-tag {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.12);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    padding: 3px 8px;
+    border-radius: 6px;
+    letter-spacing: 0.02em;
   }
 
   .quadra-tag {

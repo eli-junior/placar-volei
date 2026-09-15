@@ -11,9 +11,9 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 ### feature/cv1-ds3-us1-configurar-regras-da-partida
 - **História / Escopo**: CV1.DS3.US1 — Configurar pontuação-alvo, vantagem e teto
 - **Branch**: `feature/cv1-ds3-us1-configurar-regras-da-partida`
-- **Passo Ariad**: Passo 2 - Planejamento
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 2dbdb498-c56e-45d7-bd2a-0182cdd41b8f | Data: 2026-09-15 12:18
-- **Handoff / Próximos Passos**: Submissão do plano para aprovação do Navigator no Checkpoint 1; após aprovação, implementar endpoint de regras, comando REGRA_ALTERADA, validação de teto e painel de configuração no frontend.
+- **Passo Ariad**: Passo 4 - Teste e Validação
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 2dbdb498-c56e-45d7-bd2a-0182cdd41b8f | Data: 2026-09-15 13:38
+- **Handoff / Próximos Passos**: Testes automatizados (89/89) verdes. Aguardando validação interativa do Navigator (Checkpoint 2).
 
 ## 0.3.3 - 2026-09-15
 
