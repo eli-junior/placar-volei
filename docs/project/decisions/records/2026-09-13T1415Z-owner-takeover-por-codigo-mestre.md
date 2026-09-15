@@ -47,3 +47,8 @@ O takeover é auditável por decisão de produto: o princípio "todos veem a mes
 ## Review Trigger
 
 Se a instância deixar de ser de uso doméstico ou for exposta a um público mais amplo, substituir os 4 dígitos por credencial de owner adequada.
+
+## Notes
+
+- Em 2026-09-15, o endpoint de owner e a proteção contra força bruta foram implementados e validados em **CV1.DS2.TS1** (v0.4.1).
+- A ação direta de takeover (`US3`) foi postergada (Deferred) pelo Navigator, dado que salas em desacordo de administração podem ser facilmente substituídas por uma nova sala criada na hora.

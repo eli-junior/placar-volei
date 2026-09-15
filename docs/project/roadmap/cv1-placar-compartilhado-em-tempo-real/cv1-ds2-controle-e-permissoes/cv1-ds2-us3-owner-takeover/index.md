@@ -1,9 +1,9 @@
 ---
 code: CV1.DS2.US3
 level: User Story
-status: Planned
-status_reason:
-updated: 2026-09-13
+status: Deferred
+status_reason: Despriorizada pelo Navigator em 2026-09-15; criar uma nova sala resolve conflitos de admin sem necessidade de takeover
+updated: 2026-09-15
 related:
   - 2026-09-13T1415Z-owner-takeover-por-codigo-mestre
 ---
