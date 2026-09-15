@@ -1,9 +1,9 @@
 ---
 code: CV1
 level: Value
-status: Active
-status_reason: único Value do MVP; regras de negócio validadas pelo Navigator em 2026-09-13
-updated: 2026-09-13
+status: Done
+status_reason: MVP completo e validado em quadra com todas as entregas (DS1 a DS4)
+updated: 2026-09-15
 related:
   - docs/project/briefing.md
   - docs/product/principles.md
