@@ -6,9 +6,9 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Delivery Story `CV1.DS2` (controle e permissões) em andamento: promoção e revogação de controladores (`US1`) concluída e testada. Núcleo completo da partida (`CV1.DS1`) já entregue: fundação (`TS1`), criação de salas por código PIN (`US1`), marcação em tempo real (`US2`), desfazer ponto a ponto (`US3`), encerramento de partida e reinício sob demanda (`US4`), empacotamento Docker multi-estágio (`TS2`), modo imersivo com placar dobrável manual (`US5`), fixtures declarativas (`TS3`) e linha do tempo auditável (`CV1.DS4.US1`).
+Versão `0.3.2` entregue: Nomes reais de jogadores nas equipes e inversão local de lados na quadra (`CV1.DS3.US2`). Promoção e revogação de controladores (`CV1.DS2.US1`) concluída. Núcleo completo da partida (`CV1.DS1`) já entregue: fundação (`TS1`), criação de salas por código PIN (`US1`), marcação em tempo real (`US2`), desfazer ponto a ponto (`US3`), encerramento de partida e reinício sob demanda (`US4`), empacotamento Docker multi-estágio (`TS2`), modo imersivo com placar dobrável manual (`US5`), fixtures declarativas (`TS3`) e linha do tempo auditável (`CV1.DS4.US1`).
 
-Próximo trabalho: `CV1.DS2.US2` — sucessão automática de admin após ausência.
+Próximo trabalho: `CV1.DS3.US1` (regras da partida configuráveis) ou `CV1.DS2.US2` (sucessão automática de admin).
 
 ## Como funciona
 

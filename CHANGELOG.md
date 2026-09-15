@@ -11,9 +11,9 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 ### feature/cv1-ds3-us2-jogadores-das-equipes-e-inversao-de-lados
 - **História / Escopo**: CV1.DS3.US2 — Nomes de jogadores nas equipes (1 ou 2 por time) e inversão de lados na quadra
 - **Branch**: `feature/cv1-ds3-us2-jogadores-das-equipes-e-inversao-de-lados`
-- **Passo Ariad**: Passo 5 - Revisão (Checkpoint 3)
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 7bb92112-8818-44ae-87d5-4e2d9a077f33 | Data: 2026-09-14 22:49
-- **Handoff / Próximos Passos**: Apresentar revisão de arquitetura, débitos técnicos e documentação pendente. Aguardar confirmação do Navigator para Passo 6.
+- **Passo Ariad**: Passo 6 - Documentação
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 7bb92112-8818-44ae-87d5-4e2d9a077f33 | Data: 2026-09-14 22:50
+- **Handoff / Próximos Passos**: Atualizar roadmap, documentação da história, worklog e realizar Coherence Check.
 
 ## 0.3.1 - 2026-09-14
 

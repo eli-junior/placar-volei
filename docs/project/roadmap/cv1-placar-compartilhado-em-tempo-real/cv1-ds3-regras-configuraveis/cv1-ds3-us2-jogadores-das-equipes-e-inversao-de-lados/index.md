@@ -1,8 +1,8 @@
 ---
 code: CV1.DS3.US2
 level: User Story
-status: Active
-status_reason: puxada a pedido do Navigator para substituir nomes genéricos por jogadores e permitir inversão de perspectiva
+status: Done
+status_reason: concluída e validada pelo Navigator na versão 0.3.2
 updated: 2026-09-14
 related:
   - CV1.DS3
