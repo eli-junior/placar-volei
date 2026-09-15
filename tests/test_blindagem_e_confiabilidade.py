@@ -9,6 +9,7 @@ Cobre os três débitos quitados pela story:
 """
 
 import json
+import time
 from datetime import UTC, datetime, timedelta
 
 import pytest
@@ -214,10 +215,19 @@ def test_conexao_ativa_ocupa_vaga_mesmo_sem_sinal_recente(monkeypatch):
             assert bloqueada.status_code == 400
 
         # Socket fechado e sinal de vida novamente velho: a vaga é devolvida.
-        envelhecer_participantes(quadra_id, 3600)
-        liberada = visitante.post(
-            f"/api/quadras/{quadra_id}/entrar", json={"apelido": "Bia"}
-        )
+        # A liberação é eventual por natureza: sair do `with` devolve o controle
+        # ao cliente antes de o servidor concluir o `finally` que tira a conexão
+        # do hub. Esperar pelo comportamento observável mantém o teste honesto —
+        # se a vaga nunca fosse devolvida, o laço esgota e o teste falha.
+        limite = time.monotonic() + 3
+        while True:
+            envelhecer_participantes(quadra_id, 3600)
+            liberada = visitante.post(
+                f"/api/quadras/{quadra_id}/entrar", json={"apelido": "Bia"}
+            )
+            if liberada.status_code == 200 or time.monotonic() > limite:
+                break
+            time.sleep(0.02)
         assert liberada.status_code == 200
 
 
