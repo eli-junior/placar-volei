@@ -34,10 +34,44 @@ class MarcarPontoBody(BaseModel):
     equipe: str = Field(..., description="Equipe que marcou ponto: 'A' ou 'B'")
 
 
+def formatar_nome_equipe(
+    j1: str | None, j2: str | None, equipe_direta: str | None, padrao: str
+) -> tuple[str, list[str]]:
+    jogadores: list[str] = []
+    if j1 and j1.strip():
+        jogadores.append(j1.strip())
+    if j2 and j2.strip():
+        jogadores.append(j2.strip())
+
+    if jogadores:
+        nome = " / ".join(jogadores)
+    elif equipe_direta and equipe_direta.strip():
+        nome = equipe_direta.strip()
+    else:
+        nome = padrao
+
+    return nome, jogadores
+
+
 class CriarQuadraBody(BaseModel):
     apelido: str | None = Field(default=None, max_length=30)
     nome: str | None = Field(default=None, max_length=50)
     arena_id: str | None = None
+    time_a_jogador1: str | None = Field(default=None, max_length=30)
+    time_a_jogador2: str | None = Field(default=None, max_length=30)
+    time_b_jogador1: str | None = Field(default=None, max_length=30)
+    time_b_jogador2: str | None = Field(default=None, max_length=30)
+    equipe_a: str | None = Field(default=None, max_length=60)
+    equipe_b: str | None = Field(default=None, max_length=60)
+
+
+class ReiniciarPartidaBody(BaseModel):
+    time_a_jogador1: str | None = Field(default=None, max_length=30)
+    time_a_jogador2: str | None = Field(default=None, max_length=30)
+    time_b_jogador1: str | None = Field(default=None, max_length=30)
+    time_b_jogador2: str | None = Field(default=None, max_length=30)
+    equipe_a: str | None = Field(default=None, max_length=60)
+    equipe_b: str | None = Field(default=None, max_length=60)
 
 
 class EntrarQuadraBody(BaseModel):
@@ -120,8 +154,22 @@ async def post_arena_quadra(arena_id: str, body: CriarQuadraBody):
         if body.nome and body.nome.strip()
         else f"Quadra {arena_id[:4]}"
     )
+    nome_a, j_a = formatar_nome_equipe(
+        body.time_a_jogador1, body.time_a_jogador2, body.equipe_a, "Equipe A"
+    )
+    nome_b, j_b = formatar_nome_equipe(
+        body.time_b_jogador1, body.time_b_jogador2, body.equipe_b, "Equipe B"
+    )
     try:
-        quadra = await criar_quadra(settings.db_path, arena_id=arena_id, nome=nome)
+        quadra = await criar_quadra(
+            settings.db_path,
+            arena_id=arena_id,
+            nome=nome,
+            equipe_a=nome_a,
+            equipe_b=nome_b,
+            jogadores_a=j_a,
+            jogadores_b=j_b,
+        )
     except OSError:
         raise HTTPException(
             503, "Não foi possível salvar a configuração. Tente novamente."
@@ -165,6 +213,13 @@ async def post_quadras(
                 max_age=86400 * 30,
             )
 
+    nome_a, j_a = formatar_nome_equipe(
+        body.time_a_jogador1, body.time_a_jogador2, body.equipe_a, "Equipe A"
+    )
+    nome_b, j_b = formatar_nome_equipe(
+        body.time_b_jogador1, body.time_b_jogador2, body.equipe_b, "Equipe B"
+    )
+
     try:
         quadra = await criar_quadra(
             settings.db_path,
@@ -172,6 +227,10 @@ async def post_quadras(
             nome=nome,
             session_id=session_id,
             apelido=apelido,
+            equipe_a=nome_a,
+            equipe_b=nome_b,
+            jogadores_a=j_a,
+            jogadores_b=j_b,
         )
     except OSError:
         raise HTTPException(
@@ -355,8 +414,25 @@ async def post_desfazer_ponto(quadra_id: str, request: Request):
 
 
 @router.post("/quadras/{quadra_id}/reiniciar")
-async def post_reiniciar_partida(quadra_id: str, request: Request):
-    return await executar_comando(quadra_id, request, "reiniciar")
+async def post_reiniciar_partida(
+    quadra_id: str, request: Request, body: ReiniciarPartidaBody | None = None
+):
+    kwargs = {}
+    if body:
+        nome_a, j_a = formatar_nome_equipe(
+            body.time_a_jogador1, body.time_a_jogador2, body.equipe_a, ""
+        )
+        nome_b, j_b = formatar_nome_equipe(
+            body.time_b_jogador1, body.time_b_jogador2, body.equipe_b, ""
+        )
+        if nome_a:
+            kwargs["equipe_a"] = nome_a
+            kwargs["jogadores_a"] = j_a
+        if nome_b:
+            kwargs["equipe_b"] = nome_b
+            kwargs["jogadores_b"] = j_b
+
+    return await executar_comando(quadra_id, request, "reiniciar", **kwargs)
 
 
 @router.post("/quadras/{quadra_id}/controle/assumir")

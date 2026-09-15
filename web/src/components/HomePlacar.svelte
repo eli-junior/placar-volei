@@ -15,6 +15,11 @@
   let apelidoCriador = $state('');
   let nomeQuadra = $state('');
 
+  let timeAJogador1 = $state('');
+  let timeAJogador2 = $state('');
+  let timeBJogador1 = $state('');
+  let timeBJogador2 = $state('');
+
   let codigoQuadra = $state('');
   let apelidoEspectador = $state('');
 
@@ -51,7 +56,9 @@
   function handleSubmeterCriar(e) {
     e.preventDefault();
     const apelido = apelidoCriador.trim();
-    if (!apelido) return;
+    const jA1 = timeAJogador1.trim();
+    const jB1 = timeBJogador1.trim();
+    if (!apelido || !jA1 || !jB1) return;
 
     try {
       localStorage.setItem(CHAVE_APELIDO, apelido);
@@ -60,6 +67,10 @@
     onCriarQuadra({
       apelido,
       nome: nomeQuadra.trim() || undefined,
+      time_a_jogador1: jA1,
+      time_a_jogador2: timeAJogador2.trim() || undefined,
+      time_b_jogador1: jB1,
+      time_b_jogador2: timeBJogador2.trim() || undefined,
     });
   }
 
@@ -162,6 +173,75 @@
           />
         </div>
 
+        <!-- Jogadores das Equipes -->
+        <div class="secao-equipes">
+          <div class="secao-header">
+            <span class="secao-icone">👥</span>
+            <div>
+              <h3 class="secao-titulo">Jogadores das Equipes</h3>
+              <p class="secao-subtitulo">Informe 1 ou 2 jogadores por time (ao menos 1 por equipe é obrigatório).</p>
+            </div>
+          </div>
+
+          <div class="equipes-grid">
+            <!-- Time A -->
+            <div class="equipe-bloco equipe-bloco-a">
+              <span class="equipe-badge-header badge-time-a">Time A</span>
+              <div class="campo-grupo">
+                <label for="time-a-j1">Jogador 1 <span class="obrigatorio">*</span></label>
+                <input
+                  id="time-a-j1"
+                  type="text"
+                  bind:value={timeAJogador1}
+                  placeholder="Ex: Carlos"
+                  maxlength="30"
+                  required
+                  disabled={submetendo}
+                />
+              </div>
+              <div class="campo-grupo">
+                <label for="time-a-j2">Jogador 2 (opcional)</label>
+                <input
+                  id="time-a-j2"
+                  type="text"
+                  bind:value={timeAJogador2}
+                  placeholder="Ex: Daniel"
+                  maxlength="30"
+                  disabled={submetendo}
+                />
+              </div>
+            </div>
+
+            <!-- Time B -->
+            <div class="equipe-bloco equipe-bloco-b">
+              <span class="equipe-badge-header badge-time-b">Time B</span>
+              <div class="campo-grupo">
+                <label for="time-b-j1">Jogador 1 <span class="obrigatorio">*</span></label>
+                <input
+                  id="time-b-j1"
+                  type="text"
+                  bind:value={timeBJogador1}
+                  placeholder="Ex: Roberto"
+                  maxlength="30"
+                  required
+                  disabled={submetendo}
+                />
+              </div>
+              <div class="campo-grupo">
+                <label for="time-b-j2">Jogador 2 (opcional)</label>
+                <input
+                  id="time-b-j2"
+                  type="text"
+                  bind:value={timeBJogador2}
+                  placeholder="Ex: Eduardo"
+                  maxlength="30"
+                  disabled={submetendo}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+
         <div class="card-info-box">
           <span class="info-icone">ℹ️</span>
           <span>Máximo de 20 pessoas por sala. Salas sem atualização por mais de 1h são removidas.</span>
@@ -170,7 +250,7 @@
         <button
           type="submit"
           class="btn-principal"
-          disabled={submetendo || !apelidoCriador.trim()}
+          disabled={submetendo || !apelidoCriador.trim() || !timeAJogador1.trim() || !timeBJogador1.trim()}
         >
           {submetendo ? 'Criando sala...' : 'Criar Placar e Iniciar'}
         </button>
@@ -449,6 +529,95 @@
     font-size: 1rem;
     font-weight: normal;
     color: #64748b;
+  }
+
+  .secao-equipes {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+    background: rgba(15, 23, 42, 0.5);
+    border: 1px solid #334155;
+    border-radius: 12px;
+    padding: 1rem;
+  }
+
+  .secao-header {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+
+  .secao-icone {
+    font-size: 1.25rem;
+    flex-shrink: 0;
+    line-height: 1.2;
+  }
+
+  .secao-titulo {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #f1f5f9;
+    margin: 0;
+  }
+
+  .secao-subtitulo {
+    font-size: 0.8rem;
+    color: #94a3b8;
+    margin: 0.15rem 0 0 0;
+    line-height: 1.35;
+  }
+
+  .equipes-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.85rem;
+  }
+
+  @media (max-width: 520px) {
+    .equipes-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .equipe-bloco {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 0.85rem;
+    border: 1px solid #1e293b;
+  }
+
+  .equipe-bloco-a {
+    border-left: 3px solid #0891b2;
+  }
+
+  .equipe-bloco-b {
+    border-left: 3px solid #ea580c;
+  }
+
+  .equipe-badge-header {
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+
+  .badge-time-a {
+    background: rgba(8, 145, 178, 0.2);
+    color: #38bdf8;
+    border: 1px solid rgba(8, 145, 178, 0.4);
+  }
+
+  .badge-time-b {
+    background: rgba(234, 88, 12, 0.2);
+    color: #fb923c;
+    border: 1px solid rgba(234, 88, 12, 0.4);
   }
 
   .card-info-box {

@@ -10,6 +10,8 @@
     onDesfazerPonto = () => {},
     onIniciarNovaPartida = () => {},
     onAbrirLinhaDoTempo = () => {},
+    ladosInvertidos = false,
+    onAlternarLados = () => {},
   } = $props();
 
   let submetendo = $state(false);
@@ -120,15 +122,30 @@
       </span>
     </div>
 
-    <button
-      type="button"
-      class="btn-lt-toggle"
-      onclick={onAbrirLinhaDoTempo}
-      aria-label="Abrir linha do tempo da partida"
-    >
-      <span class="lt-icon">📜</span>
-      <span class="lt-label">Linha do Tempo</span>
-    </button>
+    <div class="header-right">
+      <button
+        type="button"
+        class="btn-inverter-lados"
+        class:ativo={ladosInvertidos}
+        onclick={onAlternarLados}
+        aria-pressed={ladosInvertidos}
+        aria-label="Inverter lados das equipes"
+        title="Inverter lados das equipes nesta tela"
+      >
+        <span class="inverter-icon">⇄</span>
+        <span class="inverter-label">{ladosInvertidos ? 'Lados Invertidos' : 'Inverter Lados'}</span>
+      </button>
+
+      <button
+        type="button"
+        class="btn-lt-toggle"
+        onclick={onAbrirLinhaDoTempo}
+        aria-label="Abrir linha do tempo da partida"
+      >
+        <span class="lt-icon">📜</span>
+        <span class="lt-label">Linha do Tempo</span>
+      </button>
+    </div>
   </div>
 
   <!-- Banner de encerramento quando houver vencedor -->
@@ -162,10 +179,10 @@
   {/if}
 
   <!-- Área do Placar com Alvos Grandes para Uma Mão -->
-  <div class="placar-grid">
+  <div class="placar-grid" class:lados-invertidos={ladosInvertidos}>
     <!-- Coluna Equipe A -->
     <div
-      class="equipe-col {feedbackEquipe === 'A' ? 'flash-a' : ''} {vencedor === 'A' ? 'col-vencedor' : ''}"
+      class="equipe-col col-time-a {feedbackEquipe === 'A' ? 'flash-a' : ''} {vencedor === 'A' ? 'col-vencedor' : ''}"
     >
       <span class="equipe-nome">{equipeA}</span>
 
@@ -198,7 +215,7 @@
 
     <!-- Coluna Equipe B -->
     <div
-      class="equipe-col {feedbackEquipe === 'B' ? 'flash-b' : ''} {vencedor === 'B' ? 'col-vencedor' : ''}"
+      class="equipe-col col-time-b {feedbackEquipe === 'B' ? 'flash-b' : ''} {vencedor === 'B' ? 'col-vencedor' : ''}"
     >
       <span class="equipe-nome">{equipeB}</span>
 
@@ -270,6 +287,14 @@
     flex-wrap: wrap;
   }
 
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .btn-inverter-lados,
   .btn-lt-toggle {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -286,20 +311,30 @@
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
   }
 
+  .btn-inverter-lados:hover,
   .btn-lt-toggle:hover {
     background: rgba(255, 255, 255, 0.1);
     color: #ffffff;
     border-color: rgba(255, 255, 255, 0.25);
   }
 
+  .btn-inverter-lados.ativo {
+    color: var(--accent-orange);
+    border-color: var(--border-active);
+    background: rgba(249, 115, 22, 0.12);
+  }
+
+  .btn-inverter-lados:active,
   .btn-lt-toggle:active {
     transform: scale(0.96);
   }
 
+  .inverter-icon,
   .lt-icon {
     font-size: 0.85rem;
   }
 
+  .inverter-label,
   .lt-label {
     letter-spacing: 0.02em;
   }
@@ -416,8 +451,25 @@
   .placar-grid {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
+    grid-template-areas: "time-a divisor time-b";
     align-items: center;
     gap: 12px;
+  }
+
+  .placar-grid.lados-invertidos {
+    grid-template-areas: "time-b divisor time-a";
+  }
+
+  .col-time-a {
+    grid-area: time-a;
+  }
+
+  .vs-col {
+    grid-area: divisor;
+  }
+
+  .col-time-b {
+    grid-area: time-b;
   }
 
   .equipe-col {

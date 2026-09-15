@@ -112,13 +112,13 @@
     conectarWebSocket(quadra.id);
   }
 
-  async function handleCriarQuadraHome({ apelido, nome }) {
+  async function handleCriarQuadraHome(dados) {
     submetendo = true;
     erro = null;
     try {
       const res = await fetch('/api/quadras', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apelido, nome }),
+        body: JSON.stringify(dados),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Não foi possível criar o placar.');

@@ -180,6 +180,10 @@ def criar_quadra_sync(
     nome: str | None = None,
     session_id: str | None = None,
     apelido: str | None = None,
+    equipe_a: str = "Equipe A",
+    equipe_b: str = "Equipe B",
+    jogadores_a: list[str] | None = None,
+    jogadores_b: list[str] | None = None,
 ) -> dict[str, Any]:
     limpar_quadras_expiradas_sync(db_path)
 
@@ -262,8 +266,10 @@ def criar_quadra_sync(
                 "alvo": 12,
                 "vantagem": True,
                 "teto": None,
-                "equipe_a": "Equipe A",
-                "equipe_b": "Equipe B",
+                "equipe_a": equipe_a or "Equipe A",
+                "equipe_b": equipe_b or "Equipe B",
+                "jogadores_a": jogadores_a or [],
+                "jogadores_b": jogadores_b or [],
             },
             autor_id=participante["id"] if participante else None,
             connection=conn,
@@ -299,6 +305,10 @@ async def criar_quadra(
     nome: str | None = None,
     session_id: str | None = None,
     apelido: str | None = None,
+    equipe_a: str = "Equipe A",
+    equipe_b: str = "Equipe B",
+    jogadores_a: list[str] | None = None,
+    jogadores_b: list[str] | None = None,
 ) -> dict[str, Any]:
     return await asyncio.to_thread(
         criar_quadra_sync,
@@ -307,6 +317,10 @@ async def criar_quadra(
         nome=nome,
         session_id=session_id,
         apelido=apelido,
+        equipe_a=equipe_a,
+        equipe_b=equipe_b,
+        jogadores_a=jogadores_a,
+        jogadores_b=jogadores_b,
     )
 
 

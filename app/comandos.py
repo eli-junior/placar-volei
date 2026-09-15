@@ -47,7 +47,15 @@ def snapshot_sync(db_path, quadra_id):
 
 
 def executar_sync(
-    db_path, quadra_id, session_id, acao, *, equipe=None, versao=None, alvo_id=None
+    db_path,
+    quadra_id,
+    session_id,
+    acao,
+    *,
+    equipe=None,
+    versao=None,
+    alvo_id=None,
+    **kwargs,
 ):
     # O lock de escrita cobre autorização, leitura do log e toda a alteração.
     with get_db(db_path) as conn:
@@ -239,8 +247,16 @@ def executar_sync(
                 "alvo": estado["alvo"],
                 "vantagem": estado["vantagem"],
                 "teto": estado["teto"],
-                "equipe_a": estado["equipe_a"],
-                "equipe_b": estado["equipe_b"],
+                "equipe_a": kwargs.get("equipe_a")
+                or estado.get("equipe_a", "Equipe A"),
+                "equipe_b": kwargs.get("equipe_b")
+                or estado.get("equipe_b", "Equipe B"),
+                "jogadores_a": kwargs.get("jogadores_a")
+                if kwargs.get("jogadores_a") is not None
+                else estado.get("jogadores_a", []),
+                "jogadores_b": kwargs.get("jogadores_b")
+                if kwargs.get("jogadores_b") is not None
+                else estado.get("jogadores_b", []),
             }
             evento = append_evento_sync(
                 db_path,
