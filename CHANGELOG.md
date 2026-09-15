@@ -8,12 +8,24 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-### feature/cv1-ds3-us2-jogadores-das-equipes-e-inversao-de-lados
-- **História / Escopo**: CV1.DS3.US2 — Nomes de jogadores nas equipes (1 ou 2 por time) e inversão de lados na quadra
-- **Branch**: `feature/cv1-ds3-us2-jogadores-das-equipes-e-inversao-de-lados`
-- **Passo Ariad**: Passo 7 - Conclusão e Merge (Checkpoint 4)
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 7bb92112-8818-44ae-87d5-4e2d9a077f33 | Data: 2026-09-14 22:51
-- **Handoff / Próximos Passos**: Submeter proposta de commit e merge na master para aprovação do Navigator.
+*(Nenhuma branch ativa no momento)*
+
+## 0.3.2 - 2026-09-14
+
+Boundary: patch (entrega de CV1.DS3.US2: jogadores das equipes e inversão local de lados)
+
+Authors: Eli (Navigator); Antigravity (Driver)
+
+Git source: feature/cv1-ds3-us2-jogadores-das-equipes-e-inversao-de-lados (merge into master)
+
+### Added
+
+- [US2] Formulário de criação de placar com definição de jogadores (Jogador 1 obrigatório e Jogador 2 opcional para cada time) e formatação automática de duplas ou individuais.
+- [US2] Suporte no event store e projeção para `jogadores_a` e `jogadores_b`, refletindo os nomes reais dos atletas nos botões de marcação (+1), banners de vitória e registros da linha do tempo.
+- [US2] Botão "⇄ Inverter Lados" nos modos controlador e espectador, permutando instantaneamente as colunas e botões via CSS Grid.
+- [US2] Persistência desacoplada em `localStorage` por ID de sala (`placar:lados_invertidos:<quadraId>`), mantendo a inversão estritamente local em cada navegador sem alterar a visão dos demais participantes.
+- [US2] Suporte a novos nomes de jogadores ou preservação automática dos times anteriores no reinício de partidas (`POST /api/quadras/{id}/reiniciar`).
+- [US2] Suíte de testes automatizados em `tests/test_jogadores_e_inversao.py` cobrindo jogadores individuais, duplas, linha do tempo e reinício com persistência de times.
 
 ## 0.3.1 - 2026-09-14
 
