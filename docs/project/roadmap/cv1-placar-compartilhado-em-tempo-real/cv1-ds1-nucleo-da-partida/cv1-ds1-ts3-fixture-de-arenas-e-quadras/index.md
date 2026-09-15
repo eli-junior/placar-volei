@@ -1,12 +1,13 @@
 ---
 code: CV1.DS1.TS3
 level: Technical Story
-status: Validated
-status_reason: implementado e coberto por testes automatizados
-updated: 2026-09-14
+status: Superseded
+status_reason: Aposentada na v0.4.2; fixtures e arenas foram removidas em definitivo com o modelo de salas efêmeras por PIN
+updated: 2026-09-15
 related:
   - CV1.DS1
   - CV1.DS1.US1
+  - 2026-09-15T1730Z-remocao-de-arenas-e-banco-limpo-no-versionamento.md
 ---
 
 # CV1.DS1.TS3 — Fixture e Persistência Declarativa de Arenas e Quadras

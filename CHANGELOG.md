@@ -11,11 +11,39 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 ### tech/faxina-arenas-fixtures-e-banco-limpo
 - **História / Escopo**: Pagamento de Dívida Técnica (debt-arenas-legadas) e Garantia de Banco Limpo no Versionamento (remoção definitiva de arenas, fixtures e auto-seeding de quadras).
 - **Branch**: `tech/faxina-arenas-fixtures-e-banco-limpo`
-- **Passo Ariad**: Passo 5 - Revisão
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: c99eaae7-a2c8-4084-8884-819f5cc9e494 | Data: 2026-09-15 17:30
-- **Handoff / Próximos Passos**: Apresentar Checkpoint 3 (Revisão e Avaliação de Débito Técnico) e aguardar confirmação para documentar.
+- **Passo Ariad**: Passo 7 - Conclusão e Merge
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: c99eaae7-a2c8-4084-8884-819f5cc9e494 | Data: 2026-09-15 17:32
+- **Handoff / Próximos Passos**: Checkpoint 4 apresentado. Aguardar confirmação do Navigator para merge na master e encerramento.
 
 
+
+## 0.4.2 - 2026-09-15
+
+Boundary: patch (faxina técnica: pagamento do débito debt-arenas-legadas, remoção de fixtures e garantia de banco limpo no versionamento)
+
+Authors: Eli (Navigator); Antigravity (Driver)
+
+Git source: tech/faxina-arenas-fixtures-e-banco-limpo (merge into master)
+
+### Added
+
+- [Faxina] Suíte de testes automatizados em `tests/test_banco_limpo_versao.py` validando que o SQLite inicializa com 0 quadras no startup e no versionamento, além de verificar rejeição com 404 em rotas obsoletas.
+
+### Changed
+
+- [Faxina] `init_db_sync` em `app/db.py`: recriação limpa e estéril garantida na subida de nova versão sem re-popular quadras pré-existentes.
+- [Faxina] Blindagem de rotas no FastAPI (`app/main.py`): requisições a rotas não mapeadas sob o prefixo `/api/*` agora retornam `HTTP 404 Not Found` em vez de serem capturadas indevidamente pelo fallback de HTML da SPA.
+- [Faxina] Bump de versão para `0.4.2` em `pyproject.toml`, `app/config.py` e `web/package.json`.
+- [Débito] Encerramento e quitação de `debt-arenas-legadas` em `docs/project/debt/items/2026-09-14T1625Z-endpoints-legados-de-arenas.md`.
+
+### Removed
+
+- [Faxina] Exclusão completa do módulo de auto-seeding `app/fixtures.py` e do arquivo `fixtures/defaultArenas.json`.
+- [Faxina] Exclusão da tabela `arenas`, coluna `arena_id` e índice `idx_quadras_arena` do SQLite em `SCHEMA_SQL`.
+- [Faxina] Exclusão dos endpoints legados `/api/arenas`, `/api/arenas/{id}`, `/api/arenas/{id}/quadras` e modelo `CriarArenaBody` em `app/api.py`.
+- [Faxina] Exclusão das funções auxiliares de arenas em `app/quadras.py` (`criar_arena_sync`, `listar_arenas_sync`, `obter_arena_sync`).
+- [Faxina] Exclusão de componentes órfãos no frontend em `web/src/components/` (`ModalCriarArena.svelte`, `ListaArenas.svelte`, `ListaQuadras.svelte`).
+- [Faxina] Remoção da cópia de fixtures no `Dockerfile` multi-estágio.
 
 ## 0.4.1 - 2026-09-15
 

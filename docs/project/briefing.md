@@ -12,7 +12,7 @@ Audiência: o grupo de vôlei do Navigator. Escala esperada: dezenas de pessoas,
 
 ## Current State
 
-Versão `0.4.1` entregue e publicada na branch principal `master`. O Value inicial `CV1` teve todos os seus arcos de entrega (DS1 núcleo da partida, DS2 controle e permissões, DS3 regras da partida e DS4 auditoria visível) concluídos e validados.
+Versão `0.4.2` entregue e publicada na branch principal `master`. O Value inicial `CV1` teve todos os seus arcos de entrega (DS1 núcleo da partida, DS2 controle e permissões, DS3 regras da partida e DS4 auditoria visível) concluídos e validados. A faxina técnica de código legado de arenas e auto-seeding de fixtures foi concluída, garantindo inicialização com banco 100% limpo a cada nova versão.
 
 Repositório publicado e sincronizado em `github.com/eli-junior/placar-volei`.
 
