@@ -1,8 +1,8 @@
 ---
 code: CV2
 level: Value
-status: Active
-status_reason: Iniciado a partir do relatório de Frontend, UX e Design Visual de 2026-09-15
+status: Planned
+status_reason: Planejado a partir do relatório de Frontend, UX e Design Visual de 2026-09-15 para priorização e execução futura
 updated: 2026-09-15
 related:
   - docs/project/briefing.md

@@ -1,8 +1,8 @@
 ---
 code: CV2.DS1
 level: Delivery Story
-status: Active
-status_reason: Em planejamento e desenvolvimento ativo
+status: Planned
+status_reason: Registrado no backlog para execução futura
 updated: 2026-09-15
 related:
   - docs/project/briefing.md
