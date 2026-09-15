@@ -8,12 +8,25 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-### feature/cv1-ds2-ts1-endpoint-owner-rate-limit
-- **História / Escopo**: CV1.DS2.TS1 — Endpoint de owner e proteção contra força bruta
-- **Branch**: `feature/cv1-ds2-ts1-endpoint-owner-rate-limit`
-- **Passo Ariad**: Passo 7 - Conclusão e Merge
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 2dbdb498-c56e-45d7-bd2a-0182cdd41b8f | Data: 2026-09-15 16:27
-- **Handoff / Próximos Passos**: Apresentar Checkpoint 4 (proposta de commit e merge em master).
+Nenhum desenvolvimento ativo no momento.
+
+## 0.4.1 - 2026-09-15
+
+Boundary: patch (entrega de CV1.DS2.TS1: endpoint de owner e proteção contra força bruta)
+
+Authors: Eli (Navigator); Antigravity (Driver)
+
+Git source: feature/cv1-ds2-ts1-endpoint-owner-rate-limit (merge into master)
+
+### Added
+
+- [TS1] Geração de código mestre criptograficamente seguro de 4 dígitos (`0000` a `9999`) persistido na criação de cada sala (`POST /api/quadras`).
+- [TS1] Coluna `codigo_mestre TEXT` na tabela `quadras` em `SCHEMA_SQL` e migração idempotente no SQLite (`init_db_sync`).
+- [TS1] Blindagem e sigilo: rotas públicas da API e WebSockets nunca retornam a coluna `codigo_mestre`.
+- [TS1] Classe thread-safe `RateLimiter` em `app/rate_limit.py` implementando janela deslizante de 10 min, limite de 5 falhas e bloqueio progressivo de 5 min (`Retry-After: 300`).
+- [TS1] Endpoint administrativo autenticado `GET /api/owner/quadras` (e atalho `GET /owner/quadras`) via header `Authorization: Bearer <segredo>` ou query param `?secret=<segredo>` usando comparação em tempo constante (`secrets.compare_digest`).
+- [TS1] Camuflagem de segurança: requisições não autorizadas ou com segredo inválido retornam `HTTP 404 Not Found` em vez de 401, ocultando a rota contra scanners de rede.
+- [TS1] Suíte de testes automatizados em `tests/test_owner_endpoint.py` com 7 testes cobrindo autenticação, rate limiting por IP, bloqueio progressivo e isolamento de dados.
 
 ## 0.4.0 - 2026-09-15
 
