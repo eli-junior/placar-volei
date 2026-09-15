@@ -5,7 +5,7 @@ import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
 
-from fastapi import FastAPI, HTTPException, WebSocket
+from fastapi import FastAPI, HTTPException, Request, WebSocket
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
@@ -177,6 +177,14 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
                     "payload": {"participantes": participantes},
                 },
             )
+
+
+# Rota raiz de conveniência para o endpoint de owner
+@app.get("/owner/quadras", status_code=200)
+async def get_root_owner_quadras(request: Request):
+    from app.api import get_owner_quadras
+
+    return await get_owner_quadras(request)
 
 
 # Servir estáticos e SPA do frontend

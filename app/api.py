@@ -1,4 +1,5 @@
 import asyncio
+import secrets
 import uuid
 from dataclasses import asdict
 
@@ -17,11 +18,13 @@ from app.quadras import (
     listar_arenas,
     listar_participantes,
     listar_quadras,
+    listar_quadras_owner,
     obter_arena,
     obter_participante,
     obter_quadra,
     registrar_participante,
 )
+from app.rate_limit import owner_rate_limiter
 
 router = APIRouter(prefix="/api", tags=["arenas_e_quadras"])
 
@@ -529,3 +532,57 @@ async def get_linha_do_tempo(quadra_id: str):
 
     itens = projetar_linha_do_tempo(eventos, apelidos_map)
     return {"itens": itens}
+
+
+def extrair_chave_rate_limit(request: Request) -> str:
+    forwarded = request.headers.get("x-forwarded-for")
+    if forwarded:
+        return forwarded.split(",")[0].strip()
+    if request.client and request.client.host:
+        return request.client.host
+    return "127.0.0.1"
+
+
+def autenticar_owner(request: Request) -> None:
+    chave = extrair_chave_rate_limit(request)
+
+    # 1. Verifica se está bloqueado por rate limit
+    bloqueado, restante = owner_rate_limiter.esta_bloqueado(chave)
+    if bloqueado:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitas tentativas incorretas. Tente novamente mais tarde.",
+            headers={"Retry-After": str(restante)},
+        )
+
+    # 2. Extrai segredo via header x-owner-secret ou Authorization: Bearer
+    secret = request.headers.get("x-owner-secret")
+    if not secret:
+        auth_header = request.headers.get("authorization")
+        if auth_header and auth_header.lower().startswith("bearer "):
+            secret = auth_header[7:].strip()
+
+    config_secret = settings.owner_secret
+    if (
+        not secret
+        or not config_secret
+        or not secrets.compare_digest(
+            secret.encode("utf-8"), config_secret.encode("utf-8")
+        )
+    ):
+        owner_rate_limiter.registrar_falha(chave)
+        # Retorna 404 para mascarar a existência do endpoint a não autorizados
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Não encontrado.",
+        )
+
+    # 3. Sucesso: limpa tentativas falhas acumuladas
+    owner_rate_limiter.registrar_sucesso(chave)
+
+
+@router.get("/owner/quadras", status_code=status.HTTP_200_OK)
+async def get_owner_quadras(request: Request):
+    autenticar_owner(request)
+    quadras = await listar_quadras_owner(settings.db_path)
+    return {"quadras": quadras}

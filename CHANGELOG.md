@@ -11,9 +11,9 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 ### feature/cv1-ds2-ts1-endpoint-owner-rate-limit
 - **História / Escopo**: CV1.DS2.TS1 — Endpoint de owner e proteção contra força bruta
 - **Branch**: `feature/cv1-ds2-ts1-endpoint-owner-rate-limit`
-- **Passo Ariad**: Passo 2 - Planejamento
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 2dbdb498-c56e-45d7-bd2a-0182cdd41b8f | Data: 2026-09-15 14:37
-- **Handoff / Próximos Passos**: Apresentar plano técnico de TS1 e parar no Checkpoint 1.
+- **Passo Ariad**: Passo 4 - Teste e Validação
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 2dbdb498-c56e-45d7-bd2a-0182cdd41b8f | Data: 2026-09-15 16:05
+- **Handoff / Próximos Passos**: Testes automatizados (96/96) verdes. Aguardando validação interativa do Navigator (Checkpoint 2).
 
 ## 0.4.0 - 2026-09-15
 

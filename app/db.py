@@ -30,7 +30,8 @@ CREATE TABLE IF NOT EXISTS quadras (
     criado_em TEXT NOT NULL,
     atualizado_em TEXT NOT NULL,
     controle_id TEXT,
-    controle_versao INTEGER NOT NULL DEFAULT 0
+    controle_versao INTEGER NOT NULL DEFAULT 0,
+    codigo_mestre TEXT
 );
 
 CREATE TABLE IF NOT EXISTS partidas (
@@ -183,6 +184,8 @@ def init_db_sync(db_path: str | None = None, fixture_path: str | None = None) ->
             )
         if "arena_id" not in colunas:
             cursor.execute("ALTER TABLE quadras ADD COLUMN arena_id TEXT;")
+        if "codigo_mestre" not in colunas:
+            cursor.execute("ALTER TABLE quadras ADD COLUMN codigo_mestre TEXT;")
 
         agora = datetime.now(UTC).isoformat()
         cursor.execute(
