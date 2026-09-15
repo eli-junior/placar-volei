@@ -8,7 +8,12 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-*(Nenhum desenvolvimento ativo no momento)*
+### feature/cv1-ds2-ts1-endpoint-owner-rate-limit
+- **História / Escopo**: CV1.DS2.TS1 — Endpoint de owner e proteção contra força bruta
+- **Branch**: `feature/cv1-ds2-ts1-endpoint-owner-rate-limit`
+- **Passo Ariad**: Passo 7 - Conclusão e Merge
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 2dbdb498-c56e-45d7-bd2a-0182cdd41b8f | Data: 2026-09-15 16:27
+- **Handoff / Próximos Passos**: Apresentar Checkpoint 4 (proposta de commit e merge em master).
 
 ## 0.4.0 - 2026-09-15
 

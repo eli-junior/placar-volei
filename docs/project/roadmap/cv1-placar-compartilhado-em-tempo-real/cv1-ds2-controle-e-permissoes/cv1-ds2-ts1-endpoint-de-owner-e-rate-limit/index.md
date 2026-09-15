@@ -1,9 +1,9 @@
 ---
 code: CV1.DS2.TS1
 level: Technical Story
-status: Planned
-status_reason:
-updated: 2026-09-13
+status: Done
+status_reason: Implementada e validada com testes automatizados e suíte completa
+updated: 2026-09-15
 related:
   - 2026-09-13T1415Z-owner-takeover-por-codigo-mestre
 ---

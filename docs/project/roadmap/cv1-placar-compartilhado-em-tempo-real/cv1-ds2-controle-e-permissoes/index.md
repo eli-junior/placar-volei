@@ -1,8 +1,8 @@
 ---
 code: CV1.DS2
 level: Delivery Story
-status: Active
-status_reason: em andamento; US1 e US2 concluídas e validadas
+status: Validated
+status_reason: histórias ativas concluídas e validadas (US1, US2, TS1); US3 adiada
 updated: 2026-09-15
 related:
   - 2026-09-13T1410Z-sucessao-automatica-de-admin
@@ -33,8 +33,9 @@ Contas persistentes entre partidas, papéis adicionais, banimento de participant
 
 ## Notes
 
-Ordem sugerida: US1 → US2 → TS1 → US3.
+Histórico de entregas do arco:
 
 - `US1` (Admin promove e revoga controladores): Concluída e validada em 2026-09-14 (v0.3.1).
 - `US2` (Sucessão automática de admin após ausência): Concluída e validada em 2026-09-15 (v0.3.3).
-- Próximo item do arco: `TS1` (Endpoint de owner e rate limit) ou `US3` (Owner takeover por código mestre).
+- `TS1` (Endpoint de owner e rate limit contra força bruta): Concluída e validada em 2026-09-15 (v0.4.1).
+- `US3` (Owner takeover por código mestre): Adiada (Deferred) por decisão do Navigator em 2026-09-15 (salas conflitantes podem ser simplesmente recriadas).

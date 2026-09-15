@@ -1,6 +1,8 @@
 import asyncio
 import random
+import secrets
 import uuid
+from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -121,6 +123,11 @@ def gerar_codigo_quadra_sync(conn) -> str:
     raise RuntimeError("Não foi possível gerar um código único para a quadra.")
 
 
+def gerar_codigo_mestre_sync() -> str:
+    """Gera um código mestre de 4 dígitos criptograficamente seguro (0000 a 9999)."""
+    return f"{secrets.randbelow(10000):04d}"
+
+
 def limpar_quadras_expiradas_sync(db_path: str) -> int:
     """Remove quadras sem atualização há mais de 1 hora (TTL configurável)."""
     limite = (
@@ -222,9 +229,10 @@ def criar_quadra_sync(
         agora = datetime.now(UTC).isoformat()
         nome_limpo = nome.strip() if nome and nome.strip() else f"Quadra #{quadra_id}"
 
+        codigo_mestre = gerar_codigo_mestre_sync()
         conn.execute(
-            "INSERT INTO quadras (id, arena_id, nome, criado_em, atualizado_em) VALUES (?, ?, ?, ?, ?)",
-            (quadra_id, arena_id, nome_limpo, agora, agora),
+            "INSERT INTO quadras (id, arena_id, nome, criado_em, atualizado_em, codigo_mestre) VALUES (?, ?, ?, ?, ?, ?)",
+            (quadra_id, arena_id, nome_limpo, agora, agora, codigo_mestre),
         )
         conn.execute(
             "INSERT INTO partidas (id, quadra_id, status, criado_em) VALUES (?, ?, ?, ?)",
@@ -605,3 +613,80 @@ def atualizar_ultimo_visto_sync(db_path: str, participante_id: str) -> None:
 
 async def atualizar_ultimo_visto(db_path: str, participante_id: str) -> None:
     await asyncio.to_thread(atualizar_ultimo_visto_sync, db_path, participante_id)
+
+
+def listar_quadras_owner_sync(db_path: str) -> list[dict[str, Any]]:
+    limpar_quadras_expiradas_sync(db_path)
+    with get_db(db_path) as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT q.id, q.arena_id, q.nome, q.criado_em, q.atualizado_em,
+                   q.controle_id, q.controle_versao, q.codigo_mestre,
+                   a.nome as arena_nome
+            FROM quadras q
+            LEFT JOIN arenas a ON a.id = q.arena_id
+            ORDER BY q.atualizado_em DESC
+            """
+        )
+        quadras = cursor.fetchall()
+        resultado = []
+        for q in quadras:
+            quadra_id = q["id"]
+            cursor.execute(
+                "SELECT id FROM partidas WHERE quadra_id = ? ORDER BY criado_em DESC LIMIT 1",
+                (quadra_id,),
+            )
+            partida_row = cursor.fetchone()
+            partida_id = partida_row["id"] if partida_row else None
+
+            cursor.execute(
+                """
+                SELECT id, apelido, papel, criado_em, ultimo_visto_em
+                FROM participantes
+                WHERE quadra_id = ?
+                ORDER BY criado_em ASC
+                """,
+                (quadra_id,),
+            )
+            participantes = [
+                {
+                    "id": p["id"],
+                    "apelido": p["apelido"],
+                    "papel": p["papel"],
+                    "criado_em": p["criado_em"],
+                    "ultimo_visto_em": p["ultimo_visto_em"],
+                }
+                for p in cursor.fetchall()
+            ]
+
+            estado_partida = None
+            if partida_id:
+                from app.eventos import carregar_eventos_sync
+                from app.projecao import projetar_estado
+
+                eventos = carregar_eventos_sync(db_path, partida_id)
+                estado_partida = asdict(projetar_estado(eventos))
+
+            resultado.append(
+                {
+                    "id": q["id"],
+                    "nome": q["nome"],
+                    "codigo_mestre": q["codigo_mestre"],
+                    "arena_id": q["arena_id"],
+                    "arena_nome": q["arena_nome"],
+                    "criado_em": q["criado_em"],
+                    "atualizado_em": q["atualizado_em"],
+                    "controle_id": q["controle_id"],
+                    "controle_versao": q["controle_versao"],
+                    "partida_id": partida_id,
+                    "total_participantes": len(participantes),
+                    "participantes": participantes,
+                    "estado_partida": estado_partida,
+                }
+            )
+        return resultado
+
+
+async def listar_quadras_owner(db_path: str) -> list[dict[str, Any]]:
+    return await asyncio.to_thread(listar_quadras_owner_sync, db_path)
