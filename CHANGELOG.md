@@ -8,7 +8,23 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-Nenhum desenvolvimento ativo no momento.
+### CV2 — Excelência na Quadra e Confiabilidade do Placar
+
+- **História / Escopo**: `CV2.DS1`, `CV2.DS2`, `CV2.DS3`, `CV2.DS4` e reativação de `CV1.DS2.US3` (owner takeover). Escopo selecionado pelo Navigator em 2026-09-15: blocos completos das quatro Delivery Stories do CV2, com registro prévio dos débitos técnicos a serem quitados.
+- **Branch**: `claude/subagentes-backlog-features-sqbsfs`
+- **Passo Ariad**: `Passo 3 - Implementação`
+- **Assinatura do Agente**: `Agente: Claude Code (Driver, orquestrador) | Sessão: session_01ShnH1RU1W7WnF1Lo2j94di | Data: 2026-09-15`
+- **Coordenação**: execução por ondas com sub agentes em worktrees isolados e integração sequencial na branch de trabalho, respeitando a propriedade de arquivos para evitar reescritas concorrentes dos mesmos componentes.
+  - Onda 1: `CV2.DS1` (blindagem, backend + feedback do +1) e `CV2.DS3.TS1` (tokens visuais).
+  - Onda 2: `CV2.DS2` (ergonomia, Modo Sol, governança de controle) e `CV2.DS4` parcial (diálogos nativos, ícones, compartilhamento, PWA).
+  - Onda 3: `CV2.DS3` restante (overflow, Home, container queries, WCAG) e `CV1.DS2.US3` (owner takeover).
+  - Onda 4: `CV2.DS4.US1` (tela de vitória) e `CV2.DS4.US4` (microcopy).
+- **Débitos abertos para quitação**: `debt-codigo-mestre-no-websocket`, `debt-lotacao-fantasma`, `debt-integridade-de-toques-e-erros-422`, `debt-tokens-e-cores-acopladas`, `debt-acessibilidade-e-overflow`, `debt-modais-ad-hoc-e-reconexao`, `debt-apelidos-e-transferencia-de-controle`.
+- **Handoff / Próximos Passos**: baseline verificado antes da primeira onda (`uv run pytest` 90 passed, `ruff check` limpo, `npm run check` 0 erros, `npm run build` OK). Merge em `master` somente após validação do Navigator (Checkpoint 4).
+
+### Débitos técnicos registrados
+
+- [Débito] Sete itens criados em `docs/project/debt/items/` marcando a dívida que o CV2 se propõe a quitar, com origem, razão de carregamento e condição de fechamento.
 
 ## 0.4.2 - 2026-09-15
 
