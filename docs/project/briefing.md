@@ -12,11 +12,11 @@ Audiência: o grupo de vôlei do Navigator. Escala esperada: dezenas de pessoas,
 
 ## Current State
 
-Projeto em fase inicial. Regras de negócio do MVP definidas e validadas pelo Navigator (2026-09-13). Ariad configurado. Nenhum código de aplicação escrito.
+Versão `0.4.1` entregue e publicada na branch principal `master`. O Value inicial `CV1` teve todos os seus arcos de entrega (DS1 núcleo da partida, DS2 controle e permissões, DS3 regras da partida e DS4 auditoria visível) concluídos e validados.
 
-Repositório publicado em `github.com/eli-junior/placar-volei`.
+Repositório publicado e sincronizado em `github.com/eli-junior/placar-volei`.
 
-Trabalho mais importante agora: `CV1.DS1` — núcleo da partida em tempo real. `TS1` tem plano aprovado e guia de teste registrados, pronta para implementação.
+Trabalho mais importante agora: Validação do MVP em pelada real em quadra ou planejamento do próximo arco de valor / expansões com o Navigator.
 
 ## Architecture Premises
 
