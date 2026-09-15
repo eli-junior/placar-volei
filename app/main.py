@@ -18,11 +18,13 @@ from app.eventos import get_quadra_lock
 from app.hub import hub
 from app.identidade import SESSION_COOKIE
 from app.quadras import (
+    atualizar_ultimo_visto,
     limpar_quadras_expiradas,
     listar_participantes,
     obter_participante,
     obter_quadra,
 )
+from app.sucessao import verificar_sucessao_quadra
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +44,47 @@ async def lifespan(app: FastAPI):
             except (sqlite3.Error, OSError, ValueError, RuntimeError) as e:
                 logger.warning("Falha na rotina de limpeza de quadras expiradas: %s", e)
 
-    tarefa = asyncio.create_task(rotina_limpeza())
+    async def rotina_sucessao():
+        while True:
+            try:
+                await asyncio.sleep(2)
+                quadras_ativas = await hub.quadras_ativas()
+                for quadra_id in quadras_ativas:
+                    snapshot_sucessao = await verificar_sucessao_quadra(
+                        settings.db_path, quadra_id
+                    )
+                    if snapshot_sucessao:
+                        online = await hub.participantes_online(quadra_id)
+                        for p in snapshot_sucessao["participantes"]:
+                            p["online"] = p["id"] in online
+                        await hub.broadcast(
+                            quadra_id,
+                            {
+                                "tipo": "PLACAR_ATUALIZADO",
+                                "payload": snapshot_sucessao,
+                            },
+                        )
+                        await hub.broadcast(
+                            quadra_id,
+                            {
+                                "tipo": "PRESENCA_ATUALIZADA",
+                                "payload": {
+                                    "participantes": snapshot_sucessao["participantes"]
+                                },
+                            },
+                        )
+            except asyncio.CancelledError:
+                break
+            except (sqlite3.Error, OSError, ValueError, RuntimeError) as e:
+                logger.warning("Falha na rotina de sucessao: %s", e)
+
+    tarefa_limpeza = asyncio.create_task(rotina_limpeza())
+    tarefa_sucessao = asyncio.create_task(rotina_sucessao())
     try:
         yield
     finally:
-        tarefa.cancel()
+        tarefa_limpeza.cancel()
+        tarefa_sucessao.cancel()
 
 
 app = FastAPI(
@@ -91,6 +129,7 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
                 await websocket.close(code=4401)
                 return
             await hub.connect(quadra_id, websocket, participante["id"])
+            await atualizar_ultimo_visto(settings.db_path, participante["id"])
             conectado = True
             inicial = await asyncio.to_thread(
                 snapshot_sync, settings.db_path, quadra_id
@@ -125,6 +164,8 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
     finally:
         if conectado:
             await hub.disconnect(quadra_id, websocket)
+            if participante:
+                await atualizar_ultimo_visto(settings.db_path, participante["id"])
             participantes = await listar_participantes(settings.db_path, quadra_id)
             online = await hub.participantes_online(quadra_id)
             for p in participantes:

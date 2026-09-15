@@ -253,6 +253,14 @@ def projetar_linha_do_tempo(
                     f"{autor_apelido} alterou papel de {alvo_nome} para {novo_papel}"
                 )
 
+        elif evento.tipo == TipoEvento.ADMIN_SUCEDIDO:
+            novo_admin = evento.payload.get("novo_admin_apelido")
+            antigo_admin = evento.payload.get("antigo_admin_apelido")
+            if novo_admin:
+                descricao = f"{novo_admin} assumiu a administração por sucessão (ausência de {antigo_admin})"
+            else:
+                descricao = f"Administração vaga por ausência de {antigo_admin}"
+
         elif evento.tipo == TipoEvento.PARTIDA_ENCERRADA:
             venc = evento.payload.get("vencedor")
             venc_nome = equipe_a if venc == "A" else (equipe_b if venc == "B" else venc)
