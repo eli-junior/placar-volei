@@ -6,10 +6,12 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, HTTPException, Request, WebSocket
-from fastapi.responses import FileResponse
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 
+from app.api import normalizar_erros_validacao
 from app.api import router as api_router
 from app.comandos import snapshot_sync
 from app.config import settings
@@ -96,6 +98,20 @@ app = FastAPI(
 
 # Inclui rotas REST da API
 app.include_router(api_router)
+
+
+@app.exception_handler(RequestValidationError)
+async def tratar_erro_de_validacao(request: Request, exc: RequestValidationError):
+    """Normaliza o 422 do FastAPI para um formato legível e estável.
+
+    O padrão do FastAPI devolve `detail` como lista de dicionários, que o
+    frontend renderizava como `"[object Object]"`. Aqui `detail` é sempre uma
+    frase em português e `erros` carrega o detalhamento campo a campo para quem
+    quiser destacar o campo culpado na interface.
+    """
+    corpo = normalizar_erros_validacao(exc.errors())
+    logger.info("Requisição inválida em %s: %s", request.url.path, corpo["detail"])
+    return JSONResponse(status_code=422, content=corpo)
 
 
 @app.get("/health")

@@ -21,6 +21,7 @@
     onRevogarControlador = (id) => {},
     onAutorizarAdmin = (id) => {},
     operando = false,
+    pendentes = 0,
     erro = null,
   } = $props();
 
@@ -336,7 +337,12 @@
     {#if podeControlar && !temControle}
       <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir o controle</button>
     {/if}
-    {#if !wsConectado}<span role="status">Reconectando… aguarde a atualização.</span>{/if}
+    {#if !wsConectado}
+      <span class="chip-reconectando" role="status">
+        <span class="chip-girando" aria-hidden="true">⟳</span>
+        Sem conexão — reconectando. Os controles do placar voltam sozinhos.
+      </span>
+    {/if}
     {#if erro}<p role="alert">{erro}</p>{/if}
   </div>
 
@@ -345,10 +351,17 @@
     <p role="status">Carregando placar…</p>
   {:else if podeControlar}
     <!-- Placar do Controlador com Botões Grandes de Marcação e Desfazer -->
+    <!--
+      `desabilitado` significa "não dá para agir" (socket caído) e não "tem
+      comando em voo": enquanto há envio pendente os botões continuam ativos
+      para que o toque seguinte entre na fila em vez de ser descartado.
+    -->
     <Placar
       {estadoPartida}
       podeControlar={temControle}
-      desabilitado={!wsConectado || operando}
+      desabilitado={!wsConectado}
+      enviando={operando}
+      {pendentes}
       {ladosInvertidos}
       onAlternarLados={alternarLados}
       {onMarcarPonto}
@@ -403,6 +416,23 @@
 <style>
   .controle-painel { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 10px; color: var(--text-primary); }
   .controle-painel p { color: #fca5a5; width: 100%; text-align: center; }
+  .chip-reconectando {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 14px;
+    border-radius: 999px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fde68a;
+    background: rgba(245, 158, 11, 0.14);
+    border: 1px solid rgba(245, 158, 11, 0.45);
+  }
+  .chip-girando { display: inline-block; animation: girar-reconexao 1.1s linear infinite; }
+  @keyframes girar-reconexao { to { transform: rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce) {
+    .chip-girando { animation: none; }
+  }
   .btn-assumir { min-height: 48px; padding: 10px 20px; border: 0; border-radius: 10px; color: white; background: #0369a1; font-weight: 700; cursor: pointer; }
   .btn-assumir:disabled { opacity: .5; cursor: not-allowed; }
 
