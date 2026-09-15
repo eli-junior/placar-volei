@@ -1,9 +1,9 @@
 ---
 code: CV1.DS2.TS1
 level: Technical Story
-status: Planned
-status_reason:
-updated: 2026-09-13
+status: Active
+status_reason: puxada para desenvolvimento conforme solicitacao do Navigator
+updated: 2026-09-15
 related:
   - 2026-09-13T1415Z-owner-takeover-por-codigo-mestre
 ---
