@@ -1,9 +1,9 @@
 ---
 code: CV1.DS3
 level: Delivery Story
-status: Planned
-status_reason: depende do encerramento entregue em DS1.US4
-updated: 2026-09-13
+status: Active
+status_reason: US2 (jogadores e inversão) entregue na v0.3.2; US1 (regras configuráveis) em planejamento
+updated: 2026-09-14
 related:
   - CV1.DS1.US4
 ---

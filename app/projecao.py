@@ -19,6 +19,8 @@ class EstadoPartida:
     vencedor: str | None
     pontos_desfeitos: tuple[int, ...]
     eventos_ativos_seq: tuple[int, ...]
+    jogadores_a: tuple[str, ...] = ()
+    jogadores_b: tuple[str, ...] = ()
 
 
 def avaliar_vitoria(
@@ -53,6 +55,8 @@ def projetar_estado(eventos: Sequence[Evento]) -> EstadoPartida:
     teto: int | None = None
     equipe_a: str = "Equipe A"
     equipe_b: str = "Equipe B"
+    jogadores_a: list[str] = []
+    jogadores_b: list[str] = []
 
     # Coleta ref_seq dos pontos desfeitos para anulação idempotente
     pontos_desfeitos_set: set[int] = set()
@@ -83,6 +87,10 @@ def projetar_estado(eventos: Sequence[Evento]) -> EstadoPartida:
                 equipe_a = str(payload["equipe_a"])
             if payload.get("equipe_b"):
                 equipe_b = str(payload["equipe_b"])
+            if "jogadores_a" in payload and isinstance(payload["jogadores_a"], list):
+                jogadores_a = [str(j) for j in payload["jogadores_a"]]
+            if "jogadores_b" in payload and isinstance(payload["jogadores_b"], list):
+                jogadores_b = [str(j) for j in payload["jogadores_b"]]
 
         elif evento.tipo == TipoEvento.REGRA_ALTERADA:
             payload = evento.payload
@@ -125,6 +133,8 @@ def projetar_estado(eventos: Sequence[Evento]) -> EstadoPartida:
         vencedor=vencedor,
         pontos_desfeitos=tuple(sorted(pontos_desfeitos_set)),
         eventos_ativos_seq=tuple(eventos_ativos_seq),
+        jogadores_a=tuple(jogadores_a),
+        jogadores_b=tuple(jogadores_b),
     )
 
 

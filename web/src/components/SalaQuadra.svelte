@@ -25,6 +25,7 @@
   } = $props();
 
   const CHAVE_GIRO = 'placar:girado';
+  const CHAVE_INVERSAO_BASE = 'placar:lados_invertidos:';
 
   function lerGiroSalvo() {
     if (typeof localStorage === 'undefined') return false;
@@ -32,6 +33,32 @@
       return localStorage.getItem(CHAVE_GIRO) === '1';
     } catch {
       return false;
+    }
+  }
+
+  function lerInversaoSalva(quadraId) {
+    if (typeof localStorage === 'undefined' || !quadraId) return false;
+    try {
+      return localStorage.getItem(CHAVE_INVERSAO_BASE + quadraId) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  let ladosInvertidos = $state(false);
+
+  $effect(() => {
+    if (quadra?.id) {
+      ladosInvertidos = lerInversaoSalva(quadra.id);
+    }
+  });
+
+  function alternarLados() {
+    ladosInvertidos = !ladosInvertidos;
+    if (quadra?.id && typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(CHAVE_INVERSAO_BASE + quadra.id, ladosInvertidos ? '1' : '0');
+      } catch {}
     }
   }
 
@@ -220,6 +247,19 @@
       </button>
 
       <div class="header-acoes">
+        <button
+          type="button"
+          class="btn-inverter-lados-header"
+          class:ativo={ladosInvertidos}
+          onclick={alternarLados}
+          aria-pressed={ladosInvertidos}
+          title="Inverter lados das equipes na sua tela"
+          aria-label="Inverter lados das equipes"
+        >
+          <span class="inverter-icone">⇄</span>
+          <span class="inverter-texto">{ladosInvertidos ? 'Lados Invertidos' : 'Inverter Lados'}</span>
+        </button>
+
         {#if !podeControlar && !paisagemNativa}
           <button
             type="button"
@@ -302,6 +342,8 @@
       {estadoPartida}
       podeControlar={temControle}
       desabilitado={!wsConectado || operando}
+      {ladosInvertidos}
+      onAlternarLados={alternarLados}
       {onMarcarPonto}
       {onDesfazerPonto}
       {onIniciarNovaPartida}
@@ -315,6 +357,8 @@
       {prefersReducedMotion}
       {modoImersivo}
       {paisagem}
+      {ladosInvertidos}
+      onAlternarLados={alternarLados}
       onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
     />
   {/if}
@@ -434,7 +478,8 @@
     font-size: 1.1rem;
   }
 
-  /* Alternador de orientação do placar */
+  /* Alternador de inversão de lados e orientação */
+  .btn-inverter-lados-header,
   .btn-girar {
     display: flex;
     align-items: center;
@@ -450,17 +495,20 @@
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
 
+  .btn-inverter-lados-header:hover,
   .btn-girar:hover {
     color: var(--text-primary);
     border-color: rgba(255, 255, 255, 0.2);
   }
 
+  .btn-inverter-lados-header.ativo,
   .btn-girar.ativo {
     color: var(--accent-orange);
     border-color: var(--border-active);
     background: rgba(249, 115, 22, 0.12);
   }
 
+  .inverter-icone,
   .girar-icone {
     font-size: 0.95rem;
     line-height: 1;

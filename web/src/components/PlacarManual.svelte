@@ -8,6 +8,8 @@
     prefersReducedMotion = false,
     modoImersivo = true,
     paisagem = false,
+    ladosInvertidos = false,
+    onAlternarLados = () => {},
     onAbrirLinhaDoTempo = () => {},
   } = $props();
 
@@ -76,9 +78,9 @@
       </div>
 
       <!-- Seção dos Cartões e Equipes -->
-      <div class="painel-cartoes">
+      <div class="painel-cartoes" class:lados-invertidos={ladosInvertidos}>
         <!-- Coluna Equipe A -->
-        <div class="coluna-equipe {vencedor === 'A' ? 'time-vencedor' : ''}">
+        <div class="coluna-equipe col-time-a {vencedor === 'A' ? 'time-vencedor' : ''}">
           <div class="etiqueta-equipe etiqueta-a">
             <span class="etiqueta-texto">{equipeA}</span>
           </div>
@@ -100,7 +102,7 @@
         </div>
 
         <!-- Coluna Equipe B -->
-        <div class="coluna-equipe {vencedor === 'B' ? 'time-vencedor' : ''}">
+        <div class="coluna-equipe col-time-b {vencedor === 'B' ? 'time-vencedor' : ''}">
           <div class="etiqueta-equipe etiqueta-b">
             <span class="etiqueta-texto">{equipeB}</span>
           </div>
@@ -130,15 +132,30 @@
         <span class="dica-texto">Toque na tela para opções</span>
       </div>
     {:else}
-      <button
-        type="button"
-        class="btn-lt-espectador"
-        onclick={onAbrirLinhaDoTempo}
-        aria-label="Abrir linha do tempo da partida"
-      >
-        <span class="lt-icon">📜</span>
-        <span class="lt-label">Linha do Tempo</span>
-      </button>
+      <div class="acoes-espectador">
+        <button
+          type="button"
+          class="btn-inverter-espectador"
+          class:ativo={ladosInvertidos}
+          onclick={onAlternarLados}
+          aria-pressed={ladosInvertidos}
+          aria-label="Inverter lados das equipes"
+          title="Inverter lados das equipes nesta tela"
+        >
+          <span class="inverter-icon">⇄</span>
+          <span class="inverter-label">{ladosInvertidos ? 'Lados Invertidos' : 'Inverter Lados'}</span>
+        </button>
+
+        <button
+          type="button"
+          class="btn-lt-espectador"
+          onclick={onAbrirLinhaDoTempo}
+          aria-label="Abrir linha do tempo da partida"
+        >
+          <span class="lt-icon">📜</span>
+          <span class="lt-label">Linha do Tempo</span>
+        </button>
+      </div>
     {/if}
   </div>
 </div>
@@ -469,9 +486,26 @@
     width: 100%;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
+    grid-template-areas: "time-a divisor time-b";
     align-items: center;
     justify-items: center;
     gap: 8px;
+  }
+
+  .painel-cartoes.lados-invertidos {
+    grid-template-areas: "time-b divisor time-a";
+  }
+
+  .col-time-a {
+    grid-area: time-a;
+  }
+
+  .divisor-central {
+    grid-area: divisor;
+  }
+
+  .col-time-b {
+    grid-area: time-b;
   }
 
   .modo-imersivo.layout-paisagem .painel-cartoes {
@@ -611,6 +645,15 @@
     }
   }
 
+  .acoes-espectador {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn-inverter-espectador,
   .btn-lt-espectador {
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.15);
@@ -624,12 +667,24 @@
     gap: 8px;
     cursor: pointer;
     touch-action: manipulation;
-    transition: background 0.15s ease, color 0.15s ease;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
 
+  .btn-inverter-espectador:hover,
   .btn-lt-espectador:hover {
     background: rgba(255, 255, 255, 0.12);
     color: #ffffff;
+  }
+
+  .btn-inverter-espectador.ativo {
+    color: var(--accent-orange);
+    border-color: var(--border-active);
+    background: rgba(249, 115, 22, 0.12);
+  }
+
+  .inverter-icon,
+  .lt-icon {
+    font-size: 0.85rem;
   }
 
   @media (prefers-reduced-motion: reduce) {
