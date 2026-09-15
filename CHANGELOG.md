@@ -8,14 +8,7 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-### tech/faxina-arenas-fixtures-e-banco-limpo
-- **História / Escopo**: Pagamento de Dívida Técnica (debt-arenas-legadas) e Garantia de Banco Limpo no Versionamento (remoção definitiva de arenas, fixtures e auto-seeding de quadras).
-- **Branch**: `tech/faxina-arenas-fixtures-e-banco-limpo`
-- **Passo Ariad**: Passo 7 - Conclusão e Merge
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: c99eaae7-a2c8-4084-8884-819f5cc9e494 | Data: 2026-09-15 17:32
-- **Handoff / Próximos Passos**: Checkpoint 4 apresentado. Aguardar confirmação do Navigator para merge na master e encerramento.
-
-
+Nenhum desenvolvimento ativo no momento.
 
 ## 0.4.2 - 2026-09-15
 
