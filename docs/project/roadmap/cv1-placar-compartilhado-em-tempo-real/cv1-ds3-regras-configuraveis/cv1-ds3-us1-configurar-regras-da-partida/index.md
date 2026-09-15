@@ -1,9 +1,9 @@
 ---
 code: CV1.DS3.US1
 level: User Story
-status: Planned
-status_reason:
-updated: 2026-09-13
+status: Active
+status_reason: puxada para desenvolvimento
+updated: 2026-09-15
 related:
   - CV1.DS1.US4
 ---
