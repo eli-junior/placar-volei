@@ -8,12 +8,26 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-### feature/cv1-ds3-us1-configurar-regras-da-partida
-- **História / Escopo**: CV1.DS3.US1 — Configurar pontuação-alvo, vantagem e teto
-- **Branch**: `feature/cv1-ds3-us1-configurar-regras-da-partida`
-- **Passo Ariad**: Passo 7 - Conclusão e Merge
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 2dbdb498-c56e-45d7-bd2a-0182cdd41b8f | Data: 2026-09-15 14:21
-- **Handoff / Próximos Passos**: Apresentar proposta de commit e merge na master (Checkpoint 4).
+*(Nenhum desenvolvimento ativo no momento)*
+
+## 0.4.0 - 2026-09-15
+
+Boundary: minor (entrega de CV1.DS3.US1 e encerramento da Delivery Story CV1.DS3: regras da partida configuráveis pela quadra)
+
+Authors: Eli (Navigator); Antigravity (Driver)
+
+Git source: feature/cv1-ds3-us1-configurar-regras-da-partida (merge into master)
+
+### Added
+
+- [US1] Seção "Regras da Partida" no formulário de criação de salas com seleção de pontuação-alvo via botões de 1 toque (12, 15, 21, 25) e valor personalizado (1 a 100).
+- [US1] Configuração de exigência de vantagem de 2 pontos (liga/desliga) e teto máximo de pontuação opcional.
+- [US1] Validação preventiva no frontend e estrita no backend (HTTP 422) impedindo configuração de teto menor que a pontuação-alvo.
+- [US1] Persistência auditável de `alvo`, `vantagem` e `teto` no payload do evento `PARTIDA_INICIADA` e na narrativa inicial da Linha do Tempo.
+- [US1] Badge de destaque no cabeçalho da quadra em `SalaQuadra.svelte` exibindo as regras ativas da sala para todos os participantes.
+- [US1] Suporte a vitória por alcance do teto máximo (mesmo com diferença de 1 ponto) e vitória direta no alvo quando a vantagem está desabilitada.
+- [US1] Preservação automática das regras configuradas em partidas consecutivas na mesma sala (`POST /reiniciar`).
+- [US1] Suíte de testes automatizados em `tests/test_configurar_regras.py` cobrindo cenários de presets, encerramento por teto, sem vantagem, rejeição de teto inválido e reinício.
 
 ## 0.3.3 - 2026-09-15
 
