@@ -1,9 +1,9 @@
 ---
 code: CV1.DS2.US2
 level: User Story
-status: Planned
-status_reason:
-updated: 2026-09-13
+status: Done
+status_reason: entregue e validada na v0.3.3
+updated: 2026-09-15
 related:
   - 2026-09-13T1410Z-sucessao-automatica-de-admin
 ---

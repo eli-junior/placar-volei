@@ -579,3 +579,17 @@ def listar_participantes_sync(db_path: str, quadra_id: str) -> list[dict[str, An
 
 async def listar_participantes(db_path: str, quadra_id: str) -> list[dict[str, Any]]:
     return await asyncio.to_thread(listar_participantes_sync, db_path, quadra_id)
+
+
+def atualizar_ultimo_visto_sync(db_path: str, participante_id: str) -> None:
+    agora = datetime.now(UTC).isoformat()
+    with get_db(db_path) as conn:
+        conn.execute(
+            "UPDATE participantes SET ultimo_visto_em = ? WHERE id = ?",
+            (agora, participante_id),
+        )
+        conn.commit()
+
+
+async def atualizar_ultimo_visto(db_path: str, participante_id: str) -> None:
+    await asyncio.to_thread(atualizar_ultimo_visto_sync, db_path, participante_id)

@@ -57,5 +57,9 @@ class ConnectionHub:
         async with self._lock:
             return len(self._quadras.get(quadra_id, set()))
 
+    async def quadras_ativas(self) -> list[str]:
+        async with self._lock:
+            return list(self._quadras.keys())
+
 
 hub = ConnectionHub()
