@@ -11,103 +11,9 @@ from app.db import get_db
 from app.eventos import TipoEvento, append_evento_sync, get_quadra_lock
 from app.identidade import hash_sessao
 
-# --- ARENAS (Legado/Compatibilidade) ---
-
 
 class CapacidadeEsgotada(ValueError):
     pass
-
-
-def criar_arena_sync(db_path: str, nome: str) -> dict[str, Any]:
-    nome_limpo = nome.strip()
-    if not nome_limpo:
-        raise ValueError("Nome da arena não pode ser vazio.")
-
-    with get_db(db_path) as conn:
-        conn.execute("BEGIN IMMEDIATE")
-        cursor = conn.cursor()
-        cursor.execute("SELECT COUNT(*) FROM arenas")
-        (total,) = cursor.fetchone()
-        if total >= settings.max_arenas:
-            raise ValueError(f"Limite máximo de {settings.max_arenas} arenas atingido.")
-
-        cursor.execute(
-            "SELECT id FROM arenas WHERE lower(nome) = lower(?)", (nome_limpo,)
-        )
-        if cursor.fetchone():
-            raise ValueError(f"Já existe uma arena com o nome '{nome_limpo}'.")
-
-        arena_id = str(uuid.uuid4())
-        agora = datetime.now(UTC).isoformat()
-        cursor.execute(
-            "INSERT INTO arenas (id, nome, criado_em) VALUES (?, ?, ?)",
-            (arena_id, nome_limpo, agora),
-        )
-        if settings.default_arenas_file:
-            from app.fixtures import adicionar_arena_fixture_sync
-
-            adicionar_arena_fixture_sync(settings.default_arenas_file, nome_limpo)
-
-        conn.commit()
-
-    return {
-        "id": arena_id,
-        "nome": nome_limpo,
-        "criado_em": agora,
-        "quadras_count": 0,
-    }
-
-
-async def criar_arena(db_path: str, nome: str) -> dict[str, Any]:
-    return await asyncio.to_thread(criar_arena_sync, db_path, nome)
-
-
-def listar_arenas_sync(db_path: str) -> list[dict[str, Any]]:
-    with get_db(db_path) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            """
-            SELECT a.id, a.nome, a.criado_em, COUNT(q.id) as quadras_count
-            FROM arenas a
-            LEFT JOIN quadras q ON q.arena_id = a.id
-            GROUP BY a.id
-            ORDER BY a.criado_em DESC
-            """
-        )
-        rows = cursor.fetchall()
-        return [
-            {
-                "id": r["id"],
-                "nome": r["nome"],
-                "criado_em": r["criado_em"],
-                "quadras_count": r["quadras_count"],
-            }
-            for r in rows
-        ]
-
-
-async def listar_arenas(db_path: str) -> list[dict[str, Any]]:
-    return await asyncio.to_thread(listar_arenas_sync, db_path)
-
-
-def obter_arena_sync(db_path: str, arena_id: str) -> dict[str, Any] | None:
-    with get_db(db_path) as conn:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT id, nome, criado_em FROM arenas WHERE id = ?", (arena_id,)
-        )
-        row = cursor.fetchone()
-        if not row:
-            return None
-        return {
-            "id": row["id"],
-            "nome": row["nome"],
-            "criado_em": row["criado_em"],
-        }
-
-
-async def obter_arena(db_path: str, arena_id: str) -> dict[str, Any] | None:
-    return await asyncio.to_thread(obter_arena_sync, db_path, arena_id)
 
 
 # --- QUADRAS / PLACARES COM CÓDIGO DE 5 DÍGITOS ---
@@ -183,7 +89,6 @@ async def tocar_quadra(db_path: str, quadra_id: str) -> None:
 
 def criar_quadra_sync(
     db_path: str,
-    arena_id: str | None = None,
     nome: str | None = None,
     session_id: str | None = None,
     apelido: str | None = None,
@@ -194,6 +99,7 @@ def criar_quadra_sync(
     alvo: int = 12,
     vantagem: bool = True,
     teto: int | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     if teto is not None and teto < alvo:
         raise ValueError("O teto da vantagem não pode ser menor que a pontuação-alvo.")
@@ -210,20 +116,6 @@ def criar_quadra_sync(
                 f"Limite máximo de {settings.max_quadras} quadras atingido."
             )
 
-        arena_nome = None
-        if arena_id:
-            cursor.execute(
-                "SELECT COUNT(*) FROM quadras WHERE arena_id = ?", (arena_id,)
-            )
-            (total_arena,) = cursor.fetchone()
-            if total_arena >= settings.max_quadras_por_arena:
-                raise CapacidadeEsgotada(
-                    f"Limite máximo de {settings.max_quadras_por_arena} quadras para esta arena atingido."
-                )
-            cursor.execute("SELECT nome FROM arenas WHERE id = ?", (arena_id,))
-            row_arena = cursor.fetchone()
-            arena_nome = row_arena["nome"] if row_arena else None
-
         quadra_id = gerar_codigo_quadra_sync(conn)
         partida_id = str(uuid.uuid4())
         agora = datetime.now(UTC).isoformat()
@@ -231,8 +123,8 @@ def criar_quadra_sync(
 
         codigo_mestre = gerar_codigo_mestre_sync()
         conn.execute(
-            "INSERT INTO quadras (id, arena_id, nome, criado_em, atualizado_em, codigo_mestre) VALUES (?, ?, ?, ?, ?, ?)",
-            (quadra_id, arena_id, nome_limpo, agora, agora, codigo_mestre),
+            "INSERT INTO quadras (id, nome, criado_em, atualizado_em, codigo_mestre) VALUES (?, ?, ?, ?, ?)",
+            (quadra_id, nome_limpo, agora, agora, codigo_mestre),
         )
         conn.execute(
             "INSERT INTO partidas (id, quadra_id, status, criado_em) VALUES (?, ?, ?, ?)",
@@ -288,19 +180,11 @@ def criar_quadra_sync(
             autor_id=participante["id"] if participante else None,
             connection=conn,
         )
-        if settings.default_arenas_file and arena_nome:
-            from app.fixtures import adicionar_quadra_fixture_sync
-
-            adicionar_quadra_fixture_sync(
-                settings.default_arenas_file, arena_nome, nome_limpo
-            )
 
         conn.commit()
 
     resultado = {
         "id": quadra_id,
-        "arena_id": arena_id,
-        "arena_nome": arena_nome,
         "nome": nome_limpo,
         "criado_em": agora,
         "atualizado_em": agora,
@@ -315,7 +199,6 @@ def criar_quadra_sync(
 
 async def criar_quadra(
     db_path: str,
-    arena_id: str | None = None,
     nome: str | None = None,
     session_id: str | None = None,
     apelido: str | None = None,
@@ -326,11 +209,11 @@ async def criar_quadra(
     alvo: int = 12,
     vantagem: bool = True,
     teto: int | None = None,
+    **kwargs: Any,
 ) -> dict[str, Any]:
     return await asyncio.to_thread(
         criar_quadra_sync,
         db_path=db_path,
-        arena_id=arena_id,
         nome=nome,
         session_id=session_id,
         apelido=apelido,
@@ -341,6 +224,7 @@ async def criar_quadra(
         alvo=alvo,
         vantagem=vantagem,
         teto=teto,
+        **kwargs,
     )
 
 
@@ -350,10 +234,9 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT q.id, q.arena_id, q.nome, q.criado_em, q.atualizado_em, q.controle_id, q.controle_versao, a.nome as arena_nome
-            FROM quadras q
-            LEFT JOIN arenas a ON a.id = q.arena_id
-            WHERE q.id = ?
+            SELECT id, nome, criado_em, atualizado_em, controle_id, controle_versao
+            FROM quadras
+            WHERE id = ?
             """,
             (quadra_id,),
         )
@@ -370,8 +253,6 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
 
         return {
             "id": quadra["id"],
-            "arena_id": quadra["arena_id"],
-            "arena_nome": quadra["arena_nome"],
             "nome": quadra["nome"],
             "criado_em": quadra["criado_em"],
             "atualizado_em": quadra["atualizado_em"],
@@ -385,33 +266,23 @@ async def obter_quadra(db_path: str, quadra_id: str) -> dict[str, Any] | None:
     return await asyncio.to_thread(obter_quadra_sync, db_path, quadra_id)
 
 
-def listar_quadras_sync(
-    db_path: str, arena_id: str | None = None
-) -> list[dict[str, Any]]:
+def listar_quadras_sync(db_path: str) -> list[dict[str, Any]]:
     limpar_quadras_expiradas_sync(db_path)
     with get_db(db_path) as conn:
         cursor = conn.cursor()
         query = """
-            SELECT q.id, q.arena_id, q.nome, q.criado_em, q.atualizado_em,
-                   a.nome as arena_nome,
+            SELECT q.id, q.nome, q.criado_em, q.atualizado_em,
                    COUNT(p.id) as participantes_count
             FROM quadras q
-            LEFT JOIN arenas a ON a.id = q.arena_id
             LEFT JOIN participantes p ON p.quadra_id = q.id
+            GROUP BY q.id
+            ORDER BY q.atualizado_em DESC
         """
-        params = []
-        if arena_id:
-            query += " WHERE q.arena_id = ?"
-            params.append(arena_id)
-        query += " GROUP BY q.id ORDER BY q.atualizado_em DESC"
-
-        cursor.execute(query, params)
+        cursor.execute(query)
         rows = cursor.fetchall()
         return [
             {
                 "id": r["id"],
-                "arena_id": r["arena_id"],
-                "arena_nome": r["arena_nome"],
                 "nome": r["nome"],
                 "criado_em": r["criado_em"],
                 "atualizado_em": r["atualizado_em"],
@@ -421,10 +292,8 @@ def listar_quadras_sync(
         ]
 
 
-async def listar_quadras(
-    db_path: str, arena_id: str | None = None
-) -> list[dict[str, Any]]:
-    return await asyncio.to_thread(listar_quadras_sync, db_path, arena_id)
+async def listar_quadras(db_path: str) -> list[dict[str, Any]]:
+    return await asyncio.to_thread(listar_quadras_sync, db_path)
 
 
 def registrar_participante_sync(
@@ -621,11 +490,9 @@ def listar_quadras_owner_sync(db_path: str) -> list[dict[str, Any]]:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT q.id, q.arena_id, q.nome, q.criado_em, q.atualizado_em,
-                   q.controle_id, q.controle_versao, q.codigo_mestre,
-                   a.nome as arena_nome
+            SELECT q.id, q.nome, q.criado_em, q.atualizado_em,
+                   q.controle_id, q.controle_versao, q.codigo_mestre
             FROM quadras q
-            LEFT JOIN arenas a ON a.id = q.arena_id
             ORDER BY q.atualizado_em DESC
             """
         )
@@ -673,8 +540,6 @@ def listar_quadras_owner_sync(db_path: str) -> list[dict[str, Any]]:
                     "id": q["id"],
                     "nome": q["nome"],
                     "codigo_mestre": q["codigo_mestre"],
-                    "arena_id": q["arena_id"],
-                    "arena_nome": q["arena_nome"],
                     "criado_em": q["criado_em"],
                     "atualizado_em": q["atualizado_em"],
                     "controle_id": q["controle_id"],

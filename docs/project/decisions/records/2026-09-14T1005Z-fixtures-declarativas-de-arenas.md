@@ -1,10 +1,11 @@
 ---
-status: Decided
+status: Superseded
 raised: 2026-09-14
 decided: 2026-09-14
 deciders:
   - Navigator
   - Driver
+superseded_by: 2026-09-15T1730Z-remocao-de-arenas-e-banco-limpo-no-versionamento
 supersedes:
 related:
   - CV1.DS1.TS3

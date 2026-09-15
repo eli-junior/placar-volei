@@ -1,11 +1,11 @@
 ---
 id: debt-arenas-legadas
-status: Carried
+status: Paid
 kind: architecture
 severity: low
 source: CV1.DS1.US1
 revisit_trigger: Decisão de descontinuação formal e remoção do suporte a arenas no backend
-closure_condition: Exclusão da tabela arenas e rotas /api/arenas/* após refatoração dos testes legados
+closure_condition: Exclusão da tabela arenas e rotas /api/arenas/* após refatoração dos testes legados (cumprido em 2026-09-15 na v0.4.2)
 ---
 
 # Endpoints e Tabelas Legadas de Arenas Mantidos por Retrocompatibilidade

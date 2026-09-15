@@ -114,20 +114,12 @@ async def test_api_endpoint_linha_do_tempo():
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        # 1. Cria arena e quadra
-        res_arena = await client.post("/api/arenas", json={"nome": "Arena Timeline"})
-        arena_id = res_arena.json()["id"]
-
+        # 1. Cria quadra com Admin via POST /api/quadras
         res_quadra = await client.post(
-            f"/api/arenas/{arena_id}/quadras", json={"nome": "Quadra Principal"}
+            "/api/quadras", json={"nome": "Quadra Principal", "apelido": "Eli Admin"}
         )
+        assert res_quadra.status_code == 201
         quadra_id = res_quadra.json()["id"]
-
-        # 2. Entra como Admin
-        res_entrar = await client.post(
-            f"/api/quadras/{quadra_id}/entrar", json={"apelido": "Eli Admin"}
-        )
-        assert res_entrar.status_code == 200
 
         # 3. Consulta linha do tempo inicial
         res_lt = await client.get(f"/api/quadras/{quadra_id}/linha-do-tempo")

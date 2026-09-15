@@ -6,9 +6,9 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Versão `0.4.1` entregue: Endpoint administrativo de owner com camuflagem HTTP 404, código mestre de 4 dígitos gerado com segurança e proteção contra força bruta via rate limit em janela deslizante (`CV1.DS2.TS1`). Regras configuráveis na criação da sala com pontuação-alvo, vantagem de 2 e teto opcional (`CV1.DS3.US1`). Sucessão automática de admin após 2 minutos de ausência (`CV1.DS2.US2`). Nomes reais de jogadores nas equipes e inversão local de lados na quadra (`CV1.DS3.US2`). Promoção e revogação de controladores (`CV1.DS2.US1`). Núcleo completo da partida (`CV1.DS1`): fundação (`TS1`), criação de salas por código PIN (`US1`), marcação em tempo real (`US2`), desfazer ponto a ponto (`US3`), encerramento de partida e reinício sob demanda (`US4`), empacotamento Docker multi-estágio (`TS2`), modo imersivo com placar dobrável manual (`US5`), fixtures declarativas (`TS3`) e linha do tempo auditável (`CV1.DS4.US1`).
+Versão `0.4.2` entregue: Faxina técnica de arenas e fixtures com pagamento do débito `debt-arenas-legadas`, garantindo que o banco de dados inicialize 100% limpo a cada nova versão (sem re-popular quadras pré-existentes); endpoint administrativo de owner com camuflagem HTTP 404 e rate limit (`CV1.DS2.TS1`); regras configuráveis na criação da sala (`CV1.DS3.US1`); sucessão automática de admin ausente (`CV1.DS2.US2`); nomes de jogadores e inversão local de lados (`CV1.DS3.US2`); promoção e revogação de controladores (`CV1.DS2.US1`); núcleo completo da partida (`CV1.DS1`) com salas por PIN de 5 dígitos e linha do tempo auditável (`CV1.DS4.US1`).
 
-Próximo trabalho: Definir com o Navigator o próximo arco de valor/história do roadmap.
+Próximo trabalho: Validação de campo em pelada real ou definição do próximo arco de valor do roadmap.
 
 ## Como funciona
 

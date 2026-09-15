@@ -312,7 +312,7 @@
             </span>
           {/if}
           <span class="quadra-tag">
-            🏟️ {quadra.arena_nome ? quadra.arena_nome + ' • ' : ''}Ativa
+            🏟️ Sala Ativa
           </span>
         </div>
       </div>

@@ -38,9 +38,9 @@
   <!-- Placa do Topo: Identificação e Regras -->
   <div class="placa-topo">
     <div class="quadra-badge">
-      <span class="icone-arena">🏟️</span>
+      <span class="icone-quadra">🏟️</span>
       <span class="nome-quadra">
-        {quadra?.arena_nome ? quadra.arena_nome + ' • ' : ''}{quadra?.nome || 'Quadra'}
+        {quadra?.nome || 'Quadra'}
       </span>
       {#if quadra?.id}
         <span class="pin-pill">#{quadra.id}</span>
@@ -327,7 +327,7 @@
     padding: 2px 12px;
   }
 
-  .icone-arena {
+  .icone-quadra {
     font-size: 0.9rem;
   }
 

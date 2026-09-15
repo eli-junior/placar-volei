@@ -13,24 +13,17 @@ from app.hub import hub
 from app.identidade import SESSION_COOKIE
 from app.projecao import projetar_estado, projetar_linha_do_tempo
 from app.quadras import (
-    criar_arena,
     criar_quadra,
-    listar_arenas,
     listar_participantes,
     listar_quadras,
     listar_quadras_owner,
-    obter_arena,
     obter_participante,
     obter_quadra,
     registrar_participante,
 )
 from app.rate_limit import owner_rate_limiter
 
-router = APIRouter(prefix="/api", tags=["arenas_e_quadras"])
-
-
-class CriarArenaBody(BaseModel):
-    nome: str = Field(..., min_length=1, max_length=50)
+router = APIRouter(prefix="/api", tags=["quadras"])
 
 
 class MarcarPontoBody(BaseModel):
@@ -59,7 +52,6 @@ def formatar_nome_equipe(
 class CriarQuadraBody(BaseModel):
     apelido: str | None = Field(default=None, max_length=30)
     nome: str | None = Field(default=None, max_length=50)
-    arena_id: str | None = None
     time_a_jogador1: str | None = Field(default=None, max_length=30)
     time_a_jogador2: str | None = Field(default=None, max_length=30)
     time_b_jogador1: str | None = Field(default=None, max_length=30)
@@ -99,115 +91,12 @@ def extrair_ou_gerar_session_id(request: Request) -> tuple[str, bool]:
     return str(uuid.uuid4()), True
 
 
-# --- ROTAS DE ARENAS ---
-
-
-@router.get("/arenas")
-async def get_arenas():
-    arenas = await listar_arenas(settings.db_path)
-    return {"arenas": arenas}
-
-
-@router.post("/arenas", status_code=status.HTTP_201_CREATED)
-async def post_arenas(body: CriarArenaBody):
-    nome = body.nome.strip()
-    if not nome:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="Nome da arena não pode ser vazio.",
-        )
-    try:
-        arena = await criar_arena(settings.db_path, nome)
-    except OSError:
-        raise HTTPException(
-            503, "Não foi possível salvar a configuração. Tente novamente."
-        ) from None
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
-    return arena
-
-
-@router.get("/arenas/{arena_id}")
-async def get_arena(arena_id: str):
-    arena = await obter_arena(settings.db_path, arena_id)
-    if not arena:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Arena não encontrada.",
-        )
-    return arena
-
-
-@router.get("/arenas/{arena_id}/quadras")
-async def get_arena_quadras(arena_id: str):
-    arena = await obter_arena(settings.db_path, arena_id)
-    if not arena:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Arena não encontrada.",
-        )
-    quadras = await listar_quadras(settings.db_path, arena_id=arena_id)
-    return {"arena": arena, "quadras": quadras}
-
-
-@router.post("/arenas/{arena_id}/quadras", status_code=status.HTTP_201_CREATED)
-async def post_arena_quadra(arena_id: str, body: CriarQuadraBody):
-    if body.teto is not None and body.teto < body.alvo:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail="O teto da vantagem não pode ser menor que a pontuação-alvo.",
-        )
-    arena = await obter_arena(settings.db_path, arena_id)
-    if not arena:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Arena não encontrada.",
-        )
-    nome = (
-        body.nome.strip()
-        if body.nome and body.nome.strip()
-        else f"Quadra {arena_id[:4]}"
-    )
-    nome_a, j_a = formatar_nome_equipe(
-        body.time_a_jogador1, body.time_a_jogador2, body.equipe_a, "Equipe A"
-    )
-    nome_b, j_b = formatar_nome_equipe(
-        body.time_b_jogador1, body.time_b_jogador2, body.equipe_b, "Equipe B"
-    )
-    try:
-        quadra = await criar_quadra(
-            settings.db_path,
-            arena_id=arena_id,
-            nome=nome,
-            equipe_a=nome_a,
-            equipe_b=nome_b,
-            jogadores_a=j_a,
-            jogadores_b=j_b,
-            alvo=body.alvo,
-            vantagem=body.vantagem,
-            teto=body.teto,
-        )
-    except OSError:
-        raise HTTPException(
-            503, "Não foi possível salvar a configuração. Tente novamente."
-        ) from None
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
-    return quadra
-
-
 # --- ROTAS DE QUADRAS E PARTICIPANTES ---
 
 
 @router.get("/quadras")
-async def get_quadras(arena_id: str | None = None):
-    quadras = await listar_quadras(settings.db_path, arena_id=arena_id)
+async def get_quadras():
+    quadras = await listar_quadras(settings.db_path)
     return {"quadras": quadras}
 
 
@@ -248,7 +137,6 @@ async def post_quadras(
     try:
         quadra = await criar_quadra(
             settings.db_path,
-            arena_id=body.arena_id,
             nome=nome,
             session_id=session_id,
             apelido=apelido,
