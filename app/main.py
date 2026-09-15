@@ -196,6 +196,8 @@ if os.path.isdir(static_dir):
 
     @app.get("/{full_path:path}")
     async def serve_spa(full_path: str):
+        if full_path.startswith("api/") or full_path == "api":
+            raise HTTPException(404, "Endpoint não encontrado.")
         # Se for um arquivo existente em static_dir, serve diretamente
         if "\\" in full_path or "\x00" in full_path:
             raise HTTPException(404, "Arquivo não encontrado.")

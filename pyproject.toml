@@ -1,6 +1,6 @@
 [project]
 name = "placar-volei"
-version = "0.4.1"
+version = "0.4.2"
 description = "Placar de vôlei compartilhado em tempo real para pelada"
 readme = "README.md"
 requires-python = ">=3.12"

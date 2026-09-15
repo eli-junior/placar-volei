@@ -11,16 +11,14 @@ from app.comandos import executar_sync
 from app.config import settings
 from app.db import get_db, init_db_sync
 from app.eventos import carregar_eventos_sync
-from app.fixtures import sincronizar_fixtures_para_db_sync
 from app.identidade import SESSION_COOKIE
 from app.main import app
-from app.quadras import criar_quadra_sync, limpar_quadras_expiradas_sync
+from app.quadras import criar_quadra_sync
 
 
 @pytest.fixture(autouse=True)
 def banco(tmp_path, monkeypatch):
     monkeypatch.setattr(settings, "db_path", str(tmp_path / "review.db"))
-    monkeypatch.setattr(settings, "default_arenas_file", "")
     monkeypatch.setattr(settings, "max_quadras", 20)
     monkeypatch.setattr(settings, "max_participantes_por_quadra", 20)
     init_db_sync()
@@ -247,47 +245,13 @@ def test_sala_expirada_notifica_conexao_aberta_e_recusa_reconexao():
             assert ws.receive_json()["tipo"] == "SALA_EXPIRADA"
 
 
-def test_restart_com_salas_ativas_nao_falha_por_fixture(monkeypatch, tmp_path):
-    arquivo = tmp_path / "fixture.json"
-    arquivo.write_text(json.dumps([{"nome": "Arena", "quadras": ["Quadra"]}]))
-    monkeypatch.setattr(settings, "default_arenas_file", str(arquivo))
-    monkeypatch.setattr(settings, "max_quadras", 1)
-    sincronizar_fixtures_para_db_sync(settings.db_path, str(arquivo))
-    with get_db() as conn:
-        antigo = conn.execute("SELECT id FROM quadras").fetchone()["id"]
-    expirar(antigo)
-    limpar_quadras_expiradas_sync(settings.db_path)
+def test_restart_na_mesma_versao_preserva_salas_ativas():
     atual = criar_quadra_sync(settings.db_path, apelido="Admin", session_id="privado")
     init_db_sync()
     with get_db() as conn:
         assert [r["id"] for r in conn.execute("SELECT id FROM quadras")] == [
             atual["id"]
         ]
-
-
-def test_erro_de_escrita_da_fixture_nao_deixa_criacao_parcial(monkeypatch, tmp_path):
-    from app import fixtures
-
-    arquivo = tmp_path / "fixtures" / "defaultArenas.json"
-    arquivo.parent.mkdir()
-    monkeypatch.setattr(settings, "default_arenas_file", str(arquivo))
-    with TestClient(app) as client:
-        arena = client.post("/api/arenas", json={"nome": "Arena"}).json()
-
-        def falhar(*args):
-            raise PermissionError("sem acesso")
-
-        monkeypatch.setattr(fixtures.os, "replace", falhar)
-        assert (
-            client.post(
-                f"/api/arenas/{arena['id']}/quadras", json={"nome": "Quadra"}
-            ).status_code
-            == 503
-        )
-        assert client.post("/api/arenas", json={"nome": "Outra"}).status_code == 503
-        assert client.get("/api/quadras").json()["quadras"] == []
-        assert len(client.get("/api/arenas").json()["arenas"]) == 1
-        assert list(arquivo.parent.iterdir()) == [arquivo]
 
 
 async def test_transferencias_concorrentes_deixam_um_unico_operador():

@@ -19,49 +19,6 @@ async def setup_test_db(tmp_path: Path):
 
 
 @pytest.mark.asyncio
-async def test_criar_e_listar_arenas_e_quadras():
-    """Criação de Arena (ex: T9 Beach Club) e criação de quadras vinculadas."""
-    async with httpx.AsyncClient(
-        transport=ASGITransport(app=app), base_url="http://test"
-    ) as client:
-        # Cria Arena
-        resp_arena = await client.post("/api/arenas", json={"nome": "T9 Beach Club"})
-        assert resp_arena.status_code == 201
-        arena = resp_arena.json()
-        assert arena["nome"] == "T9 Beach Club"
-        arena_id = arena["id"]
-
-        # Lista Arenas
-        resp_arenas = await client.get("/api/arenas")
-        assert resp_arenas.status_code == 200
-        arenas = resp_arenas.json()["arenas"]
-        assert len(arenas) == 1
-        assert arenas[0]["nome"] == "T9 Beach Club"
-
-        # Cria quadras dentro da Arena
-        resp_q1 = await client.post(
-            f"/api/arenas/{arena_id}/quadras", json={"nome": "Quadra 1 (Areia)"}
-        )
-        assert resp_q1.status_code == 201
-        assert resp_q1.json()["arena_id"] == arena_id
-
-        resp_q2 = await client.post(
-            f"/api/arenas/{arena_id}/quadras", json={"nome": "Quadra 2 (Central)"}
-        )
-        assert resp_q2.status_code == 201
-
-        # Lista quadras daquela arena
-        resp_quadras = await client.get(f"/api/arenas/{arena_id}/quadras")
-        assert resp_quadras.status_code == 200
-        data = resp_quadras.json()
-        assert data["arena"]["nome"] == "T9 Beach Club"
-        assert len(data["quadras"]) == 2
-        nomes_quadras = [q["nome"] for q in data["quadras"]]
-        assert "Quadra 1 (Areia)" in nomes_quadras
-        assert "Quadra 2 (Central)" in nomes_quadras
-
-
-@pytest.mark.asyncio
 async def test_criar_e_listar_quadras():
     """POST /api/quadras cria quadra e grava PARTIDA_INICIADA; GET lista com contagem."""
     async with httpx.AsyncClient(
@@ -202,46 +159,27 @@ def test_websocket_presenca_estado_inicial():
 
 @pytest.mark.asyncio
 async def test_limites_capacidade():
-    """Verifica bloqueio quando os limites de arenas, quadras ou participantes são atingidos."""
+    """Verifica bloqueio quando os limites de quadras ou participantes são atingidos."""
     # Configura limites baixos para teste
-    settings.max_arenas = 2
-    settings.max_quadras_por_arena = 2
+    settings.max_quadras = 2
     settings.max_participantes_por_quadra = 2
 
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        # 1. Limite de Arenas (máx 2)
-        r_a1 = await client.post("/api/arenas", json={"nome": "Arena 1"})
-        assert r_a1.status_code == 201
-        arena1_id = r_a1.json()["id"]
-
-        r_a2 = await client.post("/api/arenas", json={"nome": "Arena 2"})
-        assert r_a2.status_code == 201
-
-        r_a3 = await client.post("/api/arenas", json={"nome": "Arena 3"})
-        assert r_a3.status_code == 400
-        assert "limite máximo" in r_a3.json()["detail"].lower()
-
-        # 2. Limite de Quadras por Arena (máx 2)
-        r_q1 = await client.post(
-            f"/api/arenas/{arena1_id}/quadras", json={"nome": "Quadra 1"}
-        )
+        # 1. Limite de Quadras (máx 2)
+        r_q1 = await client.post("/api/quadras", json={"nome": "Quadra 1"})
         assert r_q1.status_code == 201
         quadra1_id = r_q1.json()["id"]
 
-        r_q2 = await client.post(
-            f"/api/arenas/{arena1_id}/quadras", json={"nome": "Quadra 2"}
-        )
+        r_q2 = await client.post("/api/quadras", json={"nome": "Quadra 2"})
         assert r_q2.status_code == 201
 
-        r_q3 = await client.post(
-            f"/api/arenas/{arena1_id}/quadras", json={"nome": "Quadra 3"}
-        )
+        r_q3 = await client.post("/api/quadras", json={"nome": "Quadra 3"})
         assert r_q3.status_code == 400
         assert "limite máximo" in r_q3.json()["detail"].lower()
 
-        # 3. Limite de Participantes por Quadra (máx 2)
+        # 2. Limite de Participantes por Quadra (máx 2)
         r_p1 = await client.post(
             f"/api/quadras/{quadra1_id}/entrar",
             json={"apelido": "User 1"},
@@ -263,8 +201,3 @@ async def test_limites_capacidade():
         )
         assert r_p3.status_code == 400
         assert "limite máximo" in r_p3.json()["detail"].lower()
-
-        # Restaura limites padrão
-        settings.max_arenas = 50
-        settings.max_quadras_por_arena = 20
-        settings.max_participantes_por_quadra = 50

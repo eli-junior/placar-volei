@@ -17,15 +17,8 @@ CREATE TABLE IF NOT EXISTS app_meta (
     atualizado_em TEXT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS arenas (
-    id TEXT PRIMARY KEY,
-    nome TEXT NOT NULL,
-    criado_em TEXT NOT NULL
-);
-
 CREATE TABLE IF NOT EXISTS quadras (
     id TEXT PRIMARY KEY,
-    arena_id TEXT REFERENCES arenas(id),
     nome TEXT NOT NULL,
     criado_em TEXT NOT NULL,
     atualizado_em TEXT NOT NULL,
@@ -65,7 +58,6 @@ CREATE TABLE IF NOT EXISTS eventos (
     UNIQUE(partida_id, seq)
 );
 
-CREATE INDEX IF NOT EXISTS idx_quadras_arena ON quadras (arena_id);
 CREATE INDEX IF NOT EXISTS idx_quadras_atualizado ON quadras (atualizado_em);
 CREATE INDEX IF NOT EXISTS idx_eventos_partida_seq ON eventos (partida_id, seq);
 CREATE INDEX IF NOT EXISTS idx_partidas_quadra ON partidas (quadra_id);
@@ -92,7 +84,7 @@ def get_db(db_path: str | None = None) -> Generator[sqlite3.Connection, None, No
         conn.close()
 
 
-def init_db_sync(db_path: str | None = None, fixture_path: str | None = None) -> None:
+def init_db_sync(db_path: str | None = None, *args, **kwargs) -> None:
     target_path = db_path if db_path is not None else settings.db_path
 
     # Se o banco está em arquivo e já existe, verifica se precisa ser apagado para recriação
@@ -182,8 +174,6 @@ def init_db_sync(db_path: str | None = None, fixture_path: str | None = None) ->
             cursor.execute(
                 "UPDATE quadras SET atualizado_em = criado_em WHERE atualizado_em IS NULL;"
             )
-        if "arena_id" not in colunas:
-            cursor.execute("ALTER TABLE quadras ADD COLUMN arena_id TEXT;")
         if "codigo_mestre" not in colunas:
             cursor.execute("ALTER TABLE quadras ADD COLUMN codigo_mestre TEXT;")
 
@@ -198,24 +188,6 @@ def init_db_sync(db_path: str | None = None, fixture_path: str | None = None) ->
         )
         conn.commit()
 
-    target_fixture = (
-        fixture_path if fixture_path is not None else settings.default_arenas_file
-    )
-    if target_fixture:
-        from app.fixtures import (
-            resolver_caminho_fixture,
-            sincronizar_fixtures_para_db_sync,
-        )
 
-        caminho_resolvido = resolver_caminho_fixture(target_fixture)
-        if caminho_resolvido:
-            sincronizar_fixtures_para_db_sync(target_path, caminho_resolvido)
-        else:
-            logger.warning(
-                "Arquivo de fixture '%s' não foi localizado no sistema de arquivos.",
-                target_fixture,
-            )
-
-
-async def init_db(db_path: str | None = None, fixture_path: str | None = None) -> None:
-    await asyncio.to_thread(init_db_sync, db_path, fixture_path)
+async def init_db(db_path: str | None = None, *args, **kwargs) -> None:
+    await asyncio.to_thread(init_db_sync, db_path, *args, **kwargs)
