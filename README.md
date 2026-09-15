@@ -6,9 +6,9 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Versão `0.3.3` entregue: Sucessão automática de admin após 2 minutos de ausência (`CV1.DS2.US2`). Nomes reais de jogadores nas equipes e inversão local de lados na quadra (`CV1.DS3.US2`). Promoção e revogação de controladores (`CV1.DS2.US1`). Núcleo completo da partida (`CV1.DS1`): fundação (`TS1`), criação de salas por código PIN (`US1`), marcação em tempo real (`US2`), desfazer ponto a ponto (`US3`), encerramento de partida e reinício sob demanda (`US4`), empacotamento Docker multi-estágio (`TS2`), modo imersivo com placar dobrável manual (`US5`), fixtures declarativas (`TS3`) e linha do tempo auditável (`CV1.DS4.US1`).
+Versão `0.4.0` entregue: Regras configuráveis na criação da sala com pontuação-alvo, vantagem de 2 e teto opcional (`CV1.DS3.US1`), concluindo a Delivery Story `CV1.DS3`. Sucessão automática de admin após 2 minutos de ausência (`CV1.DS2.US2`). Nomes reais de jogadores nas equipes e inversão local de lados na quadra (`CV1.DS3.US2`). Promoção e revogação de controladores (`CV1.DS2.US1`). Núcleo completo da partida (`CV1.DS1`): fundação (`TS1`), criação de salas por código PIN (`US1`), marcação em tempo real (`US2`), desfazer ponto a ponto (`US3`), encerramento de partida e reinício sob demanda (`US4`), empacotamento Docker multi-estágio (`TS2`), modo imersivo com placar dobrável manual (`US5`), fixtures declarativas (`TS3`) e linha do tempo auditável (`CV1.DS4.US1`).
 
-Próximo trabalho: `CV1.DS3.US1` (regras da partida configuráveis) ou `CV1.DS2.TS1` / `CV1.DS2.US3` (owner takeover e proteção).
+Próximo trabalho: `CV1.DS2.TS1` / `CV1.DS2.US3` (recuperação de administração pelo operador da instância / owner takeover).
 
 ## Como funciona
 

@@ -1,8 +1,8 @@
 ---
 code: CV1.DS3.US1
 level: User Story
-status: Active
-status_reason: puxada para desenvolvimento
+status: Done
+status_reason: implementada, testada e validada pelo Navigator
 updated: 2026-09-15
 related:
   - CV1.DS1.US4
