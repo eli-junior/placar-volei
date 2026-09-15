@@ -8,7 +8,12 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-*(Nenhuma branch ativa no momento)*
+### feature/cv1-ds2-us2-sucessao-automatica-de-admin
+- **História / Escopo**: CV1.DS2.US2 — Sucessão automática de admin após 2 minutos offline
+- **Branch**: `feature/cv1-ds2-us2-sucessao-automatica-de-admin`
+- **Passo Ariad**: Passo 2 - Planejamento
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 2dbdb498-c56e-45d7-bd2a-0182cdd41b8f | Data: 2026-09-15 10:11
+- **Handoff / Próximos Passos**: Submissão do plano para aprovação do Navigator no Checkpoint 1; após aprovação, iniciar implementação do temporizador de sucessão, evento ADMIN_SUCEDIDO e retorno do admin.
 
 ## 0.3.2 - 2026-09-14
 
