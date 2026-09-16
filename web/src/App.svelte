@@ -23,6 +23,7 @@
   let wsConectado = $state(false);
   let wsSocket = null;
   let wsReconnectTimer = null;
+  let wsTentativasReconexao = 0;
 
   function aplicarSnapshot(data) {
     if (!aceitarSnapshot(ultimoSnapshot, data, quadraAtual?.partida_id)) return;
@@ -36,6 +37,7 @@
 
   function desconectar() {
     clearTimeout(wsReconnectTimer);
+    wsTentativasReconexao = 0;
     const anterior = wsSocket;
     wsSocket = null;
     wsConectado = false;
@@ -76,6 +78,7 @@
           if (!msg.payload.quadra || msg.payload.quadra.id !== quadraAtual?.id) return salaExpirada();
           aplicarSnapshot(msg.payload);
           wsConectado = true;
+          wsTentativasReconexao = 0;
         } else if (msg.tipo === 'PLACAR_ATUALIZADO') {
           aplicarSnapshot(msg.payload);
         } else if (msg.tipo === 'PRESENCA_ATUALIZADA') {
@@ -99,7 +102,14 @@
         erro = 'Sua sessão não é mais válida. Entre novamente com seu apelido.';
         return;
       }
-      if (quadraAtual?.id === quadraId) wsReconnectTimer = setTimeout(() => conectarWebSocket(quadraId), 2500);
+      if (quadraAtual?.id === quadraId) {
+        // Backoff exponencial com jitter (CV2.DS2.TS1)
+        const base = Math.min(1000 * Math.pow(1.5, wsTentativasReconexao), 15000);
+        const jitter = Math.random() * 800;
+        const delay = Math.round(base + jitter);
+        wsTentativasReconexao += 1;
+        wsReconnectTimer = setTimeout(() => conectarWebSocket(quadraId), delay);
+      }
     };
     socket.onerror = () => socket.close();
   }
@@ -204,7 +214,8 @@
 
   const handleMarcarPonto = equipe => executar('pontos', { equipe });
   const handleDesfazerPonto = () => executar('desfazer');
-  const handleIniciarNovaPartida = () => executar('reiniciar');
+  const handleIniciarNovaPartida = dados => executar('reiniciar', dados);
+  const handleConfigurarPartida = dados => executar('configurar', dados);
   const handleAssumirControle = () => executar('controle/assumir');
   const handleAutorizarAdmin = id => executar(`participantes/${id}/admin`);
   const handlePromoverControlador = id => executar(`participantes/${id}/promover`);
@@ -251,6 +262,7 @@
       onMarcarPonto={handleMarcarPonto}
       onDesfazerPonto={handleDesfazerPonto}
       onIniciarNovaPartida={handleIniciarNovaPartida}
+      onConfigurarPartida={handleConfigurarPartida}
       onVoltar={() => handleVoltarParaHome()}
       onAssumirControle={handleAssumirControle}
       onPromoverControlador={handlePromoverControlador}

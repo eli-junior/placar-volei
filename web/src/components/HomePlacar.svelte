@@ -1,6 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { slide, fade } from 'svelte/transition';
+  import Icone from './Icone.svelte';
 
   let {
     onCriarQuadra = () => {},
@@ -10,10 +11,12 @@
   } = $props();
 
   const CHAVE_APELIDO = 'placar:apelido';
+  const CHAVE_TEMA = 'placar:tema';
 
   let abaAtiva = $state('criar'); // 'criar' | 'acompanhar'
   let apelidoCriador = $state('');
   let nomeQuadra = $state('');
+  let temaSol = $state(false);
 
   let timeAJogador1 = $state('');
   let timeAJogador2 = $state('');
@@ -33,10 +36,27 @@
         apelidoCriador = salvo;
         apelidoEspectador = salvo;
       }
+      const salvoTema = localStorage.getItem(CHAVE_TEMA);
+      if (salvoTema === 'sol') {
+        temaSol = true;
+        document.documentElement.setAttribute('data-tema', 'sol');
+      }
     } catch {}
 
     carregarQuadrasAtivas();
   });
+
+  function alternarTema() {
+    temaSol = !temaSol;
+    try {
+      localStorage.setItem(CHAVE_TEMA, temaSol ? 'sol' : 'padrao');
+    } catch {}
+    if (temaSol) {
+      document.documentElement.setAttribute('data-tema', 'sol');
+    } else {
+      document.documentElement.removeAttribute('data-tema');
+    }
+  }
 
   async function carregarQuadrasAtivas() {
     try {
@@ -69,11 +89,8 @@
 
   function handleSubmeterCriar(e) {
     e.preventDefault();
-    if (tetoInvalido) return;
     const apelido = apelidoCriador.trim();
-    const jA1 = timeAJogador1.trim();
-    const jB1 = timeBJogador1.trim();
-    if (!apelido || !jA1 || !jB1) return;
+    if (!apelido) return;
 
     try {
       localStorage.setItem(CHAVE_APELIDO, apelido);
@@ -82,13 +99,6 @@
     onCriarQuadra({
       apelido,
       nome: nomeQuadra.trim() || undefined,
-      time_a_jogador1: jA1,
-      time_a_jogador2: timeAJogador2.trim() || undefined,
-      time_b_jogador1: jB1,
-      time_b_jogador2: timeBJogador2.trim() || undefined,
-      alvo: Number(regraAlvo) || 12,
-      vantagem: Boolean(regraVantagem),
-      teto: regraVantagem && tetoNumerico !== null ? tetoNumerico : null,
     });
   }
 
@@ -115,6 +125,19 @@
 </script>
 
 <div class="home-container" in:fade={{ duration: 200 }}>
+  <div class="barra-superior-home">
+    <button
+      type="button"
+      class="btn-toggle-sol"
+      onclick={alternarTema}
+      aria-label={temaSol ? 'Ativar Modo Noite' : 'Ativar Modo Sol'}
+      title={temaSol ? 'Modo Noite' : 'Modo Sol (Alto Contraste)'}
+    >
+      <Icone nome={temaSol ? 'lua' : 'sol'} tamanho="1.15em" />
+      <span>{temaSol ? 'Modo Noite' : 'Modo Sol'}</span>
+    </button>
+  </div>
+
   <header class="home-header">
     <div class="logo-badge">🏐</div>
     <h1 class="app-title">Placar de Vôlei</h1>
@@ -191,180 +214,15 @@
           />
         </div>
 
-        <!-- Jogadores das Equipes -->
-        <div class="secao-equipes">
-          <div class="secao-header">
-            <span class="secao-icone">👥</span>
-            <div>
-              <h3 class="secao-titulo">Jogadores das Equipes</h3>
-              <p class="secao-subtitulo">Informe 1 ou 2 jogadores por time (ao menos 1 por equipe é obrigatório).</p>
-            </div>
-          </div>
-
-          <div class="equipes-grid">
-            <!-- Time A -->
-            <div class="equipe-bloco equipe-bloco-a">
-              <span class="equipe-badge-header badge-time-a">Time A</span>
-              <div class="campo-grupo">
-                <label for="time-a-j1">Jogador 1 <span class="obrigatorio">*</span></label>
-                <input
-                  id="time-a-j1"
-                  type="text"
-                  bind:value={timeAJogador1}
-                  placeholder="Ex: Carlos"
-                  maxlength="30"
-                  required
-                  disabled={submetendo}
-                />
-              </div>
-              <div class="campo-grupo">
-                <label for="time-a-j2">Jogador 2 (opcional)</label>
-                <input
-                  id="time-a-j2"
-                  type="text"
-                  bind:value={timeAJogador2}
-                  placeholder="Ex: Daniel"
-                  maxlength="30"
-                  disabled={submetendo}
-                />
-              </div>
-            </div>
-
-            <!-- Time B -->
-            <div class="equipe-bloco equipe-bloco-b">
-              <span class="equipe-badge-header badge-time-b">Time B</span>
-              <div class="campo-grupo">
-                <label for="time-b-j1">Jogador 1 <span class="obrigatorio">*</span></label>
-                <input
-                  id="time-b-j1"
-                  type="text"
-                  bind:value={timeBJogador1}
-                  placeholder="Ex: Roberto"
-                  maxlength="30"
-                  required
-                  disabled={submetendo}
-                />
-              </div>
-              <div class="campo-grupo">
-                <label for="time-b-j2">Jogador 2 (opcional)</label>
-                <input
-                  id="time-b-j2"
-                  type="text"
-                  bind:value={timeBJogador2}
-                  placeholder="Ex: Eduardo"
-                  maxlength="30"
-                  disabled={submetendo}
-                />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Regras da Partida -->
-        <div class="secao-regras">
-          <div class="secao-header">
-            <span class="secao-icone">⚙️</span>
-            <div>
-              <h3 class="secao-titulo">Regras da Partida</h3>
-              <p class="secao-subtitulo">Defina a pontuação e condições de encerramento da partida nesta sala.</p>
-            </div>
-          </div>
-
-          <!-- Seleção da Pontuação-Alvo -->
-          <div class="campo-grupo">
-            <span class="label-com-dica">Pontuação-alvo (pontos para vencer)</span>
-            <div class="pills-alvo">
-              {#each [12, 15, 21, 25] as preset}
-                <button
-                  type="button"
-                  class="btn-pill-alvo"
-                  class:selecionado={regraAlvo === preset}
-                  onclick={() => { regraAlvo = preset; }}
-                  disabled={submetendo}
-                >
-                  {preset} pts
-                </button>
-              {/each}
-              <button
-                type="button"
-                class="btn-pill-alvo"
-                class:selecionado={![12, 15, 21, 25].includes(regraAlvo)}
-                onclick={() => {
-                  if ([12, 15, 21, 25].includes(regraAlvo)) {
-                    regraAlvo = 18;
-                  }
-                }}
-                disabled={submetendo}
-              >
-                Personalizado
-              </button>
-            </div>
-
-            {#if ![12, 15, 21, 25].includes(regraAlvo)}
-              <div class="campo-personalizado" in:slide={{ duration: 150 }}>
-                <input
-                  id="alvo-personalizado"
-                  type="number"
-                  min="1"
-                  max="100"
-                  bind:value={regraAlvo}
-                  placeholder="Ex: 18"
-                  disabled={submetendo}
-                  required
-                />
-              </div>
-            {/if}
-          </div>
-
-          <!-- Checkbox Vantagem de 2 -->
-          <div class="campo-checkbox">
-            <label class="checkbox-container">
-              <input
-                type="checkbox"
-                bind:checked={regraVantagem}
-                disabled={submetendo}
-              />
-              <span class="checkbox-label">
-                <strong>Exigir vantagem de 2 pontos</strong>
-                <small class="checkbox-desc">A partida só encerra quando uma equipe abrir pelo menos 2 pontos de diferença.</small>
-              </span>
-            </label>
-          </div>
-
-          <!-- Teto Máximo (Opcional, visível se vantagem ativada) -->
-          {#if regraVantagem}
-            <div class="campo-grupo campo-teto" in:slide={{ duration: 150 }}>
-              <label for="teto-pontos">
-                Teto da pontuação (opcional)
-                <span class="campo-dica">Se atingido, encerra a partida mesmo com apenas 1 ponto de vantagem.</span>
-              </label>
-              <input
-                id="teto-pontos"
-                type="number"
-                min={regraAlvo}
-                max="200"
-                bind:value={regraTeto}
-                placeholder="Ex: {regraAlvo + 3} (deixe vazio para sem teto)"
-                disabled={submetendo}
-              />
-              {#if tetoInvalido}
-                <p class="aviso-erro-campo" in:slide={{ duration: 150 }}>
-                  ⚠️ O teto não pode ser menor que a pontuação-alvo ({regraAlvo} pts).
-                </p>
-              {/if}
-            </div>
-          {/if}
-        </div>
-
         <div class="card-info-box">
-          <span class="info-icone">ℹ️</span>
-          <span>Máximo de 20 pessoas por sala. Salas sem atualização por mais de 1h são removidas.</span>
+          <Icone nome="informacao" tamanho="1.1em" class="info-icone" />
+          <span>Você poderá definir e trocar as duplas e regras da partida a qualquer momento dentro da sala.</span>
         </div>
 
         <button
           type="submit"
           class="btn-principal"
-          disabled={submetendo || !apelidoCriador.trim() || !timeAJogador1.trim() || !timeBJogador1.trim() || tetoInvalido}
+          disabled={submetendo || !apelidoCriador.trim()}
         >
           {submetendo ? 'Criando sala...' : 'Criar Placar e Iniciar'}
         </button>
@@ -479,6 +337,32 @@
     padding: 1.5rem 1rem 3rem;
     gap: 1.5rem;
     box-sizing: border-box;
+  }
+
+  .barra-superior-home {
+    display: flex;
+    justify-content: flex-end;
+    width: 100%;
+  }
+
+  .btn-toggle-sol {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-circular);
+    color: var(--text-primary);
+    padding: 6px 14px;
+    font-size: var(--texto-legenda);
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+
+  .btn-toggle-sol:hover {
+    background: var(--bg-card-hover);
+    border-color: rgba(255, 255, 255, 0.2);
   }
 
   .home-header {
@@ -645,201 +529,6 @@
     color: #64748b;
   }
 
-  .secao-equipes {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    background: rgba(15, 23, 42, 0.5);
-    border: 1px solid #334155;
-    border-radius: 12px;
-    padding: 1rem;
-  }
-
-  .secao-header {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.6rem;
-  }
-
-  .secao-icone {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-    line-height: 1.2;
-  }
-
-  .secao-titulo {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #f1f5f9;
-    margin: 0;
-  }
-
-  .secao-subtitulo {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    margin: 0.15rem 0 0 0;
-    line-height: 1.35;
-  }
-
-  .equipes-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.85rem;
-  }
-
-  @media (max-width: 520px) {
-    .equipes-grid {
-      grid-template-columns: 1fr;
-    }
-  }
-
-  .equipe-bloco {
-    display: flex;
-    flex-direction: column;
-    gap: 0.65rem;
-    background: #0f172a;
-    border-radius: 10px;
-    padding: 0.85rem;
-    border: 1px solid #1e293b;
-  }
-
-  .equipe-bloco-a {
-    border-left: 3px solid #0891b2;
-  }
-
-  .equipe-bloco-b {
-    border-left: 3px solid #ea580c;
-  }
-
-  .equipe-badge-header {
-    font-size: 0.72rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    display: inline-flex;
-    align-self: flex-start;
-    padding: 2px 8px;
-    border-radius: 4px;
-  }
-
-  .badge-time-a {
-    background: rgba(8, 145, 178, 0.2);
-    color: #38bdf8;
-    border: 1px solid rgba(8, 145, 178, 0.4);
-  }
-
-  .badge-time-b {
-    background: rgba(234, 88, 12, 0.2);
-    color: #fb923c;
-    border: 1px solid rgba(234, 88, 12, 0.4);
-  }
-
-  .secao-regras {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-    background: rgba(15, 23, 42, 0.5);
-    border: 1px solid #334155;
-    border-radius: 12px;
-    padding: 1rem;
-  }
-
-  .label-com-dica {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: #e2e8f0;
-  }
-
-  .pills-alvo {
-    display: flex;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-    margin-top: 0.35rem;
-  }
-
-  .btn-pill-alvo {
-    background: #0f172a;
-    border: 1px solid #334155;
-    color: #94a3b8;
-    padding: 0.55rem 0.85rem;
-    border-radius: 8px;
-    font-size: 0.88rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
-  }
-
-  .btn-pill-alvo:hover:not(:disabled) {
-    border-color: #64748b;
-    color: #f1f5f9;
-  }
-
-  .btn-pill-alvo.selecionado {
-    background: #0284c7;
-    border-color: #38bdf8;
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.3);
-  }
-
-  .campo-personalizado {
-    margin-top: 0.5rem;
-  }
-
-  .campo-checkbox {
-    background: #0f172a;
-    border: 1px solid #1e293b;
-    border-radius: 10px;
-    padding: 0.85rem 1rem;
-  }
-
-  .checkbox-container {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    cursor: pointer;
-  }
-
-  .checkbox-container input[type="checkbox"] {
-    width: 1.2rem;
-    height: 1.2rem;
-    accent-color: #0284c7;
-    margin-top: 0.15rem;
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-
-  .checkbox-label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-  }
-
-  .checkbox-label strong {
-    font-size: 0.92rem;
-    color: #f1f5f9;
-  }
-
-  .checkbox-desc {
-    font-size: 0.8rem;
-    color: #94a3b8;
-    line-height: 1.35;
-  }
-
-  .campo-dica {
-    display: block;
-    font-size: 0.76rem;
-    color: #94a3b8;
-    font-weight: normal;
-    margin-top: 0.15rem;
-  }
-
-  .aviso-erro-campo {
-    color: #f87171;
-    font-size: 0.8rem;
-    font-weight: 600;
-    margin: 0.35rem 0 0 0;
-  }
-
   .card-info-box {
     display: flex;
     align-items: flex-start;
@@ -853,7 +542,7 @@
     line-height: 1.35;
   }
 
-  .info-icone {
+  :global(.info-icone) {
     flex-shrink: 0;
   }
 

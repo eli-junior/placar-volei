@@ -188,6 +188,24 @@ export const ICONES = {
     { tag: 'path', d: 'M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71' },
     { tag: 'path', d: 'M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71' },
   ],
+
+  // lucide: sun
+  sol: [
+    { tag: 'circle', cx: 12, cy: 12, r: 4 },
+    { tag: 'path', d: 'M12 2v2' },
+    { tag: 'path', d: 'M12 20v2' },
+    { tag: 'path', d: 'm4.93 4.93 1.41 1.41' },
+    { tag: 'path', d: 'm17.66 17.66 1.41 1.41' },
+    { tag: 'path', d: 'M2 12h2' },
+    { tag: 'path', d: 'M20 12h2' },
+    { tag: 'path', d: 'm6.34 17.66-1.41 1.41' },
+    { tag: 'path', d: 'm19.07 4.93-1.41 1.41' },
+  ],
+
+  // lucide: moon
+  lua: [
+    { tag: 'path', d: 'M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z' },
+  ],
 };
 
 /** Nomes disponíveis, útil para testes e para inventário do conjunto. */

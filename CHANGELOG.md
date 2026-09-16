@@ -10,20 +10,19 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ### CV2 — Excelência na Quadra e Confiabilidade do Placar
 
-- **História / Escopo**: `CV2.DS1`, `CV2.DS2`, `CV2.DS3`, `CV2.DS4` e reativação de `CV1.DS2.US3` (owner takeover). Escopo selecionado pelo Navigator em 2026-09-15: blocos completos das quatro Delivery Stories do CV2, com registro prévio dos débitos técnicos a serem quitados.
+- **História / Escopo**: `CV2.DS1`, `CV2.DS2`, `CV2.DS4` e reativação de `CV1.DS2.US3` (owner takeover). Escopo da Onda 2: Modo Paisagem Otimizado (`CV2.DS2.US1`), Zona do Polegar (`CV2.DS2.US2`), Wake Lock API (`CV2.DS2.US3`), Modo Sol de Alto Contraste (`CV2.DS2.US4`), Governança de Controle (`CV2.DS2.US5`), Apelidos Únicos por Sala (`CV2.DS2.US6`), Reconexão com Backoff Exponencial + Jitter (`CV2.DS2.TS1`), Modal de Celebração de Vitória Memorável (`CV2.DS4.US1`), Compartilhamento Nativo com QR Code SVG puro e Web Share API (`CV2.DS4.US2`), Migração para Diálogos Nativos `<dialog>` com acessibilidade (`CV2.DS4.US3`), PWA / Fontes Locais (`CV2.DS4.US6`), além do onboarding ultralight na Home e configuração in-game/reinício de duplas e regras de jogo (solicitação do Navigator).
 - **Branch**: `claude/subagentes-backlog-features-sqbsfs`
-- **Passo Ariad**: `Passo 3 - Implementação` (Onda 2: CV2.DS2 e CV2.DS4 em andamento)
-- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 07:42`
+- **Passo Ariad**: `Passo 4 - Teste e Validação` (Onda 2 implementada e pronta para validação)
+- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 08:05`
 - **Coordenação**: execução por ondas sequenciais/isoladas para garantir estabilidade e testes verdes a cada etapa.
   - Onda 1: `CV2.DS1` e `CV2.DS3.TS1` (Concluídas e integradas com 98 testes verdes).
-  - Onda 2: Conclusão de `CV2.DS2` (ergonomia, paisagem, zona do polegar, wake lock, modo sol, governança de controle e apelidos) e `CV2.DS4` (diálogos nativos `<dialog>`, ícones Lucide, QR Code puro, compartilhamento Web Share, PWA, tela de celebração e microcopy).
-  - Onda 3: `CV2.DS3` restante (overflow, Home, container queries, WCAG) e `CV1.DS2.US3` (owner takeover).
+  - Onda 2: `CV2.DS2` e `CV2.DS4` completamente implementados (backend e frontend) com 113 testes pytest verdes, 21 testes node/frontend verdes, svelte-check 0 erros / 0 warnings e linters ruff 100% limpos.
+  - Onda 3: `CV2.DS3` restante (overflow, Home refinamento, container queries) e `CV1.DS2.US3` (owner takeover).
 - **Débitos abertos para quitação**: `debt-codigo-mestre-no-websocket`, `debt-lotacao-fantasma`, `debt-integridade-de-toques-e-erros-422`, `debt-tokens-e-cores-acopladas`, `debt-acessibilidade-e-overflow`, `debt-modais-ad-hoc-e-reconexao`, `debt-apelidos-e-transferencia-de-controle`.
-- **Handoff / Próximos Passos**: baseline verificado e estabilizado com 98 testes pytest verdes, linters limpos e npm check/test 100%.
-  - **Em Retomada (Onda 2)**:
-    1. Integrar backend e testes de `origin/wip/cv2-ds2-parcial` (US5 governança e US6 apelidos) e implementar ergonomia frontend (US1 modo paisagem, US2 zona do polegar, US3 wake lock, US4 Modo Sol, TS1 reconexão com backoff).
-    2. Rebasear `origin/wip/cv2-ds4-parcial`, integrar `Dialogo.svelte`, `Icone.svelte`, `qrcode.js` e finalizar US1 (tela de vitória), US4 (microcopy) e US6 (PWA/fontes locais).
-  - Merge em `master` somente após validação do Navigator (Checkpoint 4).
+- **Handoff / Próximos Passos**:
+  - Testes automatizados executados e 100% verdes (113 pytest, 21 frontend, ruff ok, svelte-check ok).
+  - Checkpoint 2 apresentado para o Navigator com a rota de validação passo a passo na interface do navegador.
+  - Próximo passo após validação do Navigator: Checkpoint 3 (Revisão e Technical Debt Ledger) e Checkpoint 4 (Documentação e Merge).
 
 ### Débitos técnicos registrados
 

@@ -16,6 +16,8 @@
     onDesfazerPonto = () => {},
     onIniciarNovaPartida = () => {},
     onAbrirLinhaDoTempo = () => {},
+    onAbrirConfiguracao = () => {},
+    onAbrirCompartilhar = () => {},
     ladosInvertidos = false,
     onAlternarLados = () => {},
   } = $props();
@@ -105,6 +107,19 @@
     </div>
 
     <div class="header-right">
+      {#if podeControlar}
+        <button
+          type="button"
+          class="btn-cfg-toggle"
+          onclick={onAbrirConfiguracao}
+          aria-label="Configurar duplas e regras da partida"
+          title="Configurar duplas e regras"
+        >
+          <span class="cfg-icon">⚙️</span>
+          <span class="cfg-label">Duplas & Regras</span>
+        </button>
+      {/if}
+
       <button
         type="button"
         class="btn-inverter-lados"
@@ -142,20 +157,38 @@
       </div>
 
       {#if podeControlar}
-        <button
-          type="button"
-          class="btn-nova-partida"
-          disabled={desabilitado || enviando}
-          aria-busy={enviando}
-          onclick={handleIniciarNovaPartida}
-          aria-label="Iniciar Nova Partida"
-        >
-          <span class="icone-nova-partida">▶</span>
-          <span class="texto-nova-partida">Iniciar Nova Partida</span>
-        </button>
+        <div class="vitoria-botoes">
+          <button
+            type="button"
+            class="btn-nova-partida"
+            disabled={desabilitado || enviando}
+            aria-busy={enviando}
+            onclick={handleIniciarNovaPartida}
+            aria-label="Iniciar Próxima Partida e Trocar Duplas"
+          >
+            <span class="icone-nova-partida">▶</span>
+            <span class="texto-nova-partida">Iniciar Próxima Partida</span>
+          </button>
+          <button
+            type="button"
+            class="btn-compartilhar-vitoria"
+            onclick={onAbrirCompartilhar}
+            aria-label="Compartilhar resultado da partida"
+          >
+            <span>📢 Compartilhar</span>
+          </button>
+        </div>
       {:else}
         <div class="aguardando-container">
           <span class="aguardando-nova-partida">Aguardando início da próxima partida…</span>
+          <button
+            type="button"
+            class="btn-compartilhar-vitoria"
+            onclick={onAbrirCompartilhar}
+            aria-label="Compartilhar resultado da partida"
+          >
+            <span>📢 Compartilhar Resultado</span>
+          </button>
         </div>
       {/if}
     </div>
@@ -300,6 +333,7 @@
     flex-wrap: wrap;
   }
 
+  .btn-cfg-toggle,
   .btn-inverter-lados,
   .btn-lt-toggle {
     background: rgba(255, 255, 255, 0.05);
@@ -317,6 +351,7 @@
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
   }
 
+  .btn-cfg-toggle:hover,
   .btn-inverter-lados:hover,
   .btn-lt-toggle:hover {
     background: rgba(255, 255, 255, 0.1);
@@ -330,16 +365,19 @@
     background: rgba(249, 115, 22, 0.12);
   }
 
+  .btn-cfg-toggle:active,
   .btn-inverter-lados:active,
   .btn-lt-toggle:active {
     transform: scale(0.96);
   }
 
+  .cfg-icon,
   .inverter-icon,
   .lt-icon {
     font-size: 0.85rem;
   }
 
+  .cfg-label,
   .inverter-label,
   .lt-label {
     letter-spacing: 0.02em;
@@ -443,7 +481,35 @@
     letter-spacing: 0.02em;
   }
 
+  .vitoria-botoes {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .btn-compartilhar-vitoria {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+  }
+
+  .btn-compartilhar-vitoria:hover {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.35);
+  }
+
   .aguardando-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     padding: 4px 0 0 0;
   }
 

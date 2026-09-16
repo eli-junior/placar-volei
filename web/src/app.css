@@ -26,6 +26,22 @@
    e a referência do sistema visual em docs/product/design-tokens.md
    ============================================================================= */
 
+@font-face {
+  font-family: 'Inter';
+  src: url('/fontes/inter-latin-var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Teko';
+  src: url('/fontes/teko-latin-var.woff2') format('woff2');
+  font-weight: 300 700;
+  font-display: swap;
+  font-style: normal;
+}
+
 :root {
   /* `color-scheme: dark` NÃO é declarado aqui de propósito. Ele mudaria o
      desenho nativo de barra de rolagem e de caixa de seleção, e esta história

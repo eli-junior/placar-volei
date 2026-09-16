@@ -4,6 +4,10 @@
   import Placar from './Placar.svelte';
   import PlacarManual from './PlacarManual.svelte';
   import LinhaDoTempo from './LinhaDoTempo.svelte';
+  import Icone from './Icone.svelte';
+  import ModalCompartilhar from './ModalCompartilhar.svelte';
+  import ModalConfigurarPartida from './ModalConfigurarPartida.svelte';
+  import ModalCelebracaoVitoria from './ModalCelebracaoVitoria.svelte';
 
   let {
     quadra,
@@ -15,6 +19,7 @@
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
     onIniciarNovaPartida = () => {},
+    onConfigurarPartida = () => {},
     onVoltar,
     onAssumirControle = () => {},
     onPromoverControlador = (id) => {},
@@ -27,6 +32,45 @@
 
   const CHAVE_GIRO = 'placar:girado';
   const CHAVE_INVERSAO_BASE = 'placar:lados_invertidos:';
+  const CHAVE_TEMA = 'placar:tema';
+
+  function lerTemaSalvo() {
+    if (typeof localStorage === 'undefined') return false;
+    try {
+      return localStorage.getItem(CHAVE_TEMA) === 'sol';
+    } catch {
+      return false;
+    }
+  }
+
+  let temaSol = $state(false);
+
+  $effect(() => {
+    temaSol = lerTemaSalvo();
+    if (typeof document !== 'undefined') {
+      if (temaSol) {
+        document.documentElement.setAttribute('data-tema', 'sol');
+      } else {
+        document.documentElement.removeAttribute('data-tema');
+      }
+    }
+  });
+
+  function alternarTema() {
+    temaSol = !temaSol;
+    if (typeof document !== 'undefined') {
+      if (temaSol) {
+        document.documentElement.setAttribute('data-tema', 'sol');
+      } else {
+        document.documentElement.removeAttribute('data-tema');
+      }
+    }
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(CHAVE_TEMA, temaSol ? 'sol' : 'padrao');
+      } catch {}
+    }
+  }
 
   function lerGiroSalvo() {
     if (typeof localStorage === 'undefined') return false;
@@ -64,8 +108,66 @@
   }
 
   let modalLinhaDoTempoAberto = $state(false);
+  let modalCompartilharAberto = $state(false);
+  let modalConfigAberto = $state(false);
+  let isReinicioConfig = $state(false);
+  let modalCelebracaoAberto = $state(false);
+  let celebracaoExibidaPartidaId = $state(null);
   let prefersReducedMotion = $state(false);
   let copiado = $state(false);
+
+  // Celebração de Vitória Automática (CV2.DS4.US1)
+  $effect(() => {
+    if (estadoPartida?.encerrada && estadoPartida?.vencedor && quadra?.partida_id) {
+      if (celebracaoExibidaPartidaId !== quadra.partida_id) {
+        celebracaoExibidaPartidaId = quadra.partida_id;
+        modalCelebracaoAberto = true;
+      }
+    }
+  });
+
+  // Wake Lock API (CV2.DS2.US3)
+  let wakeLockSentinel = null;
+
+  async function requisitarWakeLock() {
+    if (typeof navigator === 'undefined' || !navigator.wakeLock || estadoPartida?.encerrada) return;
+    try {
+      if (!wakeLockSentinel || wakeLockSentinel.released) {
+        wakeLockSentinel = await navigator.wakeLock.request('screen');
+      }
+    } catch {
+      // Navegadores podem recusar Wake Lock se bateria baixa ou sem foco
+    }
+  }
+
+  function liberarWakeLock() {
+    if (wakeLockSentinel && !wakeLockSentinel.released) {
+      wakeLockSentinel.release().catch(() => {});
+      wakeLockSentinel = null;
+    }
+  }
+
+  $effect(() => {
+    if (typeof document === 'undefined') return;
+
+    if (!estadoPartida?.encerrada) {
+      requisitarWakeLock();
+    } else {
+      liberarWakeLock();
+    }
+
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'visible' && !estadoPartida?.encerrada) {
+        requisitarWakeLock();
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      liberarWakeLock();
+    };
+  });
 
   function copiarCodigo() {
     if (typeof navigator !== 'undefined' && navigator.clipboard && quadra?.id) {
@@ -188,7 +290,12 @@
 
     timerInatividade = setTimeout(() => {
       // Retorna ao modo imersivo apenas se nenhum modal estiver aberto
-      if (!modalLinhaDoTempoAberto) {
+      if (
+        !modalLinhaDoTempoAberto &&
+        !modalCompartilharAberto &&
+        !modalConfigAberto &&
+        !modalCelebracaoAberto
+      ) {
         modoImersivo = true;
       }
     }, 3000);
@@ -250,6 +357,38 @@
       <div class="header-acoes">
         <button
           type="button"
+          class="btn-tema-header"
+          onclick={alternarTema}
+          aria-label={temaSol ? 'Ativar modo escuro' : 'Ativar modo sol de alto contraste'}
+          title={temaSol ? 'Modo Escuro' : 'Modo Sol (Alto Contraste)'}
+        >
+          <Icone nome={temaSol ? 'lua' : 'sol'} tamanho="1.15em" />
+        </button>
+
+        <button
+          type="button"
+          class="btn-compartilhar-header"
+          onclick={() => { modalCompartilharAberto = true; }}
+          aria-label="Compartilhar sala"
+          title="Compartilhar sala e QR Code"
+        >
+          <Icone nome="compartilhar" tamanho="1.1em" />
+        </button>
+
+        {#if podeControlar}
+          <button
+            type="button"
+            class="btn-config-header"
+            onclick={() => { modalConfigAberto = true; isReinicioConfig = false; }}
+            aria-label="Configurar duplas e regras da partida"
+            title="Configurações da partida"
+          >
+            <Icone nome="engrenagem" tamanho="1.15em" />
+          </button>
+        {/if}
+
+        <button
+          type="button"
           class="btn-inverter-lados-header"
           class:ativo={ladosInvertidos}
           onclick={alternarLados}
@@ -294,14 +433,25 @@
           <span class="codigo-sala-label">CÓDIGO DA SALA</span>
           <span class="codigo-sala-num">{quadra.id}</span>
         </div>
-        <button
-          type="button"
-          class="btn-copiar-pin"
-          onclick={copiarCodigo}
-          title="Copiar código da sala"
-        >
-          {copiado ? '✓ Copiado!' : '📋 Copiar'}
-        </button>
+        <div class="codigo-sala-botoes">
+          <button
+            type="button"
+            class="btn-copiar-pin"
+            onclick={copiarCodigo}
+            title="Copiar código da sala"
+          >
+            {copiado ? '✓ Copiado!' : '📋 Copiar'}
+          </button>
+          <button
+            type="button"
+            class="btn-compartilhar-pin"
+            onclick={() => { modalCompartilharAberto = true; }}
+            title="Abrir QR Code e Compartilhar"
+          >
+            <Icone nome="compartilhar" tamanho="1em" />
+            <span>QR</span>
+          </button>
+        </div>
       </div>
 
       <div class="quadra-title-row">
@@ -311,6 +461,17 @@
             <span class="regra-tag">
               🎯 Até {estadoPartida.alvo} pts • {estadoPartida.vantagem ? 'Vantagem' : 'Sem vantagem'}{estadoPartida.teto ? ` • Teto ${estadoPartida.teto}` : ''}
             </span>
+          {/if}
+          {#if podeControlar}
+            <button
+              type="button"
+              class="btn-ajustar-regras"
+              onclick={() => { modalConfigAberto = true; isReinicioConfig = false; }}
+              title="Ajustar duplas e regras da partida"
+            >
+              <Icone nome="regras" tamanho="0.95em" />
+              <span>Duplas & Regras</span>
+            </button>
           {/if}
           <span class="quadra-tag">
             🏟️ Sala Ativa
@@ -366,8 +527,16 @@
       onAlternarLados={alternarLados}
       {onMarcarPonto}
       {onDesfazerPonto}
-      {onIniciarNovaPartida}
+      onIniciarNovaPartida={() => {
+        modalConfigAberto = true;
+        isReinicioConfig = true;
+      }}
+      onAbrirConfiguracao={() => {
+        modalConfigAberto = true;
+        isReinicioConfig = false;
+      }}
       onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
+      onAbrirCompartilhar={() => { modalCompartilharAberto = true; }}
     />
   {:else}
     <!-- Placar Dobrável Manual Retrô do Espectador (US5) -->
@@ -393,6 +562,54 @@
       pontosA={estadoPartida?.pontos_a ?? 0}
       pontosB={estadoPartida?.pontos_b ?? 0}
       onFechar={handleFecharLinhaDoTempo}
+    />
+  {/if}
+
+  <!-- Modal de Compartilhamento com QR Code SVG Nativo (CV2.DS4.US2) -->
+  {#if modalCompartilharAberto}
+    <ModalCompartilhar
+      {quadra}
+      movimentoReduzido={prefersReducedMotion}
+      onFechar={() => { modalCompartilharAberto = false; }}
+    />
+  {/if}
+
+  <!-- Modal de Configurar Duplas & Regras da Partida (Admin / In-Game / Reinício) -->
+  {#if modalConfigAberto}
+    <ModalConfigurarPartida
+      {estadoPartida}
+      isReinicio={isReinicioConfig}
+      movimentoReduzido={prefersReducedMotion}
+      submetendo={operando}
+      onFechar={() => { modalConfigAberto = false; }}
+      onSalvar={(dados) => {
+        if (isReinicioConfig) {
+          onIniciarNovaPartida(dados);
+        } else {
+          onConfigurarPartida(dados);
+        }
+        modalConfigAberto = false;
+        modalCelebracaoAberto = false;
+      }}
+    />
+  {/if}
+
+  <!-- Modal de Celebração de Vitória Memorável (CV2.DS4.US1) -->
+  {#if modalCelebracaoAberto && estadoPartida?.encerrada && estadoPartida?.vencedor}
+    <ModalCelebracaoVitoria
+      {estadoPartida}
+      podeControlar={temControle}
+      movimentoReduzido={prefersReducedMotion}
+      onNovaPartida={() => {
+        modalCelebracaoAberto = false;
+        modalConfigAberto = true;
+        isReinicioConfig = true;
+      }}
+      onCompartilhar={() => {
+        modalCelebracaoAberto = false;
+        modalCompartilharAberto = true;
+      }}
+      onFechar={() => { modalCelebracaoAberto = false; }}
     />
   {/if}
 
@@ -515,6 +732,31 @@
     font-size: 1.1rem;
   }
 
+  .btn-tema-header,
+  .btn-compartilhar-header,
+  .btn-config-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    border-radius: var(--radius-circular);
+    cursor: pointer;
+    touch-action: manipulation;
+    transition: all 0.15s ease;
+  }
+
+  .btn-tema-header:hover,
+  .btn-compartilhar-header:hover,
+  .btn-config-header:hover {
+    color: var(--text-primary);
+    border-color: rgba(255, 255, 255, 0.25);
+    background: var(--bg-card);
+  }
+
   /* Alternador de inversão de lados e orientação */
   .btn-inverter-lados-header,
   .btn-girar {
@@ -606,6 +848,12 @@
     line-height: 1;
   }
 
+  .codigo-sala-botoes {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
   .btn-copiar-pin {
     background: #1e293b;
     border: 1px solid #334155;
@@ -621,6 +869,26 @@
   .btn-copiar-pin:hover {
     background: #0284c7;
     border-color: #0284c7;
+    color: #ffffff;
+  }
+
+  .btn-compartilhar-pin {
+    background: rgba(2, 132, 199, 0.2);
+    border: 1px solid #0284c7;
+    color: #38bdf8;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.15s ease;
+  }
+
+  .btn-compartilhar-pin:hover {
+    background: #0284c7;
     color: #ffffff;
   }
 
@@ -640,6 +908,27 @@
     padding: 3px 8px;
     border-radius: 6px;
     letter-spacing: 0.02em;
+  }
+
+  .btn-ajustar-regras {
+    background: rgba(14, 165, 233, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: #38bdf8;
+    padding: 3px 10px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.15s ease;
+  }
+
+  .btn-ajustar-regras:hover {
+    background: rgba(14, 165, 233, 0.3);
+    border-color: #38bdf8;
+    color: #ffffff;
   }
 
   .quadra-tag {
