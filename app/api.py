@@ -2,6 +2,7 @@ import asyncio
 import secrets
 import uuid
 from dataclasses import asdict
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
@@ -188,6 +189,21 @@ class ReiniciarPartidaBody(BaseModel):
     time_b_jogador2: str | None = Field(default=None, max_length=30)
     equipe_a: str | None = Field(default=None, max_length=60)
     equipe_b: str | None = Field(default=None, max_length=60)
+    alvo: int | None = Field(default=None, ge=1, le=100)
+    vantagem: bool | None = None
+    teto: int | None = Field(default=None, ge=1, le=200)
+
+
+class ConfigurarPartidaBody(BaseModel):
+    time_a_jogador1: str | None = Field(default=None, max_length=30)
+    time_a_jogador2: str | None = Field(default=None, max_length=30)
+    time_b_jogador1: str | None = Field(default=None, max_length=30)
+    time_b_jogador2: str | None = Field(default=None, max_length=30)
+    equipe_a: str | None = Field(default=None, max_length=60)
+    equipe_b: str | None = Field(default=None, max_length=60)
+    alvo: int | None = Field(default=None, ge=1, le=100)
+    vantagem: bool | None = None
+    teto: int | None = Field(default=None, ge=1, le=200)
 
 
 class EntrarQuadraBody(BaseModel):
@@ -479,7 +495,41 @@ async def post_reiniciar_partida(
             kwargs["equipe_b"] = nome_b
             kwargs["jogadores_b"] = j_b
 
+        if body.alvo is not None:
+            kwargs["alvo"] = body.alvo
+        if body.vantagem is not None:
+            kwargs["vantagem"] = body.vantagem
+        if body.teto is not None:
+            kwargs["teto"] = body.teto
+
     return await executar_comando(quadra_id, request, "reiniciar", **kwargs)
+
+
+@router.post("/quadras/{quadra_id}/configurar")
+async def post_configurar_partida(
+    quadra_id: str, request: Request, body: ConfigurarPartidaBody
+):
+    kwargs: dict[str, Any] = {}
+    nome_a, j_a = formatar_nome_equipe(
+        body.time_a_jogador1, body.time_a_jogador2, body.equipe_a, ""
+    )
+    nome_b, j_b = formatar_nome_equipe(
+        body.time_b_jogador1, body.time_b_jogador2, body.equipe_b, ""
+    )
+    if nome_a:
+        kwargs["equipe_a"] = nome_a
+        kwargs["jogadores_a"] = j_a
+    if nome_b:
+        kwargs["equipe_b"] = nome_b
+        kwargs["jogadores_b"] = j_b
+    if body.alvo is not None:
+        kwargs["alvo"] = body.alvo
+    if body.vantagem is not None:
+        kwargs["vantagem"] = body.vantagem
+    if body.teto is not None:
+        kwargs["teto"] = body.teto
+
+    return await executar_comando(quadra_id, request, "configurar", **kwargs)
 
 
 @router.post("/quadras/{quadra_id}/controle/assumir")

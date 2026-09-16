@@ -325,9 +325,13 @@ def executar_sync(
                 (nova_partida_id, quadra_id, agora),
             )
             payload_nova = {
-                "alvo": estado["alvo"],
-                "vantagem": estado["vantagem"],
-                "teto": estado["teto"],
+                "alvo": kwargs.get("alvo")
+                if kwargs.get("alvo") is not None
+                else estado["alvo"],
+                "vantagem": kwargs.get("vantagem")
+                if kwargs.get("vantagem") is not None
+                else estado["vantagem"],
+                "teto": kwargs.get("teto") if "teto" in kwargs else estado["teto"],
                 "equipe_a": kwargs.get("equipe_a")
                 or estado.get("equipe_a", "Equipe A"),
                 "equipe_b": kwargs.get("equipe_b")
@@ -355,6 +359,29 @@ def executar_sync(
             resultado = snapshot(conn, quadra_id)
             resultado["evento"] = asdict(evento)
             return resultado
+        elif acao == "configurar":
+            if autor["papel"] != "ADMIN":
+                raise HTTPException(
+                    403,
+                    "Apenas administradores podem ajustar as configurações da partida.",
+                )
+            payload_config = {}
+            for k in (
+                "equipe_a",
+                "equipe_b",
+                "jogadores_a",
+                "jogadores_b",
+                "alvo",
+                "vantagem",
+                "teto",
+            ):
+                if k in kwargs and kwargs[k] is not None:
+                    payload_config[k] = kwargs[k]
+                elif k == "teto" and "teto" in kwargs:
+                    payload_config["teto"] = kwargs["teto"]
+            if not payload_config:
+                return atual
+            tipo, payload = TipoEvento.REGRA_ALTERADA, payload_config
         else:
             raise ValueError("Comando desconhecido.")
         evento = append_evento_sync(

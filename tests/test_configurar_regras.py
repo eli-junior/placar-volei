@@ -249,3 +249,76 @@ async def test_preservacao_de_regras_ao_reiniciar():
         assert novo_estado["pontos_a"] == 0
         assert novo_estado["pontos_b"] == 0
         assert novo_estado["encerrada"] is False
+
+
+@pytest.mark.asyncio
+async def test_admin_configura_duplas_e_regras_em_andamento():
+    """Admin cria sala limpa e configura as duplas e regras depois de entrar."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        # Onboarding ultralight: apenas apelido do criador
+        resp = await ac.post("/api/quadras", json={"apelido": "Admin"})
+        assert resp.status_code == 201
+        quadra_id = resp.json()["id"]
+
+        # Admin ajusta as duplas e a pontuação-alvo
+        resp_conf = await ac.post(
+            f"/api/quadras/{quadra_id}/configurar",
+            json={
+                "time_a_jogador1": "Carlos",
+                "time_a_jogador2": "Daniel",
+                "time_b_jogador1": "Roberto",
+                "time_b_jogador2": "Eduardo",
+                "alvo": 15,
+                "vantagem": True,
+            },
+        )
+        assert resp_conf.status_code == 200
+        estado = resp_conf.json()["estado_partida"]
+        assert estado["equipe_a"] == "Carlos / Daniel"
+        assert estado["equipe_b"] == "Roberto / Eduardo"
+        assert list(estado["jogadores_a"]) == ["Carlos", "Daniel"]
+        assert list(estado["jogadores_b"]) == ["Roberto", "Eduardo"]
+        assert estado["alvo"] == 15
+        assert estado["vantagem"] is True
+
+
+@pytest.mark.asyncio
+async def test_reiniciar_com_novas_duplas_e_regras():
+    """Ao reiniciar uma partida encerrada, permite definir as próximas duplas na mesma sala."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        resp = await ac.post(
+            "/api/quadras",
+            json={"apelido": "Juiz", "alvo": 1, "vantagem": False},
+        )
+        quadra_id = resp.json()["id"]
+
+        # Encerra partida
+        await ac.post(
+            f"/api/quadras/{quadra_id}/pontos",
+            headers={"x-control-version": "1"},
+            json={"equipe": "A"},
+        )
+
+        # Reinicia informando as duplas da próxima rodada e novo alvo
+        resp_reinicio = await ac.post(
+            f"/api/quadras/{quadra_id}/reiniciar",
+            json={
+                "time_a_jogador1": "Fernanda",
+                "time_b_jogador1": "Gabriela",
+                "alvo": 21,
+                "vantagem": True,
+            },
+        )
+        assert resp_reinicio.status_code == 200
+        novo_estado = resp_reinicio.json()["estado_partida"]
+        assert novo_estado["equipe_a"] == "Fernanda"
+        assert novo_estado["equipe_b"] == "Gabriela"
+        assert novo_estado["alvo"] == 21
+        assert novo_estado["vantagem"] is True
+        assert novo_estado["pontos_a"] == 0
+        assert novo_estado["pontos_b"] == 0
+        assert novo_estado["encerrada"] is False
