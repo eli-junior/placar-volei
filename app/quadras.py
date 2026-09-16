@@ -16,6 +16,41 @@ class CapacidadeEsgotada(ValueError):
     pass
 
 
+class ApelidoEmUso(ValueError):
+    """Apelido já ocupado por outra pessoa na mesma quadra.
+
+    A linha do tempo e a lista de presentes identificam gente por apelido. Dois
+    "Bruno" na mesma sala tornam a auditoria da partida ambígua e permitem
+    personificação — por isso o segundo é recusado na entrada, e não depois.
+    """
+
+    def __init__(self, apelido: str) -> None:
+        self.apelido = apelido
+        super().__init__(
+            f'O apelido "{apelido}" já está em uso nesta quadra. '
+            "Escolha outro para entrar."
+        )
+
+
+def apelido_ja_usado(conn, quadra_id: str, apelido: str, ignorar_id: str | None) -> bool:
+    """Diz se o apelido já pertence a outra pessoa desta quadra.
+
+    A comparação ignora caixa e espaços das pontas: "Bruno" e "bruno " são a
+    mesma pessoa aos olhos de quem lê o placar de longe.
+    """
+    linha = conn.execute(
+        """
+        SELECT id FROM participantes
+        WHERE quadra_id = ?
+          AND LOWER(TRIM(apelido)) = LOWER(TRIM(?))
+          AND (? IS NULL OR id != ?)
+        LIMIT 1
+        """,
+        (quadra_id, apelido, ignorar_id, ignorar_id),
+    ).fetchone()
+    return linha is not None
+
+
 # --- QUADRAS / PLACARES COM CÓDIGO DE 5 DÍGITOS ---
 
 
@@ -344,6 +379,8 @@ def registrar_participante_sync(
 
         if existente:
             participante_id = existente["id"]
+            if apelido_ja_usado(conn, quadra_id, apelido_limpo, participante_id):
+                raise ApelidoEmUso(apelido_limpo)
             cursor.execute(
                 "UPDATE participantes SET apelido = ?, ultimo_visto_em = ? WHERE id = ?",
                 (apelido_limpo, agora, participante_id),
@@ -366,6 +403,9 @@ def registrar_participante_sync(
         # A capacidade olha presença efetiva; o papel inicial continua olhando a
         # sala inteira, para que um fantasma expirado não promova o recém-chegado
         # a ADMIN por engano.
+        if apelido_ja_usado(conn, quadra_id, apelido_limpo, None):
+            raise ApelidoEmUso(apelido_limpo)
+
         cursor.execute(
             "SELECT id, ultimo_visto_em FROM participantes WHERE quadra_id = ?",
             (quadra_id,),

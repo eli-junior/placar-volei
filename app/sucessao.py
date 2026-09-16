@@ -151,3 +151,120 @@ async def verificar_sucessao_quadra(
             online_ids,
             timeout_seconds,
         )
+
+
+def verificar_controle_ocioso_sync(
+    db_path: str,
+    quadra_id: str,
+    online_ids: set[str],
+    timeout_seconds: float | None = None,
+) -> dict[str, Any] | None:
+    """Devolve o comando do placar ao admin quando o controlador some.
+
+    Sucessão de admin e devolução de controle são coisas diferentes: a primeira
+    troca quem manda na sala depois de dois minutos, a segunda só recoloca o
+    botão na mão de quem está presente depois de quinze segundos. Uma pelada não
+    pode ficar sem quem marque ponto porque o controlador guardou o celular.
+
+    Devolve o novo snapshot quando houve devolução, ou `None` quando nada mudou.
+    """
+    timeout = (
+        timeout_seconds
+        if timeout_seconds is not None
+        else settings.controle_timeout_seconds
+    )
+    with get_db(db_path) as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        cursor = conn.cursor()
+
+        cursor.execute("SELECT * FROM quadras WHERE id = ?", (quadra_id,))
+        quadra = cursor.fetchone()
+        if not quadra or not quadra["controle_id"]:
+            return None
+
+        cursor.execute(
+            "SELECT id, apelido, papel FROM participantes WHERE quadra_id = ? AND papel = 'ADMIN' ORDER BY criado_em ASC",
+            (quadra_id,),
+        )
+        admin = cursor.fetchone()
+        # Sem admin presente não há para quem devolver: quem cuida desse caso é
+        # a sucessão, não esta rotina.
+        if not admin or admin["id"] == quadra["controle_id"]:
+            return None
+        if admin["id"] not in online_ids:
+            return None
+
+        cursor.execute(
+            "SELECT id, apelido, ultimo_visto_em FROM participantes WHERE quadra_id = ? AND id = ?",
+            (quadra_id, quadra["controle_id"]),
+        )
+        controlador = cursor.fetchone()
+        if controlador and controlador["id"] in online_ids:
+            return None
+
+        agora = datetime.now(UTC)
+        if controlador:
+            ultimo_visto = datetime.fromisoformat(controlador["ultimo_visto_em"])
+            if (agora - ultimo_visto).total_seconds() < timeout:
+                return None
+            apelido_ausente = controlador["apelido"]
+        else:
+            # O controlador não existe mais na sala (saiu ou foi removido).
+            apelido_ausente = "controlador anterior"
+
+        cursor.execute(
+            "SELECT id FROM partidas WHERE quadra_id = ? ORDER BY criado_em DESC LIMIT 1",
+            (quadra_id,),
+        )
+        partida = cursor.fetchone()
+        if not partida:
+            return None
+
+        conn.execute(
+            "UPDATE quadras SET controle_id = ?, controle_versao = controle_versao + 1 WHERE id = ?",
+            (admin["id"], quadra_id),
+        )
+        agora_iso = agora.isoformat()
+        conn.execute(
+            "UPDATE quadras SET atualizado_em = ? WHERE id = ?",
+            (agora_iso, quadra_id),
+        )
+        append_evento_sync(
+            db_path,
+            quadra_id=quadra_id,
+            partida_id=partida["id"],
+            tipo=TipoEvento.CONTROLE_DEVOLVIDO,
+            payload={
+                "anterior_id": quadra["controle_id"],
+                "anterior_apelido": apelido_ausente,
+                "controle_id": admin["id"],
+                "apelido": admin["apelido"],
+                "motivo": "ausencia_controlador",
+            },
+            autor_id=admin["id"],
+            connection=conn,
+        )
+        conn.commit()
+
+    from app.comandos import snapshot_sync
+
+    return snapshot_sync(db_path, quadra_id)
+
+
+async def verificar_controle_ocioso(
+    db_path: str,
+    quadra_id: str,
+    timeout_seconds: float | None = None,
+) -> dict[str, Any] | None:
+    from app.hub import hub
+
+    lock = get_quadra_lock(quadra_id)
+    async with lock:
+        online_ids = await hub.participantes_online(quadra_id)
+        return await asyncio.to_thread(
+            verificar_controle_ocioso_sync,
+            db_path,
+            quadra_id,
+            online_ids,
+            timeout_seconds,
+        )

@@ -73,6 +73,18 @@ def snapshot_sync(db_path, quadra_id):
         return snapshot(conn, quadra_id)
 
 
+def participante_presente(linha, ids_online, limite) -> bool:
+    """Diz se um participante ainda está de fato na sala.
+
+    Mesmo critério da capacidade (`contar_presentes`): conexão viva no hub ou
+    sinal de vida dentro da janela de presença. Reaproveitar o critério é o que
+    impede a sala ter duas noções diferentes de "está online".
+    """
+    if linha is None:
+        return False
+    return linha["id"] in ids_online or (linha["ultimo_visto_em"] or "") >= limite
+
+
 def executar_sync(
     db_path,
     quadra_id,
@@ -82,8 +94,12 @@ def executar_sync(
     equipe=None,
     versao=None,
     alvo_id=None,
+    ids_online=None,
     **kwargs,
 ):
+    # A presença chega como valor, vinda da borda HTTP que conhece o hub. A
+    # transação não importa o hub nem toca no event loop de dentro da thread.
+    ids_online = frozenset(ids_online or ())
     # O lock de escrita cobre autorização, leitura do log e toda a alteração.
     with get_db(db_path) as conn:
         conn.execute("BEGIN IMMEDIATE")
@@ -148,6 +164,47 @@ def executar_sync(
                 TipoEvento.CONTROLE_ASSUMIDO,
                 {"anterior_id": quadra["controle_id"], "controle_id": autor["id"]},
             )
+        elif acao == "transferir":
+            # Passar o comando do placar para outra pessoa. Só o admin transfere,
+            # só quem já tem permissão recebe, e só recebe quem está online —
+            # repassar para um aparelho desconectado é deixar a partida sem
+            # operador até alguém perceber.
+            from app.quadras import limite_de_presenca
+
+            if autor["papel"] != "ADMIN":
+                raise HTTPException(
+                    403, "Apenas administradores podem passar o controle do placar."
+                )
+            alvo = conn.execute(
+                "SELECT id, papel, apelido, ultimo_visto_em FROM participantes WHERE quadra_id = ? AND id = ?",
+                (quadra_id, alvo_id),
+            ).fetchone()
+            if not alvo:
+                raise HTTPException(404, "Participante não encontrado nesta sala.")
+            if alvo["papel"] not in ("ADMIN", "CONTROLADOR"):
+                raise HTTPException(
+                    400,
+                    "Só é possível passar o controle para quem já é controlador ou admin.",
+                )
+            if not participante_presente(alvo, ids_online, limite_de_presenca()):
+                raise HTTPException(
+                    409,
+                    f"{alvo['apelido']} está offline. O controle do placar só passa para quem está conectado.",
+                )
+            if quadra["controle_id"] == alvo["id"]:
+                return atual
+            conn.execute(
+                "UPDATE quadras SET controle_id = ?, controle_versao = controle_versao + 1 WHERE id = ?",
+                (alvo_id, quadra_id),
+            )
+            tipo, payload = (
+                TipoEvento.CONTROLE_TRANSFERIDO,
+                {
+                    "anterior_id": quadra["controle_id"],
+                    "controle_id": alvo_id,
+                    "apelido": alvo["apelido"],
+                },
+            )
         elif acao == "promover":
             if autor["papel"] != "ADMIN":
                 raise HTTPException(
@@ -171,11 +228,10 @@ def executar_sync(
                 "UPDATE participantes SET papel = 'CONTROLADOR' WHERE id = ?",
                 (alvo_id,),
             )
-            # Ao promover, transfere o controle ativo para o novo controlador imediatamente
-            conn.execute(
-                "UPDATE quadras SET controle_id = ?, controle_versao = controle_versao + 1 WHERE id = ?",
-                (alvo_id, quadra_id),
-            )
+            # Promover concede PERMISSÃO e nada mais. Passar o comando do placar
+            # é um segundo ato, explícito, feito pela ação `transferir`. Eram a
+            # mesma coisa até a CV2.DS2.US5, e por isso o admin perdia o placar
+            # sem querer ao autorizar alguém a ajudar.
             tipo, payload = (
                 TipoEvento.PAPEL_ALTERADO,
                 {
