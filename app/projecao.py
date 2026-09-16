@@ -243,6 +243,15 @@ def projetar_linha_do_tempo(
         elif evento.tipo == TipoEvento.CONTROLE_ASSUMIDO:
             descricao = f"{autor_apelido} assumiu o controle"
 
+        elif evento.tipo == TipoEvento.CONTROLE_TRANSFERIDO:
+            destino = evento.payload.get("apelido", "outro participante")
+            descricao = f"{autor_apelido} passou o controle para {destino}"
+
+        elif evento.tipo == TipoEvento.CONTROLE_DEVOLVIDO:
+            ausente = evento.payload.get("anterior_apelido", "o controlador")
+            destino = evento.payload.get("apelido", "o admin")
+            descricao = f"Controle devolvido para {destino} por ausência de {ausente}"
+
         elif evento.tipo == TipoEvento.PAPEL_ALTERADO:
             novo_papel = evento.payload.get("papel")
             alvo_nome = evento.payload.get("apelido", "participante")

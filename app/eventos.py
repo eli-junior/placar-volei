@@ -19,6 +19,11 @@ class TipoEvento:
     ADMIN_SUCEDIDO = "ADMIN_SUCEDIDO"
     ADMIN_ASSUMIDO = "ADMIN_ASSUMIDO"
     CONTROLE_ASSUMIDO = "CONTROLE_ASSUMIDO"
+    # Transferência ativa decidida pelo admin, distinta de PAPEL_ALTERADO:
+    # dar permissão e passar o comando deixaram de ser o mesmo ato (CV2.DS2.US5).
+    CONTROLE_TRANSFERIDO = "CONTROLE_TRANSFERIDO"
+    # Devolução automática do comando ao admin por ausência do controlador.
+    CONTROLE_DEVOLVIDO = "CONTROLE_DEVOLVIDO"
 
 
 @dataclass(frozen=True)

@@ -24,6 +24,10 @@ class Settings(BaseSettings):
     # sinal de vida (`ultimo_visto_em`) dentro desta janela deixa de ocupar vaga
     # na quadra, para que a rotatividade da pelada não produza lotação fantasma.
     presenca_ttl_seconds: int = 120
+    # Janela de tolerância para o controlador ativo sumir. Passado este prazo sem
+    # conexão e sem sinal de vida, o controle do placar volta sozinho para o
+    # admin da sala, para que a partida nunca fique sem quem aperte o botão.
+    controle_timeout_seconds: int = 15
 
 
 settings = Settings()

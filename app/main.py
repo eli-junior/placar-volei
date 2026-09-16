@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 
-from app.api import normalizar_erros_validacao
+from app.api import ErroDeCampo, normalizar_erros_validacao
 from app.api import router as api_router
 from app.comandos import snapshot_sync
 from app.config import settings
@@ -26,7 +26,7 @@ from app.quadras import (
     obter_participante,
     obter_quadra,
 )
-from app.sucessao import verificar_sucessao_quadra
+from app.sucessao import verificar_controle_ocioso, verificar_sucessao_quadra
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +46,22 @@ async def lifespan(app: FastAPI):
             except (sqlite3.Error, OSError, ValueError, RuntimeError) as e:
                 logger.warning("Falha na rotina de limpeza de quadras expiradas: %s", e)
 
+    async def publicar_snapshot(quadra_id: str, snapshot: dict) -> None:
+        online = await hub.participantes_online(quadra_id)
+        for p in snapshot["participantes"]:
+            p["online"] = p["id"] in online
+        await hub.broadcast(
+            quadra_id,
+            {"tipo": "PLACAR_ATUALIZADO", "payload": snapshot},
+        )
+        await hub.broadcast(
+            quadra_id,
+            {
+                "tipo": "PRESENCA_ATUALIZADA",
+                "payload": {"participantes": snapshot["participantes"]},
+            },
+        )
+
     async def rotina_sucessao():
         while True:
             try:
@@ -56,25 +72,15 @@ async def lifespan(app: FastAPI):
                         settings.db_path, quadra_id
                     )
                     if snapshot_sucessao:
-                        online = await hub.participantes_online(quadra_id)
-                        for p in snapshot_sucessao["participantes"]:
-                            p["online"] = p["id"] in online
-                        await hub.broadcast(
-                            quadra_id,
-                            {
-                                "tipo": "PLACAR_ATUALIZADO",
-                                "payload": snapshot_sucessao,
-                            },
-                        )
-                        await hub.broadcast(
-                            quadra_id,
-                            {
-                                "tipo": "PRESENCA_ATUALIZADA",
-                                "payload": {
-                                    "participantes": snapshot_sucessao["participantes"]
-                                },
-                            },
-                        )
+                        await publicar_snapshot(quadra_id, snapshot_sucessao)
+                    # A devolução do controle roda na mesma varredura, e depois
+                    # da sucessão: se o admin acabou de mudar, o comando volta
+                    # para o admin novo, não para o que saiu.
+                    snapshot_controle = await verificar_controle_ocioso(
+                        settings.db_path, quadra_id
+                    )
+                    if snapshot_controle:
+                        await publicar_snapshot(quadra_id, snapshot_controle)
             except asyncio.CancelledError:
                 break
             except (sqlite3.Error, OSError, ValueError, RuntimeError) as e:
@@ -112,6 +118,15 @@ async def tratar_erro_de_validacao(request: Request, exc: RequestValidationError
     corpo = normalizar_erros_validacao(exc.errors())
     logger.info("Requisição inválida em %s: %s", request.url.path, corpo["detail"])
     return JSONResponse(status_code=422, content=corpo)
+
+
+@app.exception_handler(ErroDeCampo)
+async def tratar_erro_de_campo(request: Request, exc: ErroDeCampo):
+    """Publica o erro de negócio de campo no mesmo contrato do 422 da CV2.DS1."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"detail": exc.detail, "erros": exc.erros},
+    )
 
 
 @app.get("/health")

@@ -13,6 +13,7 @@ from app.hub import hub
 from app.identidade import SESSION_COOKIE
 from app.projecao import projetar_estado, projetar_linha_do_tempo
 from app.quadras import (
+    ApelidoEmUso,
     criar_quadra,
     listar_participantes,
     listar_quadras,
@@ -107,6 +108,34 @@ def normalizar_erros_validacao(erros: list[dict]) -> dict:
 
     frase = " ".join(f"{d['rotulo']} {d['mensagem']}." for d in detalhados)
     return {"detail": frase, "erros": detalhados}
+
+
+class ErroDeCampo(HTTPException):
+    """Erro de negócio atrelado a um campo, no contrato de erro da CV2.DS1.
+
+    `detail` continua sendo uma frase única em português — é o que a interface
+    renderiza — e `erros` carrega o campo culpado para quem quiser destacá-lo no
+    formulário. Reusar o mesmo formato do 422 evita que cada regra de negócio
+    invente a sua forma de contar o que deu errado.
+    """
+
+    def __init__(
+        self,
+        status_code: int,
+        detail: str,
+        campo: str,
+        mensagem: str,
+        tipo: str,
+    ) -> None:
+        super().__init__(status_code=status_code, detail=detail)
+        self.erros = [
+            {
+                "campo": campo,
+                "rotulo": _ROTULOS_CAMPOS.get(campo, campo),
+                "mensagem": mensagem,
+                "tipo": tipo,
+            }
+        ]
 
 
 class MarcarPontoBody(BaseModel):
@@ -303,6 +332,14 @@ async def post_entrar_quadra(
         raise HTTPException(
             503, "Não foi possível salvar a configuração. Tente novamente."
         ) from None
+    except ApelidoEmUso as e:
+        raise ErroDeCampo(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e),
+            campo="apelido",
+            mensagem="já está em uso nesta quadra",
+            tipo="apelido_em_uso",
+        ) from None
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -390,6 +427,10 @@ async def executar_comando(quadra_id: str, request: Request, acao: str, **kwargs
         SESSION_COOKIE
     )
     async with get_quadra_lock(quadra_id):
+        # A presença é lida aqui, na borda que conhece o hub, e desce como valor
+        # para a transação. É ela que permite recusar a passagem do controle
+        # para quem está desconectado sem que a persistência conheça o socket.
+        ids_online = await hub.participantes_online(quadra_id)
         resultado = await asyncio.to_thread(
             executar_sync,
             settings.db_path,
@@ -397,6 +438,7 @@ async def executar_comando(quadra_id: str, request: Request, acao: str, **kwargs
             session_id,
             acao,
             versao=request.headers.get("x-control-version"),
+            ids_online=ids_online,
             **kwargs,
         )
         online = await hub.participantes_online(quadra_id)
@@ -449,6 +491,20 @@ async def post_assumir_controle(quadra_id: str, request: Request):
 async def post_autorizar_admin(quadra_id: str, participante_id: str, request: Request):
     return await executar_comando(
         quadra_id, request, "autorizar", alvo_id=participante_id
+    )
+
+
+@router.post("/quadras/{quadra_id}/participantes/{participante_id}/controle")
+async def post_transferir_controle(
+    quadra_id: str, participante_id: str, request: Request
+):
+    """Passa o comando do placar para outro participante já autorizado.
+
+    Rota separada de `/promover` de propósito: conceder permissão e entregar o
+    placar deixaram de ser o mesmo ato na CV2.DS2.US5.
+    """
+    return await executar_comando(
+        quadra_id, request, "transferir", alvo_id=participante_id
     )
 
 
