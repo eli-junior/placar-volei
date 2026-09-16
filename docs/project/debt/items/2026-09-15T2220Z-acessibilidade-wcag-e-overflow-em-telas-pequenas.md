@@ -1,6 +1,6 @@
 ---
 id: debt-acessibilidade-e-overflow
-status: Paying
+status: Paid
 kind: accessibility
 severity: medium
 source: CV1.DS1.US1

@@ -12,9 +12,9 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 - **História / Escopo**: `CV2.DS3` (US1 eliminação de overflow horizontal 360px-1440px, US2/US3 Home "Ao Vivo Agora" com placares em tempo real e entrada em 1 toque, US4 container queries no placar do espectador para números gigantescos em retrato, US5 conformidade WCAG 2.2 com zoom habilitado, alvos de toque 44px e anúncios `aria-live`). Quitação do débito técnico `debt-acessibilidade-e-overflow`.
 - **Branch**: `feature/cv2-ds3-layouts-fluidos-e-acessibilidade`
-- **Passo Ariad**: `Passo 4 - Teste e Validação`
-- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 10:06`
-- **Handoff / Próximos Passos**: Testes automatizados executados (114 pytest + 21 vitest + svelte-check 0 erros). Apresentar Checkpoint 2 com rota de validação para o Navigator.
+- **Passo Ariad**: `Passo 7 - Conclusão e Merge`
+- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 10:13`
+- **Handoff / Próximos Passos**: Submeter Checkpoint 4 para o Navigator para aprovação final de merge na master e fechamento da versão 0.6.0.
 
 ## 0.5.0 - 2026-09-16
 
