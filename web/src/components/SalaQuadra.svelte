@@ -738,8 +738,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    box-sizing: border-box;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
@@ -760,13 +763,16 @@
   /* Alternador de inversão de lados e orientação */
   .btn-inverter-lados-header,
   .btn-girar {
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     color: var(--text-secondary);
-    padding: 6px 12px;
+    padding: 6px 14px;
+    min-height: 44px;
+    box-sizing: border-box;
     border-radius: 999px;
     font-size: 0.78rem;
     font-weight: 600;
@@ -858,11 +864,16 @@
     background: #1e293b;
     border: 1px solid #334155;
     color: #f1f5f9;
-    padding: 0.45rem 0.85rem;
+    padding: 0.5rem 1rem;
+    min-height: 44px;
+    box-sizing: border-box;
     font-size: 0.85rem;
     font-weight: 600;
     border-radius: 8px;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     transition: all 0.15s ease;
   }
 
@@ -876,13 +887,16 @@
     background: rgba(2, 132, 199, 0.2);
     border: 1px solid #0284c7;
     color: #38bdf8;
-    padding: 0.45rem 0.85rem;
+    padding: 0.5rem 1rem;
+    min-height: 44px;
+    box-sizing: border-box;
     font-size: 0.85rem;
     font-weight: 600;
     border-radius: 8px;
     cursor: pointer;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     transition: all 0.15s ease;
   }
@@ -905,7 +919,7 @@
     color: #38bdf8;
     background: rgba(56, 189, 248, 0.12);
     border: 1px solid rgba(56, 189, 248, 0.3);
-    padding: 3px 8px;
+    padding: 4px 8px;
     border-radius: 6px;
     letter-spacing: 0.02em;
   }
@@ -914,14 +928,17 @@
     background: rgba(14, 165, 233, 0.15);
     border: 1px solid rgba(56, 189, 248, 0.4);
     color: #38bdf8;
-    padding: 3px 10px;
-    border-radius: 6px;
-    font-size: 0.78rem;
+    padding: 6px 12px;
+    min-height: 40px;
+    box-sizing: border-box;
+    border-radius: 8px;
+    font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 5px;
+    justify-content: center;
+    gap: 6px;
     transition: all 0.15s ease;
   }
 

@@ -92,9 +92,45 @@
 
     onMarcarPonto(equipe);
   }
+
+  let anuncioAcessivel = $state('');
+  let pontosAnteriores = { a: 0, b: 0 };
+  let partidaIdAnterior = null;
+
+  $effect(() => {
+    const pA = pontosA;
+    const pB = pontosB;
+    const pId = estadoPartida?.id;
+    const enc = encerrada;
+    const venc = vencedorNome;
+
+    if (partidaIdAnterior !== pId) {
+      partidaIdAnterior = pId;
+      pontosAnteriores = { a: pA, b: pB };
+      return;
+    }
+
+    if (enc && venc) {
+      anuncioAcessivel = `Fim de jogo! Vitória de ${venc}. Placar final: ${equipeA} ${pA}, ${equipeB} ${pB}.`;
+    } else if (pA !== pontosAnteriores.a || pB !== pontosAnteriores.b) {
+      if (pA > pontosAnteriores.a) {
+        anuncioAcessivel = `Ponto para ${equipeA}! Placar: ${equipeA} ${pA}, ${equipeB} ${pB}.`;
+      } else if (pB > pontosAnteriores.b) {
+        anuncioAcessivel = `Ponto para ${equipeB}! Placar: ${equipeA} ${pA}, ${equipeB} ${pB}.`;
+      } else {
+        anuncioAcessivel = `Ponto desfeito. Placar: ${equipeA} ${pA}, ${equipeB} ${pB}.`;
+      }
+      pontosAnteriores = { a: pA, b: pB };
+    }
+  });
 </script>
 
 <section class="placar-card" in:slide={{ duration: prefersReducedMotion ? 0 : 250 }}>
+  <!-- Anunciador dinâmico de acessibilidade WCAG (leitores de tela) -->
+  <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
+    {anuncioAcessivel}
+  </div>
+
   <!-- Cabeçalho de regras da partida e botão Linha do Tempo -->
   <div class="placar-header">
     <div class="header-left">
@@ -340,11 +376,14 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: var(--text-secondary);
     border-radius: 999px;
-    padding: 4px 12px;
+    padding: 6px 14px;
+    min-height: 44px;
+    box-sizing: border-box;
     font-size: 0.78rem;
     font-weight: 600;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 6px;
     cursor: pointer;
     touch-action: manipulation;

@@ -204,7 +204,7 @@
       calc(var(--cartao-w) * var(--razao-max)),
       calc(var(--tela-h, 100vh) - var(--moldura-h))
     );
-    --cartao-num: min(calc(var(--cartao-w) * 0.65), calc(var(--cartao-h) * 0.62));
+    --cartao-num: min(calc(var(--cartao-w) * 0.72), calc(var(--cartao-h) * 0.68));
     --etiqueta-w: var(--cartao-w);
 
     height: 100%;
@@ -220,14 +220,14 @@
    * Se estes números mentirem, a etiqueta e o cartão saem de esquadro.
    */
 
-  /* Retrato: a largura é o limite. Cartão mais alto para preencher a sobra. */
+  /* Retrato: a largura é o limite. Cartão mais alto para preencher a sobra vertical (US4). */
   .modo-imersivo.layout-retrato {
-    --divisor-w: 26px;
-    --moldura-w: 74px; /* 12 sala + 16 cavalete + 12 gaps + 34 divisor */
-    --moldura-h: 212px; /* 16 sala + 52 topo + 36 rodapé + 104 cavalete + folga */
-    --cartao-max: 280px;
-    --razao-max: 1.34;
-    --cavalete-max: 560px;
+    --divisor-w: 24px;
+    --moldura-w: 68px; /* 12 sala + 16 cavalete + 12 gaps + 28 divisor */
+    --moldura-h: 204px; /* 16 sala + 50 topo + 36 rodapé + 102 cavalete */
+    --cartao-max: 320px;
+    --razao-max: 1.45;
+    --cavalete-max: 600px;
   }
 
   .modo-imersivo.layout-retrato.com-vencedor {
@@ -660,10 +660,13 @@
     color: var(--text-secondary);
     border-radius: 999px;
     padding: 6px 16px;
+    min-height: 44px;
+    box-sizing: border-box;
     font-size: 0.85rem;
     font-weight: 600;
-    display: flex;
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
     cursor: pointer;
     touch-action: manipulation;
