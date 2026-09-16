@@ -12,7 +12,7 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 - **História / Escopo**: `CV2.DS1`, `CV2.DS2`, `CV2.DS3`, `CV2.DS4` e reativação de `CV1.DS2.US3` (owner takeover). Escopo selecionado pelo Navigator em 2026-09-15: blocos completos das quatro Delivery Stories do CV2, com registro prévio dos débitos técnicos a serem quitados.
 - **Branch**: `claude/subagentes-backlog-features-sqbsfs`
-- **Passo Ariad**: `Passo 3 - Implementação`
+- **Passo Ariad**: `Passo 3 - Implementação` (Ondas 1 concluída e integrada; Onda 2 interrompida por limite de sessão da API)
 - **Assinatura do Agente**: `Agente: Claude Code (Driver, orquestrador) | Sessão: session_01ShnH1RU1W7WnF1Lo2j94di | Data: 2026-09-15`
 - **Coordenação**: execução por ondas com sub agentes em worktrees isolados e integração sequencial na branch de trabalho, respeitando a propriedade de arquivos para evitar reescritas concorrentes dos mesmos componentes.
   - Onda 1: `CV2.DS1` (blindagem, backend + feedback do +1) e `CV2.DS3.TS1` (tokens visuais).
@@ -20,7 +20,11 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
   - Onda 3: `CV2.DS3` restante (overflow, Home, container queries, WCAG) e `CV1.DS2.US3` (owner takeover).
   - Onda 4: `CV2.DS4.US1` (tela de vitória) e `CV2.DS4.US4` (microcopy).
 - **Débitos abertos para quitação**: `debt-codigo-mestre-no-websocket`, `debt-lotacao-fantasma`, `debt-integridade-de-toques-e-erros-422`, `debt-tokens-e-cores-acopladas`, `debt-acessibilidade-e-overflow`, `debt-modais-ad-hoc-e-reconexao`, `debt-apelidos-e-transferencia-de-controle`.
-- **Handoff / Próximos Passos**: baseline verificado antes da primeira onda (`uv run pytest` 90 passed, `ruff check` limpo, `npm run check` 0 erros, `npm run build` OK). Merge em `master` somente após validação do Navigator (Checkpoint 4).
+- **Handoff / Próximos Passos**: baseline antes da primeira onda era `uv run pytest` 90 passed. Estado atual da branch: **98 passed**, `ruff check` limpo, `ruff format --check` limpo, `npm run check` 0 erros, `npm test` 6 pass, `npm run build` OK.
+  - **Integrado e verificado**: `CV2.DS3.TS1` (tokens) em `3ab117a`; `CV2.DS1` completa (C1, C2, C3, A7) em `71c4ec5`, com estabilização de teste em `7e7ccda`.
+  - **Interrompido por limite de sessão da API em 2026-09-15**: `CV2.DS2` (não iniciada de fato, 5 linhas descartadas) e `CV2.DS4` parcial. O trabalho parcial da DS4 está preservado, **não integrado**, na branch remota `wip/cv2-ds4-parcial`: componente `Dialogo.svelte` sobre `<dialog>`, `Icone.svelte`, `web/src/lib/icones.js`, encoder de QR Code sem dependência em `web/src/lib/qrcode.js` e as fontes Teko e Inter em woff2 legítimo. A base dessa branch é anterior aos merges acima — **rebasear antes de retomar**.
+  - **Pendente**: `CV2.DS2` completa (7 histórias), `CV2.DS4` (retomar parcial + US1 tela de vitória + US4 microcopy), `CV2.DS3` restante (US1 a US5, incluindo os 23 ajustes de componente listados na seção 9 do plano do TS1) e `CV1.DS2.US3` (owner takeover).
+  - Merge em `master` somente após validação do Navigator (Checkpoint 4).
 
 ### Débitos técnicos registrados
 
