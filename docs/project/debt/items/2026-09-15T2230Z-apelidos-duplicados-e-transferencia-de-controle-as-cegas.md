@@ -1,6 +1,6 @@
 ---
 id: debt-apelidos-e-transferencia-de-controle
-status: Paying
+status: Paid
 kind: correctness
 severity: medium
 source: CV1.DS2.US1

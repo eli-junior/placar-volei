@@ -1,6 +1,6 @@
 ---
 id: debt-lotacao-fantasma
-status: Paying
+status: Paid
 kind: correctness
 severity: medium
 source: CV1.DS1.US1

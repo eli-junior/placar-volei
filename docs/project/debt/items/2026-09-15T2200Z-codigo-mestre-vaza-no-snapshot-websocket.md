@@ -1,6 +1,6 @@
 ---
 id: debt-codigo-mestre-no-websocket
-status: Paying
+status: Paid
 kind: security
 severity: high
 source: CV1.DS2.TS1

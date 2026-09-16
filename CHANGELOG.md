@@ -12,8 +12,8 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 - **História / Escopo**: `CV2.DS1`, `CV2.DS2`, `CV2.DS4` e reativação de `CV1.DS2.US3` (owner takeover). Escopo da Onda 2: Modo Paisagem Otimizado (`CV2.DS2.US1`), Zona do Polegar (`CV2.DS2.US2`), Wake Lock API (`CV2.DS2.US3`), Modo Sol de Alto Contraste (`CV2.DS2.US4`), Governança de Controle (`CV2.DS2.US5`), Apelidos Únicos por Sala (`CV2.DS2.US6`), Reconexão com Backoff Exponencial + Jitter (`CV2.DS2.TS1`), Modal de Celebração de Vitória Memorável (`CV2.DS4.US1`), Compartilhamento Nativo com QR Code SVG puro e Web Share API (`CV2.DS4.US2`), Migração para Diálogos Nativos `<dialog>` com acessibilidade (`CV2.DS4.US3`), PWA / Fontes Locais (`CV2.DS4.US6`), além do onboarding ultralight na Home e configuração in-game/reinício de duplas e regras de jogo (solicitação do Navigator).
 - **Branch**: `claude/subagentes-backlog-features-sqbsfs`
-- **Passo Ariad**: `Passo 4 - Teste e Validação` (Onda 2 implementada e pronta para validação)
-- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 08:05`
+- **Passo Ariad**: `Passo 5 - Revisão` (Revisão de refatoração e technical debt)
+- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 09:35`
 - **Coordenação**: execução por ondas sequenciais/isoladas para garantir estabilidade e testes verdes a cada etapa.
   - Onda 1: `CV2.DS1` e `CV2.DS3.TS1` (Concluídas e integradas com 98 testes verdes).
   - Onda 2: `CV2.DS2` e `CV2.DS4` completamente implementados (backend e frontend) com 113 testes pytest verdes, 21 testes node/frontend verdes, svelte-check 0 erros / 0 warnings e linters ruff 100% limpos.

@@ -1,6 +1,6 @@
 ---
 id: debt-tokens-e-cores-acopladas
-status: Paying
+status: Paid
 kind: design-system
 severity: medium
 source: CV1.DS1.US5

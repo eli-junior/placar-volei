@@ -1,6 +1,6 @@
 ---
 id: debt-modais-ad-hoc-e-reconexao
-status: Paying
+status: Paid
 kind: architecture
 severity: low
 source: CV1.DS4.US1

@@ -1,6 +1,6 @@
 ---
 id: debt-integridade-de-toques-e-erros-422
-status: Paying
+status: Paid
 kind: reliability
 severity: medium
 source: CV1.DS1.US2
