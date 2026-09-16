@@ -12,8 +12,8 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 - **História / Escopo**: `CV2.DS1`, `CV2.DS2`, `CV2.DS3`, `CV2.DS4` e reativação de `CV1.DS2.US3` (owner takeover). Escopo selecionado pelo Navigator em 2026-09-15: blocos completos das quatro Delivery Stories do CV2, com registro prévio dos débitos técnicos a serem quitados.
 - **Branch**: `claude/subagentes-backlog-features-sqbsfs`
-- **Passo Ariad**: `Passo 2 - Planejamento` (Retomada do Handoff - Onda 2: CV2.DS2 e CV2.DS4)
-- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 07:30 (Retomado a partir de Claude Code via instrução do Navigator)`
+- **Passo Ariad**: `Passo 3 - Implementação` (Onda 2: CV2.DS2 e CV2.DS4 em andamento)
+- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 07:42`
 - **Coordenação**: execução por ondas sequenciais/isoladas para garantir estabilidade e testes verdes a cada etapa.
   - Onda 1: `CV2.DS1` e `CV2.DS3.TS1` (Concluídas e integradas com 98 testes verdes).
   - Onda 2: Conclusão de `CV2.DS2` (ergonomia, paisagem, zona do polegar, wake lock, modo sol, governança de controle e apelidos) e `CV2.DS4` (diálogos nativos `<dialog>`, ícones Lucide, QR Code puro, compartilhamento Web Share, PWA, tela de celebração e microcopy).
