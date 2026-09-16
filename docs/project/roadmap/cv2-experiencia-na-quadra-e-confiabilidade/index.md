@@ -1,9 +1,9 @@
 ---
 code: CV2
 level: Value
-status: Planned
-status_reason: Planejado a partir do relatório de Frontend, UX e Design Visual de 2026-09-15 para priorização e execução futura
-updated: 2026-09-15
+status: Active
+status_reason: Ondas 1 (CV2.DS1, CV2.DS3.TS1) e 2 (CV2.DS2, CV2.DS4) implementadas e validadas; Onda 3 em planejamento
+updated: 2026-09-16
 related:
   - docs/project/briefing.md
   - docs/product/principles.md

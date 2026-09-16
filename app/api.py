@@ -2,6 +2,7 @@ import asyncio
 import secrets
 import uuid
 from dataclasses import asdict
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
@@ -13,6 +14,7 @@ from app.hub import hub
 from app.identidade import SESSION_COOKIE
 from app.projecao import projetar_estado, projetar_linha_do_tempo
 from app.quadras import (
+    ApelidoEmUso,
     criar_quadra,
     listar_participantes,
     listar_quadras,
@@ -24,6 +26,117 @@ from app.quadras import (
 from app.rate_limit import owner_rate_limiter
 
 router = APIRouter(prefix="/api", tags=["quadras"])
+
+
+# --- NORMALIZAÇÃO DE ERROS DE VALIDAÇÃO (HTTP 422) ---
+
+# Tradução dos tipos de erro do Pydantic para frases curtas em português.
+# O que chega ao cliente é sempre texto legível; `detail` nunca é objeto.
+_MENSAGENS_VALIDACAO = {
+    "missing": lambda ctx: "é obrigatório",
+    "string_too_short": lambda ctx: (
+        f"deve ter pelo menos {ctx.get('min_length', 1)} caractere(s)"
+    ),
+    "string_too_long": lambda ctx: (
+        f"deve ter no máximo {ctx.get('max_length', 0)} caractere(s)"
+    ),
+    "too_short": lambda ctx: f"deve ter pelo menos {ctx.get('min_length', 1)} item(ns)",
+    "too_long": lambda ctx: f"deve ter no máximo {ctx.get('max_length', 0)} item(ns)",
+    "greater_than": lambda ctx: f"deve ser maior que {ctx.get('gt')}",
+    "greater_than_equal": lambda ctx: f"deve ser no mínimo {ctx.get('ge')}",
+    "less_than": lambda ctx: f"deve ser menor que {ctx.get('lt')}",
+    "less_than_equal": lambda ctx: f"deve ser no máximo {ctx.get('le')}",
+    "int_parsing": lambda ctx: "deve ser um número inteiro",
+    "int_type": lambda ctx: "deve ser um número inteiro",
+    "float_parsing": lambda ctx: "deve ser um número",
+    "bool_parsing": lambda ctx: "deve ser verdadeiro ou falso",
+    "bool_type": lambda ctx: "deve ser verdadeiro ou falso",
+    "string_type": lambda ctx: "deve ser um texto",
+    "json_invalid": lambda ctx: "não é um JSON válido",
+}
+
+# Rótulos amigáveis para os campos que o usuário realmente digita.
+_ROTULOS_CAMPOS = {
+    "apelido": "Apelido",
+    "nome": "Nome da sala",
+    "alvo": "Pontuação-alvo",
+    "teto": "Teto da vantagem",
+    "vantagem": "Vantagem de 2 pontos",
+    "equipe": "Equipe",
+    "equipe_a": "Nome da equipe A",
+    "equipe_b": "Nome da equipe B",
+    "papel": "Papel",
+    "time_a_jogador1": "Jogador 1 da equipe A",
+    "time_a_jogador2": "Jogador 2 da equipe A",
+    "time_b_jogador1": "Jogador 1 da equipe B",
+    "time_b_jogador2": "Jogador 2 da equipe B",
+}
+
+
+def _nome_do_campo(loc: tuple) -> str:
+    partes = [str(p) for p in loc if str(p) not in ("body", "query", "path", "header")]
+    return ".".join(partes) if partes else "requisição"
+
+
+def normalizar_erros_validacao(erros: list[dict]) -> dict:
+    """Converte os erros do Pydantic em um formato estável e legível.
+
+    Formato de saída:
+    `{"detail": "<frase única>", "erros": [{"campo", "rotulo", "mensagem"}]}`.
+    `detail` é sempre uma string porque é o que o frontend renderiza — era a
+    lista de dicionários do FastAPI que virava `"[object Object]"` na tela.
+    """
+    detalhados = []
+    for erro in erros:
+        campo = _nome_do_campo(tuple(erro.get("loc", ())))
+        rotulo = _ROTULOS_CAMPOS.get(campo, campo)
+        construtor = _MENSAGENS_VALIDACAO.get(erro.get("type", ""))
+        if construtor:
+            mensagem = construtor(erro.get("ctx") or {})
+        else:
+            mensagem = str(erro.get("msg") or "é inválido")
+        detalhados.append(
+            {
+                "campo": campo,
+                "rotulo": rotulo,
+                "mensagem": mensagem,
+                "tipo": erro.get("type", "value_error"),
+            }
+        )
+
+    if not detalhados:
+        return {"detail": "Dados inválidos na requisição.", "erros": []}
+
+    frase = " ".join(f"{d['rotulo']} {d['mensagem']}." for d in detalhados)
+    return {"detail": frase, "erros": detalhados}
+
+
+class ErroDeCampo(HTTPException):
+    """Erro de negócio atrelado a um campo, no contrato de erro da CV2.DS1.
+
+    `detail` continua sendo uma frase única em português — é o que a interface
+    renderiza — e `erros` carrega o campo culpado para quem quiser destacá-lo no
+    formulário. Reusar o mesmo formato do 422 evita que cada regra de negócio
+    invente a sua forma de contar o que deu errado.
+    """
+
+    def __init__(
+        self,
+        status_code: int,
+        detail: str,
+        campo: str,
+        mensagem: str,
+        tipo: str,
+    ) -> None:
+        super().__init__(status_code=status_code, detail=detail)
+        self.erros = [
+            {
+                "campo": campo,
+                "rotulo": _ROTULOS_CAMPOS.get(campo, campo),
+                "mensagem": mensagem,
+                "tipo": tipo,
+            }
+        ]
 
 
 class MarcarPontoBody(BaseModel):
@@ -76,6 +189,21 @@ class ReiniciarPartidaBody(BaseModel):
     time_b_jogador2: str | None = Field(default=None, max_length=30)
     equipe_a: str | None = Field(default=None, max_length=60)
     equipe_b: str | None = Field(default=None, max_length=60)
+    alvo: int | None = Field(default=None, ge=1, le=100)
+    vantagem: bool | None = None
+    teto: int | None = Field(default=None, ge=1, le=200)
+
+
+class ConfigurarPartidaBody(BaseModel):
+    time_a_jogador1: str | None = Field(default=None, max_length=30)
+    time_a_jogador2: str | None = Field(default=None, max_length=30)
+    time_b_jogador1: str | None = Field(default=None, max_length=30)
+    time_b_jogador2: str | None = Field(default=None, max_length=30)
+    equipe_a: str | None = Field(default=None, max_length=60)
+    equipe_b: str | None = Field(default=None, max_length=60)
+    alvo: int | None = Field(default=None, ge=1, le=100)
+    vantagem: bool | None = None
+    teto: int | None = Field(default=None, ge=1, le=200)
 
 
 class EntrarQuadraBody(BaseModel):
@@ -203,16 +331,30 @@ async def post_entrar_quadra(
             max_age=86400 * 30,
         )
 
+    # A presença é lida aqui, na borda assíncrona que conhece o hub, e desce
+    # como valor para a transação síncrona de capacidade. Assim a persistência
+    # não depende do transporte e nenhuma thread bloqueia esperando o event loop.
+    ids_online = await hub.participantes_online(quadra_id)
+
     try:
         participante = await registrar_participante(
             settings.db_path,
             quadra_id=quadra_id,
             session_id=session_id,
             apelido=apelido,
+            ids_online=ids_online,
         )
     except OSError:
         raise HTTPException(
             503, "Não foi possível salvar a configuração. Tente novamente."
+        ) from None
+    except ApelidoEmUso as e:
+        raise ErroDeCampo(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=str(e),
+            campo="apelido",
+            mensagem="já está em uso nesta quadra",
+            tipo="apelido_em_uso",
         ) from None
     except ValueError as e:
         raise HTTPException(
@@ -301,6 +443,10 @@ async def executar_comando(quadra_id: str, request: Request, acao: str, **kwargs
         SESSION_COOKIE
     )
     async with get_quadra_lock(quadra_id):
+        # A presença é lida aqui, na borda que conhece o hub, e desce como valor
+        # para a transação. É ela que permite recusar a passagem do controle
+        # para quem está desconectado sem que a persistência conheça o socket.
+        ids_online = await hub.participantes_online(quadra_id)
         resultado = await asyncio.to_thread(
             executar_sync,
             settings.db_path,
@@ -308,6 +454,7 @@ async def executar_comando(quadra_id: str, request: Request, acao: str, **kwargs
             session_id,
             acao,
             versao=request.headers.get("x-control-version"),
+            ids_online=ids_online,
             **kwargs,
         )
         online = await hub.participantes_online(quadra_id)
@@ -348,7 +495,41 @@ async def post_reiniciar_partida(
             kwargs["equipe_b"] = nome_b
             kwargs["jogadores_b"] = j_b
 
+        if body.alvo is not None:
+            kwargs["alvo"] = body.alvo
+        if body.vantagem is not None:
+            kwargs["vantagem"] = body.vantagem
+        if body.teto is not None:
+            kwargs["teto"] = body.teto
+
     return await executar_comando(quadra_id, request, "reiniciar", **kwargs)
+
+
+@router.post("/quadras/{quadra_id}/configurar")
+async def post_configurar_partida(
+    quadra_id: str, request: Request, body: ConfigurarPartidaBody
+):
+    kwargs: dict[str, Any] = {}
+    nome_a, j_a = formatar_nome_equipe(
+        body.time_a_jogador1, body.time_a_jogador2, body.equipe_a, ""
+    )
+    nome_b, j_b = formatar_nome_equipe(
+        body.time_b_jogador1, body.time_b_jogador2, body.equipe_b, ""
+    )
+    if nome_a:
+        kwargs["equipe_a"] = nome_a
+        kwargs["jogadores_a"] = j_a
+    if nome_b:
+        kwargs["equipe_b"] = nome_b
+        kwargs["jogadores_b"] = j_b
+    if body.alvo is not None:
+        kwargs["alvo"] = body.alvo
+    if body.vantagem is not None:
+        kwargs["vantagem"] = body.vantagem
+    if body.teto is not None:
+        kwargs["teto"] = body.teto
+
+    return await executar_comando(quadra_id, request, "configurar", **kwargs)
 
 
 @router.post("/quadras/{quadra_id}/controle/assumir")
@@ -360,6 +541,20 @@ async def post_assumir_controle(quadra_id: str, request: Request):
 async def post_autorizar_admin(quadra_id: str, participante_id: str, request: Request):
     return await executar_comando(
         quadra_id, request, "autorizar", alvo_id=participante_id
+    )
+
+
+@router.post("/quadras/{quadra_id}/participantes/{participante_id}/controle")
+async def post_transferir_controle(
+    quadra_id: str, participante_id: str, request: Request
+):
+    """Passa o comando do placar para outro participante já autorizado.
+
+    Rota separada de `/promover` de propósito: conceder permissão e entregar o
+    placar deixaram de ser o mesmo ato na CV2.DS2.US5.
+    """
+    return await executar_comando(
+        quadra_id, request, "transferir", alvo_id=participante_id
     )
 
 

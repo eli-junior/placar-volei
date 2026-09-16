@@ -75,7 +75,7 @@ def projetar_estado(eventos: Sequence[Evento]) -> EstadoPartida:
         if partida_id is None and evento.partida_id:
             partida_id = evento.partida_id
 
-        if evento.tipo == TipoEvento.PARTIDA_INICIADA:
+        if evento.tipo in (TipoEvento.PARTIDA_INICIADA, TipoEvento.REGRA_ALTERADA):
             payload = evento.payload
             if "alvo" in payload and payload["alvo"] is not None:
                 alvo = int(payload["alvo"])
@@ -91,15 +91,6 @@ def projetar_estado(eventos: Sequence[Evento]) -> EstadoPartida:
                 jogadores_a = [str(j) for j in payload["jogadores_a"]]
             if "jogadores_b" in payload and isinstance(payload["jogadores_b"], list):
                 jogadores_b = [str(j) for j in payload["jogadores_b"]]
-
-        elif evento.tipo == TipoEvento.REGRA_ALTERADA:
-            payload = evento.payload
-            if "alvo" in payload and payload["alvo"] is not None:
-                alvo = int(payload["alvo"])
-            if "vantagem" in payload and payload["vantagem"] is not None:
-                vantagem = bool(payload["vantagem"])
-            if "teto" in payload:
-                teto = int(payload["teto"]) if payload["teto"] is not None else None
 
         elif evento.tipo == TipoEvento.PONTO_MARCADO:
             if evento.seq not in pontos_desfeitos_set:
@@ -236,12 +227,33 @@ def projetar_linha_do_tempo(
 
         elif evento.tipo == TipoEvento.REGRA_ALTERADA:
             payload = evento.payload
+            partes = []
             if "alvo" in payload and payload["alvo"] is not None:
                 alvo = int(payload["alvo"])
-            descricao = f"Regra alterada: alvo {alvo} pts"
+                partes.append(f"alvo {alvo} pts")
+            if payload.get("equipe_a"):
+                equipe_a = str(payload["equipe_a"])
+                partes.append(f"Time A: {equipe_a}")
+            if payload.get("equipe_b"):
+                equipe_b = str(payload["equipe_b"])
+                partes.append(f"Time B: {equipe_b}")
+            descricao = (
+                f"Configuração da partida: {', '.join(partes)}"
+                if partes
+                else f"Regra alterada: alvo {alvo} pts"
+            )
 
         elif evento.tipo == TipoEvento.CONTROLE_ASSUMIDO:
             descricao = f"{autor_apelido} assumiu o controle"
+
+        elif evento.tipo == TipoEvento.CONTROLE_TRANSFERIDO:
+            destino = evento.payload.get("apelido", "outro participante")
+            descricao = f"{autor_apelido} passou o controle para {destino}"
+
+        elif evento.tipo == TipoEvento.CONTROLE_DEVOLVIDO:
+            ausente = evento.payload.get("anterior_apelido", "o controlador")
+            destino = evento.payload.get("apelido", "o admin")
+            descricao = f"Controle devolvido para {destino} por ausência de {ausente}"
 
         elif evento.tipo == TipoEvento.PAPEL_ALTERADO:
             novo_papel = evento.payload.get("papel")

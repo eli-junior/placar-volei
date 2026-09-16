@@ -1,22 +1,322 @@
+/* =============================================================================
+   Placar Vôlei — Sistema de Tokens Visuais
+   CV2.DS3.TS1 — Consolidação de tokens e desacoplamento semântico de cores
+
+   Regras de leitura:
+
+   1. Os tokens são nomeados pelo PAPEL que exercem, nunca pelo valor.
+      `--texto-legenda` e não `--font-size-12`; `--time-a` e não `--accent-cyan`.
+
+   2. Ciano e Laranja são propriedade exclusiva dos Times A e B.
+      Ação do sistema, estado e foco usam neutros e o amarelo de marca.
+      Se um elemento que não é time precisar de ciano ou laranja, a escolha
+      está errada — existe um token de ação ou de estado para o caso.
+
+   3. Os nomes legados (`--accent-orange`, `--radius-md`, ...) continuam
+      publicados como ALIASES apontando para os tokens novos. Eles existem para
+      que os componentes `.svelte` sigam funcionando sem alteração nesta onda.
+      Nenhum código novo deve usar alias legado.
+
+   4. Um tema alternativo troca apenas o bloco de variáveis de um seletor.
+      `:root[data-tema="sol"]` já está definido (Modo Sol, alto contraste);
+      o acionamento pela interface pertence à história CV2.DS2.US4.
+
+   A tabela de-para dos valores legados para estes tokens está em
+   docs/project/roadmap/.../cv2-ds3-ts1-tokens-e-cores-semanticas/plan.md
+   e a referência do sistema visual em docs/product/design-tokens.md
+   ============================================================================= */
+
+@font-face {
+  font-family: 'Inter';
+  src: url('/fontes/inter-latin-var.woff2') format('woff2');
+  font-weight: 100 900;
+  font-display: swap;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Teko';
+  src: url('/fontes/teko-latin-var.woff2') format('woff2');
+  font-weight: 300 700;
+  font-display: swap;
+  font-style: normal;
+}
+
 :root {
-  --bg-primary: #0f172a;
-  --bg-surface: #1e293b;
-  --bg-card: #243247;
-  --bg-card-hover: #2d3e58;
-  --accent-orange: #f97316;
-  --accent-orange-hover: #ea580c;
-  --accent-cyan: #06b6d4;
-  --accent-green: #10b981;
-  --text-primary: #f8fafc;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --border-color: rgba(255, 255, 255, 0.08);
-  --border-active: rgba(249, 115, 22, 0.4);
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
-  --font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-display: 'Teko', sans-serif;
+  /* `color-scheme: dark` NÃO é declarado aqui de propósito. Ele mudaria o
+     desenho nativo de barra de rolagem e de caixa de seleção, e esta história
+     não pode alterar a aparência atual. Está registrado no plan.md como
+     ajuste da onda seguinte. */
+
+  /* ---------------------------------------------------------------------------
+     TIPOGRAFIA — famílias
+     --------------------------------------------------------------------------- */
+  --fonte-texto: 'Inter', system-ui, -apple-system, sans-serif;
+  --fonte-numeros: 'Teko', sans-serif;
+
+  /* ---------------------------------------------------------------------------
+     TIPOGRAFIA — escala de 8 degraus
+     Substitui os 41 tamanhos dispersos hoje escritos nos componentes.
+     Cada degrau tem um papel; a escolha é pelo papel, não pelo tamanho.
+
+     Os degraus andam ~1.10 na faixa de texto de interface (onde saltos
+     grandes atrapalham a hierarquia densa do placar) e ~1.21 na faixa de
+     título e display (onde o salto precisa ser óbvio a três metros da quadra).
+     --------------------------------------------------------------------------- */
+  --texto-micro: 0.75rem; /* 1. etiquetas, badges e legendas em caixa alta */
+  --texto-legenda: 0.82rem; /* 2. metadados, horários, texto de ajuda */
+  --texto-apoio: 0.9rem; /* 3. texto secundário e rótulos de formulário */
+  --texto-corpo: 1rem; /* 4. leitura padrão, campos de entrada, botões */
+  --texto-destaque: 1.2rem; /* 5. ênfase, nome de time, valor em evidência */
+  --texto-titulo: 1.45rem; /* 6. título de seção, cabeçalho de modal */
+  --texto-titulo-forte: 1.75rem; /* 7. título de tela, número de apoio */
+  --texto-display: 2.5rem; /* 8. numeral grande de ação (ex.: "+" do ponto) */
+
+  /* Derivado do degrau 8: os dígitos do placar são fluidos por natureza.
+     Não é um nono degrau — é o degrau 8 esticado entre um piso e um teto. */
+  --texto-placar: clamp(var(--texto-display), 16vw, 8.6rem);
+
+  /* ---------------------------------------------------------------------------
+     RAIOS — 4 degraus
+     Substitui os 17 raios dispersos hoje escritos nos componentes.
+     --------------------------------------------------------------------------- */
+  --raio-justo: 8px; /* detalhes internos, chips, marcadores */
+  --raio-padrao: 14px; /* cartões, campos e botões (escolha padrão) */
+  --raio-amplo: 20px; /* modais, folhas e painéis de tela cheia */
+  --raio-circular: 9999px; /* pílulas, avatares e indicadores redondos */
+
+  /* ---------------------------------------------------------------------------
+     SOMBRAS — 3 papéis
+     Substitui as 32 sombras dispersas hoje escritas nos componentes.
+     `--sombra-realce` é parametrizada: quem a usa define `--brilho-cor`
+     com a cor da própria identidade (time ou marca). Assim o brilho de
+     time deixa de existir como 12 valores literais diferentes.
+     --------------------------------------------------------------------------- */
+  --sombra-sutil: 0 2px 8px rgba(2, 6, 23, 0.45);
+  --sombra-elevada: 0 16px 40px rgba(2, 6, 23, 0.6);
+  --brilho-cor: rgba(2, 6, 23, 0.4);
+  --sombra-realce: 0 4px 16px var(--brilho-cor);
+
+  /* ---------------------------------------------------------------------------
+     SUPERFÍCIES E TEXTO
+     --------------------------------------------------------------------------- */
+  --fundo-base: #0f172a;
+  --fundo-superficie: #1e293b;
+  --fundo-cartao: #243247;
+  --fundo-cartao-ativo: #2d3e58;
+  --texto-forte: #f8fafc;
+  --texto-suave: #94a3b8;
+  --texto-apagado: #64748b;
+  --borda-sutil: rgba(255, 255, 255, 0.08);
+  --borda-ativa: rgba(249, 115, 22, 0.4);
+
+  /* ---------------------------------------------------------------------------
+     CORES DE TIME — USO EXCLUSIVO
+     Ciano pertence ao Time A. Laranja pertence ao Time B.
+     Nenhum botão, estado, foco ou badge do sistema pode consumir estes tokens.
+     --------------------------------------------------------------------------- */
+  --time-a: #06b6d4;
+  --time-a-forte: #0891b2;
+  --time-a-brilho: rgba(6, 182, 212, 0.35);
+  --time-a-tenue: rgba(6, 182, 212, 0.12);
+
+  --time-b: #f97316;
+  --time-b-forte: #ea580c;
+  --time-b-brilho: rgba(249, 115, 22, 0.35);
+  --time-b-tenue: rgba(249, 115, 22, 0.12);
+
+  /* ---------------------------------------------------------------------------
+     MARCA — o amarelo do produto
+     Vitória, campeão e destaque institucional. É também a cor da ação
+     primária do sistema, justamente para não competir com os times.
+     --------------------------------------------------------------------------- */
+  --marca: #f59e0b;
+  --marca-forte: #d97706;
+  --marca-suave: #fcd34d;
+  --marca-tenue: rgba(245, 158, 11, 0.18);
+
+  /* ---------------------------------------------------------------------------
+     AÇÕES DO SISTEMA — neutros e marca, nunca cor de time
+     --------------------------------------------------------------------------- */
+  --acao-primaria: var(--marca);
+  --acao-primaria-ativa: var(--marca-forte);
+  --acao-primaria-texto: #1c1300;
+
+  --acao-secundaria: #334155;
+  --acao-secundaria-ativa: #475569;
+  --acao-secundaria-texto: var(--texto-forte);
+
+  --acao-discreta: transparent;
+  --acao-discreta-ativa: rgba(255, 255, 255, 0.06);
+  --acao-discreta-texto: var(--texto-suave);
+
+  --acao-destrutiva: #ef4444;
+  --acao-destrutiva-ativa: #dc2626;
+  --acao-destrutiva-texto: #ffffff;
+
+  /* ---------------------------------------------------------------------------
+     ESTADOS
+     --------------------------------------------------------------------------- */
+  --estado-sucesso: #10b981;
+  --estado-sucesso-brilho: rgba(16, 185, 129, 0.6);
+  --estado-alerta: var(--marca);
+  --estado-erro: #f87171;
+  --estado-neutro: var(--texto-suave);
+
+  /* ---------------------------------------------------------------------------
+     FOCO — anel global de teclado
+     Cor de marca sobre fundo escuro: ~12:1 contra `--fundo-base`.
+     --------------------------------------------------------------------------- */
+  --foco-cor: #fcd34d;
+  --foco-largura: 3px;
+  --foco-deslocamento: 2px;
+  /* Variante em sombra, para quando o `outline` é cortado por overflow. */
+  --foco-anel: 0 0 0 var(--foco-largura) var(--foco-cor);
+
+  /* ---------------------------------------------------------------------------
+     GRADIENTES
+     Publicados como token para que o Modo Sol possa achatá-los sem que
+     cada componente precise saber que existe um tema claro.
+     --------------------------------------------------------------------------- */
+  --gradiente-fundo: linear-gradient(180deg, var(--fundo-cartao) 0%, var(--fundo-superficie) 100%);
+  --gradiente-time-a: linear-gradient(135deg, var(--time-a-forte) 0%, var(--time-a) 100%);
+  --gradiente-time-b: linear-gradient(135deg, var(--time-b-forte) 0%, var(--time-b) 100%);
+  --gradiente-marca: linear-gradient(135deg, var(--marca) 0%, var(--time-b-forte) 100%);
+
+  /* ---------------------------------------------------------------------------
+     PAPÉIS DE PARTICIPANTE (badges)
+     Valores atuais preservados nesta onda para não alterar a aparência.
+     A migração de `--papel-admin` para `--marca` está registrada no plan.md
+     como ajuste da onda seguinte.
+     --------------------------------------------------------------------------- */
+  --papel-admin-fundo: rgba(249, 115, 22, 0.15);
+  --papel-admin-texto: #fb923c;
+  --papel-admin-borda: rgba(249, 115, 22, 0.3);
+
+  --papel-controlador-fundo: rgba(56, 189, 248, 0.15);
+  --papel-controlador-texto: #38bdf8;
+  --papel-controlador-borda: rgba(56, 189, 248, 0.3);
+
+  --papel-espectador-fundo: rgba(148, 163, 184, 0.12);
+  --papel-espectador-texto: #cbd5e1;
+  --papel-espectador-borda: rgba(148, 163, 184, 0.25);
+
+  /* ===========================================================================
+     ALIASES LEGADOS — compatibilidade com os componentes desta onda
+     Cada alias resolve exatamente para o valor que tinha antes desta história.
+     Não usar em código novo. Serão removidos quando a onda de migração
+     dos componentes (CV2.DS3.US1/US2/US4) terminar.
+     =========================================================================== */
+  --bg-primary: var(--fundo-base);
+  --bg-surface: var(--fundo-superficie);
+  --bg-card: var(--fundo-cartao);
+  --bg-card-hover: var(--fundo-cartao-ativo);
+  --accent-orange: var(--time-b);
+  --accent-orange-hover: var(--time-b-forte);
+  --accent-cyan: var(--time-a);
+  --accent-green: var(--estado-sucesso);
+  --text-primary: var(--texto-forte);
+  --text-secondary: var(--texto-suave);
+  --text-muted: var(--texto-apagado);
+  --border-color: var(--borda-sutil);
+  --border-active: var(--borda-ativa);
+  --radius-sm: var(--raio-justo);
+  --radius-md: var(--raio-padrao);
+  --radius-lg: var(--raio-amplo);
+  --font-family: var(--fonte-texto);
+  --font-display: var(--fonte-numeros);
+}
+
+/* =============================================================================
+   TEMA "MODO SOL" — alto contraste para luz solar direta (CV2.DS2.US4)
+
+   Preparação de tokens apenas. Nenhum componente aciona este tema nesta
+   história: quem acionar precisa apenas escrever `data-tema="sol"` no
+   elemento <html>. Nada além deste bloco muda.
+
+   Regras do tema, herdadas do escopo da CV2.DS2.US4:
+   - fundo claro;
+   - números do placar em preto puro sobre branco puro (21:1);
+   - sem gradiente escuro (os gradientes viram cor chapada);
+   - sem sombra neon/glow (o realce é desligado, não atenuado).
+   ============================================================================= */
+:root[data-tema='sol'] {
+  color-scheme: light;
+
+  /* Superfícies e texto — preto puro sobre branco puro nos números. */
+  --fundo-base: #ffffff;
+  --fundo-superficie: #f1f5f9;
+  --fundo-cartao: #ffffff;
+  --fundo-cartao-ativo: #e2e8f0;
+  --texto-forte: #000000; /* 21:1 sobre --fundo-base */
+  --texto-suave: #1e293b;
+  --texto-apagado: #475569;
+  --borda-sutil: rgba(15, 23, 42, 0.18);
+  --borda-ativa: rgba(15, 23, 42, 0.55);
+
+  /* Times escurecidos: mantêm a identidade e passam a ter contraste
+     suficiente como texto e borda sobre fundo claro. */
+  --time-a: #0e7490;
+  --time-a-forte: #155e75;
+  --time-a-brilho: transparent;
+  --time-a-tenue: rgba(14, 116, 144, 0.14);
+
+  --time-b: #c2410c;
+  --time-b-forte: #9a3412;
+  --time-b-brilho: transparent;
+  --time-b-tenue: rgba(194, 65, 12, 0.14);
+
+  --marca: #b45309;
+  --marca-forte: #92400e;
+  --marca-suave: #78350f;
+  --marca-tenue: rgba(180, 83, 9, 0.16);
+
+  /* Ação primária em neutro máximo: no sol, contraste vale mais que cor. */
+  --acao-primaria: #0f172a;
+  --acao-primaria-ativa: #000000;
+  --acao-primaria-texto: #ffffff;
+
+  --acao-secundaria: #e2e8f0;
+  --acao-secundaria-ativa: #cbd5e1;
+  --acao-secundaria-texto: #0f172a;
+
+  --acao-discreta-ativa: rgba(15, 23, 42, 0.08);
+  --acao-discreta-texto: #334155;
+
+  --acao-destrutiva: #b91c1c;
+  --acao-destrutiva-ativa: #991b1b;
+
+  --estado-sucesso: #047857;
+  --estado-sucesso-brilho: transparent;
+  --estado-erro: #b91c1c;
+
+  /* Foco em neutro máximo: ~18:1 sobre o fundo claro. */
+  --foco-cor: #0f172a;
+
+  /* Sem gradiente escuro: tudo vira cor chapada. */
+  --gradiente-fundo: var(--fundo-cartao);
+  --gradiente-time-a: var(--time-a);
+  --gradiente-time-b: var(--time-b);
+  --gradiente-marca: var(--marca);
+
+  /* Sem neon e sem glow: borrão sob reflexo solar. Sombra só onde
+     ela informa profundidade real, e ainda assim discreta. */
+  --sombra-sutil: 0 1px 2px rgba(15, 23, 42, 0.16);
+  --sombra-elevada: 0 8px 24px rgba(15, 23, 42, 0.22);
+  --brilho-cor: transparent;
+  --sombra-realce: none;
+
+  --papel-admin-fundo: rgba(180, 83, 9, 0.12);
+  --papel-admin-texto: #92400e;
+  --papel-admin-borda: rgba(180, 83, 9, 0.4);
+
+  --papel-controlador-fundo: rgba(3, 105, 161, 0.12);
+  --papel-controlador-texto: #075985;
+  --papel-controlador-borda: rgba(3, 105, 161, 0.4);
+
+  --papel-espectador-fundo: rgba(51, 65, 85, 0.1);
+  --papel-espectador-texto: #334155;
+  --papel-espectador-borda: rgba(51, 65, 85, 0.35);
 }
 
 * {
@@ -27,9 +327,9 @@
 }
 
 body {
-  background-color: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: var(--font-family);
+  background-color: var(--fundo-base);
+  color: var(--texto-forte);
+  font-family: var(--fonte-texto);
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
@@ -79,12 +379,12 @@ button:active {
 input {
   font-family: inherit;
   outline: none;
-  border: 1px solid var(--border-color);
-  background: var(--bg-surface);
-  color: var(--text-primary);
-  border-radius: var(--radius-md);
+  border: 1px solid var(--borda-sutil);
+  background: var(--fundo-superficie);
+  color: var(--texto-forte);
+  border-radius: var(--raio-padrao);
   padding: 14px 16px;
-  font-size: 1rem;
+  font-size: var(--texto-corpo);
   transition: border-color 0.2s ease;
 }
 
@@ -93,49 +393,82 @@ input:focus {
   box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
 }
 
+/* =============================================================================
+   ANEL DE FOCO GLOBAL
+
+   `button { outline: none }` acima apaga o foco padrão do navegador em todo
+   botão do produto. Sem o bloco abaixo, quem navega por teclado fica cego.
+
+   O anel usa `:focus-visible`, então só aparece para teclado e navegação
+   assistiva — o toque e o clique continuam sem contorno, como hoje.
+
+   A cor é o amarelo de marca, nunca a cor de um time: o foco é do sistema.
+   ============================================================================= */
+:focus-visible {
+  outline: var(--foco-largura) solid var(--foco-cor);
+  outline-offset: var(--foco-deslocamento);
+}
+
+/* Reforço explícito para os elementos que zeram o outline acima e para
+   elementos tornados interativos via atributo. */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible,
+[role='button']:focus-visible,
+[role='tab']:focus-visible,
+[role='radio']:focus-visible,
+[role='switch']:focus-visible {
+  outline: var(--foco-largura) solid var(--foco-cor);
+  outline-offset: var(--foco-deslocamento);
+}
+
 /* Badge styles */
 .badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border-radius: 9999px;
-  font-size: 0.75rem;
+  border-radius: var(--raio-circular);
+  font-size: var(--texto-micro);
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .badge-admin {
-  background: rgba(249, 115, 22, 0.15);
-  color: #fb923c;
-  border: 1px solid rgba(249, 115, 22, 0.3);
+  background: var(--papel-admin-fundo);
+  color: var(--papel-admin-texto);
+  border: 1px solid var(--papel-admin-borda);
 }
 
 .badge-controlador {
-  background: rgba(56, 189, 248, 0.15);
-  color: #38bdf8;
-  border: 1px solid rgba(56, 189, 248, 0.3);
+  background: var(--papel-controlador-fundo);
+  color: var(--papel-controlador-texto);
+  border: 1px solid var(--papel-controlador-borda);
 }
 
 .badge-espectador {
-  background: rgba(148, 163, 184, 0.12);
-  color: #cbd5e1;
-  border: 1px solid rgba(148, 163, 184, 0.25);
+  background: var(--papel-espectador-fundo);
+  color: var(--papel-espectador-texto);
+  border: 1px solid var(--papel-espectador-borda);
 }
 
 .status-dot {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--raio-circular);
   display: inline-block;
 }
 
 .status-online {
-  background-color: var(--accent-green);
-  box-shadow: 0 0 8px rgba(16, 185, 129, 0.6);
+  background-color: var(--estado-sucesso);
+  box-shadow: 0 0 8px var(--estado-sucesso-brilho);
 }
 
 .status-offline {
-  background-color: var(--text-muted);
+  background-color: var(--texto-apagado);
 }

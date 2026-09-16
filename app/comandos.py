@@ -9,9 +9,36 @@ from app.eventos import TipoEvento, append_evento_sync, carregar_eventos_sync
 from app.identidade import hash_sessao
 from app.projecao import projetar_estado, projetar_linha_do_tempo
 
+# Allowlist de campos da tabela `quadras` que podem sair da borda do servidor.
+# Qualquer coluna nova (sensível ou não) fica de fora do payload por padrão:
+# para expor um campo é preciso adicioná-lo aqui conscientemente. Foi a ausência
+# desse contrato explícito que fez `codigo_mestre` vazar no snapshot do
+# WebSocket quando a coluna foi criada (débito `debt-codigo-mestre-no-websocket`).
+CAMPOS_PUBLICOS_QUADRA = (
+    "id",
+    "nome",
+    "criado_em",
+    "atualizado_em",
+    "controle_id",
+    "controle_versao",
+)
+
+_SELECT_QUADRA_PUBLICA = (
+    f"SELECT {', '.join(CAMPOS_PUBLICOS_QUADRA)} FROM quadras WHERE id = ?"
+)
+
+
+def projetar_quadra_publica(row) -> dict:
+    """Projeta a linha de `quadras` na allowlist pública.
+
+    Nunca receber `SELECT *` refletido direto no payload é o ponto: mesmo que a
+    consulta traga colunas a mais, apenas os campos declarados saem daqui.
+    """
+    return {campo: row[campo] for campo in CAMPOS_PUBLICOS_QUADRA}
+
 
 def snapshot(conn, quadra_id):
-    quadra = conn.execute("SELECT * FROM quadras WHERE id = ?", (quadra_id,)).fetchone()
+    quadra = conn.execute(_SELECT_QUADRA_PUBLICA, (quadra_id,)).fetchone()
     if not quadra:
         raise HTTPException(404, "Sala não encontrada ou expirada.")
     partida = conn.execute(
@@ -26,7 +53,7 @@ def snapshot(conn, quadra_id):
             (quadra_id,),
         )
     ]
-    sala = dict(quadra)
+    sala = projetar_quadra_publica(quadra)
     sala["partida_id"] = partida["id"]
     return {
         "quadra": sala,
@@ -46,6 +73,18 @@ def snapshot_sync(db_path, quadra_id):
         return snapshot(conn, quadra_id)
 
 
+def participante_presente(linha, ids_online, limite) -> bool:
+    """Diz se um participante ainda está de fato na sala.
+
+    Mesmo critério da capacidade (`contar_presentes`): conexão viva no hub ou
+    sinal de vida dentro da janela de presença. Reaproveitar o critério é o que
+    impede a sala ter duas noções diferentes de "está online".
+    """
+    if linha is None:
+        return False
+    return linha["id"] in ids_online or (linha["ultimo_visto_em"] or "") >= limite
+
+
 def executar_sync(
     db_path,
     quadra_id,
@@ -55,14 +94,16 @@ def executar_sync(
     equipe=None,
     versao=None,
     alvo_id=None,
+    ids_online=None,
     **kwargs,
 ):
+    # A presença chega como valor, vinda da borda HTTP que conhece o hub. A
+    # transação não importa o hub nem toca no event loop de dentro da thread.
+    ids_online = frozenset(ids_online or ())
     # O lock de escrita cobre autorização, leitura do log e toda a alteração.
     with get_db(db_path) as conn:
         conn.execute("BEGIN IMMEDIATE")
-        quadra = conn.execute(
-            "SELECT * FROM quadras WHERE id = ?", (quadra_id,)
-        ).fetchone()
+        quadra = conn.execute(_SELECT_QUADRA_PUBLICA, (quadra_id,)).fetchone()
         limite = (
             datetime.now(UTC) - timedelta(seconds=settings.quadra_ttl_seconds)
         ).isoformat()
@@ -123,6 +164,47 @@ def executar_sync(
                 TipoEvento.CONTROLE_ASSUMIDO,
                 {"anterior_id": quadra["controle_id"], "controle_id": autor["id"]},
             )
+        elif acao == "transferir":
+            # Passar o comando do placar para outra pessoa. Só o admin transfere,
+            # só quem já tem permissão recebe, e só recebe quem está online —
+            # repassar para um aparelho desconectado é deixar a partida sem
+            # operador até alguém perceber.
+            from app.quadras import limite_de_presenca
+
+            if autor["papel"] != "ADMIN":
+                raise HTTPException(
+                    403, "Apenas administradores podem passar o controle do placar."
+                )
+            alvo = conn.execute(
+                "SELECT id, papel, apelido, ultimo_visto_em FROM participantes WHERE quadra_id = ? AND id = ?",
+                (quadra_id, alvo_id),
+            ).fetchone()
+            if not alvo:
+                raise HTTPException(404, "Participante não encontrado nesta sala.")
+            if alvo["papel"] not in ("ADMIN", "CONTROLADOR"):
+                raise HTTPException(
+                    400,
+                    "Só é possível passar o controle para quem já é controlador ou admin.",
+                )
+            if not participante_presente(alvo, ids_online, limite_de_presenca()):
+                raise HTTPException(
+                    409,
+                    f"{alvo['apelido']} está offline. O controle do placar só passa para quem está conectado.",
+                )
+            if quadra["controle_id"] == alvo["id"]:
+                return atual
+            conn.execute(
+                "UPDATE quadras SET controle_id = ?, controle_versao = controle_versao + 1 WHERE id = ?",
+                (alvo_id, quadra_id),
+            )
+            tipo, payload = (
+                TipoEvento.CONTROLE_TRANSFERIDO,
+                {
+                    "anterior_id": quadra["controle_id"],
+                    "controle_id": alvo_id,
+                    "apelido": alvo["apelido"],
+                },
+            )
         elif acao == "promover":
             if autor["papel"] != "ADMIN":
                 raise HTTPException(
@@ -146,11 +228,10 @@ def executar_sync(
                 "UPDATE participantes SET papel = 'CONTROLADOR' WHERE id = ?",
                 (alvo_id,),
             )
-            # Ao promover, transfere o controle ativo para o novo controlador imediatamente
-            conn.execute(
-                "UPDATE quadras SET controle_id = ?, controle_versao = controle_versao + 1 WHERE id = ?",
-                (alvo_id, quadra_id),
-            )
+            # Promover concede PERMISSÃO e nada mais. Passar o comando do placar
+            # é um segundo ato, explícito, feito pela ação `transferir`. Eram a
+            # mesma coisa até a CV2.DS2.US5, e por isso o admin perdia o placar
+            # sem querer ao autorizar alguém a ajudar.
             tipo, payload = (
                 TipoEvento.PAPEL_ALTERADO,
                 {
@@ -244,9 +325,13 @@ def executar_sync(
                 (nova_partida_id, quadra_id, agora),
             )
             payload_nova = {
-                "alvo": estado["alvo"],
-                "vantagem": estado["vantagem"],
-                "teto": estado["teto"],
+                "alvo": kwargs.get("alvo")
+                if kwargs.get("alvo") is not None
+                else estado["alvo"],
+                "vantagem": kwargs.get("vantagem")
+                if kwargs.get("vantagem") is not None
+                else estado["vantagem"],
+                "teto": kwargs.get("teto") if "teto" in kwargs else estado["teto"],
                 "equipe_a": kwargs.get("equipe_a")
                 or estado.get("equipe_a", "Equipe A"),
                 "equipe_b": kwargs.get("equipe_b")
@@ -274,6 +359,29 @@ def executar_sync(
             resultado = snapshot(conn, quadra_id)
             resultado["evento"] = asdict(evento)
             return resultado
+        elif acao == "configurar":
+            if autor["papel"] != "ADMIN":
+                raise HTTPException(
+                    403,
+                    "Apenas administradores podem ajustar as configurações da partida.",
+                )
+            payload_config = {}
+            for k in (
+                "equipe_a",
+                "equipe_b",
+                "jogadores_a",
+                "jogadores_b",
+                "alvo",
+                "vantagem",
+                "teto",
+            ):
+                if k in kwargs and kwargs[k] is not None:
+                    payload_config[k] = kwargs[k]
+                elif k == "teto" and "teto" in kwargs:
+                    payload_config["teto"] = kwargs["teto"]
+            if not payload_config:
+                return atual
+            tipo, payload = TipoEvento.REGRA_ALTERADA, payload_config
         else:
             raise ValueError("Comando desconhecido.")
         evento = append_evento_sync(

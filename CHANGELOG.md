@@ -8,7 +8,38 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-Nenhum desenvolvimento ativo no momento.
+Nenhum trabalho ativo em andamento neste momento. Próximo passo do roadmap: Onda 3 do CV2 (`CV2.DS3` restante e `CV1.DS2.US3` owner takeover).
+
+## 0.5.0 - 2026-09-16
+
+Boundary: minor (entrega da Onda 2 do CV2: ergonomia de arbitragem, modo sol, wake lock, modais nativos com <dialog>, QR code SVG, celebração de vitória, PWA e ciclo de múltiplas partidas com duplas configuráveis in-game)
+
+Authors: Eli (Navigator); Antigravity (Driver)
+
+Git source: claude/subagentes-backlog-features-sqbsfs (merge into master)
+
+### Added
+
+- [Ergonomia] **Modo Quadra em Paisagem** (`CV2.DS2.US1`): Orientação horizontal em tela cheia sem rolagem vertical, dividida 50/50 entre equipes e com botão de desfazer sempre acessível.
+- [Ergonomia] **Zona do Polegar** (`CV2.DS2.US2`): Botões de marcação e desfazimento posicionados ergonomicamente no terço inferior da tela móvel, com feedback tátil e estado visual `aria-busy`.
+- [Confiabilidade] **Screen Wake Lock API** (`CV2.DS2.US3`): Prevenção automática de desligamento da tela enquanto o jogo estiver em andamento, com religamento no evento `visibilitychange`.
+- [Visibilidade] **Modo Sol de Alto Contraste** (`CV2.DS2.US4`): Tema claro via atributo `data-tema="sol"` otimizado para legibilidade sob sol forte sem borrões ou reflexos de glow.
+- [Governança] **Governança de Controle e Apelidos Únicos** (`CV2.DS2.US5`, `CV2.DS2.US6`): Bloqueio de repasse de controle para participantes desconectados, auto-retorno ao admin após 15s de inatividade do operador e unicidade de apelidos na quadra.
+- [Transporte] **Reconexão Resiliente** (`CV2.DS2.TS1`): WebSocket com reconexão por backoff exponencial e jitter aleatório.
+- [Acessibilidade] **Padronização de Diálogos Nativos** (`CV2.DS4.US2`): Componente `Dialogo.svelte` baseado em `<dialog>` com focus trap, tecla Escape e clique no backdrop em todos os modais.
+- [Compartilhamento] **QR Code SVG Puro e Web Share API** (`CV2.DS4.US5`): Gerador local de QR Code SVG sem CDNs (`qrcode.js`), botão de cópia de link e integração com folha nativa de compartilhamento.
+- [Celebração] **Tela de Celebração de Vitória** (`CV2.DS4.US1`): Encerramento comemorativo com troféu pulsante, cores do campeão e atalhos rápidos.
+- [PWA & Performance] **Instalação PWA e Fontes Locais** (`CV2.DS4.US6`): Manifesto PWA `webmanifest`, ícones adaptativos e fontes locais WOFF2 latin (Inter e Teko).
+- [Produto] **Onboarding Ultralight & Configuração In-Game**: Criação de quadra sem fricção na Home (somente apelido e nome opcional) e botão de configuração in-game e no reinício para trocar duplas e ajustar regras (`POST /api/quadras/{id}/configurar` e `POST /api/quadras/{id}/reiniciar`) permitindo múltiplas partidas na mesma sala.
+
+### Debt Paid
+
+- `debt-modais-ad-hoc-e-reconexao`: Quitado com `<dialog>` nativo e backoff com jitter.
+- `debt-apelidos-e-transferencia-de-controle`: Quitado com unicidade de apelidos e governança de controle.
+- `debt-tokens-e-cores-acopladas`: Quitado com tokens em `app.css` e cores de time exclusivas.
+- `debt-codigo-mestre-no-websocket`: Quitado com allowlist no snapshot do WebSocket.
+- `debt-lotacao-fantasma`: Quitado com contagem de capacidade baseada em presença real.
+- `debt-integridade-de-toques-e-erros-422`: Quitado com fila de comandos e normalização legível de 422.
 
 ## 0.4.2 - 2026-09-15
 

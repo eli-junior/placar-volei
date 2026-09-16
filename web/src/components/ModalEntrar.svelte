@@ -1,5 +1,6 @@
 <script>
-  import { fade, slide } from 'svelte/transition';
+  import Dialogo from './Dialogo.svelte';
+  import Icone from './Icone.svelte';
 
   let { quadra, onEntrar, onVoltar, submetendo = false } = $props();
   let apelido = $state('');
@@ -29,49 +30,46 @@
   }
 </script>
 
-<div
-  class="modal-backdrop"
-  role="presentation"
-  onclick={onVoltar}
-  onkeydown={(e) => { if (e.key === 'Escape') onVoltar(); }}
-  in:fade={{ duration: 150 }}
+<Dialogo
+  rotuladoPor="titulo-entrar-quadra"
+  variante="centro"
+  largura="400px"
+  onFechar={onVoltar}
 >
-  <div
-    class="modal-card"
-    role="dialog"
-    aria-modal="true"
-    tabindex="-1"
-    onclick={(e) => e.stopPropagation()}
-    onkeydown={(e) => e.stopPropagation()}
-    in:slide={{ duration: 200 }}
-  >
+  <div class="modal-entrar">
     <header class="modal-header">
       <div>
         <span class="quadra-tag">Entrar na quadra</span>
-        <h3>{quadra?.nome || 'Quadra'}</h3>
+        <h3 id="titulo-entrar-quadra">{quadra?.nome || 'Quadra ' + (quadra?.id || '')}</h3>
       </div>
-      <button class="btn-close" onclick={onVoltar}>✕</button>
+      <button type="button" class="btn-fechar" onclick={onVoltar} aria-label="Fechar modal">
+        <Icone nome="fechar" tamanho="1.1em" />
+      </button>
     </header>
 
     <div class="info-box">
-      <span class="info-icon">ℹ️</span>
+      <Icone nome="informacao" tamanho="1.1em" class="info-icon" />
       <p>
-        Sem cadastro e sem senha. Todo participante informa um apelido para aparecer na quadra e acompanhar o placar.
+        Sem cadastro e sem senha. Informe seu apelido para aparecer na quadra e acompanhar o placar ao vivo.
       </p>
     </div>
 
-    <form onsubmit={handleSubmit}>
-      <label for="apelido-input">Seu Apelido</label>
-      <input
-        id="apelido-input"
-        type="text"
-        placeholder="Ex: Eli, Carlos, Marina..."
-        bind:value={apelido}
-        maxlength="30"
-      />
+    <form onsubmit={handleSubmit} class="form-entrar">
+      <div class="campo-grupo">
+        <label for="apelido-input">Seu Apelido</label>
+        <input
+          id="apelido-input"
+          type="text"
+          placeholder="Ex: Eli, Carlos, Marina..."
+          bind:value={apelido}
+          maxlength="30"
+          required
+          disabled={submetendo}
+        />
+      </div>
 
       {#if erro}
-        <p class="erro-msg" in:slide>{erro}</p>
+        <p class="erro-msg">{erro}</p>
       {/if}
 
       <div class="modal-actions">
@@ -84,142 +82,150 @@
       </div>
     </form>
   </div>
-</div>
+</Dialogo>
 
 <style>
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 50;
-  }
-
-  .modal-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    width: 100%;
-    max-width: 440px;
-    padding: 24px;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-  }
-
-  .modal-header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-  }
-
-  .quadra-tag {
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--accent-orange);
-    letter-spacing: 0.05em;
-  }
-
-  .modal-header h3 {
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: #ffffff;
-    margin-top: 2px;
-  }
-
-  .btn-close {
-    background: transparent;
-    color: var(--text-muted);
-    font-size: 1.2rem;
-    padding: 6px;
-    border-radius: var(--radius-sm);
-  }
-
-  .btn-close:hover {
-    color: var(--text-primary);
-  }
-
-  .info-box {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 12px 14px;
-    display: flex;
-    gap: 10px;
-    align-items: center;
-  }
-
-  .info-icon {
-    font-size: 1.1rem;
-    flex-shrink: 0;
-  }
-
-  .info-box p {
-    font-size: 0.83rem;
-    color: var(--text-secondary);
-    line-height: 1.4;
-  }
-
-  form {
+  .modal-entrar {
     display: flex;
     flex-direction: column;
     gap: 16px;
   }
 
-  label {
-    font-size: 0.88rem;
-    font-weight: 600;
+  .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 12px;
+  }
+
+  .quadra-tag {
+    font-size: var(--texto-micro);
+    color: #38bdf8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 700;
+  }
+
+  .modal-header h3 {
+    margin: 4px 0 0 0;
+    font-size: var(--texto-titulo);
+    color: var(--text-primary);
+    font-weight: 700;
+  }
+
+  .btn-fechar {
+    background: transparent;
+    border: none;
     color: var(--text-secondary);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .info-box {
+    background: rgba(56, 189, 248, 0.08);
+    border: 1px solid rgba(56, 189, 248, 0.25);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+
+  .info-box :global(.info-icon) {
+    color: #38bdf8;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .info-box p {
+    margin: 0;
+    font-size: var(--texto-legenda);
+    color: var(--text-secondary);
+    line-height: 1.4;
+  }
+
+  .form-entrar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .campo-grupo {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .campo-grupo label {
+    font-size: var(--texto-apoio);
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
+  .campo-grupo input {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+    font-size: var(--texto-corpo);
+    color: var(--text-primary);
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .campo-grupo input:focus {
+    outline: none;
+    border-color: #0284c7;
   }
 
   .erro-msg {
-    color: #ef4444;
-    font-size: 0.85rem;
-    font-weight: 500;
+    margin: 0;
+    color: #f87171;
+    font-size: var(--texto-legenda);
   }
 
   .modal-actions {
     display: flex;
-    gap: 12px;
-    margin-top: 6px;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
   }
 
   .btn-secondary {
-    flex: 1;
-    background: var(--bg-card);
-    color: var(--text-secondary);
-    padding: 14px;
+    background: transparent;
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    font-size: 1rem;
-  }
-
-  .btn-secondary:hover {
-    background: var(--bg-card-hover);
-    color: var(--text-primary);
+    padding: 10px 18px;
+    color: var(--text-secondary);
+    font-size: var(--texto-apoio);
+    font-weight: 600;
+    cursor: pointer;
   }
 
   .btn-confirm {
-    flex: 2;
-    background: var(--accent-orange);
-    color: #ffffff;
-    padding: 14px;
+    background: #0284c7;
+    border: none;
     border-radius: var(--radius-md);
-    font-size: 1rem;
+    padding: 10px 22px;
+    color: #ffffff;
+    font-size: var(--texto-apoio);
     font-weight: 700;
+    cursor: pointer;
+    transition: background 0.15s ease;
   }
 
   .btn-confirm:hover {
-    background: var(--accent-orange-hover);
+    background: #0369a1;
   }
 
-  button:disabled {
-    opacity: 0.6;
+  .btn-confirm:disabled,
+  .btn-secondary:disabled {
+    opacity: 0.5;
     cursor: not-allowed;
   }
 </style>

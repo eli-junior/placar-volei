@@ -73,9 +73,15 @@ def test_fluxo_promover_e_revogar_controladores():
             p for p in dados_promo["participantes"] if p["id"] == b_id
         )
         assert participante_b["papel"] == "CONTROLADOR"
-        # Controle é transferido para o novo controlador
-        assert dados_promo["quadra"]["controle_id"] == b_id
-        versao_b = str(dados_promo["quadra"]["controle_versao"])
+        # CV2.DS2.US5: Promover concede permissão sem transferir posse do placar automaticamente
+        assert dados_promo["quadra"]["controle_id"] == admin_id
+
+        # Controlador B assume o controle do placar
+        r_assumir_b = client_b.post(f"/api/quadras/{quadra_id}/controle/assumir")
+        assert r_assumir_b.status_code == 200
+        dados_assumir_b = r_assumir_b.json()
+        assert dados_assumir_b["quadra"]["controle_id"] == b_id
+        versao_b = str(dados_assumir_b["quadra"]["controle_versao"])
 
         # 7. Controlador B marca ponto
         r_ponto_b_ok = client_b.post(

@@ -3,7 +3,7 @@
   import HomePlacar from './components/HomePlacar.svelte';
   import ModalEntrar from './components/ModalEntrar.svelte';
   import SalaQuadra from './components/SalaQuadra.svelte';
-  import { aceitarSnapshot } from './sync.js';
+  import { aceitarSnapshot, mensagemDeErro } from './sync.js';
 
   let quadraAtual = $state(null);
   let eu = $state(null);
@@ -13,12 +13,17 @@
   let ultimoSnapshot = null;
   let submetendo = $state(false);
   let operando = $state(false);
+  // Toques que já foram aceitos e ainda não voltaram do servidor. A fila existe
+  // para que nenhum toque rápido consecutivo seja descartado em silêncio.
+  let pendentes = $state(0);
+  let filaComandos = Promise.resolve();
   let erro = $state(null);
   let modalEntrarAberto = $state(false);
   let quadraSelecionadaParaEntrar = $state(null);
   let wsConectado = $state(false);
   let wsSocket = null;
   let wsReconnectTimer = null;
+  let wsTentativasReconexao = 0;
 
   function aplicarSnapshot(data) {
     if (!aceitarSnapshot(ultimoSnapshot, data, quadraAtual?.partida_id)) return;
@@ -32,6 +37,7 @@
 
   function desconectar() {
     clearTimeout(wsReconnectTimer);
+    wsTentativasReconexao = 0;
     const anterior = wsSocket;
     wsSocket = null;
     wsConectado = false;
@@ -72,6 +78,7 @@
           if (!msg.payload.quadra || msg.payload.quadra.id !== quadraAtual?.id) return salaExpirada();
           aplicarSnapshot(msg.payload);
           wsConectado = true;
+          wsTentativasReconexao = 0;
         } else if (msg.tipo === 'PLACAR_ATUALIZADO') {
           aplicarSnapshot(msg.payload);
         } else if (msg.tipo === 'PRESENCA_ATUALIZADA') {
@@ -95,7 +102,14 @@
         erro = 'Sua sessão não é mais válida. Entre novamente com seu apelido.';
         return;
       }
-      if (quadraAtual?.id === quadraId) wsReconnectTimer = setTimeout(() => conectarWebSocket(quadraId), 2500);
+      if (quadraAtual?.id === quadraId) {
+        // Backoff exponencial com jitter (CV2.DS2.TS1)
+        const base = Math.min(1000 * Math.pow(1.5, wsTentativasReconexao), 15000);
+        const jitter = Math.random() * 800;
+        const delay = Math.round(base + jitter);
+        wsTentativasReconexao += 1;
+        wsReconnectTimer = setTimeout(() => conectarWebSocket(quadraId), delay);
+      }
     };
     socket.onerror = () => socket.close();
   }
@@ -121,7 +135,7 @@
         body: JSON.stringify(dados),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Não foi possível criar o placar.');
+      if (!res.ok) throw new Error(mensagemDeErro(data, 'Não foi possível criar o placar.'));
       abrirSala(data, data.participante);
       window.history.pushState({}, '', `/quadra/${data.id}`);
     } catch (e) { erro = e.message || 'Erro de conexão ao criar o placar.'; }
@@ -137,7 +151,7 @@
         body: JSON.stringify({ apelido }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Não foi possível entrar na sala.');
+      if (!res.ok) throw new Error(mensagemDeErro(data, 'Não foi possível entrar na sala.'));
       abrirSala(data.quadra, data.participante);
       modalEntrarAberto = false;
       quadraSelecionadaParaEntrar = null;
@@ -150,30 +164,58 @@
     if (quadraSelecionadaParaEntrar) await handleEntrarQuadraHome({ quadraId: quadraSelecionadaParaEntrar.id, apelido });
   }
 
-  async function executar(rota, body) {
-    if (!quadraAtual || !wsConectado || operando) return;
-    const sala = quadraAtual;
+  // Serializa os comandos: cada toque entra no fim da fila e é enviado quando o
+  // anterior responde. Serializar (e não ignorar) é o que garante que o 5º toque
+  // em 2 segundos vire o 5º ponto, e não um clique perdido.
+  function enfileirarComando(tarefa) {
+    pendentes += 1;
     operando = true;
-    erro = null;
-    try {
-      const res = await fetch(`/api/quadras/${sala.id}/${rota}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-control-version': String(sala.controle_versao) },
-        body: body ? JSON.stringify(body) : undefined,
+    filaComandos = filaComandos
+      .catch(() => {})
+      .then(tarefa)
+      .finally(() => {
+        pendentes = Math.max(0, pendentes - 1);
+        if (pendentes === 0) operando = false;
       });
+    return filaComandos;
+  }
+
+  function executar(rota, body) {
+    if (!quadraAtual) return Promise.resolve();
+    if (!wsConectado) {
+      // Com o socket caído os botões já estão desabilitados; se o toque vier
+      // mesmo assim (teclado, leitor de tela), o motivo aparece escrito.
+      erro = 'Sem conexão com a sala. Aguarde a reconexão para operar o placar.';
+      return Promise.resolve();
+    }
+    const sala = quadraAtual;
+    return enfileirarComando(async () => {
       if (quadraAtual?.id !== sala.id) return;
-      if (res.status === 404 && !rota.startsWith('participantes/')) return salaExpirada();
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Não foi possível realizar a ação.');
-      aplicarSnapshot(data);
-    } catch (e) {
-      if (quadraAtual?.id === sala.id) erro = e.message || 'Falha de conexão. Confira o placar antes de tentar novamente.';
-    } finally { operando = false; }
+      erro = null;
+      // A versão de controle é lida na hora do envio, não na hora do toque:
+      // o comando anterior da fila pode tê-la mudado.
+      const versao = String(quadraAtual.controle_versao);
+      try {
+        const res = await fetch(`/api/quadras/${sala.id}/${rota}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'x-control-version': versao },
+          body: body ? JSON.stringify(body) : undefined,
+        });
+        if (quadraAtual?.id !== sala.id) return;
+        if (res.status === 404 && !rota.startsWith('participantes/')) return salaExpirada();
+        const data = await res.json();
+        if (!res.ok) throw new Error(mensagemDeErro(data, 'Não foi possível realizar a ação.'));
+        aplicarSnapshot(data);
+      } catch (e) {
+        if (quadraAtual?.id === sala.id) erro = e.message || 'Falha de conexão. Confira o placar antes de tentar novamente.';
+      }
+    });
   }
 
   const handleMarcarPonto = equipe => executar('pontos', { equipe });
   const handleDesfazerPonto = () => executar('desfazer');
-  const handleIniciarNovaPartida = () => executar('reiniciar');
+  const handleIniciarNovaPartida = dados => executar('reiniciar', dados);
+  const handleConfigurarPartida = dados => executar('configurar', dados);
   const handleAssumirControle = () => executar('controle/assumir');
   const handleAutorizarAdmin = id => executar(`participantes/${id}/admin`);
   const handlePromoverControlador = id => executar(`participantes/${id}/promover`);
@@ -220,12 +262,14 @@
       onMarcarPonto={handleMarcarPonto}
       onDesfazerPonto={handleDesfazerPonto}
       onIniciarNovaPartida={handleIniciarNovaPartida}
+      onConfigurarPartida={handleConfigurarPartida}
       onVoltar={() => handleVoltarParaHome()}
       onAssumirControle={handleAssumirControle}
       onPromoverControlador={handlePromoverControlador}
       onRevogarControlador={handleRevogarControlador}
       onAutorizarAdmin={handleAutorizarAdmin}
       {operando}
+      {pendentes}
       {erro}
     />
   {:else}
