@@ -12,20 +12,17 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 - **História / Escopo**: `CV2.DS1`, `CV2.DS2`, `CV2.DS3`, `CV2.DS4` e reativação de `CV1.DS2.US3` (owner takeover). Escopo selecionado pelo Navigator em 2026-09-15: blocos completos das quatro Delivery Stories do CV2, com registro prévio dos débitos técnicos a serem quitados.
 - **Branch**: `claude/subagentes-backlog-features-sqbsfs`
-- **Passo Ariad**: `Passo 3 - Implementação` (Ondas 1 concluída e integrada; Onda 2 interrompida por limite de sessão da API)
-- **Assinatura do Agente**: `Agente: Claude Code (Driver, orquestrador) | Sessão: session_01ShnH1RU1W7WnF1Lo2j94di | Data: 2026-09-15`
-- **Coordenação**: execução por ondas com sub agentes em worktrees isolados e integração sequencial na branch de trabalho, respeitando a propriedade de arquivos para evitar reescritas concorrentes dos mesmos componentes.
-  - Onda 1: `CV2.DS1` (blindagem, backend + feedback do +1) e `CV2.DS3.TS1` (tokens visuais).
-  - Onda 2: `CV2.DS2` (ergonomia, Modo Sol, governança de controle) e `CV2.DS4` parcial (diálogos nativos, ícones, compartilhamento, PWA).
+- **Passo Ariad**: `Passo 2 - Planejamento` (Retomada do Handoff - Onda 2: CV2.DS2 e CV2.DS4)
+- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 07:30 (Retomado a partir de Claude Code via instrução do Navigator)`
+- **Coordenação**: execução por ondas sequenciais/isoladas para garantir estabilidade e testes verdes a cada etapa.
+  - Onda 1: `CV2.DS1` e `CV2.DS3.TS1` (Concluídas e integradas com 98 testes verdes).
+  - Onda 2: Conclusão de `CV2.DS2` (ergonomia, paisagem, zona do polegar, wake lock, modo sol, governança de controle e apelidos) e `CV2.DS4` (diálogos nativos `<dialog>`, ícones Lucide, QR Code puro, compartilhamento Web Share, PWA, tela de celebração e microcopy).
   - Onda 3: `CV2.DS3` restante (overflow, Home, container queries, WCAG) e `CV1.DS2.US3` (owner takeover).
-  - Onda 4: `CV2.DS4.US1` (tela de vitória) e `CV2.DS4.US4` (microcopy).
 - **Débitos abertos para quitação**: `debt-codigo-mestre-no-websocket`, `debt-lotacao-fantasma`, `debt-integridade-de-toques-e-erros-422`, `debt-tokens-e-cores-acopladas`, `debt-acessibilidade-e-overflow`, `debt-modais-ad-hoc-e-reconexao`, `debt-apelidos-e-transferencia-de-controle`.
-- **Handoff / Próximos Passos**: baseline antes da primeira onda era `uv run pytest` 90 passed. Estado atual da branch: **98 passed**, `ruff check` limpo, `ruff format --check` limpo, `npm run check` 0 erros, `npm test` 6 pass, `npm run build` OK.
-  - **Integrado e verificado**: `CV2.DS3.TS1` (tokens) em `3ab117a`; `CV2.DS1` completa (C1, C2, C3, A7) em `71c4ec5`, com estabilização de teste em `7e7ccda`.
-  - **Interrompido por limite de sessão da API em 2026-09-15**: `CV2.DS2` (não iniciada de fato, 5 linhas descartadas) e `CV2.DS4` parcial. O trabalho parcial da DS4 está preservado, **não integrado**, na branch remota `wip/cv2-ds4-parcial`: componente `Dialogo.svelte` sobre `<dialog>`, `Icone.svelte`, `web/src/lib/icones.js`, encoder de QR Code sem dependência em `web/src/lib/qrcode.js` e as fontes Teko e Inter em woff2 legítimo. A base dessa branch é anterior aos merges acima — **rebasear antes de retomar**.
-  - **Pendente**: `CV2.DS2` completa (7 histórias), `CV2.DS4` (retomar parcial + US1 tela de vitória + US4 microcopy), `CV2.DS3` restante (US1 a US5, incluindo os 23 ajustes de componente listados na seção 9 do plano do TS1) e `CV1.DS2.US3` (owner takeover).
-  - **Parada solicitada pelo Navigator em 2026-09-16**: a Onda 2 foi interrompida de novo, agora a pedido. O trabalho parcial dos dois agentes está preservado e **não integrado** nas branches remotas `wip/cv2-ds2-parcial` (backend de governança de controle e apelidos únicos, base correta, sem testes escritos) e `wip/cv2-ds4-parcial` (encoder de QR validado contra referência, **base desatualizada, precisa de rebase**).
-  - **Instruções completas de retomada**: `docs/process/worklog/entries/2026-09-16T0130Z-agent-cv2-ondas-1-e-2-e-instrucoes-de-retomada.md`.
+- **Handoff / Próximos Passos**: baseline verificado e estabilizado com 98 testes pytest verdes, linters limpos e npm check/test 100%.
+  - **Em Retomada (Onda 2)**:
+    1. Integrar backend e testes de `origin/wip/cv2-ds2-parcial` (US5 governança e US6 apelidos) e implementar ergonomia frontend (US1 modo paisagem, US2 zona do polegar, US3 wake lock, US4 Modo Sol, TS1 reconexão com backoff).
+    2. Rebasear `origin/wip/cv2-ds4-parcial`, integrar `Dialogo.svelte`, `Icone.svelte`, `qrcode.js` e finalizar US1 (tela de vitória), US4 (microcopy) e US6 (PWA/fontes locais).
   - Merge em `master` somente após validação do Navigator (Checkpoint 4).
 
 ### Débitos técnicos registrados
