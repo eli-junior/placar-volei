@@ -1,9 +1,9 @@
 ---
 code: CV2.DS3
 level: Delivery Story
-status: Planned
-status_reason: Registrado no backlog para execução futura
-updated: 2026-09-15
+status: Done
+status_reason: Entregue integralmente na Onda 3 com layouts fluidos, Home ao vivo, entrada 1 toque, WCAG 2.2 e quitação de débito técnico
+updated: 2026-09-16
 related:
   - docs/project/briefing.md
   - docs/project/roadmap/cv2-experiencia-na-quadra-e-confiabilidade/index.md

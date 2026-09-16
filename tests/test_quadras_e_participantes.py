@@ -201,3 +201,52 @@ async def test_limites_capacidade():
         )
         assert r_p3.status_code == 400
         assert "limite máximo" in r_p3.json()["detail"].lower()
+
+
+@pytest.mark.asyncio
+async def test_listagem_quadras_inclui_resumo_partida():
+    """GET /api/quadras deve incluir dados da partida ativa para a Home."""
+    async with httpx.AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        # Cria quadra com duplas e pontuação
+        r_cria = await client.post(
+            "/api/quadras",
+            json={
+                "nome": "Arena Central",
+                "apelido": "Carlos",
+                "time_a_jogador1": "Carlos",
+                "time_a_jogador2": "Daniel",
+                "time_b_jogador1": "Roberto",
+                "time_b_jogador2": "Eduardo",
+                "alvo": 21,
+            },
+        )
+        assert r_cria.status_code == 201
+        dados_quadra = r_cria.json()
+        quadra_id = dados_quadra["id"]
+        controle_versao = dados_quadra["controle_versao"]
+
+        # Marca ponto para equipe A
+        r_ponto = await client.post(
+            f"/api/quadras/{quadra_id}/pontos",
+            json={"equipe": "A"},
+            headers={"x-control-version": str(controle_versao)},
+        )
+        assert r_ponto.status_code == 201
+
+        # Lista quadras públicas
+        r_lista = await client.get("/api/quadras")
+        assert r_lista.status_code == 200
+        lista = r_lista.json()["quadras"]
+        quadra_encontrada = next((q for q in lista if q["id"] == quadra_id), None)
+        assert quadra_encontrada is not None
+        assert "partida" in quadra_encontrada
+        p = quadra_encontrada["partida"]
+        assert p is not None
+        assert p["pontos_a"] == 1
+        assert p["pontos_b"] == 0
+        assert "Carlos / Daniel" in p["equipe_a"]
+        assert "Roberto / Eduardo" in p["equipe_b"]
+        assert p["alvo"] == 21
+        assert p["encerrada"] is False

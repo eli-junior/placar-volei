@@ -8,8 +8,14 @@ from typing import Any
 
 from app.config import settings
 from app.db import get_db
-from app.eventos import TipoEvento, append_evento_sync, get_quadra_lock
+from app.eventos import (
+    TipoEvento,
+    append_evento_sync,
+    carregar_eventos_sync,
+    get_quadra_lock,
+)
 from app.identidade import hash_sessao
+from app.projecao import projetar_estado
 
 
 class CapacidadeEsgotada(ValueError):
@@ -317,16 +323,40 @@ def listar_quadras_sync(db_path: str) -> list[dict[str, Any]]:
         """
         cursor.execute(query)
         rows = cursor.fetchall()
-        return [
-            {
-                "id": r["id"],
-                "nome": r["nome"],
-                "criado_em": r["criado_em"],
-                "atualizado_em": r["atualizado_em"],
-                "participantes_count": r["participantes_count"],
-            }
-            for r in rows
-        ]
+        resultado = []
+        for r in rows:
+            quadra_id = r["id"]
+            partida_row = conn.execute(
+                "SELECT id FROM partidas WHERE quadra_id = ? ORDER BY criado_em DESC LIMIT 1",
+                (quadra_id,),
+            ).fetchone()
+            dados_partida = None
+            if partida_row:
+                evs = carregar_eventos_sync(db_path, partida_row["id"], connection=conn)
+                est = projetar_estado(evs)
+                dados_partida = {
+                    "partida_id": partida_row["id"],
+                    "pontos_a": est.pontos_a,
+                    "pontos_b": est.pontos_b,
+                    "equipe_a": est.equipe_a,
+                    "equipe_b": est.equipe_b,
+                    "alvo": est.alvo,
+                    "vantagem": est.vantagem,
+                    "teto": est.teto,
+                    "encerrada": est.encerrada,
+                    "vencedor": est.vencedor,
+                }
+            resultado.append(
+                {
+                    "id": r["id"],
+                    "nome": r["nome"],
+                    "criado_em": r["criado_em"],
+                    "atualizado_em": r["atualizado_em"],
+                    "participantes_count": r["participantes_count"],
+                    "partida": dados_partida,
+                }
+            )
+        return resultado
 
 
 async def listar_quadras(db_path: str) -> list[dict[str, Any]]:

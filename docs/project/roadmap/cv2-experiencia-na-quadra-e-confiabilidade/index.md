@@ -1,8 +1,8 @@
 ---
 code: CV2
 level: Value
-status: Active
-status_reason: Ondas 1 (CV2.DS1, CV2.DS3.TS1) e 2 (CV2.DS2, CV2.DS4) implementadas e validadas; Onda 3 em planejamento
+status: Done
+status_reason: Todas as 4 Delivery Stories (DS1, DS2, DS3, DS4) concluídas, validadas e integradas na master
 updated: 2026-09-16
 related:
   - docs/project/briefing.md

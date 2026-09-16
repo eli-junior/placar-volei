@@ -472,3 +472,22 @@ summary:focus-visible,
 .status-offline {
   background-color: var(--texto-apagado);
 }
+
+/* Utilitário para leitores de tela (WCAG 2.2 / CV2.DS3.US5) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* Proteção contra overflow horizontal indesejado (CV2.DS3.US1) */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+}

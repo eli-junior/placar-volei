@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     admin_timeout_seconds: int = 120
     host: str = "0.0.0.0"
     port: int = 8000
-    version: str = "0.5.0"
+    version: str = "0.6.0"
     reset_db_on_startup: bool = False
 
     # Limites de capacidade e ciclo de vida

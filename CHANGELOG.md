@@ -8,7 +8,27 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo em andamento neste momento. Próximo passo do roadmap: Onda 3 do CV2 (`CV2.DS3` restante e `CV1.DS2.US3` owner takeover).
+*Nenhum trabalho ativo em andamento no momento.*
+
+## 0.6.0 - 2026-09-16
+
+Boundary: minor (conclusão do Capability Value 2 completo: layouts fluidos sem overflow, Home com placar ao vivo, entrada em 1 toque, conformidade WCAG 2.2 com zoom e leitores de tela, e quitação total do Technical Debt Ledger)
+
+Authors: Eli (Navigator); Antigravity (Driver)
+
+Git source: feature/cv2-ds3-layouts-fluidos-e-acessibilidade (merge into master)
+
+### Added
+
+- [Responsividade & Layout] **Grid Fluido e Prevenção Global de Overflow** (`CV2.DS3.US1`): Contenção de viewport com `overflow-x: hidden; max-width: 100vw;` e grade responsiva de 2 colunas para desktop (≥960px).
+- [Home & Descoberta] **Placar ao Vivo e Indicador 'Ao Vivo' na Home** (`CV2.DS3.US2`): Projeção síncrona leve em `GET /api/quadras` com placar parcial, nomes das equipes e badge pulsante `AO VIVO`.
+- [Acesso Rápido] **Entrada em 1 Toque para Espectadores** (`CV2.DS3.US3`): Acesso instantâneo à sala a partir do card da quadra sem telas intermediárias se o apelido já estiver registrado.
+- [Ergonomia Visual] **Placar do Espectador em Retrato Otimizado** (`CV2.DS3.US4`): Escala de cartões aproveitando até ~40% da altura da tela móvel em retrato via container queries.
+- [Acessibilidade] **Conformidade WCAG 2.2** (`CV2.DS3.US5`): Zoom 200% reabilitado (`user-scalable` desbloqueado), alvos de toque mínimos de 44×44px em todos os botões e narração dinâmica via leitor de tela (`role="status" aria-live="polite"`).
+
+### Debt Paid
+
+- `debt-acessibilidade-e-overflow`: Quitado. Zero débitos técnicos remanescentes no ledger do projeto.
 
 ## 0.5.0 - 2026-09-16
 
