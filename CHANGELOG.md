@@ -8,25 +8,38 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-### CV2 — Excelência na Quadra e Confiabilidade do Placar
+Nenhum trabalho ativo em andamento neste momento. Próximo passo do roadmap: Onda 3 do CV2 (`CV2.DS3` restante e `CV1.DS2.US3` owner takeover).
 
-- **História / Escopo**: `CV2.DS1`, `CV2.DS2`, `CV2.DS4` e reativação de `CV1.DS2.US3` (owner takeover). Escopo da Onda 2: Modo Paisagem Otimizado (`CV2.DS2.US1`), Zona do Polegar (`CV2.DS2.US2`), Wake Lock API (`CV2.DS2.US3`), Modo Sol de Alto Contraste (`CV2.DS2.US4`), Governança de Controle (`CV2.DS2.US5`), Apelidos Únicos por Sala (`CV2.DS2.US6`), Reconexão com Backoff Exponencial + Jitter (`CV2.DS2.TS1`), Modal de Celebração de Vitória Memorável (`CV2.DS4.US1`), Compartilhamento Nativo com QR Code SVG puro e Web Share API (`CV2.DS4.US2`), Migração para Diálogos Nativos `<dialog>` com acessibilidade (`CV2.DS4.US3`), PWA / Fontes Locais (`CV2.DS4.US6`), além do onboarding ultralight na Home e configuração in-game/reinício de duplas e regras de jogo (solicitação do Navigator).
-- **Branch**: `claude/subagentes-backlog-features-sqbsfs`
-- **Passo Ariad**: `Passo 7 - Conclusão e Merge` (Aguardando autorização para merge em master)
-- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 09:40`
-- **Coordenação**: execução por ondas sequenciais/isoladas para garantir estabilidade e testes verdes a cada etapa.
-  - Onda 1: `CV2.DS1` e `CV2.DS3.TS1` (Concluídas e integradas com 98 testes verdes).
-  - Onda 2: `CV2.DS2` e `CV2.DS4` completamente implementados (backend e frontend) com 113 testes pytest verdes, 21 testes node/frontend verdes, svelte-check 0 erros / 0 warnings e linters ruff 100% limpos.
-  - Onda 3: `CV2.DS3` restante (overflow, Home refinamento, container queries) e `CV1.DS2.US3` (owner takeover).
-- **Débitos abertos para quitação**: `debt-codigo-mestre-no-websocket`, `debt-lotacao-fantasma`, `debt-integridade-de-toques-e-erros-422`, `debt-tokens-e-cores-acopladas`, `debt-acessibilidade-e-overflow`, `debt-modais-ad-hoc-e-reconexao`, `debt-apelidos-e-transferencia-de-controle`.
-- **Handoff / Próximos Passos**:
-  - Testes automatizados executados e 100% verdes (113 pytest, 21 frontend, ruff ok, svelte-check ok).
-  - Checkpoint 2 apresentado para o Navigator com a rota de validação passo a passo na interface do navegador.
-  - Próximo passo após validação do Navigator: Checkpoint 3 (Revisão e Technical Debt Ledger) e Checkpoint 4 (Documentação e Merge).
+## 0.5.0 - 2026-09-16
 
-### Débitos técnicos registrados
+Boundary: minor (entrega da Onda 2 do CV2: ergonomia de arbitragem, modo sol, wake lock, modais nativos com <dialog>, QR code SVG, celebração de vitória, PWA e ciclo de múltiplas partidas com duplas configuráveis in-game)
 
-- [Débito] Sete itens criados em `docs/project/debt/items/` marcando a dívida que o CV2 se propõe a quitar, com origem, razão de carregamento e condição de fechamento.
+Authors: Eli (Navigator); Antigravity (Driver)
+
+Git source: claude/subagentes-backlog-features-sqbsfs (merge into master)
+
+### Added
+
+- [Ergonomia] **Modo Quadra em Paisagem** (`CV2.DS2.US1`): Orientação horizontal em tela cheia sem rolagem vertical, dividida 50/50 entre equipes e com botão de desfazer sempre acessível.
+- [Ergonomia] **Zona do Polegar** (`CV2.DS2.US2`): Botões de marcação e desfazimento posicionados ergonomicamente no terço inferior da tela móvel, com feedback tátil e estado visual `aria-busy`.
+- [Confiabilidade] **Screen Wake Lock API** (`CV2.DS2.US3`): Prevenção automática de desligamento da tela enquanto o jogo estiver em andamento, com religamento no evento `visibilitychange`.
+- [Visibilidade] **Modo Sol de Alto Contraste** (`CV2.DS2.US4`): Tema claro via atributo `data-tema="sol"` otimizado para legibilidade sob sol forte sem borrões ou reflexos de glow.
+- [Governança] **Governança de Controle e Apelidos Únicos** (`CV2.DS2.US5`, `CV2.DS2.US6`): Bloqueio de repasse de controle para participantes desconectados, auto-retorno ao admin após 15s de inatividade do operador e unicidade de apelidos na quadra.
+- [Transporte] **Reconexão Resiliente** (`CV2.DS2.TS1`): WebSocket com reconexão por backoff exponencial e jitter aleatório.
+- [Acessibilidade] **Padronização de Diálogos Nativos** (`CV2.DS4.US2`): Componente `Dialogo.svelte` baseado em `<dialog>` com focus trap, tecla Escape e clique no backdrop em todos os modais.
+- [Compartilhamento] **QR Code SVG Puro e Web Share API** (`CV2.DS4.US5`): Gerador local de QR Code SVG sem CDNs (`qrcode.js`), botão de cópia de link e integração com folha nativa de compartilhamento.
+- [Celebração] **Tela de Celebração de Vitória** (`CV2.DS4.US1`): Encerramento comemorativo com troféu pulsante, cores do campeão e atalhos rápidos.
+- [PWA & Performance] **Instalação PWA e Fontes Locais** (`CV2.DS4.US6`): Manifesto PWA `webmanifest`, ícones adaptativos e fontes locais WOFF2 latin (Inter e Teko).
+- [Produto] **Onboarding Ultralight & Configuração In-Game**: Criação de quadra sem fricção na Home (somente apelido e nome opcional) e botão de configuração in-game e no reinício para trocar duplas e ajustar regras (`POST /api/quadras/{id}/configurar` e `POST /api/quadras/{id}/reiniciar`) permitindo múltiplas partidas na mesma sala.
+
+### Debt Paid
+
+- `debt-modais-ad-hoc-e-reconexao`: Quitado com `<dialog>` nativo e backoff com jitter.
+- `debt-apelidos-e-transferencia-de-controle`: Quitado com unicidade de apelidos e governança de controle.
+- `debt-tokens-e-cores-acopladas`: Quitado com tokens em `app.css` e cores de time exclusivas.
+- `debt-codigo-mestre-no-websocket`: Quitado com allowlist no snapshot do WebSocket.
+- `debt-lotacao-fantasma`: Quitado com contagem de capacidade baseada em presença real.
+- `debt-integridade-de-toques-e-erros-422`: Quitado com fila de comandos e normalização legível de 422.
 
 ## 0.4.2 - 2026-09-15
 
