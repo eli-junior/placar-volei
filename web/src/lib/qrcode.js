@@ -14,9 +14,9 @@
  *    superfície de auditoria do frontend não cresce.
  *
  * Escopo deliberado: modo **byte** (Latin-1/UTF-8), versões **1 a 10**, todos
- * os quatro níveis de correção. Isso cobre até 271 bytes no nível M, muito
- * acima de qualquer URL de sala. Conteúdo maior lança erro em vez de degradar
- * em silêncio.
+ * os quatro níveis de correção. Isso cobre até 271 bytes no nível L e 213 no
+ * nível M — muito acima de qualquer URL de sala. Conteúdo maior lança erro em
+ * vez de degradar em silêncio.
  *
  * Referência: ISO/IEC 18004. As tabelas abaixo são as do padrão.
  */
@@ -361,27 +361,53 @@ const MASCARAS = [
   (l, c) => (((l + c) % 2) + ((l * c) % 3)) % 2 === 0,
 ];
 
-/** Penalidade do padrão (regras N1..N4 do ISO/IEC 18004). */
+/**
+ * Penalidade do padrão (regras N1..N4 do ISO/IEC 18004, §8.8.2).
+ *
+ * A nota decide qual das oito máscaras é aplicada. Ela não afeta a validade de
+ * um símbolo já gerado — qualquer máscara produz um QR legível —, mas afeta o
+ * quanto o leitor sofre para achar o símbolo em cima do painel da quadra. Por
+ * isso a implementação segue o algoritmo do padrão à risca, e não uma
+ * aproximação: o teste compara a matriz final com a da implementação de
+ * referência, e máscara diferente significa matriz inteira diferente.
+ *
+ * As quatro regras:
+ *
+ * - **N1** — sequência de 5 ou mais módulos da mesma cor em linha ou coluna:
+ *   3 pontos pelos cinco primeiros e 1 ponto por módulo adicional.
+ * - **N2** — cada bloco 2×2 de mesma cor: 3 pontos.
+ * - **N3** — trecho com a proporção do localizador (n:n:3n:n:n) tendo 4n
+ *   módulos claros de um dos lados: 40 pontos por ocorrência, contada de cada
+ *   lado separadamente. A proporção é escalável (n ≥ 1), não apenas 1:1:3:1:1,
+ *   e a margem clara fora do símbolo conta como espaço claro.
+ * - **N4** — desvio da proporção de módulos escuros em relação a 50%:
+ *   10 pontos por faixa de 5 pontos percentuais de desvio.
+ */
 export function penalidade(modulos) {
   const tamanho = modulos.length;
   let total = 0;
 
-  // N1: sequências de 5 ou mais módulos iguais.
-  for (let i = 0; i < tamanho; i++) {
-    for (const horizontal of [true, false]) {
-      let contagem = 1;
-      let anterior = horizontal ? modulos[i][0] : modulos[0][i];
-      for (let j = 1; j < tamanho; j++) {
-        const atual = horizontal ? modulos[i][j] : modulos[j][i];
-        if (atual === anterior) {
-          contagem++;
+  // N1 e N3 percorrem linhas e colunas compartilhando o mesmo histórico de
+  // sequências: N1 conta o comprimento, N3 lê a proporção das últimas sete.
+  for (const porLinha of [true, false]) {
+    for (let i = 0; i < tamanho; i++) {
+      const historico = [0, 0, 0, 0, 0, 0, 0];
+      let corAtual = false; // a varredura começa comparando com claro
+      let sequencia = 0;
+      for (let j = 0; j < tamanho; j++) {
+        const modulo = porLinha ? modulos[i][j] : modulos[j][i];
+        if (modulo === corAtual) {
+          sequencia++;
+          if (sequencia === 5) total += 3;
+          else if (sequencia > 5) total += 1;
         } else {
-          if (contagem >= 5) total += 3 + (contagem - 5);
-          contagem = 1;
-          anterior = atual;
+          empurrarHistorico(sequencia, historico, tamanho);
+          if (!corAtual) total += contarPadroesDeLocalizador(historico) * 40;
+          corAtual = modulo;
+          sequencia = 1;
         }
       }
-      if (contagem >= 5) total += 3 + (contagem - 5);
+      total += encerrarHistorico(corAtual, sequencia, historico, tamanho) * 40;
     }
   }
 
@@ -395,36 +421,62 @@ export function penalidade(modulos) {
     }
   }
 
-  // N3: padrão 1:1:3:1:1 com quatro claros de um dos lados.
-  const alvo = [true, false, true, true, true, false, true];
-  const claros = [false, false, false, false];
-  const combina = (linha, inicio, horizontal, sequencia) => {
-    for (let k = 0; k < sequencia.length; k++) {
-      const l = horizontal ? linha : inicio + k;
-      const c = horizontal ? inicio + k : linha;
-      if (l < 0 || c < 0 || l >= tamanho || c >= tamanho) return false;
-      if (modulos[l][c] !== sequencia[k]) return false;
-    }
-    return true;
-  };
-  for (let i = 0; i < tamanho; i++) {
-    for (let j = 0; j < tamanho; j++) {
-      for (const horizontal of [true, false]) {
-        if (!combina(i, j, horizontal, alvo)) continue;
-        const antes = combina(i, j - 4, horizontal, claros);
-        const depois = combina(i, j + 7, horizontal, claros);
-        if (antes || depois) total += 40;
-      }
-    }
-  }
-
   // N4: desvio da proporção de módulos escuros em relação a 50%.
   let escuros = 0;
   for (const linha of modulos) for (const modulo of linha) if (modulo) escuros++;
-  const proporcao = (escuros * 100) / (tamanho * tamanho);
-  total += Math.floor(Math.abs(proporcao - 50) / 5) * 10;
+  const modulosTotais = tamanho * tamanho;
+  const faixas = Math.ceil(Math.abs(escuros * 20 - modulosTotais * 10) / modulosTotais) - 1;
+  total += faixas * 10;
 
   return total;
+}
+
+/**
+ * Empurra uma sequência para o histórico das últimas sete.
+ *
+ * Na primeira inserção da varredura o histórico ainda está zerado: é o momento
+ * em que a margem clara à esquerda (ou acima) do símbolo precisa ser somada,
+ * porque para o leitor ela é espaço claro contínuo.
+ */
+function empurrarHistorico(sequencia, historico, tamanho) {
+  const comprimento = historico[0] === 0 ? sequencia + tamanho : sequencia;
+  historico.pop();
+  historico.unshift(comprimento);
+}
+
+/**
+ * Quantas vezes o histórico contém a proporção do localizador com 4n módulos
+ * claros de um dos lados. Os dois lados são contados separadamente, como manda
+ * o padrão: um trecho cercado de claro dos dois lados vale 80 pontos.
+ */
+function contarPadroesDeLocalizador(historico) {
+  const n = historico[1];
+  const nucleo =
+    n > 0 &&
+    historico[2] === n &&
+    historico[3] === n * 3 &&
+    historico[4] === n &&
+    historico[5] === n;
+  if (!nucleo) return 0;
+  return (
+    (historico[0] >= n * 4 && historico[6] >= n ? 1 : 0) +
+    (historico[6] >= n * 4 && historico[0] >= n ? 1 : 0)
+  );
+}
+
+/**
+ * Fecha a linha ou coluna somando a margem clara à direita (ou abaixo) do
+ * símbolo, e devolve as ocorrências de N3 que só aparecem no fechamento.
+ */
+function encerrarHistorico(corAtual, sequencia, historico, tamanho) {
+  let corrente = sequencia;
+  if (corAtual) {
+    empurrarHistorico(corrente, historico, tamanho);
+    corrente = 0;
+  }
+  corrente += tamanho; // margem clara depois do símbolo
+  empurrarHistorico(corrente, historico, tamanho);
+  return contarPadroesDeLocalizador(historico);
 }
 
 /**
@@ -455,14 +507,21 @@ function escreverFormato(modulos, nivel, mascara) {
   const formato = bitsDeFormato(nivel, mascara);
   const bit = (i) => ((formato >> i) & 1) === 1;
 
-  for (let i = 0; i <= 5; i++) modulos[8][i] = bit(i);
-  modulos[8][7] = bit(6);
+  // Primeira cópia, em volta do localizador superior esquerdo: os bits 0..8
+  // descem pela COLUNA 8 e os bits 9..14 seguem pela LINHA 8 em direção à
+  // borda esquerda. A orientação importa: escrever a cópia transposta produz
+  // um símbolo que qualquer leitor rejeita, porque ele lê o formato nestas
+  // posições exatas antes de saber a máscara.
+  for (let i = 0; i <= 5; i++) modulos[i][8] = bit(i);
+  modulos[7][8] = bit(6);
   modulos[8][8] = bit(7);
-  modulos[7][8] = bit(8);
-  for (let i = 9; i <= 14; i++) modulos[14 - i][8] = bit(i);
+  modulos[8][7] = bit(8);
+  for (let i = 9; i <= 14; i++) modulos[8][14 - i] = bit(i);
 
-  for (let i = 0; i <= 7; i++) modulos[tamanho - 1 - i][8] = bit(i);
-  for (let i = 8; i <= 14; i++) modulos[8][tamanho - 15 + i] = bit(i);
+  // Segunda cópia: bits 0..7 na LINHA 8 junto ao localizador superior direito
+  // e bits 8..14 na COLUNA 8 junto ao localizador inferior esquerdo.
+  for (let i = 0; i <= 7; i++) modulos[8][tamanho - 1 - i] = bit(i);
+  for (let i = 8; i <= 14; i++) modulos[tamanho - 15 + i][8] = bit(i);
 
   modulos[tamanho - 8][8] = true; // módulo escuro permanente
 }
