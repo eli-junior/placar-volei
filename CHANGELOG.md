@@ -24,6 +24,8 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
   - **Integrado e verificado**: `CV2.DS3.TS1` (tokens) em `3ab117a`; `CV2.DS1` completa (C1, C2, C3, A7) em `71c4ec5`, com estabilização de teste em `7e7ccda`.
   - **Interrompido por limite de sessão da API em 2026-09-15**: `CV2.DS2` (não iniciada de fato, 5 linhas descartadas) e `CV2.DS4` parcial. O trabalho parcial da DS4 está preservado, **não integrado**, na branch remota `wip/cv2-ds4-parcial`: componente `Dialogo.svelte` sobre `<dialog>`, `Icone.svelte`, `web/src/lib/icones.js`, encoder de QR Code sem dependência em `web/src/lib/qrcode.js` e as fontes Teko e Inter em woff2 legítimo. A base dessa branch é anterior aos merges acima — **rebasear antes de retomar**.
   - **Pendente**: `CV2.DS2` completa (7 histórias), `CV2.DS4` (retomar parcial + US1 tela de vitória + US4 microcopy), `CV2.DS3` restante (US1 a US5, incluindo os 23 ajustes de componente listados na seção 9 do plano do TS1) e `CV1.DS2.US3` (owner takeover).
+  - **Parada solicitada pelo Navigator em 2026-09-16**: a Onda 2 foi interrompida de novo, agora a pedido. O trabalho parcial dos dois agentes está preservado e **não integrado** nas branches remotas `wip/cv2-ds2-parcial` (backend de governança de controle e apelidos únicos, base correta, sem testes escritos) e `wip/cv2-ds4-parcial` (encoder de QR validado contra referência, **base desatualizada, precisa de rebase**).
+  - **Instruções completas de retomada**: `docs/process/worklog/entries/2026-09-16T0130Z-agent-cv2-ondas-1-e-2-e-instrucoes-de-retomada.md`.
   - Merge em `master` somente após validação do Navigator (Checkpoint 4).
 
 ### Débitos técnicos registrados
