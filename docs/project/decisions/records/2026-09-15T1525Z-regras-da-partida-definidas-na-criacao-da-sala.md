@@ -1,13 +1,15 @@
 ---
-status: Decided
+status: Superseded
 raised: 2026-09-15
 decided: 2026-09-15
 deciders:
   - Navigator
 supersedes:
+superseded_by: docs/project/decisions/records/2026-09-16T0800Z-onboarding-ultralight-e-configuracao-de-duplas-e-regras-pos-criacao.md
 related:
   - CV1.DS3.US1
   - CV1.DS3
+  - CV2.DS2
 ---
 
 # Regras da partida definidas na criação da sala

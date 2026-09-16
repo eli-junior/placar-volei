@@ -1,9 +1,9 @@
 ---
 code: CV2.DS4
 level: Delivery Story
-status: Planned
-status_reason: Registrado no backlog para execução futura
-updated: 2026-09-15
+status: Validated
+status_reason: Implementado na Onda 2 e validado pelo Navigator em 2026-09-16
+updated: 2026-09-16
 related:
   - docs/project/briefing.md
   - docs/project/roadmap/cv2-experiencia-na-quadra-e-confiabilidade/index.md
