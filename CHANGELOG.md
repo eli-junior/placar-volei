@@ -8,7 +8,13 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo em andamento neste momento. Próximo passo do roadmap: Onda 3 do CV2 (`CV2.DS3` restante e `CV1.DS2.US3` owner takeover).
+### CV2.DS3 — Sistema Visual, Layouts Fluidos e Acessibilidade WCAG (Onda 3)
+
+- **História / Escopo**: `CV2.DS3` (US1 eliminação de overflow horizontal 360px-1440px, US2/US3 Home "Ao Vivo Agora" com placares em tempo real e entrada em 1 toque, US4 container queries no placar do espectador para números gigantescos em retrato, US5 conformidade WCAG 2.2 com zoom habilitado, alvos de toque 44px e anúncios `aria-live`). Quitação do débito técnico `debt-acessibilidade-e-overflow`.
+- **Branch**: `feature/cv2-ds3-layouts-fluidos-e-acessibilidade`
+- **Passo Ariad**: `Passo 2 - Planejamento`
+- **Assinatura do Agente**: `Agente: Antigravity (Driver) | Sessão: 82b70c72-f459-42e1-ad2d-c7da636ff210 | Data: 2026-09-16 09:56`
+- **Handoff / Próximos Passos**: Apresentar Checkpoint 1 (Plano) para validação do Navigator antes de codificar.
 
 ## 0.5.0 - 2026-09-16
 
