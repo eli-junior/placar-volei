@@ -2,13 +2,39 @@
 
 Este changelog registra tanto o **trabalho ativo em andamento** (para coordenação multi-agente e handoff) quanto as **versões fechadas**.
 
-A seção `## [Em Andamento]` no topo do arquivo rastreia todas as branches ativas geradas a partir da branch principal (`main`/`master`). Todo novo desenvolvimento deve ser registrado aqui com a branch, a história, o passo atual do ciclo Ariad, a assinatura do agente responsável e notas de handoff.
-
-Quando uma história é validada e integrada na `main`, seu registro é removido de `[Em Andamento]` e incorporado à versão fechada correspondente.
-
-## [Em Andamento]
+A seção `## [Em Andamento]
 
 *Nenhum trabalho ativo em andamento no momento.*
+
+## 0.6.1 - 2026-09-20
+
+Boundary: patch (o Modo Sol passa a valer para a tela inteira: placar, sobreposicoes e acentos deixam de usar cor literal)
+
+Authors: Eli (Navigator); Claude Opus 5 (Driver)
+
+Git source: fix/modo-sol-placar (merge into master)
+
+### Fixed
+
+- [Tema] **Modo Sol aplicado ao placar e as superficies fixas**: o tema claro trocava apenas os tokens de `:root`, mas os componentes ainda carregavam cerca de 130 cores literais — o fundo clareava e o placar continuava preto. Os cartoes do placar viram papel branco com numeral preto puro (21:1), sem gradiente e sem brilho neon; as 44 sobreposicoes `rgba(255, 255, 255, x)` passam pelo token `--veu`; o azul de informacao, o texto dos badges e os estados de erro ganham variantes escurecidas para manter contraste sobre fundo claro.
+- [Tema] **Superficies escuras literais na Home e na sala**: `#0f172a`, `#1e293b`, `#334155` e afins estavam escritos nos componentes e nao acompanhavam o tema. Agora resolvem por token.
+
+### Added
+
+- [Design System] Tokens `--veu`, `--cartao-*`, `--ilhos-*`, `--acento-info-*`, `--badge-*-texto`, `--texto-medio`, `--estado-erro-suave` e `--borda-ativa-rgb`, documentados em `docs/product/design-tokens.md`.
+
+### Decisions
+
+- `cores-de-tema-como-token-e-veu-como-canal-de-cor`: nenhum componente declara cor literal, e o veu e publicado como canal de cor em vez de escala fechada de opacidade — a escala exigiria reclassificar 17 opacidades e alteraria a aparencia do Modo Noite.
+
+### Debt
+
+- `debt-contraste-do-modo-sol-sem-verificacao-automatica` (Carried): o contraste dos dois temas e verificado a mao; o projeto nao tem runner de browser.
+
+### Verification
+
+- Paridade do Modo Noite provada comparando o CSS construido antes e depois com as variaveis resolvidas: 388 regras de cor, 381 identicas, 7 consolidacoes deliberadas de tons quase iguais.
+- `npm test` 21/21, `pytest` 114/114, `npm run build` ok. Modo Sol e Modo Noite validados manualmente pelo Navigator.
 
 ## 0.6.0 - 2026-09-16
 

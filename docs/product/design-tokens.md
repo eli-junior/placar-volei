@@ -99,11 +99,48 @@ O amarelo de marca é também a cor da ação primária do sistema — justament
 
 ### Estados
 
-`--estado-sucesso` (e `--estado-sucesso-brilho`), `--estado-alerta`, `--estado-erro`, `--estado-neutro`.
+`--estado-sucesso` (e `--estado-sucesso-brilho`), `--estado-alerta`, `--estado-erro`, `--estado-erro-suave`, `--estado-neutro`.
+
+### Informação
+
+`--acento-info`, `--acento-info-forte`, `--acento-info-ativo`, `--acento-info-texto`.
+
+O azul das ações de sala: PIN, entrar, compartilhar, assumir controle. Não é cor de time e não é a ação primária do sistema — é o tom informativo. Existe como token porque no Modo Sol ele precisa escurecer para manter contraste sobre fundo claro.
+
+### Véu
+
+`--veu` é o único token que publica **apenas o canal de cor**, sem opacidade:
+
+```css
+background: rgba(var(--veu), 0.08);
+border: 1px solid rgba(var(--veu), 0.2);
+```
+
+No Modo Noite o véu é `255, 255, 255` e clareia. No Modo Sol é `15, 23, 42` e escurece. Quem usa escolhe a intensidade.
+
+Toda sobreposição translúcida — fundo de botão discreto, borda de realce, faixa de cabeçalho — passa por aqui. Escrever `rgba(255, 255, 255, x)` direto no componente é o erro que deixava metade da interface invisível no tema claro.
+
+A escala fechada (`--veu-fraco`, `--veu-medio`, ...) foi considerada e recusada: ela exigiria reclassificar 17 opacidades existentes e mudaria a aparência do Modo Noite. Ver o decision record `cores-de-tema-como-token-e-veu-como-canal-de-cor`.
+
+### Texto de badge
+
+`--badge-time-a-texto`, `--badge-time-b-texto`, `--badge-marca-texto`, `--badge-fim-texto`, `--badge-geral-texto`.
+
+O texto de um badge é claro sobre o fundo tênue do próprio tom no Modo Noite, e escuro no Modo Sol. Sem estes tokens o texto do badge desaparece sobre fundo claro.
+
+### Cartão do placar
+
+`--cartao-a-fundo`, `--cartao-a-borda`, `--cartao-a-texto`, `--cartao-a-brilho` e os equivalentes `--cartao-b-*`. Mais `--cartao-sombra`, `--ilhos-fundo`, `--ilhos-borda`, `--ilhos-sombra`.
+
+O cartão do placar é um **objeto**, não uma superfície do sistema: ele representa a placa física de PVC do placar manual. Por isso tem tokens próprios em vez de consumir `--fundo-cartao`.
+
+No Modo Noite ele é a placa escura com numeral em neon do time. No Modo Sol ele vira papel branco com numeral preto puro (21:1), sem gradiente e sem brilho — a identidade do time fica na borda.
 
 ### Superfícies e texto
 
-`--fundo-base`, `--fundo-superficie`, `--fundo-cartao`, `--fundo-cartao-ativo`, `--texto-forte`, `--texto-suave`, `--texto-apagado`, `--borda-sutil`, `--borda-ativa`.
+`--fundo-base`, `--fundo-superficie`, `--fundo-cartao`, `--fundo-cartao-ativo`, `--texto-forte`, `--texto-medio`, `--texto-suave`, `--texto-apagado`, `--borda-sutil`, `--borda-ativa` (e `--borda-ativa-rgb`, o mesmo tom como canal de cor, para quando é preciso outra opacidade).
+
+`--texto-medio` fica entre `--texto-forte` e `--texto-suave`: rótulo de formulário, título de seção e metadado que precisa pesar mais que o apagado.
 
 ### Foco
 
@@ -128,7 +165,14 @@ O produto inteiro cabe em dois blocos de variáveis.
 - **Modo Noite** — padrão, definido em `:root`.
 - **Modo Sol** — alto contraste para luz solar direta, definido em `:root[data-tema="sol"]`. Fundo branco, números pretos a 21:1, gradientes achatados em cor chapada e todo brilho neon desligado (`--sombra-realce: none`). Os times escurecem para manter contraste sobre fundo claro sem perder identidade.
 
-Acionar o tema é escrever `data-tema="sol"` no `<html>`. Nenhum componente participa disso — essa é a prova de que os tokens estão corretos. A interface de acionamento pertence à história `CV2.DS2.US4`.
+Acionar o tema é escrever `data-tema="sol"` no `<html>`. Nenhum componente participa disso — essa é a prova de que os tokens estão corretos, e por um ciclo inteiro ela foi falsa: o Modo Sol clareava o fundo enquanto o placar continuava preto, porque os componentes ainda carregavam cerca de 130 cores literais. A correção está na branch `fix/modo-sol-placar` e na `0.6.1`.
+
+**Nenhum componente declara cor literal.** A única exceção é a cor que pertence ao objeto representado e não ao tema, e ela leva comentário explicando o motivo:
+
+- o gradiente e o brilho do anel metálico do cartão, e o vinco central da placa — metal e papel, não superfície de tema;
+- o fundo branco do QR code, exigido para que o código seja legível.
+
+Para verificar que um trabalho de tokens não alterou o tema vigente, construa o CSS antes e depois, resolva as variáveis e compare as regras de cor. Foi assim que a `0.6.1` provou que o Modo Noite ficou intacto: 388 regras, 381 idênticas, 7 consolidações deliberadas de tons quase iguais.
 
 Contraste medido sobre `--fundo-base`:
 
@@ -140,6 +184,19 @@ Contraste medido sobre `--fundo-base`:
 | `--time-a` | 7.35:1 | 5.36:1 |
 | `--time-b` | 6.37:1 | 5.18:1 |
 | `--marca` | 8.31:1 | 5.02:1 |
+| `--texto-medio` | 12.02:1 | 14.63:1 |
+| `--acento-info` | 8.33:1 | 7.56:1 |
+| `--badge-time-a-texto` | 9.88:1 | 7.27:1 |
+| `--badge-time-b-texto` | 7.89:1 | 7.31:1 |
+| `--badge-marca-texto` | 12.38:1 | 6.85:1 |
+| `--badge-fim-texto` | 11.66:1 | 8.67:1 |
+| `--badge-geral-texto` | 6.76:1 | 8.72:1 |
+| `--estado-erro` | 6.45:1 | 6.47:1 |
+| `--cartao-a-texto` / `--cartao-b-texto` | 15.56:1 | 21.00:1 |
+
+Uma exceção conhecida: `--acento-info-forte` é fundo de botão com texto branco e fica em 4.36:1 no Modo Noite, abaixo do mínimo AA de 4.5:1. O valor é anterior a esta tabela (era `#0284c7` literal em nove botões) e no Modo Sol sobe para 5.93:1. A correção do Modo Noite altera a aparência de botões em produção e depende de decisão de produto.
+
+Estes números são calculados, não verificados em execução. O projeto não tem verificação automática de contraste — ver o débito `debt-contraste-do-modo-sol-sem-verificacao-automatica`.
 
 ## Aliases legados
 

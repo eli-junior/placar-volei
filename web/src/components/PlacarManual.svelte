@@ -307,13 +307,13 @@
     align-items: center;
     gap: 6px;
     background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    border: 1px solid rgba(var(--veu), 0.12);
     border-radius: 999px;
     padding: 4px 14px;
   }
 
   .pin-pill {
-    background: #0284c7;
+    background: var(--acento-info-forte);
     color: #ffffff;
     font-size: 0.75rem;
     font-weight: 800;
@@ -359,7 +359,7 @@
   }
 
   .regra-alvo {
-    color: #ffffff;
+    color: var(--texto-contraste);
   }
 
   .regra-detalhe {
@@ -411,7 +411,7 @@
   .vitoria-time {
     font-size: 1.25rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--texto-contraste);
   }
 
   .modo-imersivo.layout-paisagem .vitoria-time {
@@ -422,12 +422,12 @@
   .cavalete-mesa {
     width: 100%;
     max-width: var(--cavalete-max, 460px);
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-    border: 2px solid rgba(255, 255, 255, 0.12);
+    background: linear-gradient(180deg, var(--fundo-superficie) 0%, var(--fundo-base) 100%);
+    border: 2px solid rgba(var(--veu), 0.12);
     border-radius: 18px;
     box-shadow:
       0 16px 40px rgba(0, 0, 0, 0.6),
-      inset 0 1px 1px rgba(255, 255, 255, 0.15);
+      inset 0 1px 1px rgba(var(--veu), 0.15);
     padding: 10px 12px 14px 12px;
     display: flex;
     flex-direction: column;
@@ -465,7 +465,7 @@
     left: 14%;
     right: 14%;
     height: 3px;
-    background: linear-gradient(90deg, #1e293b 0%, #64748b 35%, #64748b 65%, #1e293b 100%);
+    background: linear-gradient(90deg, var(--fundo-superficie) 0%, var(--texto-apagado) 35%, var(--texto-apagado) 65%, var(--fundo-superficie) 100%);
     border-radius: 2px;
     box-shadow: 0 1px 1px rgba(0, 0, 0, 0.7);
     opacity: 0.85;
@@ -475,7 +475,7 @@
     width: 7px;
     height: 7px;
     border-radius: 2px;
-    background: #334155;
+    background: var(--acao-secundaria);
     border: 1px solid rgba(148, 163, 184, 0.45);
     box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.7);
     z-index: 2;
@@ -534,7 +534,7 @@
     border-radius: 6px;
     text-align: center;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(var(--veu), 0.1);
   }
 
   .modo-imersivo.layout-paisagem .etiqueta-equipe {
@@ -554,7 +554,7 @@
   .etiqueta-texto {
     font-size: clamp(0.72rem, calc(var(--cartao-w) * 0.075), 1.25rem);
     font-weight: 800;
-    color: #ffffff;
+    color: var(--texto-contraste);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     white-space: nowrap;
@@ -576,7 +576,7 @@
     height: var(--divisor-w);
     border-radius: 50%;
     background: rgba(15, 23, 42, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(var(--veu), 0.1);
     display: grid;
     place-items: center;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
@@ -622,7 +622,7 @@
     align-items: center;
     gap: 8px;
     background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(var(--veu), 0.08);
     padding: 6px 14px;
     border-radius: 999px;
     font-size: 0.78rem;
@@ -655,8 +655,8 @@
 
   .btn-inverter-espectador,
   .btn-lt-espectador {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background: rgba(var(--veu), 0.06);
+    border: 1px solid rgba(var(--veu), 0.15);
     color: var(--text-secondary);
     border-radius: 999px;
     padding: 6px 16px;
@@ -675,8 +675,8 @@
 
   .btn-inverter-espectador:hover,
   .btn-lt-espectador:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+    background: rgba(var(--veu), 0.12);
+    color: var(--texto-contraste);
   }
 
   .btn-inverter-espectador.ativo {

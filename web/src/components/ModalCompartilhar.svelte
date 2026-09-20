@@ -193,7 +193,7 @@
 
   .btn-fechar:hover {
     color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(var(--veu), 0.08);
   }
 
   .modal-corpo {
@@ -262,7 +262,7 @@
   }
 
   .btn-copiar-pin {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(var(--veu), 0.08);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     color: var(--text-primary);
@@ -277,7 +277,7 @@
   }
 
   .btn-copiar-pin:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(var(--veu), 0.15);
   }
 
   .acoes-compartilhar {
@@ -288,7 +288,7 @@
   }
 
   .btn-acao-share {
-    background: #0284c7;
+    background: var(--acento-info-forte);
     color: #ffffff;
     border: none;
     border-radius: var(--radius-md);
@@ -305,7 +305,7 @@
   }
 
   .btn-acao-share:hover {
-    background: #0369a1;
+    background: var(--acento-info-ativo);
   }
 
   .btn-acao-link {
@@ -327,7 +327,7 @@
 
   .btn-acao-link:hover {
     color: var(--text-primary);
-    border-color: rgba(255, 255, 255, 0.25);
-    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(var(--veu), 0.25);
+    background: rgba(var(--veu), 0.04);
   }
 </style>

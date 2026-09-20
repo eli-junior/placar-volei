@@ -99,7 +99,7 @@
   .modal-header h3 {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--texto-contraste);
   }
 
   .btn-close {
@@ -127,7 +127,7 @@
   }
 
   .erro-msg {
-    color: #ef4444;
+    color: var(--acao-destrutiva);
     font-size: 0.85rem;
     font-weight: 500;
   }

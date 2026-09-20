@@ -86,20 +86,20 @@
   .btn-promover {
     border: 1px solid rgba(56, 189, 248, 0.4);
     background: rgba(56, 189, 248, 0.1);
-    color: #38bdf8;
+    color: var(--acento-info);
   }
   .btn-promover:hover:not(:disabled) {
     background: rgba(56, 189, 248, 0.2);
-    border-color: #38bdf8;
+    border-color: var(--acento-info);
   }
   .btn-revogar {
     border: 1px solid rgba(248, 113, 113, 0.4);
     background: rgba(248, 113, 113, 0.1);
-    color: #f87171;
+    color: var(--estado-erro);
   }
   .btn-revogar:hover:not(:disabled) {
     background: rgba(248, 113, 113, 0.2);
-    border-color: #f87171;
+    border-color: var(--estado-erro);
   }
   .btn-papel:disabled {
     opacity: 0.5;
@@ -176,7 +176,7 @@
   }
 
   .apelido-eu {
-    color: #ffffff;
+    color: var(--texto-contraste);
     font-weight: 700;
   }
 

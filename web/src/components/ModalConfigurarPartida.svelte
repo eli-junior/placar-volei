@@ -378,9 +378,9 @@
   }
 
   .btn-pill.selecionado {
-    background: #0284c7;
+    background: var(--acento-info-forte);
     color: #ffffff;
-    border-color: #38bdf8;
+    border-color: var(--acento-info);
   }
 
   .campo-check {
@@ -398,7 +398,7 @@
 
   .aviso-erro {
     margin: 4px 0 0 0;
-    color: #f87171;
+    color: var(--estado-erro);
     font-size: var(--texto-legenda);
   }
 
@@ -421,7 +421,7 @@
   }
 
   .btn-salvar {
-    background: #0284c7;
+    background: var(--acento-info-forte);
     border: none;
     border-radius: var(--radius-md);
     color: #ffffff;
@@ -433,7 +433,7 @@
   }
 
   .btn-salvar:hover {
-    background: #0369a1;
+    background: var(--acento-info-ativo);
   }
 
   .btn-salvar:disabled {

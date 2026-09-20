@@ -97,11 +97,11 @@
     height: 80px;
     border-radius: var(--radius-circular);
     background: radial-gradient(circle, rgba(234, 179, 8, 0.25) 0%, rgba(234, 179, 8, 0.05) 70%);
-    border: 2px solid #eab308;
+    border: 2px solid var(--marca);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #eab308;
+    color: var(--marca);
     box-shadow: 0 0 24px rgba(234, 179, 8, 0.35);
     animation: pulso-trofeu 2s ease-in-out infinite alternate;
   }
@@ -181,7 +181,7 @@
   }
 
   .btn-proxima-rodada {
-    background: #0284c7;
+    background: var(--acento-info-forte);
     color: #ffffff;
     border: none;
     border-radius: var(--radius-md);
@@ -197,7 +197,7 @@
   }
 
   .btn-proxima-rodada:hover {
-    background: #0369a1;
+    background: var(--acento-info-ativo);
   }
 
   .btn-compartilhar-resultado {
@@ -217,7 +217,7 @@
   }
 
   .btn-compartilhar-resultado:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(var(--veu), 0.08);
   }
 
   .btn-ver-placar {
