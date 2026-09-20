@@ -187,8 +187,8 @@
   }
 
   .modal-sheet {
-    background: #0f172a;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: var(--fundo-base);
+    border: 1px solid rgba(var(--veu), 0.12);
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     width: 100%;
     max-width: 580px;
@@ -226,7 +226,7 @@
   /* Header */
   .sheet-header {
     padding: 16px 20px;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(var(--veu), 0.02);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
@@ -253,7 +253,7 @@
   .header-titulo {
     font-size: 1.2rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--texto-contraste);
     margin: 0;
   }
 
@@ -268,8 +268,8 @@
   }
 
   .btn-fechar {
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(var(--veu), 0.06);
+    border: 1px solid rgba(var(--veu), 0.1);
     color: var(--text-secondary);
     border-radius: 999px;
     width: 34px;
@@ -283,8 +283,8 @@
   }
 
   .btn-fechar:hover {
-    background: rgba(255, 255, 255, 0.14);
-    color: #ffffff;
+    background: rgba(var(--veu), 0.14);
+    color: var(--texto-contraste);
   }
 
   /* Body / Timeline */
@@ -327,8 +327,8 @@
   }
 
   .card-lance {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(var(--veu), 0.03);
+    border: 1px solid rgba(var(--veu), 0.06);
     border-radius: var(--radius-md);
     padding: 10px 14px;
     display: grid;
@@ -339,7 +339,7 @@
   }
 
   .card-lance:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(var(--veu), 0.05);
   }
 
   .card-lance.lance-anulado {
@@ -379,36 +379,36 @@
 
   .badge-inicio {
     background: rgba(148, 163, 184, 0.15);
-    color: #cbd5e1;
+    color: var(--texto-medio);
   }
 
   .badge-equipe-a {
     background: rgba(6, 182, 212, 0.18);
-    color: #22d3ee;
+    color: var(--badge-time-a-texto);
     border: 1px solid rgba(6, 182, 212, 0.3);
   }
 
   .badge-equipe-b {
     background: rgba(249, 115, 22, 0.18);
-    color: #fb923c;
+    color: var(--badge-time-b-texto);
     border: 1px solid rgba(249, 115, 22, 0.3);
   }
 
   .badge-desfeito {
     background: rgba(245, 158, 11, 0.18);
-    color: #fcd34d;
+    color: var(--badge-marca-texto);
     border: 1px solid rgba(245, 158, 11, 0.3);
   }
 
   .badge-fim {
     background: rgba(234, 179, 8, 0.2);
-    color: #facc15;
+    color: var(--badge-fim-texto);
     border: 1px solid rgba(234, 179, 8, 0.35);
   }
 
   .badge-geral {
     background: rgba(168, 85, 247, 0.18);
-    color: #c084fc;
+    color: var(--badge-geral-texto);
   }
 
   /* Centro: Detalhes */
@@ -429,7 +429,7 @@
   .lance-desc {
     font-size: 0.88rem;
     font-weight: 600;
-    color: #ffffff;
+    color: var(--texto-contraste);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -443,7 +443,7 @@
   .tag-anulado {
     font-size: 0.65rem;
     font-weight: 700;
-    color: #f87171;
+    color: var(--estado-erro);
     background: rgba(239, 68, 68, 0.15);
     padding: 1px 6px;
     border-radius: 4px;
@@ -477,8 +477,8 @@
     font-family: var(--font-display);
     font-size: 1.15rem;
     font-weight: 800;
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.05);
+    color: var(--texto-contraste);
+    background: rgba(var(--veu), 0.05);
     padding: 4px 10px;
     border-radius: var(--radius-sm);
     font-variant-numeric: tabular-nums;
@@ -492,7 +492,7 @@
   /* Rodapé */
   .sheet-footer {
     padding: 12px 20px;
-    background: rgba(255, 255, 255, 0.02);
+    background: rgba(var(--veu), 0.02);
     border-top: 1px solid var(--border-color);
     display: flex;
     align-items: center;
@@ -509,7 +509,7 @@
     padding: 6px 16px;
     font-size: 0.85rem;
     font-weight: 600;
-    background: rgba(255, 255, 255, 0.06);
+    background: rgba(var(--veu), 0.06);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
     color: var(--text-secondary);
@@ -518,7 +518,7 @@
   }
 
   .btn-fechar-rodape:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: #ffffff;
+    background: rgba(var(--veu), 0.12);
+    color: var(--texto-contraste);
   }
 </style>

@@ -233,10 +233,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    box-shadow:
-      0 8px 24px rgba(0, 0, 0, 0.6),
-      inset 0 1px 1px rgba(255, 255, 255, 0.15),
-      inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+    box-shadow: var(--cartao-sombra);
     backface-visibility: hidden;
   }
 
@@ -252,27 +249,23 @@
 
   /* Temas de Cores Esportivas */
   .tema-a .cartao-placa {
-    background: linear-gradient(180deg, #092635 0%, #03141f 50%, #020b12 100%);
-    border: 2px solid rgba(6, 182, 212, 0.35);
+    background: var(--cartao-a-fundo);
+    border: 2px solid var(--cartao-a-borda);
   }
 
   .tema-a .numero-texto {
-    color: #e0f2fe;
-    text-shadow:
-      0 2px 14px rgba(6, 182, 212, 0.6),
-      0 0 2px rgba(255, 255, 255, 0.9);
+    color: var(--cartao-a-texto);
+    text-shadow: var(--cartao-a-brilho);
   }
 
   .tema-b .cartao-placa {
-    background: linear-gradient(180deg, #381508 0%, #1c0802 50%, #0d0300 100%);
-    border: 2px solid rgba(249, 115, 22, 0.35);
+    background: var(--cartao-b-fundo);
+    border: 2px solid var(--cartao-b-borda);
   }
 
   .tema-b .numero-texto {
-    color: #ffedd5;
-    text-shadow:
-      0 2px 14px rgba(249, 115, 22, 0.6),
-      0 0 2px rgba(255, 255, 255, 0.9);
+    color: var(--cartao-b-texto);
+    text-shadow: var(--cartao-b-brilho);
   }
 
   /* Furos/Ilhoses dos anéis no cartão */
@@ -292,11 +285,9 @@
     width: var(--anel-w);
     height: var(--anel-w);
     border-radius: 50%;
-    background: #020617;
-    border: 2px solid #64748b;
-    box-shadow:
-      inset 0 2px 4px rgba(0, 0, 0, 0.9),
-      0 1px 1px rgba(255, 255, 255, 0.2);
+    background: var(--ilhos-fundo);
+    border: 2px solid var(--ilhos-borda);
+    box-shadow: var(--ilhos-sombra);
   }
 
   /* Vinco central horizontal típico de cartões dobráveis */
@@ -307,7 +298,7 @@
     right: 0;
     height: 2px;
     background: rgba(0, 0, 0, 0.65);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(var(--veu), 0.08);
     z-index: 4;
     pointer-events: none;
   }

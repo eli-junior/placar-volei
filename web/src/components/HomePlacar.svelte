@@ -429,7 +429,7 @@
 
   .btn-toggle-sol:hover {
     background: var(--bg-card-hover);
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(var(--veu), 0.2);
   }
 
   .home-header {
@@ -449,14 +449,14 @@
   .app-title {
     font-size: 1.75rem;
     font-weight: 800;
-    color: #f8fafc;
+    color: var(--texto-forte);
     margin: 0;
     letter-spacing: -0.02em;
   }
 
   .app-subtitle {
     font-size: 0.95rem;
-    color: #94a3b8;
+    color: var(--texto-suave);
     margin: 0;
   }
 
@@ -466,7 +466,7 @@
     gap: 0.75rem;
     background: rgba(239, 68, 68, 0.15);
     border: 1px solid rgba(239, 68, 68, 0.35);
-    color: #fca5a5;
+    color: var(--estado-erro-suave);
     padding: 0.85rem 1rem;
     border-radius: 12px;
     font-size: 0.9rem;
@@ -480,11 +480,11 @@
 
   .abas-navegacao {
     display: flex;
-    background: #1e293b;
+    background: var(--fundo-superficie);
     padding: 0.3rem;
     border-radius: 14px;
     gap: 0.3rem;
-    border: 1px solid #334155;
+    border: 1px solid var(--acao-secundaria);
   }
 
   .aba-btn {
@@ -495,7 +495,7 @@
     gap: 0.5rem;
     background: transparent;
     border: none;
-    color: #94a3b8;
+    color: var(--texto-suave);
     padding: 0.75rem 0.5rem;
     min-height: 44px;
     box-sizing: border-box;
@@ -507,19 +507,19 @@
   }
 
   .aba-btn.ativa {
-    background: #0284c7;
+    background: var(--acento-info-forte);
     color: #ffffff;
     box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
   }
 
   .aba-btn:hover:not(.ativa) {
-    color: #f1f5f9;
-    background: rgba(255, 255, 255, 0.04);
+    color: var(--texto-forte);
+    background: rgba(var(--veu), 0.04);
   }
 
   .cartao-acao {
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: var(--fundo-superficie);
+    border: 1px solid var(--acao-secundaria);
     border-radius: 16px;
     padding: 1.5rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
@@ -540,13 +540,13 @@
   .card-titulo {
     font-size: 1.2rem;
     font-weight: 700;
-    color: #f1f5f9;
+    color: var(--texto-forte);
     margin: 0;
   }
 
   .card-desc {
     font-size: 0.85rem;
-    color: #94a3b8;
+    color: var(--texto-suave);
     margin: 0;
     line-height: 1.4;
   }
@@ -560,17 +560,17 @@
   .campo-grupo label {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #cbd5e1;
+    color: var(--texto-medio);
   }
 
   .obrigatorio {
-    color: #f87171;
+    color: var(--estado-erro);
   }
 
   .campo-grupo input {
-    background: #0f172a;
-    border: 1px solid #334155;
-    color: #ffffff;
+    background: var(--fundo-base);
+    border: 1px solid var(--acao-secundaria);
+    color: var(--texto-forte);
     padding: 0.8rem 1rem;
     font-size: 1rem;
     border-radius: 10px;
@@ -579,7 +579,7 @@
   }
 
   .campo-grupo input:focus {
-    border-color: #38bdf8;
+    border-color: var(--acento-info);
     box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
   }
 
@@ -588,14 +588,14 @@
     font-weight: 800;
     letter-spacing: 0.25em;
     text-align: center;
-    color: #38bdf8 !important;
+    color: var(--acento-info) !important;
   }
 
   .input-codigo::placeholder {
     letter-spacing: normal;
     font-size: 1rem;
     font-weight: normal;
-    color: #64748b;
+    color: var(--texto-apagado);
   }
 
   .card-info-box {
@@ -603,11 +603,11 @@
     align-items: flex-start;
     gap: 0.5rem;
     background: rgba(15, 23, 42, 0.6);
-    border: 1px solid #334155;
+    border: 1px solid var(--acao-secundaria);
     padding: 0.65rem 0.85rem;
     border-radius: 8px;
     font-size: 0.78rem;
-    color: #94a3b8;
+    color: var(--texto-suave);
     line-height: 1.35;
   }
 
@@ -616,7 +616,7 @@
   }
 
   .btn-principal {
-    background: #0284c7;
+    background: var(--acento-info-forte);
     color: #ffffff;
     border: none;
     padding: 0.95rem 1.25rem;
@@ -631,7 +631,7 @@
   }
 
   .btn-principal:hover:not(:disabled) {
-    background: #0369a1;
+    background: var(--acento-info-ativo);
     box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
     transform: translateY(-1px);
   }
@@ -657,7 +657,7 @@
   .salas-titulo {
     font-size: 1rem;
     font-weight: 700;
-    color: #cbd5e1;
+    color: var(--texto-medio);
     margin: 0;
     display: flex;
     align-items: center;
@@ -667,8 +667,8 @@
   .badge-contagem {
     font-size: 0.75rem;
     font-weight: 600;
-    background: #334155;
-    color: #94a3b8;
+    background: var(--acao-secundaria);
+    color: var(--texto-suave);
     padding: 0.15rem 0.45rem;
     border-radius: 6px;
   }
@@ -676,7 +676,7 @@
   .btn-recarregar {
     background: transparent;
     border: 1px solid rgba(56, 189, 248, 0.25);
-    color: #38bdf8;
+    color: var(--acento-info);
     font-size: 0.82rem;
     font-weight: 600;
     cursor: pointer;
@@ -692,23 +692,23 @@
 
   .btn-recarregar:hover:not(:disabled) {
     background: rgba(56, 189, 248, 0.15);
-    border-color: #38bdf8;
+    border-color: var(--acento-info);
   }
 
   .salas-vazio, .salas-card-vazio {
-    background: #1e293b;
-    border: 1px dashed #334155;
+    background: var(--fundo-superficie);
+    border: 1px dashed var(--acao-secundaria);
     border-radius: 12px;
     padding: 1.5rem;
     text-align: center;
-    color: #94a3b8;
+    color: var(--texto-suave);
     font-size: 0.9rem;
     margin: 0;
   }
 
   .sub-vazio {
     font-size: 0.8rem;
-    color: #64748b;
+    color: var(--texto-apagado);
     margin-top: 0.25rem;
   }
 
@@ -722,8 +722,8 @@
     display: flex;
     align-items: center;
     gap: 0.85rem;
-    background: #1e293b;
-    border: 1px solid #334155;
+    background: var(--fundo-superficie);
+    border: 1px solid var(--acao-secundaria);
     border-radius: 14px;
     padding: 0.85rem 1rem;
     min-height: 64px;
@@ -735,8 +735,8 @@
   }
 
   .item-sala:hover {
-    border-color: #38bdf8;
-    background: #24344d;
+    border-color: var(--acento-info);
+    background: var(--fundo-cartao);
     transform: translateY(-1px);
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
   }
@@ -745,8 +745,8 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    background: #0f172a;
-    border: 1px solid #38bdf8;
+    background: var(--fundo-base);
+    border: 1px solid var(--acento-info);
     border-radius: 8px;
     padding: 0.35rem 0.55rem;
     min-width: 54px;
@@ -756,14 +756,14 @@
   .pin-label {
     font-size: 0.6rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--texto-suave);
     letter-spacing: 0.05em;
   }
 
   .pin-numero {
     font-size: 1.05rem;
     font-weight: 800;
-    color: #38bdf8;
+    color: var(--acento-info);
     letter-spacing: 0.05em;
   }
 
@@ -786,7 +786,7 @@
   .sala-nome {
     font-size: 0.95rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: var(--texto-forte);
     margin: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -800,7 +800,7 @@
     gap: 4px;
     font-size: 0.65rem;
     font-weight: 800;
-    color: #f87171;
+    color: var(--estado-erro);
     background: rgba(239, 68, 68, 0.15);
     border: 1px solid rgba(239, 68, 68, 0.4);
     padding: 2px 7px;
@@ -812,8 +812,8 @@
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background-color: #ef4444;
-    box-shadow: 0 0 6px #ef4444;
+    background-color: var(--acao-destrutiva);
+    box-shadow: 0 0 6px var(--acao-destrutiva);
     animation: pulso-dot 1.2s ease-in-out infinite;
   }
 
@@ -831,8 +831,8 @@
   .badge-finalizada {
     font-size: 0.65rem;
     font-weight: 700;
-    color: #94a3b8;
-    background: #334155;
+    color: var(--texto-suave);
+    background: var(--acao-secundaria);
     padding: 2px 7px;
     border-radius: 999px;
   }
@@ -848,7 +848,7 @@
     align-items: center;
     gap: 6px;
     font-size: 0.82rem;
-    color: #cbd5e1;
+    color: var(--texto-medio);
     flex-wrap: wrap;
   }
 
@@ -862,7 +862,7 @@
   .placar-numeros {
     font-family: var(--fonte-placar, 'Teko', sans-serif);
     font-size: 1.35rem;
-    color: #38bdf8;
+    color: var(--acento-info);
     letter-spacing: 0.04em;
     line-height: 1;
     font-weight: 700;
@@ -870,20 +870,20 @@
 
   .sala-aguardando {
     font-size: 0.78rem;
-    color: #64748b;
+    color: var(--texto-apagado);
     font-style: italic;
   }
 
   .sala-participantes {
     font-size: 0.78rem;
-    color: #94a3b8;
+    color: var(--texto-suave);
   }
 
   .sala-acao {
     display: flex;
     align-items: center;
     gap: 4px;
-    color: #38bdf8;
+    color: var(--acento-info);
     font-size: 0.82rem;
     font-weight: 700;
     flex-shrink: 0;
@@ -894,7 +894,7 @@
   }
 
   .sala-seta {
-    color: #38bdf8;
+    color: var(--acento-info);
     font-size: 1.1rem;
     font-weight: bold;
     transition: transform 0.15s ease;

@@ -109,6 +109,10 @@
   --texto-apagado: #64748b;
   --borda-sutil: rgba(255, 255, 255, 0.08);
   --borda-ativa: rgba(249, 115, 22, 0.4);
+  --borda-ativa-rgb: 249, 115, 22;
+  /* Texto secundario mais claro que `--texto-suave`: rotulos de formulario,
+     titulos de secao e metadados que precisam pesar mais que o apagado. */
+  --texto-medio: #cbd5e1;
 
   /* ---------------------------------------------------------------------------
      CORES DE TIME — USO EXCLUSIVO
@@ -124,6 +128,39 @@
   --time-b-forte: #ea580c;
   --time-b-brilho: rgba(249, 115, 22, 0.35);
   --time-b-tenue: rgba(249, 115, 22, 0.12);
+
+  /* ---------------------------------------------------------------------------
+     VEUS NEUTROS — sobreposicoes que dependem do tema, nao da cor
+     Antes escritas como `rgba(255, 255, 255, x)` dentro dos componentes.
+     `--veu` publica so o CANAL DE COR: o componente escreve
+     `rgba(var(--veu), 0.08)` e escolhe a intensidade que quiser.
+     Sobre fundo escuro o veu clareia; sobre fundo claro ele escurece.
+     --------------------------------------------------------------------------- */
+  --veu: 255, 255, 255;
+  /* Texto sobre veu: o maximo de contraste disponivel no tema corrente. */
+  --texto-contraste: #ffffff;
+
+  /* ---------------------------------------------------------------------------
+     CARTAO DO PLACAR — a placa fisica do placar manual
+     O cartao e um objeto, nao uma superficie do sistema: tem cor propria por
+     time, e no Modo Sol ele vira papel branco com numero preto.
+     --------------------------------------------------------------------------- */
+  --cartao-a-fundo: linear-gradient(180deg, #092635 0%, #03141f 50%, #020b12 100%);
+  --cartao-a-borda: rgba(6, 182, 212, 0.35);
+  --cartao-a-texto: #e0f2fe;
+  --cartao-a-brilho: 0 2px 14px rgba(6, 182, 212, 0.6), 0 0 2px rgba(255, 255, 255, 0.9);
+
+  --cartao-b-fundo: linear-gradient(180deg, #381508 0%, #1c0802 50%, #0d0300 100%);
+  --cartao-b-borda: rgba(249, 115, 22, 0.35);
+  --cartao-b-texto: #ffedd5;
+  --cartao-b-brilho: 0 2px 14px rgba(249, 115, 22, 0.6), 0 0 2px rgba(255, 255, 255, 0.9);
+
+  --cartao-sombra: 0 8px 24px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255, 255, 255, 0.15),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.5);
+
+  --ilhos-fundo: #020617;
+  --ilhos-borda: #64748b;
+  --ilhos-sombra: inset 0 2px 4px rgba(0, 0, 0, 0.9), 0 1px 1px rgba(255, 255, 255, 0.2);
 
   /* ---------------------------------------------------------------------------
      MARCA — o amarelo do produto
@@ -150,6 +187,14 @@
   --acao-discreta-ativa: rgba(255, 255, 255, 0.06);
   --acao-discreta-texto: var(--texto-suave);
 
+  /* Azul de informacao: acoes de sala (PIN, entrar, compartilhar) e realces
+     informativos. Nao e cor de time; existe como token para que o Modo Sol
+     possa escurece-lo e manter contraste sobre fundo claro. */
+  --acento-info: #38bdf8;
+  --acento-info-forte: #0284c7;
+  --acento-info-ativo: #0369a1;
+  --acento-info-texto: #ffffff;
+
   --acao-destrutiva: #ef4444;
   --acao-destrutiva-ativa: #dc2626;
   --acao-destrutiva-texto: #ffffff;
@@ -162,6 +207,18 @@
   --estado-alerta: var(--marca);
   --estado-erro: #f87171;
   --estado-neutro: var(--texto-suave);
+  --estado-erro-suave: #fca5a5;
+
+  /* ---------------------------------------------------------------------------
+     TEXTO DE BADGE — sobre o fundo tenue do proprio tom
+     Escrito claro no tema escuro e escuro no Modo Sol. Sem estes tokens o
+     texto do badge some sobre fundo claro.
+     --------------------------------------------------------------------------- */
+  --badge-time-a-texto: #22d3ee;
+  --badge-time-b-texto: #fb923c;
+  --badge-marca-texto: #fcd34d;
+  --badge-fim-texto: #facc15;
+  --badge-geral-texto: #c084fc;
 
   /* ---------------------------------------------------------------------------
      FOCO — anel global de teclado
@@ -253,6 +310,8 @@
   --texto-apagado: #475569;
   --borda-sutil: rgba(15, 23, 42, 0.18);
   --borda-ativa: rgba(15, 23, 42, 0.55);
+  --borda-ativa-rgb: 15, 23, 42;
+  --texto-medio: #1e293b;
 
   /* Times escurecidos: mantêm a identidade e passam a ter contraste
      suficiente como texto e borda sobre fundo claro. */
@@ -283,12 +342,24 @@
   --acao-discreta-ativa: rgba(15, 23, 42, 0.08);
   --acao-discreta-texto: #334155;
 
+  --acento-info: #075985;
+  --acento-info-forte: #0369a1;
+  --acento-info-ativo: #075985;
+  --acento-info-texto: #ffffff;
+
   --acao-destrutiva: #b91c1c;
   --acao-destrutiva-ativa: #991b1b;
 
   --estado-sucesso: #047857;
   --estado-sucesso-brilho: transparent;
   --estado-erro: #b91c1c;
+  --estado-erro-suave: #991b1b;
+
+  --badge-time-a-texto: #155e75;
+  --badge-time-b-texto: #9a3412;
+  --badge-marca-texto: #854d0e;
+  --badge-fim-texto: #713f12;
+  --badge-geral-texto: #6b21a8;
 
   /* Foco em neutro máximo: ~18:1 sobre o fundo claro. */
   --foco-cor: #0f172a;
@@ -305,6 +376,30 @@
   --sombra-elevada: 0 8px 24px rgba(15, 23, 42, 0.22);
   --brilho-cor: transparent;
   --sombra-realce: none;
+
+  /* Veu invertido: sobre fundo claro a sobreposicao escurece.
+     Apenas o canal de cor muda; cada opacidade escrita no componente
+     continua valendo, entao o tema escuro fica identico ao anterior. */
+  --veu: 15, 23, 42;
+  --texto-contraste: #000000;
+
+  /* Cartao do placar no sol: papel branco, numero preto puro (21:1),
+     sem gradiente e sem glow. A identidade do time fica na borda. */
+  --cartao-a-fundo: #ffffff;
+  --cartao-a-borda: #0e7490;
+  --cartao-a-texto: #000000;
+  --cartao-a-brilho: none;
+
+  --cartao-b-fundo: #ffffff;
+  --cartao-b-borda: #c2410c;
+  --cartao-b-texto: #000000;
+  --cartao-b-brilho: none;
+
+  --cartao-sombra: 0 4px 12px rgba(15, 23, 42, 0.2);
+
+  --ilhos-fundo: #cbd5e1;
+  --ilhos-borda: #475569;
+  --ilhos-sombra: inset 0 1px 2px rgba(15, 23, 42, 0.35);
 
   --papel-admin-fundo: rgba(180, 83, 9, 0.12);
   --papel-admin-texto: #92400e;
@@ -390,7 +485,7 @@ input {
 
 input:focus {
   border-color: var(--accent-orange);
-  box-shadow: 0 0 0 2px rgba(249, 115, 22, 0.2);
+  box-shadow: 0 0 0 2px rgba(var(--borda-ativa-rgb), 0.2);
 }
 
 /* =============================================================================

@@ -632,7 +632,7 @@
 
 <style>
   .controle-painel { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 10px; color: var(--text-primary); }
-  .controle-painel p { color: #fca5a5; width: 100%; text-align: center; }
+  .controle-painel p { color: var(--estado-erro-suave); width: 100%; text-align: center; }
   .chip-reconectando {
     display: inline-flex;
     align-items: center;
@@ -650,7 +650,7 @@
   @media (prefers-reduced-motion: reduce) {
     .chip-girando { animation: none; }
   }
-  .btn-assumir { min-height: 48px; padding: 10px 20px; border: 0; border-radius: 10px; color: white; background: #0369a1; font-weight: 700; cursor: pointer; }
+  .btn-assumir { min-height: 48px; padding: 10px 20px; border: 0; border-radius: 10px; color: white; background: var(--acento-info-ativo); font-weight: 700; cursor: pointer; }
   .btn-assumir:disabled { opacity: .5; cursor: not-allowed; }
 
   .sala-container {
@@ -756,7 +756,7 @@
   .btn-compartilhar-header:hover,
   .btn-config-header:hover {
     color: var(--text-primary);
-    border-color: rgba(255, 255, 255, 0.25);
+    border-color: rgba(var(--veu), 0.25);
     background: var(--bg-card);
   }
 
@@ -783,7 +783,7 @@
   .btn-inverter-lados-header:hover,
   .btn-girar:hover {
     color: var(--text-primary);
-    border-color: rgba(255, 255, 255, 0.2);
+    border-color: rgba(var(--veu), 0.2);
   }
 
   .btn-inverter-lados-header.ativo,
@@ -826,8 +826,8 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: #0f172a;
-    border: 2px solid #0284c7;
+    background: var(--fundo-base);
+    border: 2px solid var(--acento-info-forte);
     border-radius: 14px;
     padding: 10px 16px;
     box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
@@ -842,14 +842,14 @@
   .codigo-sala-label {
     font-size: 0.65rem;
     font-weight: 700;
-    color: #94a3b8;
+    color: var(--texto-suave);
     letter-spacing: 0.08em;
   }
 
   .codigo-sala-num {
     font-size: 1.6rem;
     font-weight: 900;
-    color: #38bdf8;
+    color: var(--acento-info);
     letter-spacing: 0.15em;
     line-height: 1;
   }
@@ -861,9 +861,9 @@
   }
 
   .btn-copiar-pin {
-    background: #1e293b;
-    border: 1px solid #334155;
-    color: #f1f5f9;
+    background: var(--fundo-superficie);
+    border: 1px solid var(--acao-secundaria);
+    color: var(--texto-forte);
     padding: 0.5rem 1rem;
     min-height: 44px;
     box-sizing: border-box;
@@ -878,15 +878,15 @@
   }
 
   .btn-copiar-pin:hover {
-    background: #0284c7;
-    border-color: #0284c7;
+    background: var(--acento-info-forte);
+    border-color: var(--acento-info-forte);
     color: #ffffff;
   }
 
   .btn-compartilhar-pin {
     background: rgba(2, 132, 199, 0.2);
-    border: 1px solid #0284c7;
-    color: #38bdf8;
+    border: 1px solid var(--acento-info-forte);
+    color: var(--acento-info);
     padding: 0.5rem 1rem;
     min-height: 44px;
     box-sizing: border-box;
@@ -902,7 +902,7 @@
   }
 
   .btn-compartilhar-pin:hover {
-    background: #0284c7;
+    background: var(--acento-info-forte);
     color: #ffffff;
   }
 
@@ -916,7 +916,7 @@
   .regra-tag {
     font-size: 0.78rem;
     font-weight: 700;
-    color: #38bdf8;
+    color: var(--acento-info);
     background: rgba(56, 189, 248, 0.12);
     border: 1px solid rgba(56, 189, 248, 0.3);
     padding: 4px 8px;
@@ -927,7 +927,7 @@
   .btn-ajustar-regras {
     background: rgba(14, 165, 233, 0.15);
     border: 1px solid rgba(56, 189, 248, 0.4);
-    color: #38bdf8;
+    color: var(--acento-info);
     padding: 6px 12px;
     min-height: 40px;
     box-sizing: border-box;
@@ -944,7 +944,7 @@
 
   .btn-ajustar-regras:hover {
     background: rgba(14, 165, 233, 0.3);
-    border-color: #38bdf8;
+    border-color: var(--acento-info);
     color: #ffffff;
   }
 
@@ -959,7 +959,7 @@
   .quadra-title {
     font-size: 1.7rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--texto-contraste);
     line-height: 1.2;
   }
 
@@ -987,7 +987,7 @@
   .meu-apelido {
     font-size: 1.15rem;
     font-weight: 700;
-    color: #ffffff;
+    color: var(--texto-contraste);
   }
 
   /* Com a tela girada o espaço vertical é curto: enxuga o cabeçalho revelado */

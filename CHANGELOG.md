@@ -8,7 +8,13 @@ Quando uma história é validada e integrada na `main`, seu registro é removido
 
 ## [Em Andamento]
 
-*Nenhum trabalho ativo em andamento no momento.*
+### `fix/modo-sol-placar` — Modo Sol aplicado ao placar e às superfícies fixas
+
+- **Historia / Escopo**: Technical Story. O Modo Sol troca apenas tokens de fundo; os cartões do placar e as sobreposições brancas dos componentes usam cores literais e permanecem escuras ou ilegíveis no tema claro. A correção move essas cores para tokens de papel e as sobrescreve em `:root[data-tema='sol']`.
+- **Branch**: `fix/modo-sol-placar` (a partir de `master`)
+- **Passo Ariad**: `Passo 4 - Teste e Validacao`
+- **Assinatura do Agente**: Agente: Claude Opus 5 (Driver) | Sessao: f69703a5 | Data: 2026-09-20
+- **Handoff / Proximos Passos**: Tokens de cartao, ilhos e veus neutros em `web/src/app.css`; substituicao dos literais em `CartaoDobravel`, `Placar`, `PlacarManual`, `LinhaDoTempo` e modais. Versao alvo `0.6.1`.
 
 ## 0.6.0 - 2026-09-16
 

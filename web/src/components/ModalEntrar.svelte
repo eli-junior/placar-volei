@@ -101,7 +101,7 @@
 
   .quadra-tag {
     font-size: var(--texto-micro);
-    color: #38bdf8;
+    color: var(--acento-info);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     font-weight: 700;
@@ -137,7 +137,7 @@
   }
 
   .info-box :global(.info-icon) {
-    color: #38bdf8;
+    color: var(--acento-info);
     flex-shrink: 0;
     margin-top: 2px;
   }
@@ -180,12 +180,12 @@
 
   .campo-grupo input:focus {
     outline: none;
-    border-color: #0284c7;
+    border-color: var(--acento-info-forte);
   }
 
   .erro-msg {
     margin: 0;
-    color: #f87171;
+    color: var(--estado-erro);
     font-size: var(--texto-legenda);
   }
 
@@ -208,7 +208,7 @@
   }
 
   .btn-confirm {
-    background: #0284c7;
+    background: var(--acento-info-forte);
     border: none;
     border-radius: var(--radius-md);
     padding: 10px 22px;
@@ -220,7 +220,7 @@
   }
 
   .btn-confirm:hover {
-    background: #0369a1;
+    background: var(--acento-info-ativo);
   }
 
   .btn-confirm:disabled,

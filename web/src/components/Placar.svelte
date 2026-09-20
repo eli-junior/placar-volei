@@ -372,8 +372,8 @@
   .btn-cfg-toggle,
   .btn-inverter-lados,
   .btn-lt-toggle {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(var(--veu), 0.05);
+    border: 1px solid rgba(var(--veu), 0.12);
     color: var(--text-secondary);
     border-radius: 999px;
     padding: 6px 14px;
@@ -393,9 +393,9 @@
   .btn-cfg-toggle:hover,
   .btn-inverter-lados:hover,
   .btn-lt-toggle:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.25);
+    background: rgba(var(--veu), 0.1);
+    color: var(--texto-contraste);
+    border-color: rgba(var(--veu), 0.25);
   }
 
   .btn-inverter-lados.ativo {
@@ -477,7 +477,7 @@
   .vitoria-vencedor {
     font-size: 1.15rem;
     font-weight: 800;
-    color: #ffffff;
+    color: var(--texto-contraste);
   }
 
   .btn-nova-partida {
@@ -528,9 +528,9 @@
   }
 
   .btn-compartilhar-vitoria {
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.2);
-    color: #ffffff;
+    background: rgba(var(--veu), 0.08);
+    border: 1px solid rgba(var(--veu), 0.2);
+    color: var(--texto-contraste);
     border-radius: var(--radius-md);
     padding: 12px 14px;
     font-size: 0.88rem;
@@ -541,8 +541,8 @@
   }
 
   .btn-compartilhar-vitoria:hover {
-    background: rgba(255, 255, 255, 0.16);
-    border-color: rgba(255, 255, 255, 0.35);
+    background: rgba(var(--veu), 0.16);
+    border-color: rgba(var(--veu), 0.35);
   }
 
   .aguardando-container {
@@ -588,8 +588,8 @@
     flex-direction: column;
     align-items: center;
     gap: 8px;
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(var(--veu), 0.02);
+    border: 1px solid rgba(var(--veu), 0.05);
     border-radius: var(--radius-md);
     padding: 14px 10px;
     transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
@@ -743,7 +743,7 @@
     margin: 0 auto;
     width: 38%;
     border-radius: 2px;
-    background: rgba(255, 255, 255, 0.85);
+    background: rgba(var(--veu), 0.85);
     animation: pulso-envio 0.9s ease-in-out infinite;
   }
 
@@ -825,7 +825,7 @@
   .btn-desfazer {
     width: 100%;
     height: 48px;
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(var(--veu), 0.04);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     color: var(--text-secondary);
@@ -842,14 +842,14 @@
   }
 
   .btn-desfazer:hover:not(:disabled) {
-    background: rgba(255, 255, 255, 0.08);
-    color: #ffffff;
-    border-color: rgba(255, 255, 255, 0.2);
+    background: rgba(var(--veu), 0.08);
+    color: var(--texto-contraste);
+    border-color: rgba(var(--veu), 0.2);
   }
 
   .btn-desfazer:active:not(:disabled) {
     transform: scale(0.98);
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(var(--veu), 0.1);
   }
 
   .btn-desfazer:disabled {
