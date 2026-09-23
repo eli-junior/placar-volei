@@ -220,6 +220,7 @@
   const handleAutorizarAdmin = id => executar(`participantes/${id}/admin`);
   const handlePromoverControlador = id => executar(`participantes/${id}/promover`);
   const handleRevogarControlador = id => executar(`participantes/${id}/revogar`);
+  const handlePassarControle = id => executar(`participantes/${id}/controle`);
 
   async function carregarRota() {
     handleVoltarParaHome(false);
@@ -268,6 +269,7 @@
       onPromoverControlador={handlePromoverControlador}
       onRevogarControlador={handleRevogarControlador}
       onAutorizarAdmin={handleAutorizarAdmin}
+      onPassarControle={handlePassarControle}
       {operando}
       {pendentes}
       {erro}

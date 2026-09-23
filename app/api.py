@@ -7,7 +7,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
 
-from app.comandos import executar_sync
+from app.comandos import executar_sync, snapshot_sync
 from app.config import settings
 from app.eventos import carregar_eventos, get_quadra_lock
 from app.hub import hub
@@ -457,13 +457,18 @@ async def executar_comando(quadra_id: str, request: Request, acao: str, **kwargs
             ids_online=ids_online,
             **kwargs,
         )
-        online = await hub.participantes_online(quadra_id)
-        for p in resultado["participantes"]:
-            p["online"] = p["id"] in online
-        await hub.broadcast(
-            quadra_id, {"tipo": "PLACAR_ATUALIZADO", "payload": resultado}
-        )
+        await transmitir_estado(quadra_id, resultado)
         return resultado
+
+
+async def transmitir_estado(quadra_id: str, resultado: dict | None = None):
+    """Envia o snapshot da sala a todos os clientes, com a presença atual."""
+    if resultado is None:
+        resultado = await asyncio.to_thread(snapshot_sync, settings.db_path, quadra_id)
+    online = await hub.participantes_online(quadra_id)
+    for p in resultado["participantes"]:
+        p["online"] = p["id"] in online
+    await hub.broadcast(quadra_id, {"tipo": "PLACAR_ATUALIZADO", "payload": resultado})
 
 
 @router.post("/quadras/{quadra_id}/pontos", status_code=201)

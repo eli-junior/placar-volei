@@ -1,6 +1,6 @@
-# Placar Vôlei — Wear OS (US1)
+# Placar Vôlei — Wear OS
 
-APK de teste pessoal para **vincular o Galaxy Watch à sala configurada no telefone**. Esta entrega ainda não marca pontos: essa função começa na US2. O servidor deve executar a branch `feature/cv3-ds1-us1-vincular-relogio`.
+APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca pontos quando o admin passa o controle para ele (`CV3.DS1.US2`, versão `0.8.0`). O servidor deve executar a `master` a partir da `0.8.0`.
 
 ## WSL / Android Studio
 
@@ -50,52 +50,47 @@ Referência: [depuração Wear OS por Wi-Fi](https://developer.android.com/train
 
 ## Sincronizar o backend no Mini PC
 
-O APK usa endpoints novos desta branch. Fazer pull apenas da `master` não os disponibiliza. Para o teste da HU1, no repositório do Mini PC, com a árvore de trabalho limpa:
+No repositório do Mini PC, com a árvore de trabalho limpa e **fora de uma partida**:
 
 ```sh
 git fetch origin
-git switch feature/cv3-ds1-us1-vincular-relogio
-git pull --ff-only origin feature/cv3-ds1-us1-vincular-relogio
+git switch master
+git pull --ff-only origin master
+grep WATCH_AUTO_GRANT .env   # se aparecer eli.relogio, troque para eli ou apague a linha
 docker compose up -d --build placar
-docker compose ps placar
+curl -fsS https://placar.elijunior.click/health
 ```
 
-O compose atual guarda o SQLite dentro do contêiner: recriá-lo inicia sem as salas anteriores. Faça essa atualização fora de uma partida e crie a sala de teste **depois** de subir o contêiner. Nenhuma configuração de `.env` ou Cloudflare precisa mudar para usar o mesmo domínio.
+Passa: `/health` mostra a versão esperada. O compose atual guarda o SQLite dentro do contêiner: recriá-lo apaga as salas (`debt-banco-de-producao-sem-volume-persistente`). Crie a sala de teste **depois** de subir o contêiner.
 
-Confira se a API pública já expõe o vínculo, sem criar dados:
+## Habilitar e vincular
 
-```sh
-curl -fsS https://placar.elijunior.click/openapi.json | python3 -c 'import json,sys; paths=json.load(sys.stdin)["paths"]; required={"/api/watch/pairing", "/api/watch/session", "/api/owner/watch-access"}; missing=required-set(paths); print("Backend do relógio disponível" if not missing else "Faltam rotas: " + ", ".join(sorted(missing))); sys.exit(bool(missing))'
-```
+1. No telefone, crie a sala (ou entre nela) como **`eli`**, em qualquer caixa. A sala mostra **Eli**, que já fica habilitado para o relógio. A lista vem de `WATCH_AUTO_GRANT` (padrão `eli`, separada por vírgulas). Outros apelidos veem "Em breve…" no ícone do relógio.
+2. No relógio, abra **Placar Vôlei** → **Gerar código**. No telefone, toque no **ícone de relógio** e digite o código de 8 dígitos (vale 5 minutos).
+3. A lista de presentes passa a mostrar **Eli (Relógio)**, como espectador. O relógio mostra o placar com os botões travados.
 
-Passa: imprime `Backend do relógio disponível`. Se faltarem rotas, confira a branch ativa e se o contêiner foi reconstruído. A partir da `0.7.0`, `/health` também indica o backend com o relógio.
+O vínculo exige papel ADMIN ou CONTROLADOR do dono. Quem cria a sala já é ADMIN.
 
-Recarregue o site no telefone e entre na sala seguindo a habilitação abaixo.
-
-## Habilitar o relógio
-
-Crie a sala (ou entre nela) pelo telefone com o apelido-senha **`eli.relogio`**. A sala mostra só **eli**; o sufixo não é gravado nem exibido. Quem entra com esse apelido já fica habilitado para vincular relógio, sem segredo de owner. O apelido-senha vem de `WATCH_AUTO_GRANT` (padrão `eli.relogio` no compose; lista separada por vírgulas). Digitar apenas `eli` **não** habilita o relógio.
-
-O vínculo exige papel ADMIN ou CONTROLADOR. Quem cria a sala já é ADMIN; quem entra depois precisa ser promovido.
-
-Alternativa sem apelido-senha (`WATCH_AUTO_GRANT` vazio): crie a sala como **eli** e habilite pelo terminal, uma vez por sala (o segredo é solicitado sem eco):
+Sem `WATCH_AUTO_GRANT`, habilite pelo terminal, uma vez por sala (o segredo de owner é pedido sem eco):
 
 ```sh
 python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA
 ```
 
-Nos dois casos, o relógio ainda precisa ser aprovado pelo código temporário no navegador desse participante. O segredo de owner não deve ser colocado no relógio nem no site.
+## Marcar pelo relógio
 
-Revogar o dispositivo: **Relógio → Revogar acesso**, no telefone. Desabilitar também futuros vínculos naquela sala:
+1. Com o app aberto no relógio, na lista de presentes do telefone: **Tornar controlador** em Eli (Relógio) e depois **Passar controle**.
+2. O site deixa de mostrar +1/Desfazer, e o relógio libera as duas metades: **Nós** (equipe A, à esquerda) e **Eles** (equipe B, à direita). Com jogadores cadastrados, aparecem as iniciais (ex.: EC × RM).
+3. Cada toque é gravado no relógio antes de vibrar. Enquanto o servidor não confirma, o número fica apagado, com um traço embaixo, e o alto da tela mostra "N pendentes".
+4. Sem rede, os toques ficam na fila e são enviados em ordem quando a rede volta, com o app aberto. O envio em segundo plano é da US4.
+5. Se o servidor recusar um lance (partida nova, controle retomado, partida encerrada), a fila pausa e o relógio pede **Descartar**, com confirmação.
 
-```sh
-python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA --disable
-```
+O controle nas mãos do relógio não volta sozinho quando a tela apaga. Para retomar pelo telefone, use **Assumir o controle**.
 
-Um revínculo revoga o dispositivo anterior. Internamente, o dispositivo é `eli-smartwatch`; na presença e no histórico permanece o único participante **eli**. Trocar de sala exige novo vínculo. Códigos expiram em cinco minutos, e as tentativas são limitadas.
+Revogar: no telefone, **ícone de relógio → Revogar acesso**. O Eli (Relógio) sai da sala, e o controle volta para o Eli. Vincular outro relógio revoga o anterior e mantém o papel e o controle já dados ao relógio.
 
 ## Validação
 
-Siga o [roteiro da HU1](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us1-vincular-relogio/test-guide.md), incluindo instruções para testar localmente sem alterar produção.
+Siga o [roteiro da US2](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us2-ver-e-marcar/test-guide.md). O [roteiro da US1](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us1-vincular-relogio/test-guide.md) traz instruções para testar localmente sem alterar produção.
 
-O tráfego Wear OS normalmente usa o telefone pareado como proxy Bluetooth; a plataforma gerencia as redes disponíveis. Suspensão em background pode adiar rede: nesta HU, presença via WebSocket é mantida enquanto a tela do app está ativa. [Referência de rede Wear OS](https://developer.android.com/training/wearables/data/network-communication).
+O tráfego Wear OS normalmente usa o telefone pareado como proxy Bluetooth; a plataforma gerencia as redes disponíveis. Suspensão em background pode adiar rede: a presença via WebSocket e o envio de lances funcionam enquanto a tela do app está ativa. [Referência de rede Wear OS](https://developer.android.com/training/wearables/data/network-communication).

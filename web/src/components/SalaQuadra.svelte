@@ -9,6 +9,7 @@
   import ModalCompartilhar from './ModalCompartilhar.svelte';
   import ModalConfigurarPartida from './ModalConfigurarPartida.svelte';
   import ModalCelebracaoVitoria from './ModalCelebracaoVitoria.svelte';
+  import { ehDonoDoRelogio } from '../lib/relogio.js';
 
   let {
     quadra,
@@ -26,6 +27,7 @@
     onPromoverControlador = (id) => {},
     onRevogarControlador = (id) => {},
     onAutorizarAdmin = (id) => {},
+    onPassarControle = (id) => {},
     operando = false,
     pendentes = 0,
     erro = null,
@@ -196,6 +198,18 @@
 
   const temControle = $derived(podeControlar && quadra?.controle_id === eu?.id);
   const operador = $derived(participantes.find(p => p.id === quadra?.controle_id)?.apelido || (temControle ? eu?.apelido : 'aguardando atualização'));
+  // O relógio é pessoal do eli nesta fase; para os demais, só um aviso.
+  let avisoRelogio = $state(false);
+  let avisoRelogioTimer = null;
+  function abrirRelogio() {
+    if (ehDonoDoRelogio(eu?.apelido)) {
+      modalRelogioAberto = true;
+      return;
+    }
+    avisoRelogio = true;
+    clearTimeout(avisoRelogioTimer);
+    avisoRelogioTimer = setTimeout(() => { avisoRelogio = false; }, 2500);
+  }
 
   // Se o aparelho/monitor já é fisicamente paisagem (Desktop, tablet ou celular com auto-rotate)
   const paisagemNativa = $derived(viewportW > viewportH);
@@ -379,7 +393,15 @@
         </button>
 
         {#if podeControlar}
-          <button type="button" class="btn-config-header" onclick={() => { modalRelogioAberto = true; }} aria-label="Vincular ou revogar meu relógio">Relógio</button>
+          <button
+            type="button"
+            class="btn-config-header"
+            onclick={abrirRelogio}
+            aria-label="Vincular ou revogar meu relógio"
+            title="Relógio"
+          >
+            <Icone nome="relogio" tamanho="1.15em" />
+          </button>
           <button
             type="button"
             class="btn-config-header"
@@ -496,6 +518,9 @@
   {/if}
 
   <div class="controle-painel" aria-live="polite">
+    {#if avisoRelogio}
+      <span class="aviso-em-breve" role="status" transition:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>Em breve…</span>
+    {/if}
     {#key quadra?.controle_id}
       <span in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>Controle: <strong>{operador}</strong>{temControle ? ' (você)' : ''}</span>
     {/key}
@@ -629,6 +654,8 @@
         {participantes}
         euId={eu?.id}
         podeAutorizar={ehAdmin}
+        controleId={quadra?.controle_id}
+        {onPassarControle}
         desabilitado={!wsConectado || operando}
         {onPromoverControlador}
         {onRevogarControlador}
@@ -641,6 +668,15 @@
 <style>
   .controle-painel { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 10px; color: var(--text-primary); }
   .controle-painel p { color: var(--estado-erro-suave); width: 100%; text-align: center; }
+  .aviso-em-breve {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+
   .chip-reconectando {
     display: inline-flex;
     align-items: center;

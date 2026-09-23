@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 
@@ -95,26 +96,37 @@ def executar_sync(
     versao=None,
     alvo_id=None,
     ids_online=None,
+    autor_id=None,
+    connection=None,
     **kwargs,
 ):
     # A presença chega como valor, vinda da borda HTTP que conhece o hub. A
     # transação não importa o hub nem toca no event loop de dentro da thread.
     ids_online = frozenset(ids_online or ())
     # O lock de escrita cobre autorização, leitura do log e toda a alteração.
-    with get_db(db_path) as conn:
-        conn.execute("BEGIN IMMEDIATE")
+    # O relógio passa a própria conexão para gravar o recibo na mesma transação.
+    with nullcontext(connection) if connection is not None else get_db(db_path) as conn:
+        if connection is None:
+            conn.execute("BEGIN IMMEDIATE")
         quadra = conn.execute(_SELECT_QUADRA_PUBLICA, (quadra_id,)).fetchone()
         limite = (
             datetime.now(UTC) - timedelta(seconds=settings.quadra_ttl_seconds)
         ).isoformat()
         if not quadra or quadra["atualizado_em"] < limite:
             raise HTTPException(404, "Sala não encontrada ou expirada.")
-        if not session_id:
-            raise HTTPException(401, "Participante não autenticado.")
-        autor = conn.execute(
-            "SELECT id, papel FROM participantes WHERE quadra_id = ? AND session_hash = ?",
-            (quadra_id, hash_sessao(session_id)),
-        ).fetchone()
+        if autor_id is not None:
+            # Autor já autenticado pela credencial do relógio.
+            autor = conn.execute(
+                "SELECT id, papel FROM participantes WHERE quadra_id = ? AND id = ?",
+                (quadra_id, autor_id),
+            ).fetchone()
+        else:
+            if not session_id:
+                raise HTTPException(401, "Participante não autenticado.")
+            autor = conn.execute(
+                "SELECT id, papel FROM participantes WHERE quadra_id = ? AND session_hash = ?",
+                (quadra_id, hash_sessao(session_id)),
+            ).fetchone()
         if not autor:
             raise HTTPException(403, "Participante não registrado nesta quadra.")
         atual = snapshot(conn, quadra_id)

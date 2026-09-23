@@ -253,7 +253,15 @@ def projetar_linha_do_tempo(
         elif evento.tipo == TipoEvento.CONTROLE_DEVOLVIDO:
             ausente = evento.payload.get("anterior_apelido", "o controlador")
             destino = evento.payload.get("apelido", "o admin")
-            descricao = f"Controle devolvido para {destino} por ausência de {ausente}"
+            if evento.payload.get("motivo") in (
+                "relogio_revogado",
+                "relogio_desabilitado",
+            ):
+                descricao = f"Controle devolvido para {destino}: relógio desvinculado"
+            else:
+                descricao = (
+                    f"Controle devolvido para {destino} por ausência de {ausente}"
+                )
 
         elif evento.tipo == TipoEvento.PAPEL_ALTERADO:
             novo_papel = evento.payload.get("papel")

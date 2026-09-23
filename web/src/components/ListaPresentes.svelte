@@ -1,5 +1,6 @@
 <script>
   import { slide, fade } from 'svelte/transition';
+  import { podePassarControle } from '../lib/controle.js';
 
   let {
     participantes = [],
@@ -10,6 +11,8 @@
     onPromoverControlador = (id) => {},
     onRevogarControlador = (id) => {},
     onAutorizarAdmin = (id) => {},
+    controleId = null,
+    onPassarControle = (id) => {},
   } = $props();
 </script>
 
@@ -38,8 +41,25 @@
               {#if p.id === euId}
                 <span class="eu-tag">(você)</span>
               {/if}
+              {#if p.id === controleId}
+                <span class="eu-tag">· no controle</span>
+              {/if}
             </span>
           </div>
+
+          {#if podePassarControle(p, { euId, controleId, ehAdmin: podeAutorizar })}
+            <!-- O servidor só passa para quem está online; offline o botão explica. -->
+            <button
+              type="button"
+              class="btn-papel btn-promover"
+              disabled={desabilitado || !p.online}
+              title={p.online ? '' : `${p.apelido} está offline`}
+              onclick={() => onPassarControle(p.id)}
+              aria-label={`Passar o controle do placar para ${p.apelido}`}
+            >
+              Passar controle
+            </button>
+          {/if}
 
           {#if podeAutorizar && p.id !== euId}
             {#if p.papel === 'ESPECTADOR'}

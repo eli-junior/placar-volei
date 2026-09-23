@@ -39,7 +39,7 @@
         body: JSON.stringify({ code: codigo }),
       });
       codigo = '';
-      mensagem = `Relógio vinculado. Você aparece como ${vinculo.display_name} para os outros.`;
+      mensagem = `Relógio vinculado: ele aparece na sala como ${vinculo.display_name}. Para marcar pelo relógio, promova-o e passe o controle para ele na lista de presentes.`;
       await atualizar();
     } catch (e) { erro = e.message; }
     finally { ocupado = false; }
@@ -51,7 +51,7 @@
     mensagem = '';
     try {
       await requisitar(`/${id}`, { method: 'DELETE' });
-      mensagem = 'Acesso do relógio revogado. Seu telefone continua conectado.';
+      mensagem = 'Acesso do relógio revogado e relógio removido da sala. Seu telefone continua conectado.';
       await atualizar();
     } catch (e) { erro = e.message; }
     finally { ocupado = false; }
@@ -72,7 +72,7 @@
         <button type="submit" disabled={ocupado || !/^[0-9]{8}$/.test(codigo)}>Vincular à sala {quadra.id}</button>
       </form>
       {#if dispositivos.length}
-        <p>Vincular outro relógio revoga o acesso do anterior.</p>
+        <p>Vincular outro relógio revoga o acesso do anterior e mantém o papel e o controle já dados ao relógio.</p>
       {/if}
     {:else if !ocupado && !erro}
       <p>O acesso de teste ao relógio ainda não foi habilitado para você nesta sala.</p>

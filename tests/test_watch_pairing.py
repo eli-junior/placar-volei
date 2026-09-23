@@ -59,27 +59,28 @@ def link(client, court):
     return token, headers
 
 
-def test_link_uses_same_participant_without_exposing_credentials(client):
+def test_link_creates_watch_participant_without_exposing_credentials(client):
     court = prepare(client)
     token, headers, code = pairing(client)
     assert client.get("/api/watch/session", headers=headers).json() == {
         "status": "pending"
     }
-    assert (
-        client.post(
-            f"/api/quadras/{court['id']}/watch/approve", json={"code": code}
-        ).status_code
-        == 200
+    approved = client.post(
+        f"/api/quadras/{court['id']}/watch/approve", json={"code": code}
     )
-    assert client.get("/api/watch/session", headers=headers).json() == {
-        "status": "linked",
-        "court_id": court["id"],
-        "display_name": "eli",
-    }
+    assert approved.status_code == 200
+    assert approved.json()["display_name"] == "Eli (Relógio)"
+    session = client.get("/api/watch/session", headers=headers).json()
+    assert session["status"] == "linked"
+    assert session["court_id"] == court["id"]
+    assert session["display_name"] == "Eli (Relógio)"
+    assert session["participant_id"] != court["participante"]["id"]
     state = client.get("/api/watch/state", headers=headers)
     assert state.status_code == 200
-    assert len(state.json()["participantes"]) == 1
-    assert state.json()["participantes"][0]["id"] == court["participante"]["id"]
+    participantes = {p["apelido"]: p for p in state.json()["participantes"]}
+    # O relógio é um participante próprio, sem permissão até o admin delegar.
+    assert set(participantes) == {"Eli", "Eli (Relógio)"}
+    assert participantes["Eli (Relógio)"]["papel"] == "ESPECTADOR"
     for secret in (
         token,
         code,
@@ -92,11 +93,13 @@ def test_link_uses_same_participant_without_exposing_credentials(client):
     with get_db() as conn:
         device = dict(conn.execute("SELECT * FROM watch_devices").fetchone())
     assert device["token_hash"] == hash_sessao(token)
+    assert device["owner_id"] == court["participante"]["id"]
     assert token not in str(device)
     assert device["code_hash"] is None
 
 
-def test_owner_grant_required_even_with_correct_name(client):
+def test_owner_grant_required_when_auto_grant_is_off(client, monkeypatch):
+    monkeypatch.setattr(settings, "watch_auto_grant", "")
     court = client.post("/api/quadras", json={"apelido": "eli"}).json()
     _, _, code = pairing(client)
     assert (
@@ -115,30 +118,22 @@ def test_owner_grant_required_even_with_correct_name(client):
     )
 
 
-def test_watch_nickname_enables_watch_and_shows_only_public_name(client, monkeypatch):
-    monkeypatch.setattr(settings, "watch_auto_grant", "eli.relogio")
-    court = client.post("/api/quadras", json={"apelido": "Eli.Relogio"}).json()
-    assert court["participante"]["apelido"] == "eli"
+@pytest.mark.parametrize("apelido", ["eli", "ELI", " Eli "])
+def test_eli_in_any_case_is_title_and_enables_watch(client, apelido):
+    court = client.post("/api/quadras", json={"apelido": apelido}).json()
+    assert court["participante"]["apelido"] == "Eli"
     assert client.get(f"/api/quadras/{court['id']}/watch").json()["enabled"] is True
-    _, _, code = pairing(client)
-    approved = client.post(
-        f"/api/quadras/{court['id']}/watch/approve", json={"code": code}
-    )
-    assert approved.json()["display_name"] == "eli"
-    state = client.get(f"/api/quadras/{court['id']}").text
-    assert "relogio" not in state.lower()
 
 
-def test_watch_nickname_grants_on_join_and_blocks_copy(client, monkeypatch):
-    monkeypatch.setattr(settings, "watch_auto_grant", "eli.relogio")
+def test_eli_grants_on_join_and_blocks_duplicate(client):
     court = client.post("/api/quadras", json={"apelido": "ana"}).json()
     joined = client.post(
         f"/api/quadras/{court['id']}/entrar",
-        json={"apelido": "eli.relogio"},
+        json={"apelido": "eli"},
         headers={"x-session-id": "eli-phone"},
     )
     assert joined.status_code == 200
-    assert joined.json()["participante"]["apelido"] == "eli"
+    assert joined.json()["participante"]["apelido"] == "Eli"
     with get_db() as conn:
         assert conn.execute(
             "SELECT 1 FROM watch_grants WHERE participant_id = ?",
@@ -146,15 +141,15 @@ def test_watch_nickname_grants_on_join_and_blocks_copy(client, monkeypatch):
         ).fetchone()
     copycat = client.post(
         f"/api/quadras/{court['id']}/entrar",
-        json={"apelido": "eli"},
+        json={"apelido": "ELI"},
         headers={"x-session-id": "copycat"},
     )
     assert copycat.status_code == 409
 
 
-def test_plain_public_name_does_not_enable_watch(client, monkeypatch):
-    monkeypatch.setattr(settings, "watch_auto_grant", "eli.relogio")
-    court = client.post("/api/quadras", json={"apelido": "eli"}).json()
+def test_other_names_do_not_enable_watch(client):
+    court = client.post("/api/quadras", json={"apelido": "elisa"}).json()
+    assert court["participante"]["apelido"] == "elisa"
     _, _, code = pairing(client)
     assert client.get(f"/api/quadras/{court['id']}/watch").json()["enabled"] is False
     assert (

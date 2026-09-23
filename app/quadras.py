@@ -39,17 +39,17 @@ class ApelidoEmUso(ValueError):
 
 
 def apelido_de_relogio(apelido: str) -> str | None:
-    """Traduz o apelido-senha do relógio (ex.: "eli.relogio") no nome público.
+    """Nome público de quem pode vincular relógio, ou None.
 
-    Quem entra com um dos apelidos de `WATCH_AUTO_GRANT` aparece para a sala
-    só pelo trecho antes do ponto e ganha o vínculo de relógio. O sufixo nunca
-    é gravado nem exibido, para que ninguém copie o apelido-senha do placar.
+    Os apelidos de `WATCH_AUTO_GRANT` (padrão `eli`) valem em qualquer caixa e
+    são gravados em Title: `eli`, `ELI` e `Eli` entram como `Eli` e ganham o
+    vínculo de relógio (CV3.DS1.US2, revisão 3).
     """
     chave = apelido.strip().lower()
     for nome in settings.watch_auto_grant.split(","):
         nome = nome.strip()
         if nome and nome.lower() == chave:
-            return nome.split(".")[0] or nome
+            return nome.title()
     return None
 
 
