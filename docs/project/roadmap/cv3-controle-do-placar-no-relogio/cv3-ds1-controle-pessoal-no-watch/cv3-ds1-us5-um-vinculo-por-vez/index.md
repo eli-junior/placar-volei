@@ -2,7 +2,7 @@
 code: CV3.DS1.US5
 level: User Story
 status: Planned
-status_reason: Pedido do Navigator no Checkpoint 1 da US3 (2026-09-23); vem depois da US3, antes ou junto da US4
+status_reason: Pedido do Navigator no Checkpoint 1 da US3 e reforçado no teste físico (2026-09-23); vem depois da US3, antes ou junto da US4
 updated: 2026-09-23
 related:
   - CV3.DS1.US3
@@ -13,6 +13,8 @@ related:
 
 ## Intent
 Como Eli, quero reabrir o app do relógio e escolher entre voltar à quadra em que estou vinculado ou gerar um novo código, sem que o relógio continue preso a uma quadra antiga.
+
+Também é a saída quando a quadra trava ou o vínculo fica num estado ruim: parear de novo, na mesma quadra ou em outra, sem depender do telefone para revogar antes.
 
 ## Scope
 - Ao abrir o app com vínculo válido: "Retornar à quadra XXXXX" ou "Gerar novo código". Sem vínculo válido (sala expirada, revogação): só "Gerar código".
@@ -33,4 +35,5 @@ Vários relógios por pessoa, relógio para outras pessoas, configuração de se
 
 ## Notes
 - A remoção do campo de servidor da tela de vínculo foi feita na [US3](../cv3-ds1-us3-desfazer/plan.md).
+- No teste físico da US3, o Navigator confirmou o pedido: hoje, ao reabrir, o app entra direto na quadra. Não implementar na US3; a mudança de API (pedido de código informando o vínculo substituído) entra nesta HU.
 - Hoje (0.8.0), a exclusividade é só por dono na mesma sala; um código aprovado em outra sala deixa o vínculo antigo ativo.
