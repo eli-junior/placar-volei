@@ -19,6 +19,8 @@ data class Confirmed(
     val equipeB: String,
     val jogadoresA: List<String>,
     val jogadoresB: List<String>,
+    /** Pontos ativos confirmados, em ordem: (seq, equipe). Topo = último. */
+    val ativos: List<Pair<Int, String>> = emptyList(),
 ) {
     companion object {
         fun fromSnapshot(json: JSONObject): Confirmed {
@@ -39,7 +41,16 @@ data class Confirmed(
                 equipeB = partida.optString("equipe_b", "Equipe B"),
                 jogadoresA = partida.optJSONArray("jogadores_a").strings(),
                 jogadoresB = partida.optJSONArray("jogadores_b").strings(),
+                ativos = actives(partida),
             )
+        }
+
+        /** Sem `equipes_ativas` coerente, nenhum ponto confirmado é desfazível no relógio. */
+        private fun actives(partida: JSONObject): List<Pair<Int, String>> {
+            val seqs = partida.optJSONArray("eventos_ativos_seq") ?: return emptyList()
+            val teams = partida.optJSONArray("equipes_ativas").strings()
+            if (teams.size != seqs.length()) return emptyList()
+            return (0 until seqs.length()).map { seqs.getInt(it) to teams[it] }
         }
 
         private fun JSONArray?.strings() =
@@ -64,11 +75,28 @@ fun avaliarVitoria(a: Int, b: Int, alvo: Int, vantagem: Boolean, teto: Int?): St
     return null
 }
 
-/** Placar previsto: confirmado + lances pendentes que valem para esta partida. */
+/** Ponto na pilha prevista: confirmado (com seq) ou lance ainda na fila (com id). */
+data class StackPoint(val equipe: String, val seq: Int? = null, val comando: String? = null)
+
+/**
+ * Pilha prevista (CV3.DS1.US3): pontos confirmados ativos e, em cima deles, os
+ * lances pendentes desta partida. Cada desfazer na fila tira o topo.
+ */
+fun stack(confirmed: Confirmed, pending: List<PendingCommand>): List<StackPoint> {
+    val points = confirmed.ativos.map { (seq, equipe) -> StackPoint(equipe, seq = seq) }.toMutableList()
+    pending.filter { it.partidaId == confirmed.partidaId }.forEach {
+        if (it.acao == ACAO_DESFAZER) points.removeLastOrNull()
+        else points += StackPoint(it.equipe.orEmpty(), comando = it.id)
+    }
+    return points
+}
+
+/** Placar previsto: confirmado + o efeito dos lances pendentes desta partida. */
 fun predicted(confirmed: Confirmed, pending: List<PendingCommand>): Pair<Int, Int> {
-    val valid = pending.filter { it.partidaId == confirmed.partidaId }
-    return (confirmed.pontosA + valid.count { it.equipe == "A" }) to
-        (confirmed.pontosB + valid.count { it.equipe == "B" })
+    val base = confirmed.ativos.map { it.second }
+    val top = stack(confirmed, pending).map { it.equipe }
+    return (confirmed.pontosA + top.count { it == "A" } - base.count { it == "A" }) to
+        (confirmed.pontosB + top.count { it == "B" } - base.count { it == "B" })
 }
 
 /**

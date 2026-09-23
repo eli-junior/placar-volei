@@ -6,9 +6,9 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Versão `0.8.0` entregue: pontuar pelo Galaxy Watch. O relógio entra na sala como **Eli (Relógio)**, recebe o controle pelo botão **Passar controle** e marca os pontos com fila durável e sem duplicar (`CV3.DS1.US2`). A `0.7.0` trouxe o vínculo do relógio pelo telefone (`CV3.DS1.US1`; app Wear OS em `wear/`). Antes: Modo Sol aplicado à tela inteira (`0.6.1`), CV2 completo com layouts fluidos, Home ao vivo e WCAG 2.2 (`0.6.0`), e o CV1 com salas por PIN, papéis, regras configuráveis e linha do tempo auditável.
+Versão `0.9.0` entregue: desfazer pelo Galaxy Watch. A faixa **↶ Desfazer** corrige o último ponto que o relógio mostra, inclusive sem rede, sem nunca desfazer um ponto que o relógio não viu (`CV3.DS1.US3`). A `0.8.0` trouxe a pontuação pelo relógio: ele entra na sala como **Eli (Relógio)**, recebe o controle pelo botão **Passar controle** e marca os pontos com fila durável e sem duplicar (`CV3.DS1.US2`). A `0.7.0` trouxe o vínculo do relógio pelo telefone (`CV3.DS1.US1`; app Wear OS em `wear/`). Antes: Modo Sol aplicado à tela inteira (`0.6.1`), CV2 completo com layouts fluidos, Home ao vivo e WCAG 2.2 (`0.6.0`), e o CV1 com salas por PIN, papéis, regras configuráveis e linha do tempo auditável.
 
-Próximo trabalho: `CV3.DS1.US2`, ver e marcar pontos pelo relógio.
+Próximo trabalho: `CV3.DS1.US5`, retomar a quadra ou trocar de quadra ao abrir o app do relógio.
 
 ## Como funciona
 

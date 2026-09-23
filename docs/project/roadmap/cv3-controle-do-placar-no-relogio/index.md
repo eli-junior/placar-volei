@@ -2,7 +2,7 @@
 code: CV3
 level: Value
 status: Active
-status_reason: US1 (0.7.0) e US2 (0.8.0) entregues; próxima: US3 (desfazer pelo relógio)
+status_reason: US1 (0.7.0), US2 (0.8.0) e US3 (0.9.0) entregues; próxima: US5 (retomar ou trocar de quadra), depois US4
 updated: 2026-09-23
 ---
 

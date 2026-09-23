@@ -38,7 +38,8 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         .followRedirects(false).followSslRedirects(false).build()
     private var socket: WebSocket? = null
     private var visible = false
-    var server by mutableStateOf(store.server())
+    // Endereço compilado no APK (CV3.DS1.US3): o relógio não edita o servidor.
+    private val address = BuildConfig.SERVER_URL.trim().trimEnd('/')
     var code by mutableStateOf(store.code())
         private set
     var message by mutableStateOf("Vincule pelo telefone")
@@ -65,14 +66,25 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     val labels get() = score?.let(::teamLabels) ?: ("Nós" to "Eles")
     val shown get() = score?.let { predicted(it, pending) }
 
-    /** Por que os botões estão travados agora; null = pode marcar. */
-    val blockReason: String?
+    /** O controle do placar está com este relógio. */
+    val controlled get() = score?.controleId?.let { it == participantId } == true
+
+    /** Por que o relógio não opera o placar agora (pontos e desfazer); null = opera. */
+    private val controlReason: String?
         get() {
             val s = score ?: return "Carregando placar…"
             held?.let { return it }
             if (s.controleId == null || s.controleId != participantId) {
                 return "Controle no telefone. Peça ao admin para passar o controle."
             }
+            return null
+        }
+
+    /** Por que os botões de ponto estão travados agora; null = pode marcar. */
+    val blockReason: String?
+        get() {
+            controlReason?.let { return it }
+            val s = score ?: return "Carregando placar…"
             if (s.encerrada) return "Partida encerrada."
             val (a, b) = predicted(s, pending)
             if (avaliarVitoria(a, b, s.alvo, s.vantagem, s.teto) != null) return "Fim de partida. Aguardando confirmação."
@@ -84,6 +96,26 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         val s = score ?: return false
         if (blockReason != null) return false
         val command = PendingCommand(UUID.randomUUID().toString(), s.partidaId, s.controleVersao, equipe)
+        if (!update(queueState.copy(commands = queueState.commands + command))) return false
+        wake.trySend(Unit)
+        return true
+    }
+
+    /** Ponto no topo da pilha prevista; null = nada para desfazer. */
+    private val undoTarget get() = score?.let { stack(it, pending).lastOrNull() }
+
+    /** Desfazer segue valendo com a vitória prevista ou a partida encerrada. */
+    val canUndo get() = controlReason == null && undoTarget != null
+
+    /** Grava na fila o desfazer do ponto visto no topo, antes do retorno visual. */
+    fun undo(): Boolean {
+        val s = score ?: return false
+        val target = undoTarget ?: return false
+        if (!canUndo) return false
+        val command = PendingCommand(
+            UUID.randomUUID().toString(), s.partidaId, s.controleVersao, null, ACAO_DESFAZER,
+            alvoSeq = target.seq.takeIf { target.comando == null }, alvoComando = target.comando,
+        )
         if (!update(queueState.copy(commands = queueState.commands + command))) return false
         wake.trySend(Unit)
         return true
@@ -116,9 +148,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 continue
             }
             val result = try {
-                request("/api/watch/comandos", body = JSONObject().put("id", next.id)
-                    .put("partida_id", next.partidaId).put("controle_versao", next.controleVersao)
-                    .put("equipe", next.equipe).toString())
+                request("/api/watch/comandos", body = next.toJson().toString())
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
@@ -161,7 +191,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
 
     private suspend fun request(path: String, post: Boolean = false, body: String? = null): Pair<Int, JSONObject> = withContext(Dispatchers.IO) {
         val token = store.token() ?: error("Gere um código para começar.")
-        val builder = Request.Builder().url(store.server() + path).header("Authorization", "Bearer $token")
+        val builder = Request.Builder().url(address + path).header("Authorization", "Bearer $token")
         if (body != null) builder.post(body.toRequestBody("application/json".toMediaType()))
         else if (post) builder.post(ByteArray(0).toRequestBody())
         http.newCall(builder.build()).execute().use { response ->
@@ -176,9 +206,9 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         if (busy) return@launch
         busy = true
         try {
-            val address = serverAddress(server, BuildConfig.DEBUG)
+            serverAddress(address, BuildConfig.DEBUG)
             // Persistir antes da rede permite recuperar aprovação após resposta perdida.
-            if (store.token() == null || invalid || address != store.server()) {
+            if (!hasLink() || invalid) {
                 val bytes = ByteArray(32).also { SecureRandom().nextBytes(it) }
                 store.saveToken(Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING), address)
             }
@@ -198,6 +228,9 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
             message = e.message ?: "Sem conexão. Tente novamente."
         } finally { busy = false }
     }
+
+    /** Token guardado para este servidor; o de outro endereço não vale mais. */
+    private fun hasLink() = store.token() != null && store.server() == address
 
     private suspend fun refresh() {
         val (status, data) = request("/api/watch/session")
@@ -227,7 +260,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
 
     private fun connectPresence(court: String) {
         if (!visible || socket != null) return
-        val url = store.server().replaceFirst("https://", "wss://").replaceFirst("http://", "ws://")
+        val url = address.replaceFirst("https://", "wss://").replaceFirst("http://", "ws://")
         val request = Request.Builder().url("$url/ws/$court")
             .header("Authorization", "Bearer ${store.token()}").build()
         connection = Connection.RECONECTANDO
@@ -288,7 +321,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         while (true) {
             if (!busy) {
                 try {
-                    if (store.token() != null) refresh()
+                    if (hasLink()) refresh()
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {

@@ -2,9 +2,11 @@
 
 CV3.DS1.US2, revisão 3: o relógio é o participante "Eli (Relógio)" e pontua
 quando o admin passa o controle para ele, pelas mesmas regras do site.
+CV3.DS1.US3: desfazer com alvo explícito, no fim do arquivo.
 """
 
 import json
+import sqlite3
 import uuid
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
@@ -12,8 +14,9 @@ from datetime import UTC, datetime, timedelta
 import pytest
 from fastapi.testclient import TestClient
 
+from app.comandos import MSG_ALVO_MUDOU
 from app.config import settings
-from app.db import get_db
+from app.db import get_db, init_db_sync
 from app.main import app
 from app.rate_limit import owner_rate_limiter
 from app.sucessao import verificar_controle_ocioso_sync, verificar_sucessao_quadra_sync
@@ -313,3 +316,225 @@ def test_receipt_survives_restart(client, sala):
     assert again.status_code == 200
     assert again.json()["recibo"]["status"] == "APLICADO"
     assert len(eventos(court["id"], "PONTO_MARCADO")) == 1
+
+
+# --- CV3.DS1.US3: desfazer pelo relógio ---
+# O relógio diz qual ponto viu no topo: pelo seq, se já confirmado, ou pelo id
+# do lance da fila. O servidor só desfaz se esse ainda for o último ponto ativo.
+
+
+def desfazer(client, headers, *, base=None, alvo_seq=None, alvo_comando=None):
+    base = base or estado(client, headers)
+    body = {
+        "id": str(uuid.uuid4()),
+        "partida_id": base["partida_id"],
+        "controle_versao": base["quadra"]["controle_versao"],
+        "acao": "desfazer",
+    }
+    if alvo_seq is not None:
+        body["alvo_seq"] = alvo_seq
+    if alvo_comando is not None:
+        body["alvo_comando"] = alvo_comando
+    return client.post("/api/watch/comandos", json=body, headers=headers), body
+
+
+def placar(client, headers):
+    partida = estado(client, headers)["estado_partida"]
+    return partida["pontos_a"], partida["pontos_b"]
+
+
+def test_undo_confirmed_point_by_seq(client, sala):
+    court, headers = sala
+    comando(client, headers, "A")
+    b, _ = comando(client, headers, "B")
+    seq_b = b.json()["recibo"]["evento_seq"]
+    response, _ = desfazer(client, headers, alvo_seq=seq_b)
+    assert response.status_code == 201
+    recibo = response.json()["recibo"]
+    assert recibo["status"] == "APLICADO"
+    assert placar(client, headers) == (1, 0)
+    [desfeito] = eventos(court["id"], "PONTO_DESFEITO")
+    assert desfeito["seq"] == recibo["evento_seq"]
+    assert f'"ref_seq": {seq_b}' in desfeito["payload"]
+    # A correção é auditável e tem o relógio como autor.
+    assert desfeito["autor_id"] == relogio_id(client, headers)
+
+
+def test_undo_queued_point_by_command_id(client, sala):
+    court, headers = sala
+    base = estado(client, headers)
+    # Offline: A e desfazer entram na fila com a mesma base e saem em ordem.
+    _, ponto = comando(client, headers, "A", base=base)
+    response, _ = desfazer(client, headers, base=base, alvo_comando=ponto["id"])
+    assert response.json()["recibo"]["status"] == "APLICADO"
+    assert placar(client, headers) == (0, 0)
+    assert len(eventos(court["id"], "PONTO_MARCADO")) == 1
+    assert len(eventos(court["id"], "PONTO_DESFEITO")) == 1
+
+
+def test_two_undos_each_with_its_own_target(client, sala):
+    _, headers = sala
+    base = estado(client, headers)
+    _, p1 = comando(client, headers, "A", base=base)
+    _, p2 = comando(client, headers, "A", base=base)
+    for alvo in (p2["id"], p1["id"]):
+        response, _ = desfazer(client, headers, base=base, alvo_comando=alvo)
+        assert response.json()["recibo"]["status"] == "APLICADO"
+    assert placar(client, headers) == (0, 0)
+
+
+def test_resend_undo_does_not_duplicate_and_other_target_is_409(client, sala):
+    court, headers = sala
+    base = estado(client, headers)
+    _, p1 = comando(client, headers, "A", base=base)
+    _, p2 = comando(client, headers, "A", base=base)
+    first, body = desfazer(client, headers, base=base, alvo_comando=p2["id"])
+    again = client.post("/api/watch/comandos", json=body, headers=headers)
+    assert again.status_code == 200
+    assert again.json()["recibo"] == first.json()["recibo"]
+    assert placar(client, headers) == (1, 0)
+    other = client.post(
+        "/api/watch/comandos", json={**body, "alvo_comando": p1["id"]}, headers=headers
+    )
+    assert other.status_code == 409
+    assert len(eventos(court["id"], "PONTO_DESFEITO")) == 1
+
+
+def test_undo_without_active_point_is_rejected(client, sala):
+    court, headers = sala
+    response, _ = desfazer(client, headers, alvo_seq=1)
+    assert response.json()["recibo"]["status"] == "RECUSADO"
+    assert "Nenhum ponto" in response.json()["recibo"]["detalhe"]
+    assert not eventos(court["id"], "PONTO_DESFEITO")
+
+
+def test_stale_target_does_not_undo_another_point(client, sala):
+    court, headers = sala
+    a, _ = comando(client, headers, "A")
+    comando(client, headers, "B")
+    # O relógio atrasado ainda via o ponto de A no topo.
+    response, _ = desfazer(client, headers, alvo_seq=a.json()["recibo"]["evento_seq"])
+    assert response.json()["recibo"] == {
+        **response.json()["recibo"],
+        "status": "RECUSADO",
+        "detalhe": MSG_ALVO_MUDOU,
+    }
+    assert placar(client, headers) == (1, 1)
+    assert not eventos(court["id"], "PONTO_DESFEITO")
+
+
+def test_already_undone_target_is_rejected(client, sala):
+    court, headers = sala
+    comando(client, headers, "A")
+    b, _ = comando(client, headers, "B")
+    seq_b = b.json()["recibo"]["evento_seq"]
+    desfazer(client, headers, alvo_seq=seq_b)
+    response, _ = desfazer(client, headers, alvo_seq=seq_b)
+    assert response.json()["recibo"]["detalhe"] == MSG_ALVO_MUDOU
+    assert placar(client, headers) == (1, 0)
+    assert len(eventos(court["id"], "PONTO_DESFEITO")) == 1
+
+
+def test_target_command_that_was_rejected_is_not_undone(client, sala):
+    court, headers = sala
+    comando(client, headers, "A")
+    old = estado(client, headers)
+    client.post(f"/api/quadras/{court['id']}/controle/assumir")
+    # O lance com a base antiga é recusado; o desfazer dele também.
+    _, recusado = comando(client, headers, "B", base=old)
+    response, _ = desfazer(client, headers, base=old, alvo_comando=recusado["id"])
+    assert response.json()["recibo"]["status"] == "RECUSADO"
+    assert placar(client, headers) == (1, 0)
+
+
+def test_unknown_target_command_is_rejected(client, sala):
+    _, headers = sala
+    comando(client, headers, "A")
+    response, _ = desfazer(client, headers, alvo_comando=str(uuid.uuid4()))
+    assert response.json()["recibo"]["detalhe"] == MSG_ALVO_MUDOU
+    assert placar(client, headers) == (1, 0)
+
+
+def test_undo_of_winning_point_reopens_match(client, sala):
+    _, headers = sala
+    base = estado(client, headers)
+    for _ in range(12):
+        ultimo, _ = comando(client, headers, "A", base=base)
+    assert estado(client, headers)["estado_partida"]["encerrada"] is True
+    response, _ = desfazer(
+        client, headers, alvo_seq=ultimo.json()["recibo"]["evento_seq"]
+    )
+    assert response.json()["recibo"]["status"] == "APLICADO"
+    partida = estado(client, headers)["estado_partida"]
+    assert (partida["encerrada"], partida["pontos_a"]) == (False, 11)
+    with get_db() as conn:
+        status = conn.execute(
+            "SELECT status FROM partidas WHERE id = ?", (base["partida_id"],)
+        ).fetchone()["status"]
+    assert status == "EM_ANDAMENTO"
+    # A partida reaberta volta a aceitar ponto.
+    again, _ = comando(client, headers, "A")
+    assert again.json()["recibo"]["status"] == "APLICADO"
+
+
+def test_undo_after_admin_takes_control_is_rejected(client, sala):
+    court, headers = sala
+    a, _ = comando(client, headers, "A")
+    base = estado(client, headers)
+    client.post(f"/api/quadras/{court['id']}/controle/assumir")
+    response, _ = desfazer(
+        client, headers, base=base, alvo_seq=a.json()["recibo"]["evento_seq"]
+    )
+    assert response.json()["recibo"]["status"] == "RECUSADO"
+    assert placar(client, headers) == (1, 0)
+
+
+def test_command_shape_is_validated(client, sala):
+    _, headers = sala
+    base = estado(client, headers)
+    common = {
+        "partida_id": base["partida_id"],
+        "controle_versao": base["quadra"]["controle_versao"],
+    }
+    invalid = [
+        {"acao": "ponto"},
+        {"acao": "ponto", "equipe": "A", "alvo_seq": 1},
+        {"acao": "desfazer"},
+        {"acao": "desfazer", "equipe": "A", "alvo_seq": 1},
+        {"acao": "desfazer", "alvo_seq": 1, "alvo_comando": str(uuid.uuid4())},
+    ]
+    for extra in invalid:
+        body = {"id": str(uuid.uuid4()), **common, **extra}
+        response = client.post("/api/watch/comandos", json=body, headers=headers)
+        assert response.status_code == 422, extra
+
+
+def test_state_lists_team_of_each_active_point(client, sala):
+    _, headers = sala
+    for equipe in "ABA":
+        comando(client, headers, equipe)
+    partida = estado(client, headers)["estado_partida"]
+    assert partida["equipes_ativas"] == ["A", "B", "A"]
+    assert len(partida["eventos_ativos_seq"]) == 3
+
+
+def test_old_receipts_table_gains_target_column(tmp_path, monkeypatch):
+    path = tmp_path / "antigo.db"
+    monkeypatch.setattr(settings, "db_path", str(path))
+    conn = sqlite3.connect(path)
+    conn.execute(
+        """CREATE TABLE watch_recibos (device_id TEXT NOT NULL, comando_id TEXT NOT NULL,
+        quadra_id TEXT NOT NULL, partida_id TEXT NOT NULL, acao TEXT NOT NULL,
+        equipe TEXT, controle_versao INTEGER NOT NULL, status TEXT NOT NULL,
+        detalhe TEXT, evento_seq INTEGER, criado_em TEXT NOT NULL,
+        PRIMARY KEY (device_id, comando_id))"""
+    )
+    conn.execute(
+        "INSERT INTO watch_recibos VALUES ('d', 'c', 'q', 'p', 'ponto', 'A', 0, 'APLICADO', NULL, 1, 't')"
+    )
+    conn.commit()
+    conn.close()
+    init_db_sync(str(path))
+    with get_db(str(path)) as conn:
+        colunas = [r["name"] for r in conn.execute("PRAGMA table_info(watch_recibos)")]
+    assert "alvo" in colunas

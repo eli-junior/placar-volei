@@ -11,8 +11,11 @@ class ScoreboardTest {
     private fun confirmed(
         a: Int = 0, b: Int = 0, equipeA: String = "Equipe A", equipeB: String = "Equipe B",
         jogadoresA: List<String> = emptyList(), jogadoresB: List<String> = emptyList(),
-        partida: String = "p1", seq: Int = 1,
-    ) = Confirmed(partida, seq, 1, "eli", a, b, 12, true, null, false, equipeA, equipeB, jogadoresA, jogadoresB)
+        partida: String = "p1", seq: Int = 1, ativos: List<Pair<Int, String>> = emptyList(),
+    ) = Confirmed(partida, seq, 1, "eli", a, b, 12, true, null, false, equipeA, equipeB, jogadoresA, jogadoresB, ativos)
+
+    private fun ponto(id: String, equipe: String, partida: String = "p1") = PendingCommand(id, partida, 1, equipe)
+    private fun desfazer(id: String, partida: String = "p1") = PendingCommand(id, partida, 1, null, ACAO_DESFAZER)
 
     @Test
     fun victoryRuleMirrorsServer() {
@@ -66,6 +69,35 @@ class ScoreboardTest {
     }
 
     @Test
+    fun undoPopsTopOfConfirmedPlusPending() {
+        // Confirmado: A (seq 3), B (seq 4). Fila: A, desfazer, desfazer.
+        val c = confirmed(a = 1, b = 1, ativos = listOf(3 to "A", 4 to "B"))
+        val pending = listOf(ponto("x", "A"), desfazer("u1"), desfazer("u2"))
+        assertEquals(listOf(StackPoint("A", seq = 3)), stack(c, pending))
+        assertEquals(1 to 0, predicted(c, pending))
+    }
+
+    @Test
+    fun topIsPendingCommandOrConfirmedSeq() {
+        val c = confirmed(a = 1, ativos = listOf(3 to "A"))
+        assertEquals(StackPoint("B", comando = "x"), stack(c, listOf(ponto("x", "B"))).last())
+        assertEquals(StackPoint("A", seq = 3), stack(c, emptyList()).last())
+    }
+
+    @Test
+    fun undoWithEmptyStackChangesNothing() {
+        val c = confirmed()
+        assertTrue(stack(c, listOf(desfazer("u"))).isEmpty())
+        assertEquals(0 to 0, predicted(c, listOf(desfazer("u"))))
+    }
+
+    @Test
+    fun pendingOfPreviousMatchIsIgnoredInStack() {
+        val c = confirmed(a = 1, ativos = listOf(3 to "A"))
+        assertEquals(1 to 0, predicted(c, listOf(ponto("x", "B", "antiga"), desfazer("u", "antiga"))))
+    }
+
+    @Test
     fun olderSnapshotIsIgnoredButNewMatchIsAccepted() {
         val current = confirmed(seq = 5)
         assertFalse(current.accepts(confirmed(seq = 4)))
@@ -80,7 +112,8 @@ class ScoreboardTest {
              "quadra": {"controle_id": "relogio-id", "controle_versao": 3},
              "estado_partida": {"pontos_a": 2, "pontos_b": 1, "alvo": 15, "vantagem": false, "teto": null,
                "encerrada": false, "equipe_a": "Eli / Camila", "equipe_b": "Equipe B",
-               "jogadores_a": ["Eli", "Camila"], "jogadores_b": []}}
+               "jogadores_a": ["Eli", "Camila"], "jogadores_b": [],
+               "eventos_ativos_seq": [2, 3, 5], "equipes_ativas": ["A", "B", "A"]}}
         """.trimIndent())
         val c = Confirmed.fromSnapshot(json)
         assertEquals("p9", c.partidaId)
@@ -89,13 +122,25 @@ class ScoreboardTest {
         assertEquals(2 to 1, c.pontosA to c.pontosB)
         assertNull(c.teto)
         assertEquals(listOf("Eli", "Camila"), c.jogadoresA)
+        assertEquals(listOf(2 to "A", 3 to "B", 5 to "A"), c.ativos)
+        // Sem equipes_ativas coerentes, nada confirmado é desfazível no relógio.
+        val semEquipes = JSONObject(json.toString()).apply { getJSONObject("estado_partida").remove("equipes_ativas") }
+        assertTrue(Confirmed.fromSnapshot(semEquipes).ativos.isEmpty())
         val off = JSONObject(json.toString()).apply { getJSONObject("quadra").put("controle_id", JSONObject.NULL) }
         assertNull(Confirmed.fromSnapshot(off).controleId)
     }
 
     @Test
     fun statusShowsPendingCount() {
-        assertEquals("● Conectado", statusLine(Connection.CONECTADO, 0))
+        assertEquals("Conectado", statusLine(Connection.CONECTADO, 0))
         assertEquals("Sem conexão · 3 pendentes", statusLine(Connection.SEM_CONEXAO, 3))
+    }
+
+    @Test
+    fun dotColorFollowsConnectionAndPending() {
+        assertEquals(Signal.CONECTADO, signal(Connection.CONECTADO, 0))
+        assertEquals(Signal.PROCESSANDO, signal(Connection.CONECTADO, 2))
+        assertEquals(Signal.PROCESSANDO, signal(Connection.RECONECTANDO, 0))
+        assertEquals(Signal.DESCONECTADO, signal(Connection.SEM_CONEXAO, 3))
     }
 }

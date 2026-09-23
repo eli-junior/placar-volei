@@ -89,6 +89,7 @@ CREATE TABLE IF NOT EXISTS watch_recibos (
     partida_id TEXT NOT NULL,
     acao TEXT NOT NULL,
     equipe TEXT,
+    alvo TEXT,
     controle_versao INTEGER NOT NULL,
     status TEXT NOT NULL,
     detalhe TEXT,
@@ -217,6 +218,10 @@ def init_db_sync(db_path: str | None = None, *args, **kwargs) -> None:
             cursor.execute(
                 "ALTER TABLE watch_devices ADD COLUMN owner_id TEXT REFERENCES participantes(id) ON DELETE CASCADE;"
             )
+        cursor.execute("PRAGMA table_info(watch_recibos);")
+        if "alvo" not in [row["name"] for row in cursor.fetchall()]:
+            # Alvo do desfazer pelo relógio (CV3.DS1.US3): "seq:<n>" ou "comando:<id>".
+            cursor.execute("ALTER TABLE watch_recibos ADD COLUMN alvo TEXT;")
 
         agora = datetime.now(UTC).isoformat()
         cursor.execute(

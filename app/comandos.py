@@ -24,6 +24,8 @@ CAMPOS_PUBLICOS_QUADRA = (
     "controle_versao",
 )
 
+MSG_ALVO_MUDOU = "O placar mudou; este desfazer não foi aplicado."
+
 _SELECT_QUADRA_PUBLICA = (
     f"SELECT {', '.join(CAMPOS_PUBLICOS_QUADRA)} FROM quadras WHERE id = ?"
 )
@@ -95,6 +97,7 @@ def executar_sync(
     equipe=None,
     versao=None,
     alvo_id=None,
+    alvo_seq=None,
     ids_online=None,
     autor_id=None,
     connection=None,
@@ -156,10 +159,12 @@ def executar_sync(
             else:
                 if not estado["eventos_ativos_seq"]:
                     raise HTTPException(400, "Nenhum ponto para desfazer.")
-                tipo, payload = (
-                    TipoEvento.PONTO_DESFEITO,
-                    {"ref_seq": estado["eventos_ativos_seq"][-1]},
-                )
+                ultimo = estado["eventos_ativos_seq"][-1]
+                # O relógio diz qual ponto viu. Se o topo mudou, nenhum outro
+                # ponto é desfeito no lugar dele.
+                if alvo_seq is not None and alvo_seq != ultimo:
+                    raise HTTPException(409, MSG_ALVO_MUDOU)
+                tipo, payload = TipoEvento.PONTO_DESFEITO, {"ref_seq": ultimo}
         elif acao == "assumir":
             if autor["papel"] not in ("ADMIN", "CONTROLADOR"):
                 raise HTTPException(

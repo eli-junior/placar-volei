@@ -2,9 +2,9 @@ package br.com.placarvolei.watch
 
 import java.net.URI
 
-// O endereço não pode carregar credenciais nem alterar o caminho da API.
+// Confere o endereço compilado no APK: sem credenciais e sem alterar o caminho da API.
 fun serverAddress(input: String, debug: Boolean): String {
-    require(input.isNotBlank()) { "Informe o endereço do placar no campo acima." }
+    require(input.isNotBlank()) { "O APK foi compilado sem o endereço do placar." }
     val uri = URI(input.trim())
     require(uri.scheme == "https" || (debug && uri.scheme == "http")) {
         "Use o endereço HTTPS do placar."

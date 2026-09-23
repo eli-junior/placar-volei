@@ -7,6 +7,44 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 _Nenhum trabalho em andamento._
 
 
+## 0.9.0 - 2026-09-23
+
+Boundary: minor (nova capacidade: desfazer pontos pelo Galaxy Watch, terceira entrega do CV3)
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) | Sessão: 37fec51a
+
+Git source: feature/cv3-ds1-us3-desfazer (merge into master)
+
+### Added
+
+- [Relógio] **Desfazer no pulso** (`CV3.DS1.US3`): a faixa **↶ Desfazer**, embaixo, corrige o último ponto que o relógio mostra, com vibração própria e o número descendo. Funciona sem rede e antes do envio: ponto e desfazer saem em ordem e aparecem os dois na linha do tempo. Continua ativa na vitória, para reabrir a partida.
+- [Relógio] **Bolinha de conexão** no alto: verde conectado, amarela enviando ou reconectando, vermelha sem conexão, com o número de lances pendentes.
+- API: `acao: "desfazer"` em `POST /api/watch/comandos`, com `alvo_seq` (ponto confirmado) ou `alvo_comando` (lance da fila). Só desfaz se o alvo ainda for o último ponto ativo; senão recusa sem tocar em outro ponto. O alvo entra no recibo (`watch_recibos.alvo`, migração aditiva) e na idempotência.
+- `estado_partida.equipes_ativas`: a equipe de cada ponto ativo, para o relógio prever o placar.
+
+### Changed
+
+- [Relógio] A tela de vínculo mostra só **Gerar código**: o endereço do servidor fica fixo no APK (`-PserverUrl` na compilação).
+- [Relógio] Sem o controle, a faixa de desfazer some e o aviso "Controle no telefone…" fica embaixo, fora dos números.
+
+### Decisions
+
+- `desfazer-do-relogio-com-alvo-explicito-e-registro-antes-do-envio`: o relógio atrasado nunca desfaz um ponto que não viu; o toque acidental corrigido offline fica registrado.
+
+### Debt
+
+- `debt-regra-de-vitoria-duplicada-no-relogio` (Carried, atualizado): o relógio também prevê a pilha de pontos.
+- `debt-fluxos-da-interface-sem-teste-de-ponta-a-ponta`, `debt-banco-de-producao-sem-volume-persistente` e `debt-limite-de-vinculo-do-relogio-por-ip-e-em-memoria` (Carried).
+
+### Roadmap
+
+- Nova `CV3.DS1.US5` (Planned, próxima): retomar ou trocar de quadra ao abrir o app, com o relógio vinculado a uma quadra por vez.
+
+### Verification
+
+- `pytest` 166/166, `ruff check` e `ruff format --check` ok; web `npm test` 27/27, `npm run check` sem erros/avisos, `npm run build` ok; Android: 26 testes, `assembleDebug` e `lintDebug` (0 erros) ok.
+- Validação física no Galaxy Watch 8 em produção, na branch da HU, aprovada pelo Navigator, incluindo os ajustes de tela pedidos no teste.
+
 ## 0.8.0 - 2026-09-23
 
 Boundary: minor (nova capacidade: marcar pontos pelo Galaxy Watch com controle delegado, segunda entrega do CV3)

@@ -19,7 +19,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.contentDescription
@@ -57,6 +60,10 @@ fun ScoreScreen(model: WatchModel) {
     fun tap(equipe: String) {
         if (model.tap(equipe)) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }
+    fun undo() {
+        // Vibração diferente da do ponto: o pulso sente que foi uma correção.
+        if (model.undo()) view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+    }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         Row(Modifier.fillMaxSize()) {
@@ -64,28 +71,35 @@ fun ScoreScreen(model: WatchModel) {
             Box(Modifier.fillMaxHeight().width(2.dp).background(Color(0xFF333333)))
             TeamHalf(rotuloB, pontosB, CorEles, reason == null, pending > 0, Modifier.weight(1f)) { tap("B") }
         }
-        Text(
-            statusLine(model.connection, pending),
-            Modifier.align(Alignment.TopCenter).padding(top = 20.dp),
-            fontSize = 12.sp,
-            color = if (model.connection == Connection.CONECTADO) Color(0xFFB0F0B0) else Color(0xFFFFD27A),
-        )
-        if (reason != null && model.held == null) {
-            Text(
-                reason,
-                Modifier.align(Alignment.BottomCenter).padding(start = 36.dp, end = 36.dp, bottom = 22.dp),
-                fontSize = 11.sp,
-                textAlign = TextAlign.Center,
-                color = Color.White,
-            )
+        StatusDot(model.connection, pending, Modifier.align(Alignment.TopCenter).padding(top = 10.dp))
+        if (model.controlled) {
+            // Com o controle, a faixa de baixo é o desfazer; o motivo (fim de
+            // partida) sobe para baixo da bolinha, longe dos números.
+            UndoBar(model.canUndo, Modifier.align(Alignment.BottomCenter), ::undo)
+            if (reason != null && model.held == null) {
+                ReasonText(reason, Modifier.align(Alignment.TopCenter).padding(top = 34.dp))
+            }
+        } else if (reason != null && model.held == null) {
+            // Sem o controle não há o que desfazer: a faixa some e o aviso fica embaixo.
+            ReasonText(reason, Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp))
         }
         model.held?.let { HeldOverlay(it, pending, model::discardHeld) }
     }
 }
 
+enum class Signal { CONECTADO, PROCESSANDO, DESCONECTADO }
+
+/** Verde: conectado e sem pendentes. Amarelo: enviando ou reconectando. Vermelho: sem conexão. */
+internal fun signal(connection: Connection, pending: Int) = when {
+    connection == Connection.SEM_CONEXAO -> Signal.DESCONECTADO
+    connection == Connection.RECONECTANDO || pending > 0 -> Signal.PROCESSANDO
+    else -> Signal.CONECTADO
+}
+
+/** Texto da bolinha para leitores de tela: a cor sozinha não informa. */
 internal fun statusLine(connection: Connection, pending: Int): String {
     val link = when (connection) {
-        Connection.CONECTADO -> "● Conectado"
+        Connection.CONECTADO -> "Conectado"
         Connection.RECONECTANDO -> "Reconectando…"
         Connection.SEM_CONEXAO -> "Sem conexão"
     }
@@ -118,7 +132,11 @@ private fun TeamHalf(
             Text(label, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = color)
             AnimatedContent(
                 targetState = points,
-                transitionSpec = { (slideInVertically { it / 3 } + fadeIn()) togetherWith (slideOutVertically { -it / 3 } + fadeOut()) },
+                // Ponto sobe; ponto desfeito desce, para ser visivelmente desfeito.
+                transitionSpec = {
+                    val up = if (targetState >= initialState) 1 else -1
+                    (slideInVertically { up * it / 3 } + fadeIn()) togetherWith (slideOutVertically { -up * it / 3 } + fadeOut())
+                },
                 label = "Pontos $label",
             ) { value ->
                 // Número previsto (ainda não confirmado) fica mais apagado e sublinhado por um traço.
@@ -134,6 +152,59 @@ private fun TeamHalf(
                     .background(if (predicted) color.copy(alpha = 0.8f) else Color.Transparent)
             )
         }
+    }
+}
+
+/** Bolinha de conexão no alto; com lances pendentes, mostra quantos. */
+@Composable
+private fun StatusDot(connection: Connection, pending: Int, modifier: Modifier) {
+    val color = when (signal(connection, pending)) {
+        Signal.CONECTADO -> Color(0xFF4CD964)
+        Signal.PROCESSANDO -> Color(0xFFFFC83D)
+        Signal.DESCONECTADO -> Color(0xFFFF4D4D)
+    }
+    val description = statusLine(connection, pending)
+    Box(
+        modifier.size(18.dp).clip(CircleShape).background(color)
+            .semantics { contentDescription = description },
+        contentAlignment = Alignment.Center,
+    ) {
+        if (pending > 0) {
+            Text(if (pending > 9) "9+" else pending.toString(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+        }
+    }
+}
+
+@Composable
+private fun ReasonText(reason: String, modifier: Modifier) {
+    Text(
+        reason,
+        modifier.padding(horizontal = 36.dp),
+        fontSize = 11.sp,
+        textAlign = TextAlign.Center,
+        color = Color.White,
+    )
+}
+
+/** Desfazer o ponto do topo: a faixa inferior inteira, um toque, sem confirmação, como no site. */
+@Composable
+private fun UndoBar(enabled: Boolean, modifier: Modifier, onTap: () -> Unit) {
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .background(if (enabled) Color(0xFF3A3A3A) else Color(0xFF1A1A1A))
+            .clickable(enabled = enabled, onClick = onTap)
+            .semantics { contentDescription = "Desfazer o último ponto" },
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        Text(
+            "↶ Desfazer",
+            Modifier.padding(top = 8.dp),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = if (enabled) 1f else 0.3f),
+        )
     }
 }
 
