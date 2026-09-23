@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV3.DS1.US5 — Um vínculo por vez: retomar ou trocar de quadra
 
 - **Branch:** `feature/cv3-ds1-us5-um-vinculo-por-vez` (da `master` em `b520f32`)
-- **Passo Ariad:** Passo 3 - Implementação (Checkpoint 1 aprovado em 2026-09-23: reabrir = atividade recriada; sem rede mostra "Retornar" com a quadra guardada; versão 0.10.0)
+- **Passo Ariad:** Passo 4 - Teste e Validação (Checkpoint 2 aguardando o teste físico do Navigator). Checkpoint 1 aprovado em 2026-09-23: reabrir = atividade recriada; sem rede mostra "Retornar" com a quadra guardada; versão 0.10.0.
 - **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 060492ed | Data: 2026-09-23 22:30
-- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us5-um-vinculo-por-vez/plan.md`. Nenhum código alterado ainda. Após o aceite: servidor (`substitui` no pareamento, revogação na aprovação, cancelamento), depois app Wear (tela de abertura, aviso de lances abandonados).
+- **Handoff / Próximos Passos:** servidor e APK implementados (pytest 178, web 27, Android 33). Roteiro em `.../cv3-ds1-us5-um-vinculo-por-vez/test-guide.md`; APK 0.10.0 local SHA-256 `b24e61ee…5361`. Próximo: Navigator valida no Watch real com a branch no Mini PC; depois Checkpoint 3 (revisão).
 
 
 ## 0.9.0 - 2026-09-23

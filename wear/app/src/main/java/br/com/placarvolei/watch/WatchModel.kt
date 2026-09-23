@@ -11,7 +11,6 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
@@ -50,6 +49,22 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         private set
     var invalid by mutableStateOf(false)
         private set
+
+    // Um vínculo por vez (CV3.DS1.US5): a atividade recriada abre na escolha
+    // entre retornar à quadra e gerar um código novo. Tela que só apagou e
+    // acendeu reaproveita este modelo e volta direto ao placar.
+    var stage by mutableStateOf(
+        openingStage(hasLink(), store.pendingToken() != null, store.cancelPending())
+    )
+        private set
+    var linkCheck by mutableStateOf(LinkCheck.VERIFICANDO)
+        private set
+    var court by mutableStateOf(store.court())
+        private set
+    /** Aviso na tela de abertura (código expirado, falha ao gerar). */
+    var notice by mutableStateOf<String?>(null)
+        private set
+    private val poke = Channel<Unit>(Channel.CONFLATED)
 
     // Placar (CV3.DS1.US2): confirmado pelo servidor + fila durável de lances.
     private val queue = CommandQueue(File(app.filesDir, "fila-lances.json"))
@@ -143,7 +158,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         var backoff = 1_000L
         while (true) {
             val next = queueState.commands.firstOrNull()
-            if (!linked || next == null || queueState.held != null) {
+            if (!linked || stage != Stage.PLACAR || next == null || queueState.held != null) {
                 wake.receive()
                 continue
             }
@@ -189,11 +204,15 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         message = data.optString("detail", "Vínculo indisponível. Use o telefone.")
     }
 
-    private suspend fun request(path: String, post: Boolean = false, body: String? = null): Pair<Int, JSONObject> = withContext(Dispatchers.IO) {
-        val token = store.token() ?: error("Gere um código para começar.")
-        val builder = Request.Builder().url(address + path).header("Authorization", "Bearer $token")
+    private suspend fun request(
+        path: String, post: Boolean = false, body: String? = null,
+        token: String? = null, delete: Boolean = false,
+    ): Pair<Int, JSONObject> = withContext(Dispatchers.IO) {
+        val bearer = token ?: store.token() ?: error("Gere um código para começar.")
+        val builder = Request.Builder().url(address + path).header("Authorization", "Bearer $bearer")
         if (body != null) builder.post(body.toRequestBody("application/json".toMediaType()))
         else if (post) builder.post(ByteArray(0).toRequestBody())
+        else if (delete) builder.delete()
         http.newCall(builder.build()).execute().use { response ->
             val text = response.body?.string().orEmpty()
             val json = runCatching { JSONObject(text) }.getOrElse { JSONObject() }
@@ -208,10 +227,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         try {
             serverAddress(address, BuildConfig.DEBUG)
             // Persistir antes da rede permite recuperar aprovação após resposta perdida.
-            if (!hasLink() || invalid) {
-                val bytes = ByteArray(32).also { SecureRandom().nextBytes(it) }
-                store.saveToken(Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING), address)
-            }
+            if (!hasLink() || invalid) store.saveToken(newToken(), address)
             val (status, data) = request("/api/watch/pairing", true)
             if (status == 409) {
                 refresh()
@@ -229,6 +245,130 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         } finally { busy = false }
     }
 
+    private fun newToken(): String {
+        val bytes = ByteArray(32).also { SecureRandom().nextBytes(it) }
+        return Base64.encodeToString(bytes, Base64.URL_SAFE or Base64.NO_WRAP or Base64.NO_PADDING)
+    }
+
+    /** "Retornar à quadra": só agora começam presença e envio da fila. */
+    fun returnToCourt() {
+        notice = null
+        stage = Stage.PLACAR
+        poke.trySend(Unit)
+    }
+
+    /** "Gerar novo código": com lances pendentes, pede confirmação antes. */
+    fun requestNewCode() {
+        notice = null
+        if (abandonWarning(pending.size, court) != null) stage = Stage.CONFIRMAR_TROCA
+        else startReplacement()
+    }
+
+    fun backToOpening() { stage = Stage.ABERTURA }
+
+    /**
+     * Código novo com token novo, informando o vínculo que ele substitui. O
+     * vínculo atual, a fila e o token ficam intactos até a aprovação.
+     */
+    fun startReplacement() = viewModelScope.launch {
+        if (busy) return@launch
+        busy = true
+        try {
+            val current = store.token() ?: error("Vínculo não encontrado. Gere um código.")
+            val token = newToken()
+            store.savePendingToken(token)
+            val body = JSONObject().put("substitui", current).toString()
+            val (status, data) = request("/api/watch/pairing", body = body, token = token)
+            check(status == 201) { data.optString("detail", "Não foi possível gerar o código.") }
+            code = data.getString("code")
+            store.saveCode(code)
+            message = "No telefone: Relógio → digite este código. Válido por 5 minutos."
+            stage = Stage.CODIGO_NOVO
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Sem código na tela, ninguém aprova o pedido que ficou no servidor.
+            runCatching { store.clearPending() }
+            notice = e.message ?: "Sem conexão. Tente novamente."
+            stage = Stage.ABERTURA
+        } finally { busy = false }
+    }
+
+    /** "Voltar à quadra": cancela o código novo no servidor e volta ao placar. */
+    fun giveUp() {
+        runCatching {
+            store.markCancelPending()
+            store.saveCode("")
+        }
+        code = ""
+        stage = Stage.PLACAR
+        poke.trySend(Unit)
+    }
+
+    /**
+     * Resolve o código novo: refaz o cancelamento pendente ou confere se o
+     * telefone já aprovou. Aprovado (ou aprovado antes do cancelamento chegar),
+     * o relógio adota o vínculo novo, que é o que o servidor já fez.
+     */
+    private suspend fun settlePending() {
+        val token = store.pendingToken() ?: return
+        if (store.cancelPending()) {
+            when (request("/api/watch/pairing", token = token, delete = true).first) {
+                204 -> store.clearPending()
+                409 -> adopt(token)
+            }
+            return
+        }
+        if (stage != Stage.CODIGO_NOVO) return
+        val (status, data) = request("/api/watch/session", token = token)
+        when {
+            status == 200 && data.optString("status") == "linked" -> adopt(token)
+            status == 401 || status == 410 -> {
+                store.clearPending()
+                store.saveCode("")
+                code = ""
+                notice = data.optString("detail", "Código expirado.")
+                stage = Stage.ABERTURA
+            }
+        }
+    }
+
+    private suspend fun adopt(token: String) {
+        val (status, data) = request("/api/watch/session", token = token)
+        if (status != 200 || data.optString("status") != "linked") {
+            store.clearPending()
+            return
+        }
+        store.promotePending(data.getString("court_id"))
+        // Lances da quadra anterior: o abandono foi confirmado ao gerar o código.
+        update(QueueState())
+        socket?.let { old -> socket = null; old.close(1000, null) }
+        score = null
+        participantId = null
+        linked = false
+        invalid = false
+        code = ""
+        stage = Stage.PLACAR
+        refresh()
+    }
+
+    /** Tela de abertura: confere o vínculo guardado sem entrar na sala. */
+    private suspend fun checkOpening() {
+        val (status, data) = request("/api/watch/session")
+        when {
+            status == 200 && data.optString("status") == "linked" -> {
+                linkCheck = LinkCheck.VALIDO
+                court = data.getString("court_id").also(store::saveCourt)
+            }
+            // Primeiro código ainda sem aprovação, ou vínculo que caiu: fluxo de vínculo.
+            status == 200 || status == 401 || status == 410 -> {
+                stage = Stage.PLACAR
+                poke.trySend(Unit)
+            }
+            else -> linkCheck = LinkCheck.SEM_REDE
+        }
+    }
+
     /** Token guardado para este servidor; o de outro endereço não vale mais. */
     private fun hasLink() = store.token() != null && store.server() == address
 
@@ -241,6 +381,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 code = ""
                 store.saveCode("")
                 participantId = data.optString("participant_id").ifBlank { null }
+                court = data.getString("court_id").also(store::saveCourt)
                 message = "Vinculado como ${data.getString("display_name")}\nSala ${data.getString("court_id")}"
                 connectPresence(data.getString("court_id"))
                 val (stateStatus, snapshot) = request("/api/watch/state")
@@ -321,15 +462,32 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         while (true) {
             if (!busy) {
                 try {
-                    if (hasLink()) refresh()
+                    settlePending()
+                    when (stage) {
+                        Stage.ABERTURA -> checkOpening()
+                        Stage.PLACAR -> if (hasLink()) refresh()
+                        else -> Unit
+                    }
                 } catch (e: CancellationException) {
                     throw e
                 } catch (e: Exception) {
                     connection = Connection.SEM_CONEXAO
-                    message = "Sem conexão. Vínculo preservado; tentando novamente."
+                    when (stage) {
+                        Stage.ABERTURA -> linkCheck = LinkCheck.SEM_REDE
+                        // O código segue na tela: as instruções continuam valendo.
+                        Stage.CODIGO_NOVO, Stage.CONFIRMAR_TROCA -> Unit
+                        Stage.PLACAR -> message = "Sem conexão. Vínculo preservado; tentando novamente."
+                    }
                 }
             }
-            delay(if (linked && socket != null) 15_000 else if (linked) 5_000 else 3_000)
+            val wait = when {
+                stage == Stage.CODIGO_NOVO -> 3_000L
+                stage != Stage.PLACAR -> 5_000L
+                linked && socket != null -> 15_000L
+                linked -> 5_000L
+                else -> 3_000L
+            }
+            withTimeoutOrNull(wait) { poke.receive() }
         }
         } finally {
             sender.cancel()
