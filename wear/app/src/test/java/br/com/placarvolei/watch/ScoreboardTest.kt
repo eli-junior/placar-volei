@@ -132,7 +132,15 @@ class ScoreboardTest {
 
     @Test
     fun statusShowsPendingCount() {
-        assertEquals("● Conectado", statusLine(Connection.CONECTADO, 0))
+        assertEquals("Conectado", statusLine(Connection.CONECTADO, 0))
         assertEquals("Sem conexão · 3 pendentes", statusLine(Connection.SEM_CONEXAO, 3))
+    }
+
+    @Test
+    fun dotColorFollowsConnectionAndPending() {
+        assertEquals(Signal.CONECTADO, signal(Connection.CONECTADO, 0))
+        assertEquals(Signal.PROCESSANDO, signal(Connection.CONECTADO, 2))
+        assertEquals(Signal.PROCESSANDO, signal(Connection.RECONECTANDO, 0))
+        assertEquals(Signal.DESCONECTADO, signal(Connection.SEM_CONEXAO, 3))
     }
 }

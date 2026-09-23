@@ -66,6 +66,9 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     val labels get() = score?.let(::teamLabels) ?: ("Nós" to "Eles")
     val shown get() = score?.let { predicted(it, pending) }
 
+    /** O controle do placar está com este relógio. */
+    val controlled get() = score?.controleId?.let { it == participantId } == true
+
     /** Por que o relógio não opera o placar agora (pontos e desfazer); null = opera. */
     private val controlReason: String?
         get() {

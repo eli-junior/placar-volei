@@ -8,7 +8,6 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -72,29 +71,35 @@ fun ScoreScreen(model: WatchModel) {
             Box(Modifier.fillMaxHeight().width(2.dp).background(Color(0xFF333333)))
             TeamHalf(rotuloB, pontosB, CorEles, reason == null, pending > 0, Modifier.weight(1f)) { tap("B") }
         }
-        Text(
-            statusLine(model.connection, pending),
-            Modifier.align(Alignment.TopCenter).padding(top = 20.dp),
-            fontSize = 12.sp,
-            color = if (model.connection == Connection.CONECTADO) Color(0xFFB0F0B0) else Color(0xFFFFD27A),
-        )
-        UndoButton(model.canUndo, Modifier.align(Alignment.BottomCenter).padding(bottom = 14.dp), ::undo)
-        if (reason != null && model.held == null) {
-            Text(
-                reason,
-                Modifier.align(Alignment.BottomCenter).padding(start = 36.dp, end = 36.dp, bottom = 66.dp),
-                fontSize = 11.sp,
-                textAlign = TextAlign.Center,
-                color = Color.White,
-            )
+        StatusDot(model.connection, pending, Modifier.align(Alignment.TopCenter).padding(top = 10.dp))
+        if (model.controlled) {
+            // Com o controle, a faixa de baixo é o desfazer; o motivo (fim de
+            // partida) sobe para baixo da bolinha, longe dos números.
+            UndoBar(model.canUndo, Modifier.align(Alignment.BottomCenter), ::undo)
+            if (reason != null && model.held == null) {
+                ReasonText(reason, Modifier.align(Alignment.TopCenter).padding(top = 34.dp))
+            }
+        } else if (reason != null && model.held == null) {
+            // Sem o controle não há o que desfazer: a faixa some e o aviso fica embaixo.
+            ReasonText(reason, Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp))
         }
         model.held?.let { HeldOverlay(it, pending, model::discardHeld) }
     }
 }
 
+enum class Signal { CONECTADO, PROCESSANDO, DESCONECTADO }
+
+/** Verde: conectado e sem pendentes. Amarelo: enviando ou reconectando. Vermelho: sem conexão. */
+internal fun signal(connection: Connection, pending: Int) = when {
+    connection == Connection.SEM_CONEXAO -> Signal.DESCONECTADO
+    connection == Connection.RECONECTANDO || pending > 0 -> Signal.PROCESSANDO
+    else -> Signal.CONECTADO
+}
+
+/** Texto da bolinha para leitores de tela: a cor sozinha não informa. */
 internal fun statusLine(connection: Connection, pending: Int): String {
     val link = when (connection) {
-        Connection.CONECTADO -> "● Conectado"
+        Connection.CONECTADO -> "Conectado"
         Connection.RECONECTANDO -> "Reconectando…"
         Connection.SEM_CONEXAO -> "Sem conexão"
     }
@@ -150,20 +155,56 @@ private fun TeamHalf(
     }
 }
 
-/** Desfazer o ponto do topo: um toque, sem confirmação, como no site. */
+/** Bolinha de conexão no alto; com lances pendentes, mostra quantos. */
 @Composable
-private fun UndoButton(enabled: Boolean, modifier: Modifier, onTap: () -> Unit) {
+private fun StatusDot(connection: Connection, pending: Int, modifier: Modifier) {
+    val color = when (signal(connection, pending)) {
+        Signal.CONECTADO -> Color(0xFF4CD964)
+        Signal.PROCESSANDO -> Color(0xFFFFC83D)
+        Signal.DESCONECTADO -> Color(0xFFFF4D4D)
+    }
+    val description = statusLine(connection, pending)
     Box(
-        modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .background(if (enabled) Color(0xFF3A3A3A) else Color(0xFF1A1A1A))
-            .border(1.dp, Color.White.copy(alpha = if (enabled) 0.5f else 0.15f), CircleShape)
-            .clickable(enabled = enabled, onClick = onTap)
-            .semantics { contentDescription = "Desfazer o último ponto" },
+        modifier.size(18.dp).clip(CircleShape).background(color)
+            .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
-        Text("↶", fontSize = 24.sp, color = Color.White.copy(alpha = if (enabled) 1f else 0.3f))
+        if (pending > 0) {
+            Text(if (pending > 9) "9+" else pending.toString(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+        }
+    }
+}
+
+@Composable
+private fun ReasonText(reason: String, modifier: Modifier) {
+    Text(
+        reason,
+        modifier.padding(horizontal = 36.dp),
+        fontSize = 11.sp,
+        textAlign = TextAlign.Center,
+        color = Color.White,
+    )
+}
+
+/** Desfazer o ponto do topo: a faixa inferior inteira, um toque, sem confirmação, como no site. */
+@Composable
+private fun UndoBar(enabled: Boolean, modifier: Modifier, onTap: () -> Unit) {
+    Box(
+        modifier
+            .fillMaxWidth()
+            .height(52.dp)
+            .background(if (enabled) Color(0xFF3A3A3A) else Color(0xFF1A1A1A))
+            .clickable(enabled = enabled, onClick = onTap)
+            .semantics { contentDescription = "Desfazer o último ponto" },
+        contentAlignment = Alignment.TopCenter,
+    ) {
+        Text(
+            "↶ Desfazer",
+            Modifier.padding(top = 8.dp),
+            fontSize = 15.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White.copy(alpha = if (enabled) 1f else 0.3f),
+        )
     }
 }
 

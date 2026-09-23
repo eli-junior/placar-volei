@@ -81,15 +81,15 @@ python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA
 
 1. Com o app aberto no relógio, na lista de presentes do telefone: **Tornar controlador** em Eli (Relógio) e depois **Passar controle**.
 2. O site deixa de mostrar +1/Desfazer, e o relógio libera as duas metades: **Nós** (equipe A, à esquerda) e **Eles** (equipe B, à direita). Com jogadores cadastrados, aparecem as iniciais (ex.: EC × RM).
-3. Cada toque é gravado no relógio antes de vibrar. Enquanto o servidor não confirma, o número fica apagado, com um traço embaixo, e o alto da tela mostra "N pendentes".
+3. Cada toque é gravado no relógio antes de vibrar. Enquanto o servidor não confirma, o número fica apagado, com um traço embaixo. A bolinha no alto mostra quantos lances estão pendentes e muda de cor: verde conectado, amarela enviando ou reconectando, vermelha sem conexão.
 4. Sem rede, os toques ficam na fila e são enviados em ordem quando a rede volta, com o app aberto. O envio em segundo plano é da US4.
 5. Se o servidor recusar um lance (partida nova, controle retomado, partida encerrada), a fila pausa e o relógio pede **Descartar**, com confirmação.
 
 ## Desfazer pelo relógio
 
-1. O botão **↶**, no centro inferior, desfaz o último ponto que o relógio mostra. É um toque, sem confirmação. A vibração é diferente da do ponto, e o número desce.
+1. A faixa **↶ Desfazer**, na parte de baixo da tela, desfaz o último ponto que o relógio mostra. É um toque, sem confirmação. A vibração é diferente da do ponto, e o número desce.
 2. Funciona também com o lance ainda pendente, sem rede. Ao reconectar, o ponto e o desfazer são enviados em ordem e aparecem os dois na linha do tempo.
-3. O botão fica apagado quando não há ponto para desfazer e continua ativo com a partida encerrada. Desfazer o ponto da vitória reabre a partida.
+3. A faixa fica apagada quando não há ponto para desfazer, some quando o controle não está no relógio e continua ativa com a partida encerrada. Desfazer o ponto da vitória reabre a partida.
 4. Se o placar mudou no servidor antes do envio, o desfazer é recusado ("O placar mudou; este desfazer não foi aplicado."), nenhum outro ponto é tocado, e a fila pede **Descartar**.
 
 O controle nas mãos do relógio não volta sozinho quando a tela apaga. Para retomar pelo telefone, use **Assumir o controle**.

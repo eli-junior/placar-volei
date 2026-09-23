@@ -17,11 +17,14 @@ Nível: User Story. Versão pretendida: `0.9.0` (minor, nova capacidade no pulso
 
 ### Relógio
 6. **Pilha prevista:** pontos confirmados ativos, seguidos dos lances pendentes. Cada desfazer na fila tira o topo. O placar previsto sai dessa pilha.
-7. **Botão desfazer:** círculo de ~48 dp com "↶" no centro inferior, sobre a divisória. Um toque, sem confirmação, como no site. Fica desabilitado quando a pilha prevista está vazia.
+7. **Botão desfazer:** faixa inferior inteira, "↶ Desfazer". Um toque, sem confirmação, como no site. Fica desabilitado quando a pilha prevista está vazia e some quando o controle não está no relógio. *(Ajustado no teste físico: a versão inicial era um círculo de 48 dp.)*
 8. O toque grava na fila um comando `desfazer` cujo alvo é o topo da pilha: `alvo_comando` se o topo for um lance pendente, `alvo_seq` se for um ponto confirmado. Envio FIFO, como os pontos.
 9. Desfazer continua disponível com a vitória prevista ou com a partida encerrada. Os botões de ponto seguem travados nesses casos.
 10. **Retorno:** vibração diferente da do ponto, e o número desce com a animação invertida (sai para baixo). Com animações reduzidas, só troca o número.
 11. **Recusa:** reaproveita a retenção da US2. A fila pausa, mostra o motivo e oferece o descarte confirmado. A revisão pelo telefone fica para a US4.
+
+### Indicador de conexão (ajuste do Navigator no teste físico)
+13. O texto "● Conectado · N pendentes" vira uma bolinha maior, no alto: verde conectado, amarela processando (enviando ou reconectando), vermelha sem conexão, com o número de pendentes dentro. O texto continua como descrição para leitor de tela.
 
 ### Vínculo sem campo de servidor (pedido do Navigator no Checkpoint 1)
 12. A tela de vínculo mostra só "Gerar código". O app usa sempre o endereço compilado (`BuildConfig.SERVER_URL`, trocável na compilação por `-PserverUrl`). Um token guardado para outro endereço é descartado.
