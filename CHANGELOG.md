@@ -7,7 +7,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV3.DS1.US5 — Um vínculo por vez: retomar ou trocar de quadra
 
 - **Branch:** `feature/cv3-ds1-us5-um-vinculo-por-vez` (da `master` em `b520f32`)
-- **Passo Ariad:** Passo 4 - Teste e Validação (Checkpoint 2 aguardando o teste físico do Navigator). Checkpoint 1 aprovado em 2026-09-23: reabrir = atividade recriada; sem rede mostra "Retornar" com a quadra guardada; versão 0.10.0.
+- **Passo Ariad:** Passo 5 - Revisão (Checkpoint 2 aprovado pelo Navigator em 2026-09-23, após o 2º teste físico; Checkpoint 3 aguardando). Checkpoint 1 aprovado em 2026-09-23: reabrir = atividade recriada; sem rede mostra "Retornar" com a quadra guardada; versão 0.10.0.
 - **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 060492ed | Data: 2026-09-23 22:30
 - **Handoff / Próximos Passos:** servidor e APK implementados (pytest 178, web 27, Android 33). Roteiro em `.../cv3-ds1-us5-um-vinculo-por-vez/test-guide.md`; APK 0.10.0 local SHA-256 `ed1fe718…b7c4` (ajustes do 2º teste físico: bola durante a verificação, Retornar grande com o nome da quadra; servidor envia `court_name`). "Passar controle" não se repetiu no 2º teste; troca de quadra e controle funcionaram. Próximo: Navigator valida no Watch real com a branch no Mini PC; depois Checkpoint 3 (revisão).
 
