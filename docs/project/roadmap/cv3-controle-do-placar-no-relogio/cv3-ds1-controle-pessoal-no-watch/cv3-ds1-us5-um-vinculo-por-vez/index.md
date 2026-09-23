@@ -1,8 +1,8 @@
 ---
 code: CV3.DS1.US5
 level: User Story
-status: Active
-status_reason: Em planejamento (Checkpoint 1), branch feature/cv3-ds1-us5-um-vinculo-por-vez
+status: Done
+status_reason: Validada no Galaxy Watch real em dois testes físicos (2026-09-23); entregue na 0.10.0
 updated: 2026-09-23
 related:
   - CV3.DS1.US3
@@ -37,3 +37,4 @@ Vários relógios por pessoa, relógio para outras pessoas, configuração de se
 - A remoção do campo de servidor da tela de vínculo foi feita na [US3](../cv3-ds1-us3-desfazer/plan.md).
 - No teste físico da US3, o Navigator confirmou o pedido: hoje, ao reabrir, o app entra direto na quadra. Não implementar na US3; a mudança de API (pedido de código informando o vínculo substituído) entra nesta HU.
 - Hoje (0.8.0), a exclusividade é só por dono na mesma sala; um código aprovado em outra sala deixa o vínculo antigo ativo.
+- **Entregue na 0.10.0.** [Plano](plan.md), [roteiro](test-guide.md) e o registro de decisão `um-vinculo-por-vez-troca-na-aprovacao`. Os rótulos finais, depois dos testes físicos, são **Retornar** (com o nome da quadra), **Parear outra quadra**, **Ingressar numa quadra** e **Voltar para <quadra>**.

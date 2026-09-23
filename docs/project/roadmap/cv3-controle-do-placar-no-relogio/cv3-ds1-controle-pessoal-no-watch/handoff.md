@@ -1,5 +1,13 @@
 # Retomada — CV3.DS1
 
+## Estado em 2026-09-23 — US5 fechada
+
+- US5 validada no relógio real (dois testes físicos) e preparada para a 0.10.0 (branch `feature/cv3-ds1-us5-um-vinculo-por-vez`). Um vínculo por vez: ao reabrir o app, **Retornar** (nome da quadra) ou **Parear outra quadra**; o vínculo antigo cai só na aprovação do código novo; desistir cancela o código no servidor.
+- Depois do merge, o Mini PC volta a seguir a master. O deploy da 0.10.0 recria o contêiner e apaga as salas (sem volume).
+- Próximo trabalho: **US4** (envio em segundo plano e reconciliação). Começar separando o `WatchModel` (vínculo × placar/fila) e criando um `conftest` comum aos testes do relógio.
+- Observação sem causa: no 1º teste físico da US5, o botão "Passar controle" não apareceu na primeira quadra; não se repetiu nem foi reproduzido. Se voltar, anotar se a linha do relógio mostra "Revogar controlador", o selo CONTROLADOR e "· no controle".
+- APK 0.10.0 local: SHA-256 `ed1fe718e6d373960feefd4eba17bf52c3ba9e01c798c878a08183e1e02eb7c4`.
+
 ## Estado em 2026-09-23 — US3 fechada
 
 - US3 validada no relógio real e preparada para a 0.9.0 (branch `feature/cv3-ds1-us3-desfazer`). Desfazer com alvo explícito (`alvo_seq` ou `alvo_comando`), faixa **↶ Desfazer**, bolinha de conexão, e tela de vínculo sem campo de servidor.

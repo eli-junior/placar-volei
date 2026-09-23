@@ -2,7 +2,7 @@
 code: CV3.DS1
 level: Delivery Story
 status: Active
-status_reason: US1 (0.7.0), US2 (0.8.0) e US3 (0.9.0) entregues; próxima: US5 (retomar ou trocar de quadra), depois US4
+status_reason: US1 (0.7.0), US2 (0.8.0), US3 (0.9.0) e US5 (0.10.0) entregues; falta a US4 (envio em segundo plano e reconciliação)
 updated: 2026-09-23
 ---
 
