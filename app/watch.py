@@ -223,8 +223,16 @@ async def grant_access(body: GrantBody, request: Request):
     return {"enabled": body.enabled}
 
 
+class PairingBody(BaseModel):
+    # Token do vínculo atual (CV3.DS1.US5). Prova que o código novo vem do
+    # mesmo relógio; só o hash é consultado, o token não é gravado.
+    substitui: str | None = Field(default=None, pattern=r"^[A-Za-z0-9_-]{43}$")
+
+
 @router.post("/watch/pairing", status_code=201)
-def start_pairing(request: Request, response: Response):
+def start_pairing(
+    request: Request, response: Response, body: PairingBody | None = None
+):
     token = bearer(request.headers)
     # Não confiar em X-Forwarded-For vindo diretamente do cliente.
     key = request.client.host if request.client else "unknown"
@@ -259,18 +267,30 @@ def start_pairing(request: Request, response: Response):
             )
         if previous:
             conn.execute("DELETE FROM watch_devices WHERE id = ?", (previous["id"],))
+        replaced = None
+        if body is not None and body.substitui and body.substitui != token:
+            # Só um vínculo aprovado e vigente é substituível; os demais
+            # não mudam nada, e o código novo vale como vínculo do zero.
+            row = conn.execute(
+                """SELECT id FROM watch_devices WHERE token_hash = ? AND revoked = 0
+                AND participant_id IS NOT NULL""",
+                (hash_sessao(body.substitui),),
+            ).fetchone()
+            replaced = row["id"] if row else None
         # Colisão extremamente improvável, mas tratada sem sobrescrever vínculo alheio.
         for _ in range(10):
             code = f"{secrets.randbelow(100_000_000):08d}"
             try:
                 conn.execute(
-                    "INSERT INTO watch_devices (id, token_hash, code_hash, expires_at, created_at) VALUES (?, ?, ?, ?, ?)",
+                    """INSERT INTO watch_devices (id, token_hash, code_hash, expires_at,
+                    created_at, substitui_id) VALUES (?, ?, ?, ?, ?, ?)""",
                     (
                         str(uuid.uuid4()),
                         hash_sessao(token),
                         hash_sessao(code),
                         expires,
                         current.isoformat(),
+                        replaced,
                     ),
                 )
                 break
@@ -281,6 +301,29 @@ def start_pairing(request: Request, response: Response):
                 503, "Não foi possível gerar o código. Tente novamente."
             )
     return {"code": code, "expires_at": expires}
+
+
+@router.delete("/watch/pairing", status_code=204)
+def cancel_pairing(request: Request):
+    """Desiste de um código ainda não aprovado; o vínculo atual continua.
+
+    Sem o cancelamento, o código abandonado poderia ser aprovado nos minutos
+    seguintes e derrubar o vínculo que ele substituiria.
+    """
+    token = bearer(request.headers)
+    with get_db() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        d = conn.execute(
+            "SELECT participant_id FROM watch_devices WHERE token_hash = ?",
+            (hash_sessao(token),),
+        ).fetchone()
+        if d is not None and d["participant_id"] is not None:
+            raise HTTPException(409, "Este código já foi aprovado.")
+        conn.execute(
+            "DELETE FROM watch_devices WHERE token_hash = ? AND participant_id IS NULL",
+            (hash_sessao(token),),
+        )
+    return Response(status_code=204)
 
 
 @router.get("/watch/session")
@@ -364,9 +407,32 @@ async def approve_device(court: str, body: ApprovalBody, request: Request):
                     400, "Código inválido, usado ou expirado. Confira o relógio."
                 )
             current = now().isoformat()
+            # Um vínculo por vez (CV3.DS1.US5): o vínculo que o código substitui
+            # cai agora, na aprovação. Em outra quadra, o relógio sai dela pelo
+            # mesmo caminho da revogação pelo telefone.
+            watch = watch_participant_of(conn, p["id"])
+            replaced = None
+            if d["substitui_id"]:
+                replaced = conn.execute(
+                    """SELECT d.id, d.participant_id, d.owner_id, w.quadra_id
+                    FROM watch_devices d JOIN participantes w ON w.id = d.participant_id
+                    WHERE d.id = ? AND d.revoked = 0""",
+                    (d["substitui_id"],),
+                ).fetchone()
+            if replaced is not None:
+                conn.execute(
+                    "UPDATE watch_devices SET revoked = 1 WHERE id = ?",
+                    (replaced["id"],),
+                )
+                if watch is None or replaced["participant_id"] != watch["id"]:
+                    remove_watch_participant(
+                        conn,
+                        replaced["quadra_id"],
+                        replaced["owner_id"],
+                        "relogio_trocou_de_quadra",
+                    )
             # Revínculo reaproveita o participante do relógio: papel e controle
             # delegados continuam valendo com o aparelho novo.
-            watch = watch_participant_of(conn, p["id"])
             if watch is None:
                 name = f"{p['apelido']} (Relógio)"
                 if apelido_ja_usado(conn, court, name, None):
@@ -399,12 +465,20 @@ async def approve_device(court: str, body: ApprovalBody, request: Request):
                 (watch_id, p["id"], current, d["id"]),
             )
             approval_limit.registrar_sucesso(p["id"])
-            return watch_id, name
+            return watch_id, name, replaced and dict(replaced)
 
+    # Só o lock desta quadra: a quadra antiga é alterada na mesma transação,
+    # serializada pelo SQLite; pegar os dois locks arriscaria deadlock entre
+    # duas trocas cruzadas.
     async with get_quadra_lock(court):
-        watch_id, name = await asyncio.to_thread(approve)
+        watch_id, name, replaced = await asyncio.to_thread(approve)
         await hub.close_watch_connections(court, participant_id=watch_id)
         await transmitir_estado(court)
+    if replaced and replaced["quadra_id"] != court:
+        await hub.close_watch_connections(
+            replaced["quadra_id"], device_id=replaced["id"]
+        )
+        await transmitir_estado(replaced["quadra_id"])
     return {"status": "linked", "display_name": name}
 
 
