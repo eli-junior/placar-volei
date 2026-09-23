@@ -6,12 +6,14 @@ import secrets
 import sqlite3
 import uuid
 from datetime import UTC, datetime, timedelta
+from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Request, Response
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
-from app.api import autenticar_owner
-from app.comandos import snapshot
+from app.api import autenticar_owner, transmitir_estado
+from app.comandos import desligar_controle_relogio_sync, executar_sync, snapshot
 from app.config import settings
 from app.db import get_db
 from app.eventos import get_quadra_lock
@@ -153,11 +155,19 @@ async def grant_access(body: GrantBody, request: Request):
                     "UPDATE watch_devices SET revoked = 1 WHERE participant_id = ?",
                     (p["id"],),
                 )
+                desligar_controle_relogio_sync(
+                    conn,
+                    p["quadra_id"],
+                    p["id"],
+                    None,
+                    "acesso ao relógio desabilitado",
+                )
             return p["quadra_id"]
 
     court = await asyncio.to_thread(update)
     if not body.enabled:
         await hub.close_watch_connections(court, participant_id=body.participant_id)
+        await transmitir_estado(court)
     return {"enabled": body.enabled}
 
 
@@ -305,6 +315,9 @@ async def approve_device(court: str, body: ApprovalBody, request: Request):
                 "UPDATE watch_devices SET revoked = 1 WHERE participant_id = ?",
                 (p["id"],),
             )
+            desligar_controle_relogio_sync(
+                conn, court, p["id"], p["id"], "outro relógio vinculado"
+            )
             conn.execute(
                 "UPDATE watch_devices SET participant_id = ?, approved_at = ?, code_hash = NULL WHERE id = ?",
                 (p["id"], now().isoformat(), d["id"]),
@@ -315,6 +328,7 @@ async def approve_device(court: str, body: ApprovalBody, request: Request):
     async with get_quadra_lock(court):
         participant, name = await asyncio.to_thread(approve)
         await hub.close_watch_connections(court, participant_id=participant)
+        await transmitir_estado(court)
     return {"status": "linked", "display_name": name}
 
 
@@ -330,8 +344,118 @@ async def revoke_device(court: str, device_id: str, request: Request):
             )
             if not result.rowcount:
                 raise HTTPException(404, "Relógio não encontrado.")
+            desligar_controle_relogio_sync(
+                conn, court, p["id"], p["id"], "relógio revogado"
+            )
 
     async with get_quadra_lock(court):
         await asyncio.to_thread(revoke)
         await hub.close_watch_connections(court, device_id=device_id)
+        await transmitir_estado(court)
     return {"status": "revoked"}
+
+
+class CommandBody(BaseModel):
+    id: str = Field(pattern=r"^[0-9a-fA-F-]{36}$")
+    partida_id: str = Field(min_length=1, max_length=64)
+    relogio_versao: int = Field(ge=0)
+    acao: Literal["ponto"] = "ponto"
+    equipe: Literal["A", "B"]
+
+
+def receipt(row):
+    return {
+        "id": row["comando_id"],
+        "status": row["status"],
+        "detalhe": row["detalhe"],
+        "evento_seq": row["evento_seq"],
+    }
+
+
+def apply_command(token, body: CommandBody, ids_online):
+    with get_db() as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        p = device_participant(conn, token)
+        court = p["quadra_id"]
+        previous = conn.execute(
+            "SELECT * FROM watch_comandos WHERE device_id = ? AND comando_id = ?",
+            (p["device_id"], body.id),
+        ).fetchone()
+        if previous is not None:
+            # Reenvio: devolve o mesmo resultado, sem reaplicar efeitos.
+            if (
+                previous["partida_id"],
+                previous["relogio_versao"],
+                previous["acao"],
+                previous["equipe"],
+            ) != (body.partida_id, body.relogio_versao, body.acao, body.equipe):
+                raise HTTPException(409, "Este lance já foi usado com outro conteúdo.")
+            return 200, receipt(previous), snapshot(conn, court), False
+        current = snapshot(conn, court)
+        result = None
+        try:
+            # Lance de uma partida anterior nunca vale para a atual.
+            if body.partida_id != current["partida_id"]:
+                raise HTTPException(
+                    409, "Uma nova partida começou. Este lance não vale para ela."
+                )
+            result = executar_sync(
+                settings.db_path,
+                court,
+                None,
+                "pontos",
+                equipe=body.equipe,
+                versao=str(body.relogio_versao),
+                ids_online=ids_online,
+                autor_id=p["id"],
+                origem="relogio",
+                connection=conn,
+            )
+            status, detail, seq = "APLICADO", None, result["evento"]["seq"]
+        except HTTPException as e:
+            # As verificações de negócio ocorrem antes de qualquer escrita.
+            status, detail, seq = "RECUSADO", e.detail, None
+        created = now().isoformat()
+        conn.execute(
+            """INSERT INTO watch_comandos (device_id, comando_id, quadra_id, partida_id,
+            acao, equipe, relogio_versao, status, detalhe, evento_seq, criado_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (
+                p["device_id"],
+                body.id,
+                court,
+                body.partida_id,
+                body.acao,
+                body.equipe,
+                body.relogio_versao,
+                status,
+                detail,
+                seq,
+                created,
+            ),
+        )
+        conn.execute(
+            "UPDATE participantes SET ultimo_visto_em = ? WHERE id = ?",
+            (created, p["id"]),
+        )
+        rec = {"id": body.id, "status": status, "detalhe": detail, "evento_seq": seq}
+        applied = result is not None
+        return (201 if applied else 200), rec, result or current, applied
+
+
+@router.post("/watch/comandos")
+async def watch_command(body: CommandBody, request: Request):
+    token = bearer(request.headers)
+    court = (await asyncio.to_thread(authenticate_device, token))["quadra_id"]
+    async with get_quadra_lock(court):
+        ids_online = await hub.participantes_online(court)
+        code, rec, state, applied = await asyncio.to_thread(
+            apply_command, token, body, ids_online
+        )
+        if applied:
+            await transmitir_estado(court, state)
+    return JSONResponse(
+        {"recibo": rec, "estado": state},
+        status_code=code,
+        headers={"Cache-Control": "no-store"},
+    )

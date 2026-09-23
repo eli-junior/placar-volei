@@ -126,7 +126,8 @@ def test_watch_nickname_enables_watch_and_shows_only_public_name(client, monkeyp
     )
     assert approved.json()["display_name"] == "eli"
     state = client.get(f"/api/quadras/{court['id']}").text
-    assert "relogio" not in state.lower()
+    # O apelido-senha não vaza; campos como `controle_relogio` são esperados.
+    assert ".relogio" not in state.lower()
 
 
 def test_watch_nickname_grants_on_join_and_blocks_copy(client, monkeypatch):

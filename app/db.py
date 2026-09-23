@@ -24,7 +24,10 @@ CREATE TABLE IF NOT EXISTS quadras (
     atualizado_em TEXT NOT NULL,
     controle_id TEXT,
     controle_versao INTEGER NOT NULL DEFAULT 0,
-    codigo_mestre TEXT
+    codigo_mestre TEXT,
+    -- Participante cujo relógio controla o placar; NULL = controle pelo telefone.
+    controle_relogio TEXT,
+    relogio_versao INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE IF NOT EXISTS partidas (
@@ -77,6 +80,23 @@ CREATE TABLE IF NOT EXISTS watch_devices (
     revoked INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     approved_at TEXT
+);
+
+-- Recibo de cada comando do relógio, gravado na mesma transação do evento.
+-- Recusas também geram recibo: o resultado de um id é sempre o mesmo.
+CREATE TABLE IF NOT EXISTS watch_comandos (
+    device_id TEXT NOT NULL,
+    comando_id TEXT NOT NULL,
+    quadra_id TEXT NOT NULL,
+    partida_id TEXT NOT NULL,
+    acao TEXT NOT NULL,
+    equipe TEXT,
+    relogio_versao INTEGER NOT NULL,
+    status TEXT NOT NULL,
+    detalhe TEXT,
+    evento_seq INTEGER,
+    criado_em TEXT NOT NULL,
+    PRIMARY KEY (device_id, comando_id)
 );
 """
 
@@ -192,6 +212,12 @@ def init_db_sync(db_path: str | None = None, *args, **kwargs) -> None:
             )
         if "codigo_mestre" not in colunas:
             cursor.execute("ALTER TABLE quadras ADD COLUMN codigo_mestre TEXT;")
+        if "controle_relogio" not in colunas:
+            cursor.execute("ALTER TABLE quadras ADD COLUMN controle_relogio TEXT;")
+        if "relogio_versao" not in colunas:
+            cursor.execute(
+                "ALTER TABLE quadras ADD COLUMN relogio_versao INTEGER NOT NULL DEFAULT 0;"
+            )
 
         agora = datetime.now(UTC).isoformat()
         cursor.execute(

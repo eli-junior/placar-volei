@@ -24,6 +24,8 @@ class TipoEvento:
     CONTROLE_TRANSFERIDO = "CONTROLE_TRANSFERIDO"
     # Devolução automática do comando ao admin por ausência do controlador.
     CONTROLE_DEVOLVIDO = "CONTROLE_DEVOLVIDO"
+    # Chave "Controlar pelo Relógio" da sala ligada ou desligada (CV3.DS1.US2).
+    CONTROLE_RELOGIO_ALTERADO = "CONTROLE_RELOGIO_ALTERADO"
 
 
 @dataclass(frozen=True)

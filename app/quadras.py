@@ -256,6 +256,8 @@ def criar_quadra_sync(
         "partida_id": partida_id,
         "controle_id": participante["id"] if participante else None,
         "controle_versao": 1 if participante else 0,
+        "controle_relogio": None,
+        "relogio_versao": 0,
     }
     if participante:
         resultado["participante"] = participante
@@ -299,7 +301,8 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT id, nome, criado_em, atualizado_em, controle_id, controle_versao
+            SELECT id, nome, criado_em, atualizado_em, controle_id, controle_versao,
+                   controle_relogio, relogio_versao
             FROM quadras
             WHERE id = ?
             """,
@@ -324,6 +327,8 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
             "partida_id": partida_id,
             "controle_id": quadra["controle_id"],
             "controle_versao": quadra["controle_versao"],
+            "controle_relogio": quadra["controle_relogio"],
+            "relogio_versao": quadra["relogio_versao"],
         }
 
 

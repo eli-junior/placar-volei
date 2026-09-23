@@ -1,3 +1,4 @@
+from contextlib import nullcontext
 from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 
@@ -21,6 +22,8 @@ CAMPOS_PUBLICOS_QUADRA = (
     "atualizado_em",
     "controle_id",
     "controle_versao",
+    "controle_relogio",
+    "relogio_versao",
 )
 
 _SELECT_QUADRA_PUBLICA = (
@@ -85,6 +88,72 @@ def participante_presente(linha, ids_online, limite) -> bool:
     return linha["id"] in ids_online or (linha["ultimo_visto_em"] or "") >= limite
 
 
+def relogio_vinculado(conn, participante_id) -> bool:
+    """Participante habilitado e com relógio aprovado e não revogado."""
+    return (
+        conn.execute(
+            """SELECT 1 FROM watch_devices d
+            JOIN watch_grants g ON g.participant_id = d.participant_id
+            WHERE d.participant_id = ? AND d.revoked = 0 AND d.approved_at IS NOT NULL""",
+            (participante_id,),
+        ).fetchone()
+        is not None
+    )
+
+
+def alterar_controle_relogio(conn, quadra_id, novo_dono_id, dono, motivo=None):
+    """Liga (novo_dono_id) ou desliga (None) a chave "Controlar pelo Relógio".
+
+    As duas versões avançam: `relogio_versao` invalida lances do relógio feitos
+    sob o modo anterior e `controle_versao` invalida toques em voo no site.
+    Devolve o evento a gravar; quem chama faz o append.
+    """
+    conn.execute(
+        """UPDATE quadras SET controle_relogio = ?, relogio_versao = relogio_versao + 1,
+        controle_versao = controle_versao + 1 WHERE id = ?""",
+        (novo_dono_id, quadra_id),
+    )
+    payload = {
+        "ativo": novo_dono_id is not None,
+        "dono_id": dono["id"],
+        "apelido": dono["apelido"],
+    }
+    if motivo:
+        payload["motivo"] = motivo
+    return TipoEvento.CONTROLE_RELOGIO_ALTERADO, payload
+
+
+def desligar_controle_relogio_sync(conn, quadra_id, participante_id, autor_id, motivo):
+    """Desliga a chave se ela pertence ao participante. Devolve se mudou algo.
+
+    Usado quando o relógio deixa de valer: revogação, novo vínculo ou acesso
+    desabilitado. Sem isso o site ficaria sem poder pontuar e sem relógio.
+    """
+    quadra = conn.execute(
+        "SELECT controle_relogio FROM quadras WHERE id = ?", (quadra_id,)
+    ).fetchone()
+    if not quadra or quadra["controle_relogio"] != participante_id:
+        return False
+    dono = conn.execute(
+        "SELECT id, apelido FROM participantes WHERE id = ?", (participante_id,)
+    ).fetchone()
+    tipo, payload = alterar_controle_relogio(conn, quadra_id, None, dono, motivo)
+    partida = conn.execute(
+        "SELECT id FROM partidas WHERE quadra_id = ? ORDER BY criado_em DESC LIMIT 1",
+        (quadra_id,),
+    ).fetchone()
+    append_evento_sync(
+        settings.db_path,
+        quadra_id,
+        partida["id"],
+        tipo,
+        payload,
+        autor_id,
+        connection=conn,
+    )
+    return True
+
+
 def executar_sync(
     db_path,
     quadra_id,
@@ -95,26 +164,38 @@ def executar_sync(
     versao=None,
     alvo_id=None,
     ids_online=None,
+    autor_id=None,
+    origem="web",
+    connection=None,
     **kwargs,
 ):
     # A presença chega como valor, vinda da borda HTTP que conhece o hub. A
     # transação não importa o hub nem toca no event loop de dentro da thread.
     ids_online = frozenset(ids_online or ())
     # O lock de escrita cobre autorização, leitura do log e toda a alteração.
-    with get_db(db_path) as conn:
-        conn.execute("BEGIN IMMEDIATE")
+    # O relógio passa a própria conexão para gravar o recibo na mesma transação.
+    with nullcontext(connection) if connection is not None else get_db(db_path) as conn:
+        if connection is None:
+            conn.execute("BEGIN IMMEDIATE")
         quadra = conn.execute(_SELECT_QUADRA_PUBLICA, (quadra_id,)).fetchone()
         limite = (
             datetime.now(UTC) - timedelta(seconds=settings.quadra_ttl_seconds)
         ).isoformat()
         if not quadra or quadra["atualizado_em"] < limite:
             raise HTTPException(404, "Sala não encontrada ou expirada.")
-        if not session_id:
-            raise HTTPException(401, "Participante não autenticado.")
-        autor = conn.execute(
-            "SELECT id, papel FROM participantes WHERE quadra_id = ? AND session_hash = ?",
-            (quadra_id, hash_sessao(session_id)),
-        ).fetchone()
+        if autor_id is not None:
+            # Autor já autenticado pela credencial do relógio.
+            autor = conn.execute(
+                "SELECT id, papel, apelido FROM participantes WHERE quadra_id = ? AND id = ?",
+                (quadra_id, autor_id),
+            ).fetchone()
+        else:
+            if not session_id:
+                raise HTTPException(401, "Participante não autenticado.")
+            autor = conn.execute(
+                "SELECT id, papel, apelido FROM participantes WHERE quadra_id = ? AND session_hash = ?",
+                (quadra_id, hash_sessao(session_id)),
+            ).fetchone()
         if not autor:
             raise HTTPException(403, "Participante não registrado nesta quadra.")
         atual = snapshot(conn, quadra_id)
@@ -123,16 +204,35 @@ def executar_sync(
                 raise HTTPException(
                     403, "Apenas administradores e controladores podem operar o placar."
                 )
-            if quadra["controle_id"] != autor["id"]:
-                raise HTTPException(403, "Outro operador está no controle do placar.")
-            if versao is None:
-                raise HTTPException(
-                    428, "Atualize o estado do controle antes de operar."
-                )
-            if versao != str(quadra["controle_versao"]):
-                raise HTTPException(
-                    409, "O controle mudou. Aguarde a atualização do placar."
-                )
+            if origem == "relogio":
+                # Com a chave ligada quem pontua é o relógio do dono, qualquer
+                # que seja o `controle_id` do site. A base é a versão da chave.
+                if quadra["controle_relogio"] != autor["id"]:
+                    raise HTTPException(
+                        409,
+                        "O controle está no telefone. Ative Controlar pelo Relógio.",
+                    )
+                if versao != str(quadra["relogio_versao"]):
+                    raise HTTPException(
+                        409, "A chave Controlar pelo Relógio mudou depois deste lance."
+                    )
+            else:
+                if quadra["controle_relogio"]:
+                    raise HTTPException(
+                        409, "O placar está sendo controlado pelo relógio."
+                    )
+                if quadra["controle_id"] != autor["id"]:
+                    raise HTTPException(
+                        403, "Outro operador está no controle do placar."
+                    )
+                if versao is None:
+                    raise HTTPException(
+                        428, "Atualize o estado do controle antes de operar."
+                    )
+                if versao != str(quadra["controle_versao"]):
+                    raise HTTPException(
+                        409, "O controle mudou. Aguarde a atualização do placar."
+                    )
             estado = atual["estado_partida"]
             if acao == "pontos":
                 equipe = equipe.strip().upper()
@@ -148,6 +248,41 @@ def executar_sync(
                     TipoEvento.PONTO_DESFEITO,
                     {"ref_seq": estado["eventos_ativos_seq"][-1]},
                 )
+        elif acao == "modo_relogio":
+            ativo = bool(kwargs.get("ativo"))
+            dono_atual = quadra["controle_relogio"]
+            if ativo:
+                if dono_atual == autor["id"]:
+                    return atual
+                if autor["papel"] not in (
+                    "ADMIN",
+                    "CONTROLADOR",
+                ) or not relogio_vinculado(conn, autor["id"]):
+                    raise HTTPException(
+                        403,
+                        "Vincule o seu relógio antes de controlar o placar por ele.",
+                    )
+                if dono_atual:
+                    raise HTTPException(
+                        409, "O placar já está sendo controlado por outro relógio."
+                    )
+                dono = autor
+            else:
+                if not dono_atual:
+                    return atual
+                # Desligar é mais permissivo que ligar: qualquer ADMIN recupera a
+                # partida se o relógio ficar sem bateria.
+                if autor["papel"] != "ADMIN" and autor["id"] != dono_atual:
+                    raise HTTPException(
+                        403,
+                        "Só o dono do relógio ou um administrador desligam o controle pelo relógio.",
+                    )
+                dono = conn.execute(
+                    "SELECT id, apelido FROM participantes WHERE id = ?", (dono_atual,)
+                ).fetchone()
+            tipo, payload = alterar_controle_relogio(
+                conn, quadra_id, autor["id"] if ativo else None, dono
+            )
         elif acao == "assumir":
             if autor["papel"] not in ("ADMIN", "CONTROLADOR"):
                 raise HTTPException(
@@ -263,6 +398,11 @@ def executar_sync(
             conn.execute(
                 "UPDATE participantes SET papel = 'ESPECTADOR' WHERE id = ?", (alvo_id,)
             )
+            if quadra["controle_relogio"] == alvo_id:
+                conn.execute(
+                    "UPDATE quadras SET controle_relogio = NULL, relogio_versao = relogio_versao + 1 WHERE id = ?",
+                    (quadra_id,),
+                )
             # Se o participante que perdeu o controle estava operando, retorna controle ao admin
             if quadra["controle_id"] == alvo_id:
                 conn.execute(

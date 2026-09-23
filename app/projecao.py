@@ -277,6 +277,16 @@ def projetar_linha_do_tempo(
             else:
                 descricao = f"Administração vaga por ausência de {antigo_admin}"
 
+        elif evento.tipo == TipoEvento.CONTROLE_RELOGIO_ALTERADO:
+            dono = evento.payload.get("apelido") or "eli"
+            if evento.payload.get("ativo"):
+                descricao = f"Placar passou a ser controlado pelo relógio de {dono}"
+            else:
+                motivo = evento.payload.get("motivo")
+                descricao = "Placar voltou a ser controlado pelo telefone" + (
+                    f" ({motivo})" if motivo else ""
+                )
+
         elif evento.tipo == TipoEvento.PARTIDA_ENCERRADA:
             venc = evento.payload.get("vencedor")
             venc_nome = equipe_a if venc == "A" else (equipe_b if venc == "B" else venc)
