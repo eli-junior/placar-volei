@@ -236,12 +236,13 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 code = data.getString("code")
                 store.saveCode(code)
                 invalid = false
+                notice = null
                 message = "No telefone: Relógio → digite este código. Válido por 5 minutos."
             }
         } catch (e: CancellationException) {
             throw e
         } catch (e: Exception) {
-            message = e.message ?: "Sem conexão. Tente novamente."
+            notice = e.message ?: "Sem conexão. Tente novamente."
         } finally { busy = false }
     }
 

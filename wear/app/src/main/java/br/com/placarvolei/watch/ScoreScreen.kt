@@ -188,25 +188,8 @@ private fun ReasonText(reason: String, modifier: Modifier) {
 
 /** Desfazer o ponto do topo: a faixa inferior inteira, um toque, sem confirmação, como no site. */
 @Composable
-private fun UndoBar(enabled: Boolean, modifier: Modifier, onTap: () -> Unit) {
-    Box(
-        modifier
-            .fillMaxWidth()
-            .height(52.dp)
-            .background(if (enabled) Color(0xFF3A3A3A) else Color(0xFF1A1A1A))
-            .clickable(enabled = enabled, onClick = onTap)
-            .semantics { contentDescription = "Desfazer o último ponto" },
-        contentAlignment = Alignment.TopCenter,
-    ) {
-        Text(
-            "↶ Desfazer",
-            Modifier.padding(top = 8.dp),
-            fontSize = 15.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.White.copy(alpha = if (enabled) 1f else 0.3f),
-        )
-    }
-}
+private fun UndoBar(enabled: Boolean, modifier: Modifier, onTap: () -> Unit) =
+    BottomBar("↶ Desfazer", enabled, modifier, "Desfazer o último ponto", onTap = onTap)
 
 @Composable
 private fun HeldOverlay(reason: String, count: Int, onDiscard: () -> Unit) {

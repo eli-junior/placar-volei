@@ -26,6 +26,12 @@ Nível: User Story. Versão pretendida: `0.10.0` (minor, nova capacidade no rel�
 11. **Desistir ("Voltar à quadra"):** o relógio cancela o código no servidor (item 4) e volta ao placar da quadra antiga. Sem rede, o cancelamento fica marcado e é refeito quando a conexão voltar; o código expira em 5 minutos de qualquer forma.
 12. `CredentialStore` passa a guardar, além do token ativo, o token do código pendente e o número da última quadra. Mesma cifra (AES-GCM / Keystore).
 
+### Ajustes do primeiro teste físico (Navigator, 2026-09-23)
+13. Todas as telas de vínculo seguem o desenho do placar: conteúdo no centro do mostrador e a ação na faixa inferior inteira (a mesma do desfazer).
+14. Sem vínculo: só uma bola de vôlei quicando e a faixa **Ingressar numa quadra**, sem título nem "Vínculo não encontrado".
+15. Código na tela: dica útil ("No telefone, toque no ícone do relógio, ao lado da engrenagem, e digite o código.") e a faixa **Gerar novo código**.
+16. Abertura: **Retornar** (com o número da quadra) no centro e a faixa **Parear outra quadra**; a confirmação usa **Parear mesmo assim**.
+
 ## Aceitação
 - **Dado** o relógio vinculado à quadra A com a sala ativa, **quando** reabrir o app, **então** vê "Retornar à quadra A" e "Gerar novo código"; "Retornar" leva ao placar de A.
 - **Quando** aprovar um código novo na quadra B, **então** a quadra A deixa de listar "Eli (Relógio)", o controle de A volta ao dono (com o registro na linha do tempo, se o relógio estava no controle), e o token antigo recebe 401.
