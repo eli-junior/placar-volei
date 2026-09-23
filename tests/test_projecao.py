@@ -198,3 +198,17 @@ def test_log_vazio():
     assert estado.vencedor is None
     assert estado.pontos_desfeitos == ()
     assert estado.eventos_ativos_seq == ()
+
+
+def test_equipes_ativas_acompanham_os_pontos_ativos_com_desfazer_intercalado():
+    eventos = [
+        make_evento(1, TipoEvento.PONTO_MARCADO, {"equipe": "A"}),
+        make_evento(2, TipoEvento.PONTO_MARCADO, {"equipe": "B"}),
+        make_evento(3, TipoEvento.PONTO_MARCADO, {"equipe": "B"}),
+        make_evento(4, TipoEvento.PONTO_DESFEITO, {"ref_seq": 3}),
+        make_evento(5, TipoEvento.PONTO_MARCADO, {"equipe": "A"}),
+    ]
+    estado = projetar_estado(eventos)
+    assert estado.eventos_ativos_seq == (1, 2, 5)
+    assert estado.equipes_ativas == ("A", "B", "A")
+    assert projetar_estado(eventos) == estado

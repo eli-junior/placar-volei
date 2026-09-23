@@ -16,10 +16,10 @@ from typing import Literal
 
 from fastapi import APIRouter, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.api import autenticar_owner, transmitir_estado
-from app.comandos import executar_sync, snapshot
+from app.comandos import MSG_ALVO_MUDOU, executar_sync, snapshot
 from app.config import settings
 from app.db import get_db
 from app.eventos import TipoEvento, append_evento_sync, get_quadra_lock
@@ -429,12 +429,36 @@ async def revoke_device(court: str, device_id: str, request: Request):
     return {"status": "revoked"}
 
 
+_UUID = r"^[0-9a-fA-F-]{36}$"
+
+
 class CommandBody(BaseModel):
-    id: str = Field(pattern=r"^[0-9a-fA-F-]{36}$")
+    id: str = Field(pattern=_UUID)
     partida_id: str = Field(min_length=1, max_length=64)
     controle_versao: int = Field(ge=0)
-    acao: Literal["ponto"] = "ponto"
-    equipe: Literal["A", "B"]
+    acao: Literal["ponto", "desfazer"] = "ponto"
+    equipe: Literal["A", "B"] | None = None
+    # Desfazer (CV3.DS1.US3): o ponto que o relógio viu no topo. Um ponto já
+    # confirmado vai pelo seq; um lance ainda na fila, pelo id do comando.
+    alvo_seq: int | None = Field(default=None, ge=1)
+    alvo_comando: str | None = Field(default=None, pattern=_UUID)
+
+    @model_validator(mode="after")
+    def check_shape(self):
+        alvos = (self.alvo_seq is not None) + (self.alvo_comando is not None)
+        if self.acao == "ponto" and (self.equipe is None or alvos):
+            raise ValueError("Ponto leva a equipe e nenhum alvo.")
+        if self.acao == "desfazer" and (self.equipe is not None or alvos != 1):
+            raise ValueError("Desfazer leva exatamente um alvo e nenhuma equipe.")
+        return self
+
+    @property
+    def alvo(self):
+        if self.alvo_seq is not None:
+            return f"seq:{self.alvo_seq}"
+        if self.alvo_comando is not None:
+            return f"comando:{self.alvo_comando}"
+        return None
 
 
 def receipt(row):
@@ -444,6 +468,26 @@ def receipt(row):
         "detalhe": row["detalhe"],
         "evento_seq": row["evento_seq"],
     }
+
+
+def target_of(conn, device_id, body: CommandBody):
+    """Seq do ponto criado pelo lance-alvo, que precisa ter sido aplicado.
+
+    O envio é em ordem, então o lance-alvo já passou pelo servidor. Se foi
+    recusado, ou é de outra partida, não há ponto dele para desfazer.
+    """
+    target = conn.execute(
+        "SELECT * FROM watch_recibos WHERE device_id = ? AND comando_id = ?",
+        (device_id, body.alvo_comando),
+    ).fetchone()
+    if (
+        target is None
+        or target["acao"] != "ponto"
+        or target["status"] != "APLICADO"
+        or target["partida_id"] != body.partida_id
+    ):
+        raise HTTPException(409, MSG_ALVO_MUDOU)
+    return target["evento_seq"]
 
 
 def apply_command(token, body: CommandBody, ids_online):
@@ -462,7 +506,14 @@ def apply_command(token, body: CommandBody, ids_online):
                 previous["controle_versao"],
                 previous["acao"],
                 previous["equipe"],
-            ) != (body.partida_id, body.controle_versao, body.acao, body.equipe):
+                previous["alvo"],
+            ) != (
+                body.partida_id,
+                body.controle_versao,
+                body.acao,
+                body.equipe,
+                body.alvo,
+            ):
                 raise HTTPException(409, "Este lance já foi usado com outro conteúdo.")
             return 200, receipt(previous), snapshot(conn, court), False
         current = snapshot(conn, court)
@@ -473,13 +524,17 @@ def apply_command(token, body: CommandBody, ids_online):
                 raise HTTPException(
                     409, "Uma nova partida começou. Este lance não vale para ela."
                 )
+            alvo_seq = body.alvo_seq
+            if body.alvo_comando is not None:
+                alvo_seq = target_of(conn, p["device_id"], body)
             # Mesma regra do site: só quem tem o controle, na versão vista, pontua.
             result = executar_sync(
                 settings.db_path,
                 court,
                 None,
-                "pontos",
+                "pontos" if body.acao == "ponto" else "desfazer",
                 equipe=body.equipe,
+                alvo_seq=alvo_seq,
                 versao=str(body.controle_versao),
                 ids_online=ids_online,
                 autor_id=p["id"],
@@ -495,8 +550,8 @@ def apply_command(token, body: CommandBody, ids_online):
         created = now().isoformat()
         conn.execute(
             """INSERT INTO watch_recibos (device_id, comando_id, quadra_id, partida_id,
-            acao, equipe, controle_versao, status, detalhe, evento_seq, criado_em)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            acao, equipe, alvo, controle_versao, status, detalhe, evento_seq, criado_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 p["device_id"],
                 body.id,
@@ -504,6 +559,7 @@ def apply_command(token, body: CommandBody, ids_online):
                 body.partida_id,
                 body.acao,
                 body.equipe,
+                body.alvo,
                 body.controle_versao,
                 status,
                 detail,

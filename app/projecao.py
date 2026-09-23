@@ -21,6 +21,9 @@ class EstadoPartida:
     eventos_ativos_seq: tuple[int, ...]
     jogadores_a: tuple[str, ...] = ()
     jogadores_b: tuple[str, ...] = ()
+    # Equipe de cada ponto ativo, na ordem de `eventos_ativos_seq`. O relógio
+    # usa para prever o placar depois de um desfazer (CV3.DS1.US3).
+    equipes_ativas: tuple[str, ...] = ()
 
 
 def avaliar_vitoria(
@@ -69,6 +72,7 @@ def projetar_estado(eventos: Sequence[Evento]) -> EstadoPartida:
     pontos_a = 0
     pontos_b = 0
     eventos_ativos_seq: list[int] = []
+    equipes_ativas: list[str] = []
 
     # Varredura única do log em ordem
     for evento in eventos:
@@ -97,10 +101,11 @@ def projetar_estado(eventos: Sequence[Evento]) -> EstadoPartida:
                 equipe = str(evento.payload.get("equipe", "")).upper()
                 if equipe == "A":
                     pontos_a += 1
-                    eventos_ativos_seq.append(evento.seq)
                 elif equipe == "B":
                     pontos_b += 1
+                if equipe in ("A", "B"):
                     eventos_ativos_seq.append(evento.seq)
+                    equipes_ativas.append(equipe)
 
     # Avaliação da condição de vitória aplicando as regras vigentes
     encerrada, vencedor = avaliar_vitoria(
@@ -126,6 +131,7 @@ def projetar_estado(eventos: Sequence[Evento]) -> EstadoPartida:
         eventos_ativos_seq=tuple(eventos_ativos_seq),
         jogadores_a=tuple(jogadores_a),
         jogadores_b=tuple(jogadores_b),
+        equipes_ativas=tuple(equipes_ativas),
     )
 
 
