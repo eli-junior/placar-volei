@@ -7,6 +7,7 @@
 - `29d70d7` (habilitação automática via `WATCH_AUTO_GRANT`) está apenas na branch da API, fora da master. Não foi incorporado aqui: muda o desenho aprovado (habilitação explícita do owner). Aguarda decisão do Navigator.
 - Pytest após o merge: 130 passaram. APK local inalterado (SHA-256 `e9971e64…263e`).
 - Próximo passo: validação física (itens 4–8 abaixo).
+- Teste físico em 2026-09-23: o relógio gerou o código, mas o site recusou `15056015` com “É preciso que o formato corresponda ao exigido”. Causa: em template Svelte, `{8}` no atributo é expressão, então `pattern="[0-9]{8}"` saía como `[0-9]8`. Corrigido para `pattern={'[0-9]{8}'}`, com teste de regressão (`web/tests/modal-relogio.test.js`). A correção é só no frontend e precisa chegar à produção (master) para o teste continuar.
 
 ## LEIA PRIMEIRO — transferência solicitada pelo Navigator
 
