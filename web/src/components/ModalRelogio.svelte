@@ -68,7 +68,7 @@
       <p>Abra o Placar Vôlei no relógio e digite o código exibido nele. Confira que o código veio do seu relógio antes de autorizar.</p>
       <form onsubmit={vincular}>
         <label for="codigo-relogio">Código do relógio</label>
-        <input id="codigo-relogio" bind:value={codigo} inputmode="numeric" pattern="[0-9]{8}" minlength="8" maxlength="8" autocomplete="off" required disabled={ocupado} />
+        <input id="codigo-relogio" bind:value={codigo} inputmode="numeric" pattern={'[0-9]{8}'} minlength="8" maxlength="8" autocomplete="off" required disabled={ocupado} />
         <button type="submit" disabled={ocupado || !/^[0-9]{8}$/.test(codigo)}>Vincular à sala {quadra.id}</button>
       </form>
       {#if dispositivos.length}
