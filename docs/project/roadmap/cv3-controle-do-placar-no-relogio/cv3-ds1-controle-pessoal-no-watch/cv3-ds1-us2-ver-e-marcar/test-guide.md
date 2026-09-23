@@ -48,7 +48,7 @@ Desenho: o relógio é o participante **"Eli (Relógio)"** e pontua quando o adm
 - **Passa:** tudo acima. **Falha:** relógio some da lista, aparece duplicado, ou pontua sem controle.
 
 ### 3. Delegar o controle
-- Com o app aberto no relógio, em T1 (lista de presentes): **promover** Eli (Relógio) a controlador e **passar o controle** para ele.
+- Com o app aberto no relógio, em T1 (lista de presentes): **Tornar controlador** em Eli (Relógio) e depois **Passar controle**. A linha do tempo deve mostrar a transferência, não só a promoção.
 - Em T1, N2 e N3: "Controle: **Eli (Relógio)**", sem +1/Desfazer no site. No relógio, os botões liberam.
 - **Passa:** só o relógio pode marcar. **Falha:** o site ainda oferece +1, ou o relógio continua travado.
 

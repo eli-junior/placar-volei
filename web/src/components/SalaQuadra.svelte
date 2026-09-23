@@ -27,6 +27,7 @@
     onPromoverControlador = (id) => {},
     onRevogarControlador = (id) => {},
     onAutorizarAdmin = (id) => {},
+    onPassarControle = (id) => {},
     operando = false,
     pendentes = 0,
     erro = null,
@@ -653,6 +654,8 @@
         {participantes}
         euId={eu?.id}
         podeAutorizar={ehAdmin}
+        controleId={quadra?.controle_id}
+        {onPassarControle}
         desabilitado={!wsConectado || operando}
         {onPromoverControlador}
         {onRevogarControlador}
