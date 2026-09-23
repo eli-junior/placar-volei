@@ -74,6 +74,7 @@ def test_link_uses_same_participant_without_exposing_credentials(client):
     assert client.get("/api/watch/session", headers=headers).json() == {
         "status": "linked",
         "court_id": court["id"],
+        "participant_id": court["participante"]["id"],
         "display_name": "eli",
     }
     state = client.get("/api/watch/state", headers=headers)

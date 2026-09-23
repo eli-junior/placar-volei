@@ -249,6 +249,7 @@ def pairing_status(request: Request, response: Response):
         return {
             "status": "linked",
             "court_id": p["quadra_id"],
+            "participant_id": p["id"],
             "display_name": p["apelido"],
         }
 
@@ -412,6 +413,9 @@ def apply_command(token, body: CommandBody, ids_online):
                 connection=conn,
             )
             status, detail, seq = "APLICADO", None, result["evento"]["seq"]
+            # Vai junto no broadcast: o relógio tira o lance da fila ao ver o
+            # snapshot, mesmo que ele chegue antes da resposta HTTP.
+            result["comando_id"] = body.id
         except HTTPException as e:
             # As verificações de negócio ocorrem antes de qualquer escrita.
             status, detail, seq = "RECUSADO", e.detail, None

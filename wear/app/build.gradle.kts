@@ -10,8 +10,8 @@ android {
         applicationId = "br.com.placarvolei.watch"
         minSdk = 30
         targetSdk = 35
-        versionCode = 1
-        versionName = "0.7.0"
+        versionCode = 2
+        versionName = "0.8.0"
         val serverUrl = providers.gradleProperty("serverUrl").getOrElse("https://placar.elijunior.click")
         require(!serverUrl.contains('"') && !serverUrl.contains('\\') && !serverUrl.contains('\n'))
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
@@ -31,4 +31,6 @@ dependencies {
     implementation("androidx.wear.compose:compose-foundation:1.4.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     testImplementation("junit:junit:4.13.2")
+    // org.json do Android é stub nos testes locais da JVM.
+    testImplementation("org.json:json:20240303")
 }

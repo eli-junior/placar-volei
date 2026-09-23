@@ -298,6 +298,7 @@ def test_watch_point_reaches_browser_by_broadcast(client, sala):
         while (msg := phone.receive_json())["tipo"] != "PLACAR_ATUALIZADO":
             pass
         assert msg["payload"]["estado_partida"]["pontos_b"] == 1
+        assert msg["payload"]["comando_id"]
         assert (
             msg["payload"]["quadra"]["controle_relogio"] == court["participante"]["id"]
         )

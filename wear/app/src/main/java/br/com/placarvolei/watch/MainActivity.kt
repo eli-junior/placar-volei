@@ -39,7 +39,9 @@ class MainActivity : ComponentActivity() {
                 lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) { model.observeWhileVisible() }
             }
             MaterialTheme {
-                ScalingLazyColumn(modifier = Modifier.padding(horizontal = 12.dp)) {
+                if (model.linked && model.score != null) {
+                    ScoreScreen(model)
+                } else ScalingLazyColumn(modifier = Modifier.padding(horizontal = 12.dp)) {
                     item { Text("Placar Vôlei", textAlign = TextAlign.Center) }
                     item { AnimatedContent(targetState = model.message, label = "Estado do vínculo") { message ->
                         Text(message, textAlign = TextAlign.Center, fontSize = 14.sp)
@@ -73,7 +75,7 @@ class MainActivity : ComponentActivity() {
                                 label = { Text(if (model.busy) "Aguarde…" else "Gerar código") })
                         }
                     } else {
-                        item { Text("Vínculo pronto. Pontuação será adicionada na próxima etapa.", fontSize = 12.sp, textAlign = TextAlign.Center) }
+                        item { Text("Carregando placar…", fontSize = 12.sp, textAlign = TextAlign.Center) }
                     }
                 }
             }
