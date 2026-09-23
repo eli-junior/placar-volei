@@ -88,4 +88,7 @@ Pendente: Navigator executa e informa aprovado ou falhas observadas. Nenhum test
 130 testes Python, 21 frontend e 3 Android aprovados. Ruff, Svelte check e builds passaram. Lint Android: zero erros e sete avisos (cinco sobre versões mais recentes disponíveis e dois sugerindo KTX; commit síncrono com retorno verificado foi mantido deliberadamente).
 
 APK: `wear/app/build/outputs/apk/debug/app-debug.apk`
-SHA-256: `42f159e2590d9ab14bf9ed089caf48fbe953fd1a2485c94f8ed9959f38d2d90a`.
+SHA-256: `be4866fa6a4afcfcfa0682a8dd0417a28fb296954571e83a6c480015532f0c39`.
+
+### Revalidação do endereço (correção do primeiro teste físico)
+Reinstale o APK atualizado com `adb install -r`. Sem endereço, observe campo com borda e exemplo `https://seu-placar`, e botão Gerar código desabilitado. Toque no campo e informe a origem HTTPS real do servidor que executa esta branch, sem `/quadra/PIN`. O botão deve habilitar. Falha: campo invisível ou tentativa de gerar com endereço vazio. Os cinco testes Android passaram após esta correção.

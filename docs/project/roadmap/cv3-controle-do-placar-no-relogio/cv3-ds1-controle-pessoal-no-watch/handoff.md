@@ -50,3 +50,6 @@
 - Metadados Git, cache uv, Gradle/SDK e interface gráfica precisam de execução escalada no sandbox desta sessão.
 - Pytest dentro do sandbox travou sem saída; fora do sandbox passou em segundos. Usar timeout em diagnósticos, sem ficar repetindo execuções.
 - Houve ajuste automático de versão no uv.lock pelo uv; revertido por ser anterior e fora do escopo. Servidor continua 0.6.1; APK se identifica como 0.7.0-us1.
+
+## Correção após primeiro teste físico
+Navigator instalou o APK, mas Gerar código mostrou apenas “Use o endereço HTTPS do placar”. O APK não tinha serverUrl configurado e o campo vazio não possuía borda/placeholder. Corrigido: campo com borda, alvo mínimo de 48 dp, placeholder e instrução para tocar; envio desabilitado com endereço vazio; mensagem específica para ausência de endereço. Cinco testes Android passaram; build e lint passaram. Endereço real solicitado ao Navigator para pré-configurar o próximo APK; resposta ainda pendente. Não houve deploy do backend. Revalidar preenchimento e geração antes de seguir no Checkpoint 2.

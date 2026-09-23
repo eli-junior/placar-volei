@@ -4,6 +4,7 @@ import java.net.URI
 
 // O endereço não pode carregar credenciais nem alterar o caminho da API.
 fun serverAddress(input: String, debug: Boolean): String {
+    require(input.isNotBlank()) { "Informe o endereço do placar no campo acima." }
     val uri = URI(input.trim())
     require(uri.scheme == "https" || (debug && uri.scheme == "http")) {
         "Use o endereço HTTPS do placar."
