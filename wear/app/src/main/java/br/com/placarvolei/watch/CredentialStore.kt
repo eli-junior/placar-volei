@@ -10,6 +10,11 @@ import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
 import javax.crypto.spec.GCMParameterSpec
 
+/**
+ * Vínculo guardado no relógio. Desde a CV3.DS1.US5 há dois tokens: o ativo e o
+ * do código novo que espera aprovação. O ativo só é trocado quando o servidor
+ * confirma o código novo; desistir cancela o pendente e mantém o ativo.
+ */
 class CredentialStore(context: Context) {
     private val prefs = context.getSharedPreferences("watch-link", Context.MODE_PRIVATE)
     private val alias = "placar-watch-link"
@@ -24,23 +29,60 @@ class CredentialStore(context: Context) {
         }.generateKey()
     }
 
-    fun token(): String? {
-        val encrypted = prefs.getString("token", null) ?: return null
-        val iv = Base64.decode(prefs.getString("iv", null), Base64.NO_WRAP)
+    private fun read(slot: String, ivSlot: String): String? {
+        val encrypted = prefs.getString(slot, null) ?: return null
+        val iv = Base64.decode(prefs.getString(ivSlot, null), Base64.NO_WRAP)
         return Cipher.getInstance("AES/GCM/NoPadding").run {
             init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, iv))
             String(doFinal(Base64.decode(encrypted, Base64.NO_WRAP)), Charsets.UTF_8)
         }
     }
 
-    fun saveToken(token: String, server: String) {
+    private fun encrypt(token: String): Pair<String, String> {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.ENCRYPT_MODE, key()) }
         val encrypted = cipher.doFinal(token.toByteArray(Charsets.UTF_8))
-        check(prefs.edit().putString("token", Base64.encodeToString(encrypted, Base64.NO_WRAP))
-            .putString("iv", Base64.encodeToString(cipher.iv, Base64.NO_WRAP))
-            .putString("server", server).remove("code").commit()) { "Não foi possível guardar o vínculo." }
+        return Base64.encodeToString(encrypted, Base64.NO_WRAP) to Base64.encodeToString(cipher.iv, Base64.NO_WRAP)
+    }
+
+    // "token"/"iv" mantêm os nomes da 0.7.0: o vínculo instalado continua valendo.
+    fun token(): String? = read("token", "iv")
+
+    fun saveToken(token: String, server: String) {
+        val (encrypted, iv) = encrypt(token)
+        check(prefs.edit().putString("token", encrypted).putString("iv", iv)
+            .putString("server", server).remove("code").remove("court").commit()) { "Não foi possível guardar o vínculo." }
     }
     fun server() = prefs.getString("server", BuildConfig.SERVER_URL).orEmpty()
     fun code() = prefs.getString("code", "").orEmpty()
     fun saveCode(code: String) { check(prefs.edit().putString("code", code).commit()) }
+
+    /** Nome da quadra do vínculo ativo, para "Retornar" mesmo sem rede. */
+    fun courtName(): String? = prefs.getString("court", null)
+    fun saveCourtName(name: String) { check(prefs.edit().putString("court", name).commit()) }
+
+    /** Token do código novo (US5), guardado antes da rede, como o ativo. */
+    fun pendingToken(): String? = read("pending", "pending-iv")
+    fun savePendingToken(token: String) {
+        val (encrypted, iv) = encrypt(token)
+        check(prefs.edit().putString("pending", encrypted).putString("pending-iv", iv)
+            .putBoolean("pending-cancel", false).commit()) { "Não foi possível guardar o código novo." }
+    }
+
+    /** Desistência ainda não confirmada pelo servidor: refeita ao reconectar. */
+    fun cancelPending() = prefs.getBoolean("pending-cancel", false)
+    fun markCancelPending() { check(prefs.edit().putBoolean("pending-cancel", true).commit()) }
+
+    fun clearPending() {
+        check(prefs.edit().remove("pending").remove("pending-iv").remove("pending-cancel").commit())
+    }
+
+    /** Código novo aprovado: ele passa a ser o vínculo ativo, de uma vez. */
+    fun promotePending(courtName: String) {
+        val encrypted = prefs.getString("pending", null) ?: return
+        val iv = prefs.getString("pending-iv", null)
+        check(prefs.edit().putString("token", encrypted).putString("iv", iv).putString("court", courtName)
+            .remove("pending").remove("pending-iv").remove("pending-cancel").remove("code").commit()) {
+            "Não foi possível guardar o vínculo."
+        }
+    }
 }

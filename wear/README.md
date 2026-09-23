@@ -44,7 +44,7 @@ adb devices
 adb -s IP_DO_WATCH:PORTA_DE_CONEXAO install -r wear/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Abra **Placar Vôlei** na lista de apps do relógio. A primeira tela oferece só **Gerar código**. Esse código de 8 dígitos é aprovado no site pelo telefone em **Relógio**.
+Abra **Placar Vôlei** na lista de apps do relógio. Sem vínculo, a primeira tela oferece só **Ingressar numa quadra**, na faixa inferior. Esse código de 8 dígitos é aprovado no site pelo telefone em **Relógio**.
 
 Referência: [depuração Wear OS por Wi-Fi](https://developer.android.com/training/wearables/get-started/debug-wifi).
 
@@ -66,10 +66,19 @@ Passa: `/health` mostra a versão esperada. O compose atual guarda o SQLite dent
 ## Habilitar e vincular
 
 1. No telefone, crie a sala (ou entre nela) como **`eli`**, em qualquer caixa. A sala mostra **Eli**, que já fica habilitado para o relógio. A lista vem de `WATCH_AUTO_GRANT` (padrão `eli`, separada por vírgulas). Outros apelidos veem "Em breve…" no ícone do relógio.
-2. No relógio, abra **Placar Vôlei** → **Gerar código**. No telefone, toque no **ícone de relógio** e digite o código de 8 dígitos (vale 5 minutos).
+2. No relógio, abra **Placar Vôlei** → **Ingressar numa quadra**. No telefone, toque no **ícone de relógio** e digite o código de 8 dígitos (vale 5 minutos).
 3. A lista de presentes passa a mostrar **Eli (Relógio)**, como espectador. O relógio mostra o placar com os botões travados.
 
 O vínculo exige papel ADMIN ou CONTROLADOR do dono. Quem cria a sala já é ADMIN.
+
+## Retomar ou trocar de quadra
+
+O relógio fica vinculado a uma quadra por vez (`CV3.DS1.US5`). Ao reabrir o app (sair com o gesto de voltar e abrir pelo ícone), ele pergunta:
+
+- **Retornar**: volta ao placar da quadra guardada, cujo nome aparece no botão. Funciona sem rede.
+- **Parear outra quadra**: gera um código novo, aprovado no telefone da outra quadra. O vínculo atual só cai na aprovação; **Voltar para <quadra>** desiste e cancela o código. Com lances pendentes, o relógio avisa quantos serão abandonados antes de gerar.
+
+A tela que só apagou e acendeu no meio do jogo volta direto ao placar.
 
 Sem `WATCH_AUTO_GRANT`, habilite pelo terminal, uma vez por sala (o segredo de owner é pedido sem eco):
 

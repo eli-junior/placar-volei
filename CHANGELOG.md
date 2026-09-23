@@ -7,6 +7,39 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 _Nenhum trabalho em andamento._
 
 
+## 0.10.0 - 2026-09-23
+
+Boundary: minor (nova capacidade: retomar ou trocar de quadra pelo Galaxy Watch, um vínculo por vez; quarta entrega do CV3)
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) | Sessão: 060492ed
+
+Git source: feature/cv3-ds1-us5-um-vinculo-por-vez (merge into master)
+
+### Added
+
+- [Relógio] **Retornar ou parear outra quadra** (`CV3.DS1.US5`): ao reabrir o app, o botão **Retornar** (com o nome da quadra) ou a faixa **Parear outra quadra**. O relógio fica em uma quadra por vez.
+- [Relógio] Aviso antes de trocar com lances pendentes ("2 lances marcados em q1 ainda não foram enviados…"), com **Parear mesmo assim**; nada é descartado se o código não for aprovado.
+- API: `substitui` em `POST /api/watch/pairing` (`watch_devices.substitui_id`, migração aditiva); a aprovação revoga o vínculo antigo e devolve o controle na quadra anterior ("relógio foi para outra quadra"). `DELETE /api/watch/pairing` cancela o código ao desistir. `court_name` em `GET /api/watch/session`.
+
+### Changed
+
+- [Relógio] Telas de vínculo no padrão do placar: conteúdo no centro e ação na faixa inferior. Sem vínculo, uma bola quicando e **Ingressar numa quadra**; o código vem com a dica de onde aprová-lo no telefone.
+- [Relógio] Nada pisca enquanto o relógio consulta o servidor: a bola fica até a resposta, na abertura e depois de **Retornar**.
+
+### Decisions
+
+- `um-vinculo-por-vez-troca-na-aprovacao`.
+
+### Debt
+
+- `debt-fluxos-da-interface-sem-teste-de-ponta-a-ponta` (Carried, atualizado com o relógio).
+- `debt-banco-de-producao-sem-volume-persistente`, `debt-limite-de-vinculo-do-relogio-por-ip-e-em-memoria` e `debt-regra-de-vitoria-duplicada-no-relogio` (Carried).
+
+### Verification
+
+- `pytest` 178/178, `ruff check` e `ruff format --check` ok; web `npm test` 27/27, `npm run check` sem erros/avisos, `npm run build` ok; Android: 33 testes, `assembleDebug` e `lintDebug` (0 erros) ok.
+- Dois testes físicos no Galaxy Watch 8 em produção, na branch da HU, aprovados pelo Navigator, incluindo a troca entre duas quadras e o controle.
+
 ## 0.9.0 - 2026-09-23
 
 Boundary: minor (nova capacidade: desfazer pontos pelo Galaxy Watch, terceira entrega do CV3)

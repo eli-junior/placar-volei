@@ -77,7 +77,8 @@ CREATE TABLE IF NOT EXISTS watch_devices (
     owner_id TEXT REFERENCES participantes(id) ON DELETE CASCADE,
     revoked INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
-    approved_at TEXT
+    approved_at TEXT,
+    substitui_id TEXT
 );
 
 -- Recibo de cada lance do relógio, gravado na mesma transação do evento.
@@ -218,6 +219,11 @@ def init_db_sync(db_path: str | None = None, *args, **kwargs) -> None:
             cursor.execute(
                 "ALTER TABLE watch_devices ADD COLUMN owner_id TEXT REFERENCES participantes(id) ON DELETE CASCADE;"
             )
+        cursor.execute("PRAGMA table_info(watch_devices);")
+        if "substitui_id" not in [row["name"] for row in cursor.fetchall()]:
+            # Vínculo que o código novo substitui (CV3.DS1.US5): revogado só
+            # quando o código novo é aprovado.
+            cursor.execute("ALTER TABLE watch_devices ADD COLUMN substitui_id TEXT;")
         cursor.execute("PRAGMA table_info(watch_recibos);")
         if "alvo" not in [row["name"] for row in cursor.fetchall()]:
             # Alvo do desfazer pelo relógio (CV3.DS1.US3): "seq:<n>" ou "comando:<id>".
