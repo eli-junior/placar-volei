@@ -1,5 +1,6 @@
 <script>
   import { fade, slide } from 'svelte/transition';
+  import ModalRelogio from './ModalRelogio.svelte';
   import ListaPresentes from './ListaPresentes.svelte';
   import Placar from './Placar.svelte';
   import PlacarManual from './PlacarManual.svelte';
@@ -107,6 +108,7 @@
     }
   }
 
+  let modalRelogioAberto = $state(false);
   let modalLinhaDoTempoAberto = $state(false);
   let modalCompartilharAberto = $state(false);
   let modalConfigAberto = $state(false);
@@ -291,6 +293,7 @@
     timerInatividade = setTimeout(() => {
       // Retorna ao modo imersivo apenas se nenhum modal estiver aberto
       if (
+        !modalRelogioAberto &&
         !modalLinhaDoTempoAberto &&
         !modalCompartilharAberto &&
         !modalConfigAberto &&
@@ -376,6 +379,7 @@
         </button>
 
         {#if podeControlar}
+          <button type="button" class="btn-config-header" onclick={() => { modalRelogioAberto = true; }} aria-label="Vincular ou revogar meu relógio">Relógio</button>
           <button
             type="button"
             class="btn-config-header"
@@ -566,6 +570,10 @@
   {/if}
 
   <!-- Modal de Compartilhamento com QR Code SVG Nativo (CV2.DS4.US2) -->
+  {#if modalRelogioAberto}
+    <ModalRelogio {quadra} movimentoReduzido={prefersReducedMotion} onFechar={() => { modalRelogioAberto = false; }} />
+  {/if}
+
   {#if modalCompartilharAberto}
     <ModalCompartilhar
       {quadra}

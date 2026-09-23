@@ -5,7 +5,7 @@
 - Implementação autorizada até Checkpoint 2 da US1; não pedir aprovação de plano novamente.
 - Branch: `feature/cv3-ds1-us1-vincular-relogio`, criada da `master` em `638469d`. Planejamento trazido da branch `feature/cv3-planejamento-controle-relogio` (commit `cda5415`). Não houve merge na master.
 - Preferência adicional: usar WSL para rodar Android Studio; salvar e fazer push frequente do progresso.
-- Em 2026-09-22, no momento deste registro, somente documentação foi alterada. Nenhuma implementação ou teste novo concluído.
+- Em 2026-09-22, início do registro: apenas documentação. Atualização de progresso abaixo substitui o estado inicial.
 
 ## Ambiente verificado
 - Já estamos em WSL2: host PREDATOR-JR, kernel microsoft-standard-WSL2, x86_64.
@@ -36,3 +36,12 @@
 
 ## Pendências do Navigator
 Modelo do telefone e tamanho do Watch não informados. Não bloqueiam backend e estrutura inicial; serão necessários para validar ergonomia e instalação real.
+
+## Progresso salvo em 2026-09-23
+- Android Studio Quail 4 Patch 1 instalado em `/home/eli/.local/opt/android-studio`, arquivo oficial verificado por SHA-256. Processo gráfico iniciado via WSLg.
+- SDK em `/home/eli/Android/Sdk`; API 35/build-tools 35.0.0/platform-tools instalados. Gradle 8.11.1 em `/tmp/placar-watch-tools/gradle-8.11.1`.
+- Backend inicial em `app/watch.py`, schema aditivo, autenticação WS nativa e revogação no hub implementados. UI `ModalRelogio.svelte` adicionada.
+- 114 testes existentes passaram antes dos novos testes; 13 testes novos passaram após integração do backend. Ruff sem erros nos arquivos Python alterados.
+- Execução de pytest no sandbox ficou travada; executada fora do sandbox com sucesso.
+- Node Linux em preparação: npm do PATH é Windows e falha. Download v24.14.0 em `/tmp/placar-watch-tools`.
+- Ainda faltam módulo Wear/APK, validação frontend, revisão da implementação e roteiro manual. Não é Checkpoint 2.
