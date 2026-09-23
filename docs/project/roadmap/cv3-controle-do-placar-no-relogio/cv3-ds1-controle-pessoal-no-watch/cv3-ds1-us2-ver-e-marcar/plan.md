@@ -89,7 +89,7 @@ Desfazer pelo relógio (US3; com a chave ligada, desfazer fica indisponível at�
 - Roteiro físico (test-guide, no Passo 4): Watch + telefone admin + navegador espectador + um segundo participante não-eli ("Em breve…"); ligar a chave e conferir o site somente leitura; A/A/B; toques rápidos; telefone bloqueado; luz externa; animações reduzidas; apagar e reacender a tela; encerrar a partida; nova partida com fila pendente (modo avião no relógio).
 
 ## Riscos e pontos para o Navigator
-1. **Nós = equipe A.** Adotado porque o site já coloca quem cria a sala na equipe A (exemplo do Navigator: Eli Junior e Camila × Rafa e Marvin). Confirmar.
+1. **Nós = equipe A.** Adotado pela ordem do exemplo do Navigator (Eli Junior e Camila × Rafa e Marvin): quem configura a partida põe a própria dupla como equipe A. Confirmar.
 2. **Estado inicial da chave:** proposta **desligada** ao vincular; eli liga nas configurações quando for jogar. A alternativa é ligar automaticamente ao vincular.
 3. **Descarte no próprio relógio** (item 19): proposta para a US2 não travar sem saída. A decisão aprovada de revisar conflitos no telefone é mantida para a US4. Confirmar.
 4. **Deploy apaga salas** ao subir a 0.8.0 (comportamento existente, dívida `banco-de-producao-sem-volume-persistente`).
