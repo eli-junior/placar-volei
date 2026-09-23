@@ -1,5 +1,12 @@
 # Retomada — CV3.DS1.US1
 
+## Estado em 2026-09-23 13h — Passo 6
+
+- Checkpoint 2 (teste físico em produção) e Checkpoint 3 (revisão) aprovados pelo Navigator.
+- Habilitação pelo apelido-senha `eli.relogio`, exibido como `eli` (`052e5c0`); ver o registro de decisão `apelido-senha-habilita-relogio`. Falta a revalidação curta do test-guide.
+- `feature/cv3-ds1-us1-api-relogio` e esta branch apontam para o mesmo commit. O Mini PC segue a branch da API até o merge da US1 na master.
+- Próximo: Checkpoint 4 (merge na master). Sem bump de versão: 0.7.0 só ao fim do arco (US4).
+
 ## Atualização 2026-09-23 — API em produção
 
 - A API de vínculo foi extraída para `feature/cv3-ds1-us1-api-relogio` e mesclada na master (`a4b59ae`); essa master foi mesclada nesta branch. Backend (`app/`, `tests/`, `web/`, `scripts/`) desta branch é idêntico ao da master.

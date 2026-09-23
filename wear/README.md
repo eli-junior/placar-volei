@@ -70,17 +70,21 @@ curl -fsS https://placar.elijunior.click/openapi.json | python3 -c 'import json,
 
 Passa: imprime `Backend do relógio disponível`. Se faltarem rotas, confira a branch ativa e se o contêiner foi reconstruído. A versão continua `0.6.1` durante esta validação, portanto `/health` sozinho não distingue o backend antigo do novo.
 
-Recarregue o site no telefone, crie a sala como `eli` e siga a habilitação abaixo. Esta publicação da branch é para validação; a `master` continua aguardando os checkpoints de aceite.
+Recarregue o site no telefone e entre na sala seguindo a habilitação abaixo.
 
-## Habilitar o teste pessoal
+## Habilitar o relógio
 
-Crie a sala pelo telefone com apelido **eli**. O operador habilita esse participante uma vez por sala, pelo terminal (o segredo é solicitado sem eco):
+Crie a sala (ou entre nela) pelo telefone com o apelido-senha **`eli.relogio`**. A sala mostra só **eli**; o sufixo não é gravado nem exibido. Quem entra com esse apelido já fica habilitado para vincular relógio, sem segredo de owner. O apelido-senha vem de `WATCH_AUTO_GRANT` (padrão `eli.relogio` no compose; lista separada por vírgulas). Digitar apenas `eli` **não** habilita o relógio.
+
+O vínculo exige papel ADMIN ou CONTROLADOR. Quem cria a sala já é ADMIN; quem entra depois precisa ser promovido.
+
+Alternativa sem apelido-senha (`WATCH_AUTO_GRANT` vazio): crie a sala como **eli** e habilite pelo terminal, uma vez por sala (o segredo é solicitado sem eco):
 
 ```sh
 python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA
 ```
 
-Isso habilita apenas o participante existente; o relógio ainda precisa ser aprovado pelo código temporário no navegador desse participante. O segredo de owner não deve ser colocado no relógio nem no site.
+Nos dois casos, o relógio ainda precisa ser aprovado pelo código temporário no navegador desse participante. O segredo de owner não deve ser colocado no relógio nem no site.
 
 Revogar o dispositivo: **Relógio → Revogar acesso**, no telefone. Desabilitar também futuros vínculos naquela sala:
 

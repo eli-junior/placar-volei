@@ -73,7 +73,13 @@ JAVA_HOME=/home/eli/.sdkman/candidates/java/21.0.7-tem ./wear/gradlew -p wear te
 O teste `test_owner_secret_and_device_token_do_not_appear_in_logs` inspeciona os logs capturados das operações reais de vínculo e provisionamento. Não colar segredo de produção em comandos, URL, relato ou screenshot.
 
 ## Resultado manual
-Pendente: Navigator executa e informa aprovado ou falhas observadas. Nenhum teste físico foi afirmado pelo Driver. Após aprovação manual, seguir para Checkpoint 3 de revisão, sem merge automático.
+**Aprovado pelo Navigator em 2026-09-23**, em produção (`https://placar.elijunior.click`, Mini PC rodando `feature/cv3-ds1-us1-api-relogio`), cenários 1–4. O primeiro teste achou o `pattern` do código quebrado pelo Svelte (`[0-9]{8}` virava `[0-9]8`); corrigido em `df2d2f9` e revalidado.
+
+Depois do Checkpoint 3, a habilitação passou a ser pelo apelido-senha `eli.relogio` (`052e5c0`). Revalidação curta:
+1. Crie a sala como `eli.relogio`. Passa: telefone e torcida veem só `eli`; nenhuma tela mostra `relogio`.
+2. **Relógio** no telefone já aparece habilitado, sem `watch_access.py`; aprove um código novo. Passa: mensagem "Você aparece como eli" e o relógio vinculado.
+3. Na aba anônima, tente entrar como `eli`. Passa: recusado por apelido em uso.
+4. Em outra sala criada como `eli` puro, **Relógio** mostra não habilitado.
 
 ## Arquivos desta entrega
 - `.gitignore`, `CHANGELOG.md`: exclusões Android e tracking do ciclo.

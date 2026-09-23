@@ -2,7 +2,7 @@
 code: CV3.DS1.US1
 level: User Story
 status: Active
-status_reason: Implementação e testes automatizados concluídos; aguardando validação manual no Checkpoint 2
+status_reason: Validação física aprovada em produção (Checkpoint 2, 2026-09-23); revisão aprovada; habilitação por apelido-senha em validação
 updated: 2026-09-23
 ---
 
@@ -12,7 +12,7 @@ updated: 2026-09-23
 Como Eli, quero autorizar meu relógio na sala já configurada pelo telefone para operar sem redigitar configurações no pulso.
 
 ## Scope
-Vínculo de dispositivo com credencial própria e revogável, identificação interna `eli-smartwatch` e nome público `eli`. O apelido não concede acesso; autorização depende do vínculo autenticado. Proposta: telefone e relógio representam o mesmo participante, com dispositivos distintos, evitando duplicação de Eli na lista e disputa entre suas próprias sessões. Modelagem aprovada pelo Navigator no Checkpoint 1.
+Vínculo de dispositivo com credencial própria e revogável, identificação interna `eli-smartwatch` e nome público `eli`. O apelido não concede acesso; autorização depende do vínculo autenticado. Proposta: telefone e relógio representam o mesmo participante, com dispositivos distintos, evitando duplicação de Eli na lista e disputa entre suas próprias sessões. Modelagem aprovada pelo Navigator no Checkpoint 1. No Checkpoint 3 o Navigator definiu a habilitação pelo apelido-senha `eli.relogio` (exibido como `eli`), registrada em `docs/project/decisions/records/2026-09-23T1300Z-apelido-senha-habilita-relogio.md`.
 
 ## Acceptance / Done Condition
 - Dada a sala configurada e Eli autorizado, quando aprovar o código temporário mostrado pelo relógio no telefone, então o relógio acessa somente a sala autorizada.

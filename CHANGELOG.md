@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### feature/cv3-ds1-us1-vincular-relogio
 - **História / Escopo**: CV3.DS1.US1 — vínculo pessoal do relógio; quatro HUs do arco registradas.
 - **Branch**: `feature/cv3-ds1-us1-vincular-relogio`
-- **Passo Ariad**: Passo 5 - Revisão; Checkpoint 2 aprovado pelo Navigator em 2026-09-23 (todos os cenários do test-guide em produção).
+- **Passo Ariad**: Passo 6 - Documentação; Checkpoints 2 e 3 aprovados. Habilitação por apelido-senha `eli.relogio` (`052e5c0`) aguardando revalidação curta.
 - **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: retomada-cv3-watch | Data: 2026-09-23 — Assumido a partir do Passo 4 (antes: Codex, cv3-watch-20260922)
-- **Handoff / Próximos Passos**: Master (com a API do relógio extraída em `feature/cv3-ds1-us1-api-relogio`) mesclada nesta branch; backend idêntico ao de produção. `https://placar.elijunior.click/openapi.json` confirmou em 2026-09-23 as rotas `/api/watch/*` e `/api/owner/watch-access` (versão exibida segue 0.6.1). Primeiro teste físico: site recusava o código de 8 dígitos (`pattern` quebrado pelo Svelte); corrigido nesta branch, pendente levar à produção. Próximo: reinstalar o APK atual, habilitar eli na sala com `scripts/watch_access.py` e cumprir o test-guide da US1. O commit `29d70d7` (WATCH_AUTO_GRANT) existe só em `origin/feature/cv3-ds1-us1-api-relogio`, fora da master e desta branch; incorporação depende de decisão do Navigator. Detalhes em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/handoff.md`. Sem merge desta branch na master.
+- **Handoff / Próximos Passos**: `feature/cv3-ds1-us1-api-relogio` avançada para esta branch (mesmo commit); o Mini PC segue essa branch até o merge da US1. Revalidar `eli.relogio` pelo test-guide ("Resultado manual") e seguir para o Checkpoint 4 (merge na master e fechamento sem release; versão 0.7.0 só ao fim da US4). Decisão em `docs/project/decisions/records/2026-09-23T1300Z-apelido-senha-habilita-relogio.md`; dívidas novas em `docs/project/debt/items/2026-09-23T13*`.
 
 
 ## 0.6.1 - 2026-09-20
