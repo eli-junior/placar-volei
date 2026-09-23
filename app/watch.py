@@ -63,10 +63,15 @@ def browser_participant(conn, request, court):
     return participant
 
 
+def auto_granted(participant):
+    names = {n.strip() for n in settings.watch_auto_grant.split(",") if n.strip()}
+    return participant["apelido"] in names
+
+
 def permitted(conn, participant):
-    return (
-        participant["papel"] in ("ADMIN", "CONTROLADOR")
-        and conn.execute(
+    return participant["papel"] in ("ADMIN", "CONTROLADOR") and (
+        auto_granted(participant)
+        or conn.execute(
             "SELECT 1 FROM watch_grants WHERE participant_id = ?", (participant["id"],)
         ).fetchone()
         is not None
@@ -288,6 +293,8 @@ async def approve_device(court: str, body: ApprovalBody, request: Request):
                     403, "Vínculo de relógio não habilitado para este participante."
                 )
             check_limit(approval_limit, p["id"])
+            # Habilitação automática vira grant persistido para o relógio autenticar.
+            conn.execute("INSERT OR IGNORE INTO watch_grants VALUES (?)", (p["id"],))
             d = conn.execute(
                 "SELECT * FROM watch_devices WHERE code_hash = ?",
                 (hash_sessao(body.code),),

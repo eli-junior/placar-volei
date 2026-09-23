@@ -115,6 +115,29 @@ def test_owner_grant_required_even_with_correct_name(client):
     )
 
 
+def test_auto_grant_enables_configured_name_without_owner(client, monkeypatch):
+    monkeypatch.setattr(settings, "watch_auto_grant", "eli")
+    court = client.post("/api/quadras", json={"apelido": "eli"}).json()
+    assert client.get(f"/api/quadras/{court['id']}/watch").json()["enabled"] is True
+    _, headers = link(client, court)
+    session = client.get("/api/watch/session", headers=headers).json()
+    assert session["status"] == "linked"
+    assert session["display_name"] == "eli"
+
+
+def test_auto_grant_ignores_other_names(client, monkeypatch):
+    monkeypatch.setattr(settings, "watch_auto_grant", "eli")
+    court = client.post("/api/quadras", json={"apelido": "joao"}).json()
+    _, _, code = pairing(client)
+    assert client.get(f"/api/quadras/{court['id']}/watch").json()["enabled"] is False
+    assert (
+        client.post(
+            f"/api/quadras/{court['id']}/watch/approve", json={"code": code}
+        ).status_code
+        == 403
+    )
+
+
 def test_spectator_cannot_approve_even_with_grant(client):
     court = prepare(client)
     viewer = {"x-session-id": "viewer"}

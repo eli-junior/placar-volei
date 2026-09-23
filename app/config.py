@@ -15,6 +15,9 @@ class Settings(BaseSettings):
     port: int = 8000
     version: str = "0.6.1"
     reset_db_on_startup: bool = False
+    # Apelidos (separados por vírgula) com vínculo de relógio habilitado sem
+    # provisionamento manual do owner. Vazio exige POST /api/owner/watch-access.
+    watch_auto_grant: str = ""
 
     # Limites de capacidade e ciclo de vida
     max_quadras: int = 20
