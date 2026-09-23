@@ -2,7 +2,7 @@
 code: CV3.DS1.US5
 level: User Story
 status: Planned
-status_reason: Pedido do Navigator no Checkpoint 1 da US3 e reforçado no teste físico (2026-09-23); vem depois da US3, antes ou junto da US4
+status_reason: Pedido do Navigator no Checkpoint 1 da US3 e reforçado no teste físico (2026-09-23); próxima HU da DS1, antes da US4 (Navigator, 2026-09-23)
 updated: 2026-09-23
 related:
   - CV3.DS1.US3

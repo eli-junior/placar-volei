@@ -14,6 +14,8 @@ closure_condition: O servidor envia no snapshot o que o relógio precisa para tr
 
 `wear/.../Scoreboard.kt` tem `avaliarVitoria`, cópia de `app.projecao.avaliar_vitoria` (alvo, vantagem de 2, teto). O relógio usa a cópia para travar os botões quando o placar previsto já é vitória.
 
+Na US3 (0.9.0), o relógio passou a repetir também um pedaço da projeção: `stack` em `Scoreboard.kt` monta os pontos ativos confirmados (`equipes_ativas` do snapshot) e aplica os lances e desfazeres da fila. É o mesmo padrão: o relógio só prevê, e o servidor decide.
+
 ## Carrying Reason
 
 Sem a cópia, o toque depois do ponto de vitória vira uma recusa previsível, e a fila pausa pedindo descarte. São ~15 linhas, com testes em Kotlin que repetem os casos do Python.

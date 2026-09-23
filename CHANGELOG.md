@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV3.DS1.US3 — Desfazer o último ponto pelo relógio
 
 - **Branch:** `feature/cv3-ds1-us3-desfazer` (criada da `master` em `91b471e`, 0.8.0)
-- **Passo Ariad:** Passo 5 - Revisão (Checkpoint 2 aprovado no relógio real em 2026-09-23)
+- **Passo Ariad:** Passo 7 - Conclusão e Merge (Checkpoint 3 aprovado; Checkpoint 4 aguardando o Navigator)
 - **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 37fec51a | Data: 2026-09-23 17:41
-- **Handoff / Próximos Passos:** validação física aprovada, inclusive os ajustes de tela (`d2c46c3`). Checkpoint 3 (revisão) aguardando o Navigator. Depois: documentação, versão 0.9.0 e merge.
+- **Handoff / Próximos Passos:** documentação e versão 0.9.0 prontas. Falta o aceite do Checkpoint 4: fechar a 0.9.0 no changelog e fazer o merge na `master`.
 
 
 ## 0.8.0 - 2026-09-23

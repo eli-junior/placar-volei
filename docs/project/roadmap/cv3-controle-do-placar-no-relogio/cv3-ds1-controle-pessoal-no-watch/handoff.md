@@ -1,5 +1,12 @@
 # Retomada — CV3.DS1
 
+## Estado em 2026-09-23 — US3 fechada
+
+- US3 validada no relógio real e preparada para a 0.9.0 (branch `feature/cv3-ds1-us3-desfazer`). Desfazer com alvo explícito (`alvo_seq` ou `alvo_comando`), faixa **↶ Desfazer**, bolinha de conexão, e tela de vínculo sem campo de servidor.
+- Depois do merge, o Mini PC volta a seguir a master. O deploy da 0.9.0 recria o contêiner e apaga as salas (sem volume).
+- Próximo trabalho: **US5** (retomar ou trocar de quadra), antes da US4, por escolha do Navigator. Ver `cv3-ds1-us5-um-vinculo-por-vez/index.md`.
+- APK 0.9.0 local: SHA-256 `b2b54ab2a02db9e6c14de038c59ef016a30882207d4e7e9fad5feb46d3905300`.
+
 ## Estado em 2026-09-23 — US2 fechada
 
 - US2 validada no relógio real e preparada para a 0.8.0 (branch `feature/cv3-ds1-us2-ver-e-marcar`). Desenho final: participante "Eli (Relógio)", controle delegado pelo botão **Passar controle**, `eli` em qualquer caixa habilita (`WATCH_AUTO_GRANT=eli`).
