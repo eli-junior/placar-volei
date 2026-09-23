@@ -4,13 +4,50 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV3.DS1.US2 — Ver o placar e marcar pontos no pulso
+_Nenhum trabalho em andamento._
 
-- **Branch**: `feature/cv3-ds1-us2-ver-e-marcar` (da `master` em `bc32dec`)
-- **Passo Ariad**: Passo 7 - Conclusão e Merge (Checkpoint 4)
-- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: e6a23008 | Data: 2026-09-23 13:06
-- **Handoff / Próximos Passos**: Checkpoint 2 aceito pelo Navigator em 2026-09-23 ("prossiga"). Validado no relógio real: vínculo, participante Eli (Relógio) e pontuação com controle delegado. Os demais cenários do `test-guide.md` não foram confirmados um a um. Correções durante a validação: engrenagem sem ícone (`2ad3096`) e botão Passar controle (`3d71f6d`). Próximo: revisão (Checkpoint 3) e, depois, a documentação.
 
+## 0.8.0 - 2026-09-23
+
+Boundary: minor (nova capacidade: marcar pontos pelo Galaxy Watch com controle delegado, segunda entrega do CV3)
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver)
+
+Git source: feature/cv3-ds1-us2-ver-e-marcar (merge into master)
+
+### Added
+
+- [Relógio] **Placar no pulso** (`CV3.DS1.US2`): duas metades grandes, **Nós** (equipe A) e **Eles** (equipe B), ou as iniciais dos jogadores (EC × RM). O toque é gravado no relógio antes de vibrar; o placar previsto aparece diferente do confirmado, com "N pendentes". Lances saem em ordem, e sem rede ficam na fila (com o app aberto).
+- [Relógio] **Participante "Eli (Relógio)"**: ao aprovar o código, o relógio entra na sala como participante próprio. O admin o torna controlador e usa **Passar controle**; quem tem o controle pontua.
+- API: `POST /api/watch/comandos`, com recibo durável (`watch_recibos`) na mesma transação do evento. Reenvio não duplica ponto; recusas também geram recibo; lance de partida anterior nunca vale para a atual.
+- [Site] Botão **Passar controle** na lista de presentes (a rota existia desde a CV2.DS2.US5, sem botão) e marcação de quem está no controle.
+- [Site] Ícone de relógio no cabeçalho; quem não é Eli vê "Em breve…".
+
+### Changed
+
+- `eli`, `ELI` ou `Eli` entram como `Eli` e já habilitam o relógio (`WATCH_AUTO_GRANT=eli`). O apelido-senha `eli.relogio` deixa de existir.
+- O controle nas mãos do relógio não volta ao admin por ausência (a tela apaga durante o jogo); o admin retoma com "Assumir o controle".
+- O relógio conectado conta como presença do dono para a sucessão de admin.
+- Revogar o relógio remove o Eli (Relógio) da sala e devolve o controle ao dono.
+
+### Fixed
+
+- [Site] A engrenagem das configurações aparecia vazia desde a CV2: o ícone `engrenagem` não existia no conjunto. Novo teste confere todo ícone usado nas telas.
+
+### Decisions
+
+- `relogio-como-participante-com-controle-delegado`, que substitui `apelido-senha-habilita-relogio` e a decisão 1 do plano da DS1. Redirecionamento do Navigator durante o teste físico; a chave "Controlar pelo Relógio" da revisão 2 foi implementada e removida.
+
+### Debt
+
+- `debt-fluxos-da-interface-sem-teste-de-ponta-a-ponta` (New, Carried).
+- `debt-regra-de-vitoria-duplicada-no-relogio` (New, Carried).
+- `debt-limite-de-vinculo-do-relogio-por-ip-e-em-memoria` e `debt-banco-de-producao-sem-volume-persistente` (Carried).
+
+### Verification
+
+- `pytest` 151/151, `ruff check` e `ruff format --check` ok; web `npm test` 27/27, `npm run check` sem erros/avisos, `npm run build` ok; Android: 18 testes, `assembleDebug` e `lintDebug` ok.
+- Validação física no Galaxy Watch 8 (44 mm) em produção aprovada pelo Navigator: vínculo com `eli`, Eli (Relógio) na sala, controle delegado e pontuação pelo relógio. Fila em modo avião, tela apagada, telefone bloqueado, recusa com descarte, fim de partida, revogação e ergonomia não foram confirmados um a um no aparelho; os casos de servidor têm teste automatizado.
 
 ## 0.7.0 - 2026-09-23
 
