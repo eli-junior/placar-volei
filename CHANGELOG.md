@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### feature/cv3-ds1-us1-vincular-relogio
 - **História / Escopo**: CV3.DS1.US1 — vínculo pessoal do relógio; quatro HUs do arco registradas.
 - **Branch**: `feature/cv3-ds1-us1-vincular-relogio`
-- **Passo Ariad**: Passo 3 - Implementação; Checkpoint 1 aprovado pelo Navigator.
-- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv3-watch-20260922 | Data: 2026-09-22
-- **Handoff / Próximos Passos**: HUs e plano em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/`. Plano e política de revisão de conflitos aprovados. Implementar US1: vínculo autorizado, UI web e APK Wear OS; aguardar validação manual no Checkpoint 2. Modelo do celular/tamanho do relógio ainda não informados. Usar Android Studio no WSL. Retomada detalhada em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/handoff.md`. README/briefing estão defasados frente à versão 0.6.1 do changelog.
+- **Passo Ariad**: Passo 4 - Teste e Validação; Checkpoint 2 aguardando teste manual no Watch.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv3-watch-20260922 | Data: 2026-09-23
+- **Handoff / Próximos Passos**: Vínculo pessoal implementado (backend, UI web e APK Wear OS). Android Studio/SDK prontos no WSL. 130 testes Python, 21 frontend e 3 Android passaram; Ruff, Svelte check e builds passaram. Validação física pendente; pontuação/desfazer/offline são US2–US4. Instalação em `wear/README.md`; estado completo e roteiro em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/handoff.md`. Próximo passo após teste manual: Checkpoint 3, sem merge automático.
 
 
 ## 0.6.1 - 2026-09-20

@@ -94,7 +94,7 @@
   h2 { font-size: 1.25rem; }
   p { margin: 16px 0; line-height: 1.5; }
   form { display: grid; gap: 12px; }
-  input, button { min-height: 44px; border: 1px solid var(--borda-sutil); border-radius: var(--raio-padrao, 8px); background: var(--fundo-superficie); color: var(--texto-principal); padding: 10px 14px; }
+  input, button { min-height: 44px; border: 1px solid var(--borda-sutil); border-radius: var(--raio-padrao, 8px); background: var(--fundo-superficie); color: var(--texto-forte); padding: 10px 14px; }
   input { width: 100%; box-sizing: border-box; font-size: 1.5rem; letter-spacing: 0.15em; }
   button { cursor: pointer; }
   button:disabled { opacity: 0.5; cursor: default; }

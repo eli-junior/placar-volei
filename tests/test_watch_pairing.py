@@ -311,3 +311,49 @@ async def test_multiple_connections_count_as_one_participant():
     assert await hub.participantes_online("multi-test") == {"eli"}
     await hub.disconnect("multi-test", two)
     assert await hub.participantes_online("multi-test") == set()
+
+
+def test_owner_secret_and_device_token_do_not_appear_in_logs(client, caplog):
+    import logging
+
+    caplog.set_level(logging.INFO)
+    court = prepare(client)
+    token, _ = link(client, court)
+    assert settings.owner_secret not in caplog.text
+    assert token not in caplog.text
+
+
+def test_owner_cannot_enable_spectator_or_different_public_name(client):
+    court = client.post("/api/quadras", json={"apelido": "Outra pessoa"}).json()
+    response = client.post(
+        "/api/owner/watch-access",
+        json={"participant_id": court["participante"]["id"]},
+        headers={"x-owner-secret": settings.owner_secret},
+    )
+    assert response.status_code == 409
+
+
+def test_schema_upgrade_preserves_existing_events(client):
+    from app.db import init_db_sync
+
+    court = prepare(client)
+    assert (
+        client.post(
+            f"/api/quadras/{court['id']}/pontos",
+            json={"equipe": "A"},
+            headers={"x-control-version": "1"},
+        ).status_code
+        == 201
+    )
+    with get_db() as conn:
+        before = [
+            dict(row) for row in conn.execute("SELECT * FROM eventos ORDER BY seq")
+        ]
+        conn.execute("DROP TABLE watch_devices")
+        conn.execute("DROP TABLE watch_grants")
+    init_db_sync()
+    with get_db() as conn:
+        after = [
+            dict(row) for row in conn.execute("SELECT * FROM eventos ORDER BY seq")
+        ]
+    assert before == after

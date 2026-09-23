@@ -2,7 +2,7 @@
 code: CV3.DS1.US2
 level: User Story
 status: Planned
-status_reason: Descoberta registrada; aguardando aceite do Checkpoint 1
+status_reason: Escopo aprovado; aguardando conclusão das HUs anteriores
 updated: 2026-09-22
 ---
 

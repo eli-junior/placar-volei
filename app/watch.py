@@ -185,7 +185,7 @@ def start_pairing(request: Request, response: Response):
             raise HTTPException(
                 409, "Este dispositivo já foi vinculado. Consulte o estado do vínculo."
             )
-        if (
+        if previous is None and (
             conn.execute(
                 "SELECT COUNT(*) FROM watch_devices WHERE participant_id IS NULL"
             ).fetchone()[0]

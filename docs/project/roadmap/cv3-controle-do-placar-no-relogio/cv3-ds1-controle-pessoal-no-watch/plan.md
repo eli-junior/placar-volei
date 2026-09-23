@@ -1,4 +1,4 @@
-# Checkpoint 1 — Plano proposto (aguardando aceite)
+# Checkpoint 1 — Plano aprovado pelo Navigator em 2026-09-22
 
 ## Direção confirmada pelo Navigator
 Uso enquanto joga; Galaxy Watch 8 Bluetooth; telefone prepara a sala; identificador `eli-smartwatch`, exibição pública `eli`; ver placar, +1 por equipe e desfazer; dois botões grandes; registrar offline; distribuição privada por APK de teste.
@@ -14,9 +14,9 @@ Uso enquanto joga; Galaxy Watch 8 Bluetooth; telefone prepara a sala; identifica
 - Desfazer referencia evento confirmado ou comando anterior da fila; projeção respeita regras de encerramento e reabertura.
 - Reconciliação verifica estado-base e mudanças relevantes; presença isolada não deve criar conflito falso. Aplicações parciais têm recibos individuais e retomada determinística.
 
-## Decisões ainda propostas
+## Decisões aprovadas
 1. Modelar o relógio como dispositivo de Eli, sem participante duplicado.
-2. Em conflito real, preservar fila e revisar no telefone antes de aplicar/descartar; resposta do Navigator pendente.
+2. Em conflito real, preservar fila e revisar no telefone antes de aplicar/descartar; aprovado pelo Navigator.
 3. Interface ativa com toque simples e desfazer visível; sem marcação em modo ambiente. Não manter tela permanentemente acesa por padrão. Validar ergonomia real antes de fechar.
 
 ## Alternativas consideradas

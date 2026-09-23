@@ -70,6 +70,7 @@ CREATE TABLE IF NOT EXISTS watch_grants (
 CREATE TABLE IF NOT EXISTS watch_devices (
     id TEXT PRIMARY KEY,
     token_hash TEXT NOT NULL UNIQUE,
+    device_name TEXT NOT NULL DEFAULT 'eli-smartwatch',
     code_hash TEXT UNIQUE,
     expires_at TEXT NOT NULL,
     participant_id TEXT REFERENCES participantes(id) ON DELETE CASCADE,

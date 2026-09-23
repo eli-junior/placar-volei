@@ -2,7 +2,7 @@
 code: CV3.DS1.US4
 level: User Story
 status: Planned
-status_reason: Descoberta registrada; aguardando aceite do Checkpoint 1
+status_reason: Escopo aprovado; aguardando conclusão das HUs anteriores
 updated: 2026-09-22
 ---
 
@@ -19,7 +19,7 @@ Fila persistente no relógio com ID único por comando, sala, partida, ordem, ve
 - Quando reconectar sem conflito, então os comandos são reconciliados na ordem original e cada intenção produz no máximo um efeito.
 - Se a resposta sumir após a gravação no servidor, o reenvio recupera o resultado sem duplicar o evento.
 - Com mudança de partida, sala expirada, revogação, alteração de regras ou disputa de controle, não aplicar cegamente nem descartar silenciosamente a fila.
-- Proposta pendente de aceite: conflito pausa sincronização, preserva lances e permite revisão explícita pelo telefone antes de reaplicar ou descartar. Confirmação de descarte deve deixar claro quais lances serão abandonados.
+- Regra aprovada: conflito pausa sincronização, preserva lances e permite revisão explícita pelo telefone antes de reaplicar ou descartar. Confirmação de descarte deve deixar claro quais lances serão abandonados.
 - Devolução automática de controle sem alteração da partida deve ter tratamento explícito: recuperar autorização válida antes de retomar; nunca ignorar revogação.
 - Sem snapshot inicial não é possível começar uma partida offline; nenhuma fila antiga é aplicada a uma partida nova.
 

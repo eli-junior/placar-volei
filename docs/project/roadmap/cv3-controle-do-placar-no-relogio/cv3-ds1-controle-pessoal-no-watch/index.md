@@ -1,8 +1,8 @@
 ---
 code: CV3.DS1
 level: Delivery Story
-status: Planned
-status_reason: Descoberta registrada; aguardando aceite do Checkpoint 1
+status: Active
+status_reason: Plano aprovado; HU1 em implementação e validação
 updated: 2026-09-22
 ---
 

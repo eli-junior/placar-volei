@@ -1,0 +1,73 @@
+# Placar Vôlei — Wear OS (US1)
+
+APK de teste pessoal para **vincular o Galaxy Watch à sala configurada no telefone**. Esta entrega ainda não marca pontos: essa função começa na US2. O servidor deve executar a branch `feature/cv3-ds1-us1-vincular-relogio`.
+
+## WSL / Android Studio
+
+Ambiente preparado nesta sessão:
+
+- Android Studio: `/home/eli/.local/opt/android-studio/bin/studio.sh` (Quail 4 Patch 1, Linux, WSLg).
+- SDK: `/home/eli/Android/Sdk` (API 35, build-tools 35.0.0, platform-tools).
+- JDK de build: `/home/eli/.sdkman/candidates/java/21.0.7-tem`. **O JDK 25 embutido no Studio não é compatível com este Gradle.**
+- AGP 8.9.2, Gradle 8.11.1, Kotlin 2.1.20; versões fixadas nos arquivos de build.
+
+No Android Studio, abra a pasta `wear`. Em **Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**, selecione o JDK 21 acima. Configure o SDK em `/home/eli/Android/Sdk`. `local.properties` e configurações locais do IDE não são versionados.
+
+Pelo terminal WSL, na raiz do projeto:
+
+```sh
+export JAVA_HOME=/home/eli/.sdkman/candidates/java/21.0.7-tem
+export ANDROID_HOME=/home/eli/Android/Sdk
+./wear/gradlew -p wear testDebugUnitTest assembleDebug lintDebug
+```
+
+Saída: `wear/app/build/outputs/apk/debug/app-debug.apk`. Credenciais não são incluídas no APK. O endereço pode ser preenchido no relógio ou pré-configurado no build:
+
+```sh
+./wear/gradlew -p wear assembleDebug -PserverUrl=https://SEU-SERVIDOR
+```
+
+APK debug permite HTTP para validação local; o manifest principal exige HTTPS. O cliente não segue redirecionamentos com sua credencial.
+
+## Instalar no Watch via Wi-Fi
+
+1. No relógio, habilite opções de desenvolvedor e **Depuração sem fio**. Mantenha PC e Watch na mesma rede Wi-Fi durante instalação.
+2. Escolha **Parear novo dispositivo**, anote IP/porta de pareamento e o código. A porta de conexão exibida na tela anterior é diferente da porta de pareamento.
+3. No WSL:
+
+```sh
+export PATH=/home/eli/Android/Sdk/platform-tools:$PATH
+adb pair IP_DO_WATCH:PORTA_DE_PAREAMENTO
+# Digite o código solicitado; não é o código do Placar.
+adb connect IP_DO_WATCH:PORTA_DE_CONEXAO
+adb devices
+adb -s IP_DO_WATCH:PORTA_DE_CONEXAO install -r wear/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Abra **Placar Vôlei** na lista de apps do relógio. A primeira tela pede o endereço do servidor e oferece **Gerar código**. Esse código de 8 dígitos é aprovado no site pelo telefone em **Relógio**.
+
+Referência: [depuração Wear OS por Wi-Fi](https://developer.android.com/training/wearables/get-started/debug-wifi).
+
+## Habilitar o teste pessoal
+
+Crie a sala pelo telefone com apelido **eli**. O operador habilita esse participante uma vez por sala, pelo terminal (o segredo é solicitado sem eco):
+
+```sh
+python3 scripts/watch_access.py https://SEU-SERVIDOR PIN_DA_SALA
+```
+
+Isso habilita apenas o participante existente; o relógio ainda precisa ser aprovado pelo código temporário no navegador desse participante. O segredo de owner não deve ser colocado no relógio nem no site.
+
+Revogar o dispositivo: **Relógio → Revogar acesso**, no telefone. Desabilitar também futuros vínculos naquela sala:
+
+```sh
+python3 scripts/watch_access.py https://SEU-SERVIDOR PIN_DA_SALA --disable
+```
+
+Um revínculo revoga o dispositivo anterior. Internamente, o dispositivo é `eli-smartwatch`; na presença e no histórico permanece o único participante **eli**. Trocar de sala exige novo vínculo. Códigos expiram em cinco minutos, e as tentativas são limitadas.
+
+## Validação
+
+Siga o [roteiro da HU1](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us1-vincular-relogio/test-guide.md), incluindo instruções para testar localmente sem alterar produção.
+
+O tráfego Wear OS normalmente usa o telefone pareado como proxy Bluetooth; a plataforma gerencia as redes disponíveis. Suspensão em background pode adiar rede: nesta HU, presença via WebSocket é mantida enquanto a tela do app está ativa. [Referência de rede Wear OS](https://developer.android.com/training/wearables/data/network-communication).
