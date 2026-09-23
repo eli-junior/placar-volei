@@ -2,9 +2,15 @@
 
 Este changelog registra tanto o **trabalho ativo em andamento** (para coordenação multi-agente e handoff) quanto as **versões fechadas**.
 
-A seção `## [Em Andamento]
+## [Em Andamento]
 
-*Nenhum trabalho ativo em andamento no momento.*
+### feature/cv3-ds1-us1-vincular-relogio
+- **História / Escopo**: CV3.DS1.US1 — vínculo pessoal do relógio; quatro HUs do arco registradas.
+- **Branch**: `feature/cv3-ds1-us1-vincular-relogio`
+- **Passo Ariad**: Passo 3 - Implementação; Checkpoint 1 aprovado pelo Navigator.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv3-watch-20260922 | Data: 2026-09-22
+- **Handoff / Próximos Passos**: HUs e plano em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/`. Plano e política de revisão de conflitos aprovados. Implementar US1: vínculo autorizado, UI web e APK Wear OS; aguardar validação manual no Checkpoint 2. Modelo do celular/tamanho do relógio ainda não informados. Usar Android Studio no WSL. Retomada detalhada em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/handoff.md`. README/briefing estão defasados frente à versão 0.6.1 do changelog.
+
 
 ## 0.6.1 - 2026-09-20
 
