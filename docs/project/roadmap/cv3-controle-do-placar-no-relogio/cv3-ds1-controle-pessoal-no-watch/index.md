@@ -16,9 +16,10 @@ Preparar a sala no telefone e operar pelo relógio durante o jogo.
 - US2: acompanhar o placar e marcar para cada equipe.
 - US3: desfazer o último ponto visto, inclusive com fila local.
 - US4: registrar offline e reconciliar sem duplicação.
+- US5: um vínculo por vez — retomar a quadra ou trocar, revogando a anterior.
 
 ## Acceptance / Done Condition
-As quatro HUs são validadas no Watch e em clientes web simultâneos, incluindo telefone bloqueado, perda de conexão, reinício do app e conflito de controle.
+As cinco HUs são validadas no Watch e em clientes web simultâneos, incluindo telefone bloqueado, perda de conexão, reinício do app e conflito de controle.
 
 ## Validation Route
 Ver [plano](plan.md), com sequência de entrega, decisões propostas e roteiro integrado.

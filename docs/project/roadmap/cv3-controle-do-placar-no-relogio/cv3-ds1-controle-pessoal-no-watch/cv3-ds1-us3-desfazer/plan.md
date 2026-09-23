@@ -23,8 +23,17 @@ Nível: User Story. Versão pretendida: `0.9.0` (minor, nova capacidade no pulso
 10. **Retorno:** vibração diferente da do ponto, e o número desce com a animação invertida (sai para baixo). Com animações reduzidas, só troca o número.
 11. **Recusa:** reaproveita a retenção da US2. A fila pausa, mostra o motivo e oferece o descarte confirmado. A revisão pelo telefone fica para a US4.
 
+### Vínculo sem campo de servidor (pedido do Navigator no Checkpoint 1)
+12. A tela de vínculo mostra só "Gerar código". O app usa sempre o endereço compilado (`BuildConfig.SERVER_URL`, trocável na compilação por `-PserverUrl`). Um token guardado para outro endereço é descartado.
+
+## Checkpoint 1
+Aprovado pelo Navigator em 2026-09-23, com duas decisões:
+- ponto + desfazer ficam registrados na linha do tempo mesmo quando o desfazer acontece antes do envio;
+- o item 12 entra nesta HU. A tela "Retornar à quadra / Gerar novo código" e o vínculo exclusivo a uma quadra vão para a [US5](../cv3-ds1-us5-um-vinculo-por-vez/index.md).
+
 ## Aceitação
 - **Dado** o controle no relógio e o placar 0×0, **quando** tocar A, B e desfazer, **então** todas as telas mostram 1×0. A linha do tempo mostra o ponto de B desfeito por "Eli (Relógio)".
+- **Dada** a tela de vínculo, **então** não há campo de endereço, só "Gerar código".
 - **Dado** um lance ainda pendente (sem rede), **quando** desfazer, **então** o placar previsto volta na hora. Ao reconectar, o servidor aplica o ponto e o desfazer uma vez cada, na ordem, sem ponto ou correção duplicados. Reenviar qualquer um dos dois não duplica nada.
 - **Dados** A, A, desfazer, desfazer, **então** o resultado é 0×0 e cada desfazer tem o seu próprio alvo.
 - **Dada** a pilha prevista vazia, **então** o botão desfazer fica desabilitado, e um comando forjado sem ponto ativo é recusado pelo servidor.
@@ -39,9 +48,6 @@ Nível: User Story. Versão pretendida: `0.9.0` (minor, nova capacidade no pulso
 - **Rejeitado: cancelar o lance pendente no próprio relógio, sem enviar.** Ele pode já estar a caminho do servidor, e a corrida levaria a um ponto aplicado sem correção. Além disso, o princípio "nada é apagado" pede o registro.
 - **Rejeitado: segurar o toque ou confirmar antes de desfazer.** Contraria "corrigir é tão barato quanto marcar".
 - **`equipes_ativas` no snapshot, em vez de o relógio ler a linha do tempo:** o relógio fica preso a um campo simples e testado, não ao formato de exibição.
-
-## Pergunta ao Navigator (produto)
-Um toque acidental seguido de desfazer, **mesmo offline e antes do envio**, aparece na linha do tempo como ponto + ponto desfeito. Recomendo manter assim (auditável, sem corrida). A alternativa é sumir com o lance pendente sem registro, mas ela exige detectar se o lance já está a caminho do servidor.
 
 ## Fora de escopo
 - envio em segundo plano, revisão de conflito pelo telefone e fila após reinício com mudança de partida (US4);
