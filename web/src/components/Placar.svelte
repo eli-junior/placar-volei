@@ -5,6 +5,9 @@
   let {
     estadoPartida = null,
     podeControlar = false,
+    // Chave "Controlar pelo Relógio" ligada: o site mostra o placar sem pontuar.
+    relogioNoControle = false,
+    donoRelogio = 'eli',
     // `desabilitado` = não dá para agir agora (socket caído ou sem controle).
     desabilitado = false,
     // `enviando` = há comando em voo. Não bloqueia o toque seguinte: apenas
@@ -54,7 +57,10 @@
   const pontosA = $derived(estadoPartida?.pontos_a ?? 0);
   const pontosB = $derived(estadoPartida?.pontos_b ?? 0);
   const totalPontos = $derived(pontosA + pontosB);
-  const podeDesfazer = $derived(podeControlar && totalPontos > 0 && !desabilitado);
+  // Marcar e desfazer somem com o relógio no controle; configurar e iniciar
+  // nova partida continuam com `podeControlar`.
+  const podePontuar = $derived(podeControlar && !relogioNoControle);
+  const podeDesfazer = $derived(podePontuar && totalPontos > 0 && !desabilitado);
 
   const equipeA = $derived(estadoPartida?.equipe_a || 'Equipe A');
   const equipeB = $derived(estadoPartida?.equipe_b || 'Equipe B');
@@ -231,7 +237,12 @@
   {/if}
 
   <!-- Estado do transporte: quem opera precisa saber se o toque saiu ou não -->
-  {#if podeControlar && desabilitado}
+  {#if relogioNoControle}
+    <div class="aviso-envio" role="status">
+      <span class="aviso-icone" aria-hidden="true">⌚</span>
+      <span>Controlado pelo relógio de {donoRelogio}. O placar atualiza sozinho.</span>
+    </div>
+  {:else if podeControlar && desabilitado}
     <div class="aviso-conexao" role="status">
       <span class="aviso-icone" aria-hidden="true">⟳</span>
       <span>
@@ -239,7 +250,7 @@
         sozinhos assim que a reconexão acontecer — nada é marcado às cegas.
       </span>
     </div>
-  {:else if podeControlar && enviando}
+  {:else if podePontuar && enviando}
     <div class="aviso-envio" role="status">
       <span class="aviso-icone pulsando" aria-hidden="true">●</span>
       <span>
@@ -266,7 +277,7 @@
         {prefersReducedMotion}
       />
 
-      {#if podeControlar}
+      {#if podePontuar}
         <button
           type="button"
           class="btn-marcar btn-marcar-a"
@@ -282,7 +293,7 @@
     </div>
 
     <!-- Divisor Central -->
-    <div class="vs-col {podeControlar ? 'vs-com-botoes' : ''}">
+    <div class="vs-col {podePontuar ? 'vs-com-botoes' : ''}">
       <span class="vs-simbolo">×</span>
     </div>
 
@@ -300,7 +311,7 @@
         {prefersReducedMotion}
       />
 
-      {#if podeControlar}
+      {#if podePontuar}
         <button
           type="button"
           class="btn-marcar btn-marcar-b"
@@ -316,7 +327,7 @@
     </div>
   </div>
 
-  {#if podeControlar}
+  {#if podePontuar}
     <!-- Ação de Correção: Desfazer Último Ponto (US3) -->
     <div class="desfazer-container">
       <button

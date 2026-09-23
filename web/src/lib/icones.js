@@ -33,6 +33,14 @@ export const CAIXA_ICONE = 24;
  * o nome original no Lucide fica anotado ao lado para facilitar a conferência.
  */
 export const ICONES = {
+  // lucide: watch
+  relogio: [
+    { tag: 'path', d: 'M12 10v2.2l1.6 1' },
+    { tag: 'path', d: 'm16.13 7.66-.81-4.05a2 2 0 0 0-2-1.61h-2.68a2 2 0 0 0-2 1.61l-.78 4.05' },
+    { tag: 'path', d: 'm7.88 16.36.8 4a2 2 0 0 0 2 1.61h2.72a2 2 0 0 0 2-1.61l.81-4.05' },
+    { tag: 'circle', cx: 12, cy: 12, r: 6 },
+  ],
+
   // lucide: x
   fechar: [
     { tag: 'path', d: 'M18 6 6 18' },

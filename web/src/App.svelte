@@ -217,6 +217,7 @@
   const handleIniciarNovaPartida = dados => executar('reiniciar', dados);
   const handleConfigurarPartida = dados => executar('configurar', dados);
   const handleAssumirControle = () => executar('controle/assumir');
+  const handleControleRelogio = ativo => executar('controle/relogio', { ativo });
   const handleAutorizarAdmin = id => executar(`participantes/${id}/admin`);
   const handlePromoverControlador = id => executar(`participantes/${id}/promover`);
   const handleRevogarControlador = id => executar(`participantes/${id}/revogar`);
@@ -265,6 +266,7 @@
       onConfigurarPartida={handleConfigurarPartida}
       onVoltar={() => handleVoltarParaHome()}
       onAssumirControle={handleAssumirControle}
+      onControleRelogio={handleControleRelogio}
       onPromoverControlador={handlePromoverControlador}
       onRevogarControlador={handleRevogarControlador}
       onAutorizarAdmin={handleAutorizarAdmin}
