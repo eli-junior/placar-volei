@@ -24,3 +24,8 @@ web/build/
 Dockerfile
 docker-compose.yml
 .dockerignore
+
+# O app Wear OS é compilado no WSL; não faz parte do servidor no Mini PC.
+wear/
+.gradle/
+.kotlin/

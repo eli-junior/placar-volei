@@ -48,12 +48,36 @@ Abra **Placar Vôlei** na lista de apps do relógio. A primeira tela pede o ende
 
 Referência: [depuração Wear OS por Wi-Fi](https://developer.android.com/training/wearables/get-started/debug-wifi).
 
+## Sincronizar o backend no Mini PC
+
+O APK usa endpoints novos desta branch. Fazer pull apenas da `master` não os disponibiliza. Para o teste da HU1, no repositório do Mini PC, com a árvore de trabalho limpa:
+
+```sh
+git fetch origin
+git switch feature/cv3-ds1-us1-vincular-relogio
+git pull --ff-only origin feature/cv3-ds1-us1-vincular-relogio
+docker compose up -d --build placar
+docker compose ps placar
+```
+
+O compose atual guarda o SQLite dentro do contêiner: recriá-lo inicia sem as salas anteriores. Faça essa atualização fora de uma partida e crie a sala de teste **depois** de subir o contêiner. Nenhuma configuração de `.env` ou Cloudflare precisa mudar para usar o mesmo domínio.
+
+Confira se a API pública já expõe o vínculo, sem criar dados:
+
+```sh
+curl -fsS https://placar.elijunior.click/openapi.json | python3 -c 'import json,sys; paths=json.load(sys.stdin)["paths"]; required={"/api/watch/pairing", "/api/watch/session", "/api/owner/watch-access"}; missing=required-set(paths); print("Backend do relógio disponível" if not missing else "Faltam rotas: " + ", ".join(sorted(missing))); sys.exit(bool(missing))'
+```
+
+Passa: imprime `Backend do relógio disponível`. Se faltarem rotas, confira a branch ativa e se o contêiner foi reconstruído. A versão continua `0.6.1` durante esta validação, portanto `/health` sozinho não distingue o backend antigo do novo.
+
+Recarregue o site no telefone, crie a sala como `eli` e siga a habilitação abaixo. Esta publicação da branch é para validação; a `master` continua aguardando os checkpoints de aceite.
+
 ## Habilitar o teste pessoal
 
 Crie a sala pelo telefone com apelido **eli**. O operador habilita esse participante uma vez por sala, pelo terminal (o segredo é solicitado sem eco):
 
 ```sh
-python3 scripts/watch_access.py https://SEU-SERVIDOR PIN_DA_SALA
+python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA
 ```
 
 Isso habilita apenas o participante existente; o relógio ainda precisa ser aprovado pelo código temporário no navegador desse participante. O segredo de owner não deve ser colocado no relógio nem no site.
@@ -61,7 +85,7 @@ Isso habilita apenas o participante existente; o relógio ainda precisa ser apro
 Revogar o dispositivo: **Relógio → Revogar acesso**, no telefone. Desabilitar também futuros vínculos naquela sala:
 
 ```sh
-python3 scripts/watch_access.py https://SEU-SERVIDOR PIN_DA_SALA --disable
+python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA --disable
 ```
 
 Um revínculo revoga o dispositivo anterior. Internamente, o dispositivo é `eli-smartwatch`; na presença e no histórico permanece o único participante **eli**. Trocar de sala exige novo vínculo. Códigos expiram em cinco minutos, e as tentativas são limitadas.

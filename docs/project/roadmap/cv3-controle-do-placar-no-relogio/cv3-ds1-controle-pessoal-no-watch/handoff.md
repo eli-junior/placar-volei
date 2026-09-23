@@ -1,5 +1,57 @@
 # Retomada — CV3.DS1.US1
 
+## LEIA PRIMEIRO — transferência solicitada pelo Navigator
+
+**Branch de trabalho: `feature/cv3-ds1-us1-vincular-relogio`.**
+
+O Navigator pediu para salvar e transferir a tarefa a outro agente. Não houve deploy no Mini PC nem merge na master. O próximo agente deve retomar esta branch, não iniciar uma feature nova nem implementar US2 ainda.
+
+### Situação real no momento da transferência
+1. O Navigator instalou o primeiro APK no Watch e recebeu “Use o endereço HTTPS do placar” ao gerar código.
+2. Corrigimos o campo vazio pouco visível: borda, placeholder, instrução e bloqueio de envio vazio. O Navigator confirmou a URL **https://placar.elijunior.click**, agora padrão no APK.
+3. **O backend público ainda não tinha as rotas watch na última consulta.** `/health` e `/openapi.json` responderam 200, versão 0.6.1, nenhuma rota watch. Portanto, só atualizar o APK não basta.
+4. O Navigator esclareceu: **fazer ajustes e push neste repositório; a sincronização e execução ocorrem depois no Mini PC**. Não é necessário pedir SSH para preparar o repositório. Não presumir autorização para merge da master ou que o deploy remoto já ocorreu.
+5. Foi adicionada seção de sincronização em `wear/README.md` e exclusão de `wear/`, `.gradle/`, `.kotlin/` no `.dockerignore`. O módulo Android local tinha ~80 MB; contexto Docker verificado ficou em ~1,08 MB.
+6. **Imagem Docker construída e validada com sucesso** no WSL: `placar-volei:watch-us1-validation`. Um contêiner temporário `--rm --network none` passou por health, frontend HTML, OpenAPI com rotas watch, criação da sala eli, habilitação pelo owner, geração de código, aprovação, consulta de vínculo/estado, identidade única e revogação (401 depois). Logs sem token/segredo. O contêiner terminou; não há servidor de validação deixado rodando por esse teste.
+7. Ainda falta **sincronizar/subir esta branch no Mini PC, habilitar eli na sala e repetir a validação física**. Depois do aceite manual, seguir Checkpoint 3; não avançar automaticamente para US2 ou merge.
+
+### Próximos passos concretos do agente que assume
+
+1. Leia este handoff, `wear/README.md`, o plano e o test-guide da US1. Execute `git status`/`git log`; faça fetch e use a branch acima. Atualize assinatura no changelog.
+2. Oriente a sincronização no Mini PC (com árvore limpa):
+
+```sh
+git fetch origin
+git switch feature/cv3-ds1-us1-vincular-relogio
+git pull --ff-only origin feature/cv3-ds1-us1-vincular-relogio
+docker compose up -d --build placar
+docker compose ps placar
+```
+
+**Atenção concreta:** o compose atual não monta volume para `/data`; recriar o contêiner descarta as salas anteriores. Fazer fora de partida ativa e criar a sala de teste depois. Não alterar persistência ou configuração de produção silenciosamente.
+
+3. Reconsulte `https://placar.elijunior.click/openapi.json` e confirme `/api/watch/pairing`, `/api/watch/session`, `/api/owner/watch-access`. `/health` sozinho não diferencia a branch, pois o servidor permanece 0.6.1 nesta fase. O comando pronto está em `wear/README.md`.
+4. Reinstalar o **APK atualizado** (já compilado) no relógio, usando ADB `install -r`. Artefato local: `wear/app/build/outputs/apk/debug/app-debug.apk`. SHA-256 atual: `e9971e64af674555e0c7f869a51b5a521025242a0d01980f268c13e56a3d263e`. Não está no Git; fontes e wrapper estão. Se necessário reconstruir, usar JDK 21 (comandos abaixo).
+5. No telefone, recarregar site e criar sala como **eli**. No terminal do operador, dentro do repo sincronizado:
+
+```sh
+python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA
+```
+
+O utilitário pede o segredo de owner via getpass. Não pedir segredo no chat nem embutir no APK. A habilitação é por participante/sala e precisa ser refeita se criar outra sala.
+6. Watch → Gerar código; telefone → Relógio → aprovar os 8 dígitos. Esperado: Watch mostra Vinculado como eli e sala correta; demais clientes veem apenas um eli.
+7. Cumprir demais cenários de `cv3-ds1-us1-vincular-relogio/test-guide.md`: reabrir app, telefone bloqueado, desconexão, revogação, expiração de código, presença em três clientes. **O APK desta HU ainda NÃO pontua, NÃO desfaz e NÃO tem fila offline**; isso está planejado nas US2–US4.
+8. Se houver falha, corrigir na mesma branch e salvar/push frequente. Aceite do Checkpoint 1 já existe; não voltar a pedir plano. Após o Navigator aprovar o teste físico (Checkpoint 2), apresentar revisão/refatoração/dívida no Checkpoint 3, conforme contrato local.
+
+### Verificações consolidadas
+- Backend: 130 testes (16 novos) passaram; Ruff passou.
+- Frontend: 21 testes, check sem erros/avisos, build passaram.
+- Android mais recente: **5 testes**, build e lint passaram; lint com zero erros e sete avisos conhecidos (dependências/KTX).
+- Docker: build real + smoke de vínculo/revogação passaram, sem tocar produção.
+- Teste físico completo: **pendente**; primeiro teste identificou o problema de endereço e a correção ainda precisa ser revalidada com backend novo.
+
+---
+
 ## Estado atual: Checkpoint 2, aguardando validação manual
 - Plano e regra de revisão pelo telefone em conflitos offline aprovados pelo Navigator em 2026-09-22.
 - Branch `feature/cv3-ds1-us1-vincular-relogio`, criada da master em `638469d`. Nenhum merge na master.
@@ -30,7 +82,7 @@
 - `.venv/bin/pytest -q`: **130 passaram**, incluindo 16 testes novos de vínculo, permissão, concorrência, revogação, presença, migração aditiva e ausência de segredos nos logs. Quatro avisos de depreciação já existentes nas dependências/testes.
 - Ruff check e format --check: passaram.
 - Frontend: check sem erros/avisos, **21 testes passaram**, build passou.
-- Android: **3 testes passaram**, assembleDebug e lintDebug passaram. Lint avisa sobre versões mais novas de dependências e sugere KTX para SharedPreferences; uso de commit com retorno verificado é deliberado. Total final: zero erros e sete avisos. Relatório `wear/app/build/reports/lint-results-debug.txt`.
+- Android: **5 testes passaram**, assembleDebug e lintDebug passaram. Lint avisa sobre versões mais novas de dependências e sugere KTX para SharedPreferences; uso de commit com retorno verificado é deliberado. Total final: zero erros e sete avisos. Relatório `wear/app/build/reports/lint-results-debug.txt`.
 - `git diff --check`: passou.
 - Não foi executado teste físico nem emulador. Bluetooth, tela circular, modo ambiente e Keystore no aparelho precisam do aceite manual.
 
@@ -52,7 +104,7 @@
 - Houve ajuste automático de versão no uv.lock pelo uv; revertido por ser anterior e fora do escopo. Servidor continua 0.6.1; APK se identifica como 0.7.0-us1.
 
 ## Correção após primeiro teste físico
-Navigator instalou o APK, mas Gerar código mostrou apenas “Use o endereço HTTPS do placar”. O APK não tinha serverUrl configurado e o campo vazio não possuía borda/placeholder. Corrigido: campo com borda, alvo mínimo de 48 dp, placeholder e instrução para tocar; envio desabilitado com endereço vazio; mensagem específica para ausência de endereço. Cinco testes Android passaram; build e lint passaram. Endereço real solicitado ao Navigator para pré-configurar o próximo APK; resposta ainda pendente. Não houve deploy do backend. Revalidar preenchimento e geração antes de seguir no Checkpoint 2.
+Navigator instalou o APK, mas Gerar código mostrou apenas “Use o endereço HTTPS do placar”. O APK não tinha serverUrl configurado e o campo vazio não possuía borda/placeholder. Corrigido: campo com borda, alvo mínimo de 48 dp, placeholder e instrução para tocar; envio desabilitado com endereço vazio; mensagem específica para ausência de endereço. Cinco testes Android passaram; build e lint passaram. Endereço real confirmado posteriormente: https://placar.elijunior.click, já configurado no APK atual. Não houve deploy do backend. Revalidar preenchimento e geração antes de seguir no Checkpoint 2.
 
 ## Endereço confirmado e bloqueio de integração
-Navigator confirmou `https://placar.elijunior.click`. O APK agora usa essa origem como padrão (ainda sobrescrevível por `-PserverUrl`). Build, lint e cinco testes Android passaram. Consulta pública em 2026-09-23: `/health` HTTP 200, `/openapi.json` HTTP 200, versão 0.6.1, nenhuma rota contendo `watch`. O servidor público ainda não executa esta implementação; reinstalar o APK sozinho não habilita vínculo. Necessário disponibilizar backend de teste acessível ao relógio. Acesso ao Mini PC/forma de publicação ainda não identificado; nenhum deploy autorizado ou executado nesta etapa. O compose atual não persiste `/data` em volume: recriar o contêiner pode perder salas ativas; preferir ambiente de validação separado ou acordar janela/banco antes de substituir produção.
+Navigator confirmou `https://placar.elijunior.click`. O APK agora usa essa origem como padrão (ainda sobrescrevível por `-PserverUrl`). Build, lint e cinco testes Android passaram. Consulta pública em 2026-09-23: `/health` HTTP 200, `/openapi.json` HTTP 200, versão 0.6.1, nenhuma rota contendo `watch`. O servidor público ainda não executa esta implementação; reinstalar o APK sozinho não habilita vínculo. Necessário disponibilizar backend de teste acessível ao relógio. Navigator esclareceu posteriormente que os ajustes e o push são feitos neste repo e sincronizados no Mini PC. Nenhum deploy remoto foi executado; seguir o roteiro do topo deste handoff. O compose atual não persiste `/data` em volume: recriar o contêiner pode perder salas ativas; preferir ambiente de validação separado ou acordar janela/banco antes de substituir produção.

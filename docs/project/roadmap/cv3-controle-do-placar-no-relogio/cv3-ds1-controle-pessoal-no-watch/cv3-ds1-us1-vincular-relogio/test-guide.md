@@ -94,3 +94,6 @@ SHA-256: `e9971e64af674555e0c7f869a51b5a521025242a0d01980f268c13e56a3d263e`.
 Reinstale o APK atualizado com `adb install -r`. Sem endereço, observe campo com borda e exemplo `https://seu-placar`, e botão Gerar código desabilitado. Toque no campo e informe a origem HTTPS real do servidor que executa esta branch, sem `/quadra/PIN`. O botão deve habilitar. Falha: campo invisível ou tentativa de gerar com endereço vazio. Os cinco testes Android passaram após esta correção.
 
 O APK atualizado traz `https://placar.elijunior.click` por padrão. Em 2026-09-23, essa origem respondeu normalmente, mas seu OpenAPI ainda não expunha rotas `watch`. Não considerar erro de conexão/vínculo contra esse backend antigo como falha do campo de endereço; primeiro disponibilizar esta branch no ambiente de teste. Para testar vazio, apague o endereço pré-preenchido.
+
+### Verificação do empacotamento antes da sincronização
+Imagem `placar-volei:watch-us1-validation` construída pelo Dockerfile real em 2026-09-23. Smoke em contêiner temporário sem rede externa passou: health, HTML do frontend, rotas watch, criação de sala, habilitação pessoal, código/aprovação, identidade eli única, leitura autenticada, revogação e ausência de credenciais em logs. Não houve deploy no Mini PC. Os passos de sincronização estão em `wear/README.md`.
