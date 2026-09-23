@@ -115,19 +115,46 @@ def test_owner_grant_required_even_with_correct_name(client):
     )
 
 
-def test_auto_grant_enables_configured_name_without_owner(client, monkeypatch):
-    monkeypatch.setattr(settings, "watch_auto_grant", "eli")
-    court = client.post("/api/quadras", json={"apelido": "eli"}).json()
+def test_watch_nickname_enables_watch_and_shows_only_public_name(client, monkeypatch):
+    monkeypatch.setattr(settings, "watch_auto_grant", "eli.relogio")
+    court = client.post("/api/quadras", json={"apelido": "Eli.Relogio"}).json()
+    assert court["participante"]["apelido"] == "eli"
     assert client.get(f"/api/quadras/{court['id']}/watch").json()["enabled"] is True
-    _, headers = link(client, court)
-    session = client.get("/api/watch/session", headers=headers).json()
-    assert session["status"] == "linked"
-    assert session["display_name"] == "eli"
+    _, _, code = pairing(client)
+    approved = client.post(
+        f"/api/quadras/{court['id']}/watch/approve", json={"code": code}
+    )
+    assert approved.json()["display_name"] == "eli"
+    state = client.get(f"/api/quadras/{court['id']}").text
+    assert "relogio" not in state.lower()
 
 
-def test_auto_grant_ignores_other_names(client, monkeypatch):
-    monkeypatch.setattr(settings, "watch_auto_grant", "eli")
-    court = client.post("/api/quadras", json={"apelido": "joao"}).json()
+def test_watch_nickname_grants_on_join_and_blocks_copy(client, monkeypatch):
+    monkeypatch.setattr(settings, "watch_auto_grant", "eli.relogio")
+    court = client.post("/api/quadras", json={"apelido": "ana"}).json()
+    joined = client.post(
+        f"/api/quadras/{court['id']}/entrar",
+        json={"apelido": "eli.relogio"},
+        headers={"x-session-id": "eli-phone"},
+    )
+    assert joined.status_code == 200
+    assert joined.json()["participante"]["apelido"] == "eli"
+    with get_db() as conn:
+        assert conn.execute(
+            "SELECT 1 FROM watch_grants WHERE participant_id = ?",
+            (joined.json()["participante"]["id"],),
+        ).fetchone()
+    copycat = client.post(
+        f"/api/quadras/{court['id']}/entrar",
+        json={"apelido": "eli"},
+        headers={"x-session-id": "copycat"},
+    )
+    assert copycat.status_code == 409
+
+
+def test_plain_public_name_does_not_enable_watch(client, monkeypatch):
+    monkeypatch.setattr(settings, "watch_auto_grant", "eli.relogio")
+    court = client.post("/api/quadras", json={"apelido": "eli"}).json()
     _, _, code = pairing(client)
     assert client.get(f"/api/quadras/{court['id']}/watch").json()["enabled"] is False
     assert (

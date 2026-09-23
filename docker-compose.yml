@@ -17,7 +17,7 @@ services:
       - DEFAULT_ARENAS_FILE=/srv/fixtures/defaultArenas.json
       - MAX_QUADRAS=${MAX_QUADRAS:-20}
       - QUADRA_TTL_SECONDS=${QUADRA_TTL_SECONDS:-3600}
-      - WATCH_AUTO_GRANT=${WATCH_AUTO_GRANT:-eli}
+      - WATCH_AUTO_GRANT=${WATCH_AUTO_GRANT:-eli.relogio}
       - OWNER_SECRET=${OWNER_SECRET:-troque-este-segredo-em-producao}
       - ADMIN_TIMEOUT_SECONDS=${ADMIN_TIMEOUT_SECONDS:-120}
       - MAX_ARENAS=${MAX_ARENAS:-50}

@@ -34,12 +34,12 @@
     erro = '';
     mensagem = '';
     try {
-      await requisitar('/approve', {
+      const vinculo = await requisitar('/approve', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: codigo }),
       });
       codigo = '';
-      mensagem = 'Relógio vinculado. Você aparece como eli para os outros.';
+      mensagem = `Relógio vinculado. Você aparece como ${vinculo.display_name} para os outros.`;
       await atualizar();
     } catch (e) { erro = e.message; }
     finally { ocupado = false; }
