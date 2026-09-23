@@ -1,9 +1,9 @@
 ---
 code: CV3.DS1.US2
 level: User Story
-status: Planned
-status_reason: Escopo aprovado; aguardando conclusão das HUs anteriores
-updated: 2026-09-22
+status: Active
+status_reason: Planejamento em andamento (Checkpoint 1)
+updated: 2026-09-23
 ---
 
 # CV3.DS1.US2 — Ver o placar e marcar pontos no pulso
