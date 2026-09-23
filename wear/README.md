@@ -21,7 +21,7 @@ export ANDROID_HOME=/home/eli/Android/Sdk
 ./wear/gradlew -p wear testDebugUnitTest assembleDebug lintDebug
 ```
 
-Saída: `wear/app/build/outputs/apk/debug/app-debug.apk`. Credenciais não são incluídas no APK. O endereço pode ser preenchido no relógio ou pré-configurado no build:
+Saída: `wear/app/build/outputs/apk/debug/app-debug.apk`. Credenciais não são incluídas no APK. O endereço padrão é `https://placar.elijunior.click`, confirmado pelo Navigator. Pode ser alterado no relógio ou sobrescrito no build:
 
 ```sh
 ./wear/gradlew -p wear assembleDebug -PserverUrl=https://SEU-SERVIDOR
