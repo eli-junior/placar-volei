@@ -7,7 +7,8 @@
 - `29d70d7` (habilitação automática via `WATCH_AUTO_GRANT`) está apenas na branch da API, fora da master. Não foi incorporado aqui: muda o desenho aprovado (habilitação explícita do owner). Aguarda decisão do Navigator.
 - Pytest após o merge: 130 passaram. APK local inalterado (SHA-256 `e9971e64…263e`).
 - Próximo passo: validação física (itens 4–8 abaixo).
-- Teste físico em 2026-09-23: o relógio gerou o código, mas o site recusou `15056015` com “É preciso que o formato corresponda ao exigido”. Causa: em template Svelte, `{8}` no atributo é expressão, então `pattern="[0-9]{8}"` saía como `[0-9]8`. Corrigido para `pattern={'[0-9]{8}'}`, com teste de regressão (`web/tests/modal-relogio.test.js`). A correção é só no frontend e precisa chegar à produção (master) para o teste continuar.
+- Teste físico em 2026-09-23: o relógio gerou o código, mas o site recusou `15056015` com “É preciso que o formato corresponda ao exigido”. Causa: em template Svelte, `{8}` no atributo é expressão, então `pattern="[0-9]{8}"` saía como `[0-9]8`. Corrigido para `pattern={'[0-9]{8}'}`, com teste de regressão (`web/tests/modal-relogio.test.js`). A correção é só no frontend e precisa chegar à produção (`feature/cv3-ds1-us1-api-relogio`, que é o que o Mini PC roda; commit `df2d2f9`) para o teste continuar.
+- Após o deploy da `-api-relogio` com o fix: o Navigator aprovou o código no telefone e o Watch mostrou “Vínculo pronto. Pontuação será adicionada na próxima etapa”. Cenário 1, passos 4–6, aprovados em produção (com `WATCH_AUTO_GRANT=eli`, sem `watch_access.py`). Restam: identidade única vista pela torcida, reabrir o app, cenários 2–4.
 
 ## LEIA PRIMEIRO — transferência solicitada pelo Navigator
 
