@@ -1,6 +1,6 @@
 # Placar Vôlei — Wear OS
 
-APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca pontos quando o admin passa o controle para ele (`CV3.DS1.US2`, versão `0.8.0`). O servidor deve executar a `master` a partir da `0.8.0`.
+APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca e desfaz pontos quando o admin passa o controle para ele (`CV3.DS1.US2`–`US3`, versão `0.9.0`). O servidor deve executar a mesma versão do APK: o desfazer precisa da `0.9.0` no servidor.
 
 ## WSL / Android Studio
 
@@ -21,7 +21,7 @@ export ANDROID_HOME=/home/eli/Android/Sdk
 ./wear/gradlew -p wear testDebugUnitTest assembleDebug lintDebug
 ```
 
-Saída: `wear/app/build/outputs/apk/debug/app-debug.apk`. Credenciais não são incluídas no APK. O endereço padrão é `https://placar.elijunior.click`, confirmado pelo Navigator. Pode ser alterado no relógio ou sobrescrito no build:
+Saída: `wear/app/build/outputs/apk/debug/app-debug.apk`. Credenciais não são incluídas no APK. O endereço é `https://placar.elijunior.click`, confirmado pelo Navigator, e fica fixo no APK: o relógio não tem campo para editá-lo. Para outro servidor, compile com:
 
 ```sh
 ./wear/gradlew -p wear assembleDebug -PserverUrl=https://SEU-SERVIDOR
@@ -44,7 +44,7 @@ adb devices
 adb -s IP_DO_WATCH:PORTA_DE_CONEXAO install -r wear/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Abra **Placar Vôlei** na lista de apps do relógio. A primeira tela pede o endereço do servidor e oferece **Gerar código**. Esse código de 8 dígitos é aprovado no site pelo telefone em **Relógio**.
+Abra **Placar Vôlei** na lista de apps do relógio. A primeira tela oferece só **Gerar código**. Esse código de 8 dígitos é aprovado no site pelo telefone em **Relógio**.
 
 Referência: [depuração Wear OS por Wi-Fi](https://developer.android.com/training/wearables/get-started/debug-wifi).
 
@@ -85,12 +85,19 @@ python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA
 4. Sem rede, os toques ficam na fila e são enviados em ordem quando a rede volta, com o app aberto. O envio em segundo plano é da US4.
 5. Se o servidor recusar um lance (partida nova, controle retomado, partida encerrada), a fila pausa e o relógio pede **Descartar**, com confirmação.
 
+## Desfazer pelo relógio
+
+1. O botão **↶**, no centro inferior, desfaz o último ponto que o relógio mostra. É um toque, sem confirmação. A vibração é diferente da do ponto, e o número desce.
+2. Funciona também com o lance ainda pendente, sem rede. Ao reconectar, o ponto e o desfazer são enviados em ordem e aparecem os dois na linha do tempo.
+3. O botão fica apagado quando não há ponto para desfazer e continua ativo com a partida encerrada. Desfazer o ponto da vitória reabre a partida.
+4. Se o placar mudou no servidor antes do envio, o desfazer é recusado ("O placar mudou; este desfazer não foi aplicado."), nenhum outro ponto é tocado, e a fila pede **Descartar**.
+
 O controle nas mãos do relógio não volta sozinho quando a tela apaga. Para retomar pelo telefone, use **Assumir o controle**.
 
 Revogar: no telefone, **ícone de relógio → Revogar acesso**. O Eli (Relógio) sai da sala, e o controle volta para o Eli. Vincular outro relógio revoga o anterior e mantém o papel e o controle já dados ao relógio.
 
 ## Validação
 
-Siga o [roteiro da US2](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us2-ver-e-marcar/test-guide.md). O [roteiro da US1](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us1-vincular-relogio/test-guide.md) traz instruções para testar localmente sem alterar produção.
+Siga o [roteiro da US3](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us3-desfazer/test-guide.md) e, para a pontuação, o [roteiro da US2](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us2-ver-e-marcar/test-guide.md). O [roteiro da US1](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us1-vincular-relogio/test-guide.md) traz instruções para testar localmente sem alterar produção.
 
 O tráfego Wear OS normalmente usa o telefone pareado como proxy Bluetooth; a plataforma gerencia as redes disponíveis. Suspensão em background pode adiar rede: a presença via WebSocket e o envio de lances funcionam enquanto a tela do app está ativa. [Referência de rede Wear OS](https://developer.android.com/training/wearables/data/network-communication).

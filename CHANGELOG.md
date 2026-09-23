@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV3.DS1.US3 — Desfazer o último ponto pelo relógio
 
 - **Branch:** `feature/cv3-ds1-us3-desfazer` (criada da `master` em `91b471e`, 0.8.0)
-- **Passo Ariad:** Passo 3 - Implementação (Checkpoint 1 aprovado em 2026-09-23)
+- **Passo Ariad:** Passo 4 - Teste e Validação (Checkpoint 2 aguardando validação física do Navigator)
 - **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 37fec51a | Data: 2026-09-23 17:41
-- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us3-desfazer/plan.md`. Checkpoint 1 aprovado: inclui remover o campo de servidor do APK; US5 registrada. Ordem: servidor (`acao: desfazer` com alvo), depois o relógio (pilha prevista, botão, tela de vínculo).
+- **Handoff / Próximos Passos:** servidor e relógio implementados; automação verde (pytest 166, web 27, Android 25). Falta a validação física pelo `test-guide.md` da US3, com o Mini PC na branch da HU e o APK `0.9.0` reinstalado. Depois: Checkpoint 3 (revisão).
 
 
 ## 0.8.0 - 2026-09-23

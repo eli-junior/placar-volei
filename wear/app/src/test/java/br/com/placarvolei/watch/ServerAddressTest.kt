@@ -7,7 +7,7 @@ import org.junit.Test
 class ServerAddressTest {
     @Test fun blankAddressExplainsMissingField() {
         val error = assertThrows(IllegalArgumentException::class.java) { serverAddress("  ", true) }
-        assertEquals("Informe o endereço do placar no campo acima.", error.message)
+        assertEquals("O APK foi compilado sem o endereço do placar.", error.message)
     }
     @Test fun missingSchemeRequestsHttps() {
         val error = assertThrows(IllegalArgumentException::class.java) { serverAddress("placar.example", true) }
