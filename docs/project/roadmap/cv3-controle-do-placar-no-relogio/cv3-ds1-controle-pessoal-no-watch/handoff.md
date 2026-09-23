@@ -5,7 +5,7 @@
 - Checkpoint 2 (teste físico em produção) e Checkpoint 3 (revisão) aprovados pelo Navigator.
 - Habilitação pelo apelido-senha `eli.relogio`, exibido como `eli` (`052e5c0`); ver o registro de decisão `apelido-senha-habilita-relogio`. Falta a revalidação curta do test-guide.
 - `feature/cv3-ds1-us1-api-relogio` e esta branch apontam para o mesmo commit. O Mini PC segue a branch da API até o merge da US1 na master.
-- Próximo: Checkpoint 4 (merge na master). Sem bump de versão: 0.7.0 só ao fim do arco (US4).
+- **US1 fechada na 0.7.0 e mesclada na master em 2026-09-23.** Próximo trabalho: US2, em nova branch a partir da master. O Mini PC volta a seguir a master.
 
 ## Atualização 2026-09-23 — API em produção
 

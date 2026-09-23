@@ -68,7 +68,7 @@ Confira se a API pública já expõe o vínculo, sem criar dados:
 curl -fsS https://placar.elijunior.click/openapi.json | python3 -c 'import json,sys; paths=json.load(sys.stdin)["paths"]; required={"/api/watch/pairing", "/api/watch/session", "/api/owner/watch-access"}; missing=required-set(paths); print("Backend do relógio disponível" if not missing else "Faltam rotas: " + ", ".join(sorted(missing))); sys.exit(bool(missing))'
 ```
 
-Passa: imprime `Backend do relógio disponível`. Se faltarem rotas, confira a branch ativa e se o contêiner foi reconstruído. A versão continua `0.6.1` durante esta validação, portanto `/health` sozinho não distingue o backend antigo do novo.
+Passa: imprime `Backend do relógio disponível`. Se faltarem rotas, confira a branch ativa e se o contêiner foi reconstruído. A partir da `0.7.0`, `/health` também indica o backend com o relógio.
 
 Recarregue o site no telefone e entre na sala seguindo a habilitação abaixo.
 

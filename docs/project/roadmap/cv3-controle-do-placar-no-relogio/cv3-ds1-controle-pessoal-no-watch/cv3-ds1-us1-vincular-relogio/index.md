@@ -1,8 +1,8 @@
 ---
 code: CV3.DS1.US1
 level: User Story
-status: Active
-status_reason: Validação física aprovada em produção (Checkpoint 2, 2026-09-23); revisão aprovada; habilitação por apelido-senha em validação
+status: Done
+status_reason: Validada em produção e entregue na 0.7.0 (2026-09-23)
 updated: 2026-09-23
 ---
 

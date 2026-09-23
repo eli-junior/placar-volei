@@ -6,9 +6,9 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Versão `0.4.2` entregue: Faxina técnica de arenas e fixtures com pagamento do débito `debt-arenas-legadas`, garantindo que o banco de dados inicialize 100% limpo a cada nova versão (sem re-popular quadras pré-existentes); endpoint administrativo de owner com camuflagem HTTP 404 e rate limit (`CV1.DS2.TS1`); regras configuráveis na criação da sala (`CV1.DS3.US1`); sucessão automática de admin ausente (`CV1.DS2.US2`); nomes de jogadores e inversão local de lados (`CV1.DS3.US2`); promoção e revogação de controladores (`CV1.DS2.US1`); núcleo completo da partida (`CV1.DS1`) com salas por PIN de 5 dígitos e linha do tempo auditável (`CV1.DS4.US1`).
+Versão `0.7.0` entregue: vínculo pessoal do Galaxy Watch à sala pelo telefone, com código temporário, revogação e habilitação pelo apelido-senha `eli.relogio` (`CV3.DS1.US1`; app Wear OS em `wear/`). Antes: Modo Sol aplicado à tela inteira (`0.6.1`), CV2 completo com layouts fluidos, Home ao vivo e WCAG 2.2 (`0.6.0`), e o CV1 com salas por PIN, papéis, regras configuráveis e linha do tempo auditável.
 
-Próximo trabalho: Validação de campo em pelada real ou definição do próximo arco de valor do roadmap.
+Próximo trabalho: `CV3.DS1.US2`, ver e marcar pontos pelo relógio.
 
 ## Como funciona
 

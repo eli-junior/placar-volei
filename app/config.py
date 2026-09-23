@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     admin_timeout_seconds: int = 120
     host: str = "0.0.0.0"
     port: int = 8000
-    version: str = "0.6.1"
+    version: str = "0.7.0"
     reset_db_on_startup: bool = False
     # Apelidos-senha (separados por vírgula, ex.: "eli.relogio") que habilitam o
     # vínculo de relógio ao entrar na sala; o participante aparece só pelo trecho

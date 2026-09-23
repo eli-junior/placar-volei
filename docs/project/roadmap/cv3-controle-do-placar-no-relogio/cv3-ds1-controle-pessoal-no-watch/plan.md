@@ -31,7 +31,7 @@ Implementar sequencialmente US1, US2, US3 e US4, cada uma em branch própria a p
 Primeira branch de implementação prevista: `feature/cv3-ds1-us1-vincular-relogio`.
 
 ## Versão
-Intenção: `0.7.0`, minor por nova capacidade de controle no pulso. Não alterar versão durante planejamento. Limites intermediários de release serão definidos nos checkpoints das HUs.
+Intenção: `0.7.0`, minor por nova capacidade de controle no pulso. Não alterar versão durante planejamento. Limites intermediários de release serão definidos nos checkpoints das HUs. Em 2026-09-23 o Navigator fechou a `0.7.0` já na US1; as US2–US4 seguem como novas versões.
 
 ## Validação
 - Backend: permissões, vínculo, expiração/revogação, identidade pública, múltiplas conexões, idempotência concorrente, ordem, desfazer dirigido, rollback, troca de partida e regras, sucessão/devolução e reinício.

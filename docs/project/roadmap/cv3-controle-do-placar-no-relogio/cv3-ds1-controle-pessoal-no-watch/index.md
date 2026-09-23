@@ -2,7 +2,7 @@
 code: CV3.DS1
 level: Delivery Story
 status: Active
-status_reason: Plano aprovado; HU1 validada em produção, em fechamento (Checkpoint 4)
+status_reason: US1 entregue na 0.7.0; próxima: US2 (ver e marcar pontos)
 updated: 2026-09-22
 ---
 

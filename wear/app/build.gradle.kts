@@ -11,7 +11,7 @@ android {
         minSdk = 30
         targetSdk = 35
         versionCode = 1
-        versionName = "0.7.0-us1"
+        versionName = "0.7.0"
         val serverUrl = providers.gradleProperty("serverUrl").getOrElse("https://placar.elijunior.click")
         require(!serverUrl.contains('"') && !serverUrl.contains('\\') && !serverUrl.contains('\n'))
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
