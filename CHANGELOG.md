@@ -2,9 +2,15 @@
 
 Este changelog registra tanto o **trabalho ativo em andamento** (para coordenação multi-agente e handoff) quanto as **versões fechadas**.
 
-A seção `## [Em Andamento]
+## [Em Andamento]
 
-*Nenhum trabalho ativo em andamento no momento.*
+### feature/cv3-planejamento-controle-relogio
+- **História / Escopo**: CV3.DS1 — descoberta e registro de quatro HUs para controlar o placar pelo Galaxy Watch 8 Bluetooth enquanto joga.
+- **Branch**: `feature/cv3-planejamento-controle-relogio`
+- **Passo Ariad**: Passo 2 - Planejamento; Checkpoint 1 aguardando aceite, sem implementação.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv3-watch-20260922 | Data: 2026-09-22
+- **Handoff / Próximos Passos**: HUs e plano em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/`. Confirmar política de conflitos, modelagem de dispositivo e detalhes do hardware; após aceite, iniciar US1 em branch própria. README/briefing estão defasados frente à versão 0.6.1 do changelog.
+
 
 ## 0.6.1 - 2026-09-20
 
