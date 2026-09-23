@@ -62,6 +62,22 @@ CREATE INDEX IF NOT EXISTS idx_quadras_atualizado ON quadras (atualizado_em);
 CREATE INDEX IF NOT EXISTS idx_eventos_partida_seq ON eventos (partida_id, seq);
 CREATE INDEX IF NOT EXISTS idx_partidas_quadra ON partidas (quadra_id);
 CREATE INDEX IF NOT EXISTS idx_participantes_quadra ON participantes (quadra_id);
+
+CREATE TABLE IF NOT EXISTS watch_grants (
+    participant_id TEXT PRIMARY KEY REFERENCES participantes(id) ON DELETE CASCADE
+);
+
+CREATE TABLE IF NOT EXISTS watch_devices (
+    id TEXT PRIMARY KEY,
+    token_hash TEXT NOT NULL UNIQUE,
+    device_name TEXT NOT NULL DEFAULT 'eli-smartwatch',
+    code_hash TEXT UNIQUE,
+    expires_at TEXT NOT NULL,
+    participant_id TEXT REFERENCES participantes(id) ON DELETE CASCADE,
+    revoked INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    approved_at TEXT
+);
 """
 
 

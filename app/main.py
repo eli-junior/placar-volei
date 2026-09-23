@@ -27,6 +27,8 @@ from app.quadras import (
     obter_quadra,
 )
 from app.sucessao import verificar_controle_ocioso, verificar_sucessao_quadra
+from app.watch import authenticate_device, bearer, device_active
+from app.watch import router as watch_router
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +106,7 @@ app = FastAPI(
 
 # Inclui rotas REST da API
 app.include_router(api_router)
+app.include_router(watch_router)
 
 
 @app.exception_handler(RequestValidationError)
@@ -142,6 +145,7 @@ async def health_check():
 async def websocket_quadra(websocket: WebSocket, quadra_id: str):
     session_id = websocket.cookies.get(SESSION_COOKIE)
     conectado = False
+    watch_device_id = None
     try:
         async with get_quadra_lock(quadra_id):
             quadra = await obter_quadra(settings.db_path, quadra_id)
@@ -150,16 +154,27 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
                 await websocket.send_json({"tipo": "SALA_EXPIRADA", "payload": {}})
                 await websocket.close(code=4404)
                 return
-            participante = (
-                await obter_participante(settings.db_path, quadra_id, session_id)
-                if session_id
-                else None
-            )
+            if websocket.headers.get("authorization"):
+                try:
+                    participante = await asyncio.to_thread(
+                        authenticate_device, bearer(websocket.headers), quadra_id
+                    )
+                    watch_device_id = participante["device_id"]
+                except HTTPException:
+                    await websocket.accept()
+                    await websocket.close(code=4401)
+                    return
+            else:
+                participante = (
+                    await obter_participante(settings.db_path, quadra_id, session_id)
+                    if session_id
+                    else None
+                )
             if not participante:
                 await websocket.accept()
                 await websocket.close(code=4401)
                 return
-            await hub.connect(quadra_id, websocket, participante["id"])
+            await hub.connect(quadra_id, websocket, participante["id"], watch_device_id)
             await atualizar_ultimo_visto(settings.db_path, participante["id"])
             conectado = True
             inicial = await asyncio.to_thread(
@@ -183,6 +198,11 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
                 await asyncio.wait_for(websocket.receive_text(), timeout=5)
             except TimeoutError:
                 pass
+            if watch_device_id and not await asyncio.to_thread(
+                device_active, watch_device_id
+            ):
+                await websocket.close(code=4401)
+                return
             atual = await obter_quadra(settings.db_path, quadra_id)
             if not atual:
                 await websocket.send_json({"tipo": "SALA_EXPIRADA", "payload": {}})
