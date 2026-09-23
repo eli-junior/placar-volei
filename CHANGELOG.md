@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV3.DS1.US2 — Ver o placar e marcar pontos no pulso
 
 - **Branch**: `feature/cv3-ds1-us2-ver-e-marcar` (da `master` em `bc32dec`)
-- **Passo Ariad**: Passo 4 - Teste e Validação (Checkpoint 2)
+- **Passo Ariad**: Passo 5 - Revisão (Checkpoint 3)
 - **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: e6a23008 | Data: 2026-09-23 13:06
-- **Handoff / Próximos Passos**: plano (revisão 3) em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us2-ver-e-marcar/plan.md`. Revisão 3, pedida pelo Navigator no teste físico: `eli` em qualquer caixa habilita e vira `Eli`; o relógio é o participante "Eli (Relógio)", com controle por delegação; a chave "Controlar pelo Relógio" foi removida. Implementada (`dfbd3bd`); roteiro em `test-guide.md`. Aguardando validação física. O Mini PC roda esta branch.
+- **Handoff / Próximos Passos**: Checkpoint 2 aceito pelo Navigator em 2026-09-23 ("prossiga"). Validado no relógio real: vínculo, participante Eli (Relógio) e pontuação com controle delegado. Os demais cenários do `test-guide.md` não foram confirmados um a um. Correções durante a validação: engrenagem sem ícone (`2ad3096`) e botão Passar controle (`3d71f6d`). Próximo: revisão (Checkpoint 3) e, depois, a documentação.
 
 
 ## 0.7.0 - 2026-09-23
