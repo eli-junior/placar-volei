@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV3.DS1.US2 — Ver o placar e marcar pontos no pulso
 
 - **Branch**: `feature/cv3-ds1-us2-ver-e-marcar` (da `master` em `bc32dec`)
-- **Passo Ariad**: Passo 2 - Planejamento (Checkpoint 1)
+- **Passo Ariad**: Passo 3 - Implementação (Checkpoint 1 aprovado)
 - **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: e6a23008 | Data: 2026-09-23 13:06
-- **Handoff / Próximos Passos**: plano em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us2-ver-e-marcar/plan.md`; aguardando aprovação do Navigator antes de qualquer código.
+- **Handoff / Próximos Passos**: plano em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us2-ver-e-marcar/plan.md`; implementando servidor, site e relógio conforme o plano aprovado.
 
 
 ## 0.7.0 - 2026-09-23

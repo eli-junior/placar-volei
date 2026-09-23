@@ -1,7 +1,7 @@
 # Plano — CV3.DS1.US2 Ver o placar e marcar pontos no pulso
 
 Branch: `feature/cv3-ds1-us2-ver-e-marcar`, criada da `master` em `bc32dec` (0.7.0).
-Estado: Checkpoint 1 — revisão 2, com os pedidos do Navigator de 2026-09-23 (ícone do relógio, chave "Controlar pelo Relógio", Nós/Eles e iniciais).
+Estado: Checkpoint 1 aprovado pelo Navigator em 2026-09-23 (revisão 2). Respostas: Nós = equipe A; chave começa desligada; descarte no relógio aprovado; deploy fora de partida; Galaxy Watch 8 de 44 mm.
 
 ## Nível
 User Story. Visível no relógio e nas telas web (o ponto marcado no pulso aparece para todos).
