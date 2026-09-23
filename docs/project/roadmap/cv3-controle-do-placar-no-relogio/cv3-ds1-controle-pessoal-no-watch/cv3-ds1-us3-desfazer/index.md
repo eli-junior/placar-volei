@@ -1,9 +1,9 @@
 ---
 code: CV3.DS1.US3
 level: User Story
-status: Planned
-status_reason: Escopo aprovado; aguardando conclusão das HUs anteriores
-updated: 2026-09-22
+status: Active
+status_reason: Puxada após a 0.8.0; Passo 2, plano aguardando o Navigator
+updated: 2026-09-23
 ---
 
 # CV3.DS1.US3 — Desfazer o último ponto pelo relógio
