@@ -64,9 +64,8 @@ def browser_participant(conn, request, court):
 
 
 def permitted(conn, participant):
-    return (
-        participant["papel"] in ("ADMIN", "CONTROLADOR")
-        and conn.execute(
+    return participant["papel"] in ("ADMIN", "CONTROLADOR") and (
+        conn.execute(
             "SELECT 1 FROM watch_grants WHERE participant_id = ?", (participant["id"],)
         ).fetchone()
         is not None
@@ -311,12 +310,12 @@ async def approve_device(court: str, body: ApprovalBody, request: Request):
                 (p["id"], now().isoformat(), d["id"]),
             )
             approval_limit.registrar_sucesso(p["id"])
-            return p["id"]
+            return p["id"], p["apelido"]
 
     async with get_quadra_lock(court):
-        participant = await asyncio.to_thread(approve)
+        participant, name = await asyncio.to_thread(approve)
         await hub.close_watch_connections(court, participant_id=participant)
-    return {"status": "linked", "display_name": "eli"}
+    return {"status": "linked", "display_name": name}
 
 
 @router.delete("/quadras/{court}/watch/{device_id}")

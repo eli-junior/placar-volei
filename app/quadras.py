@@ -38,6 +38,25 @@ class ApelidoEmUso(ValueError):
         )
 
 
+def apelido_de_relogio(apelido: str) -> str | None:
+    """Traduz o apelido-senha do relógio (ex.: "eli.relogio") no nome público.
+
+    Quem entra com um dos apelidos de `WATCH_AUTO_GRANT` aparece para a sala
+    só pelo trecho antes do ponto e ganha o vínculo de relógio. O sufixo nunca
+    é gravado nem exibido, para que ninguém copie o apelido-senha do placar.
+    """
+    chave = apelido.strip().lower()
+    for nome in settings.watch_auto_grant.split(","):
+        nome = nome.strip()
+        if nome and nome.lower() == chave:
+            return nome.split(".")[0] or nome
+    return None
+
+
+def habilitar_relogio(conn, participante_id: str) -> None:
+    conn.execute("INSERT OR IGNORE INTO watch_grants VALUES (?)", (participante_id,))
+
+
 def apelido_ja_usado(
     conn, quadra_id: str, apelido: str, ignorar_id: str | None
 ) -> bool:
@@ -177,7 +196,8 @@ def criar_quadra_sync(
         participante = None
         if apelido and session_id:
             participante_id = str(uuid.uuid4())
-            apelido_limpo = apelido.strip()
+            publico_relogio = apelido_de_relogio(apelido)
+            apelido_limpo = publico_relogio or apelido.strip()
             conn.execute(
                 """
                 INSERT INTO participantes (id, quadra_id, apelido, papel, criado_em, ultimo_visto_em, session_hash)
@@ -192,6 +212,8 @@ def criar_quadra_sync(
                     hash_sessao(session_id),
                 ),
             )
+            if publico_relogio:
+                habilitar_relogio(conn, participante_id)
             participante = {
                 "id": participante_id,
                 "quadra_id": quadra_id,
@@ -394,7 +416,8 @@ def registrar_participante_sync(
     limpar_quadras_expiradas_sync(db_path)
     participante_id = str(uuid.uuid4())
     agora = datetime.now(UTC).isoformat()
-    apelido_limpo = apelido.strip()
+    publico_relogio = apelido_de_relogio(apelido)
+    apelido_limpo = publico_relogio or apelido.strip()
 
     with get_db(db_path) as conn:
         conn.execute("BEGIN IMMEDIATE")
@@ -417,6 +440,8 @@ def registrar_participante_sync(
                 "UPDATE participantes SET apelido = ?, ultimo_visto_em = ? WHERE id = ?",
                 (apelido_limpo, agora, participante_id),
             )
+            if publico_relogio:
+                habilitar_relogio(conn, participante_id)
             cursor.execute(
                 "UPDATE quadras SET atualizado_em = ? WHERE id = ?",
                 (agora, quadra_id),
@@ -474,6 +499,8 @@ def registrar_participante_sync(
                 hash_sessao(session_id),
             ),
         )
+        if publico_relogio:
+            habilitar_relogio(conn, participante_id)
         cursor.execute(
             "UPDATE quadras SET atualizado_em = ? WHERE id = ?",
             (agora, quadra_id),

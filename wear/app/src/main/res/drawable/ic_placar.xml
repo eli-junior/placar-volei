@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="48dp" android:height="48dp" android:viewportWidth="64" android:viewportHeight="64">
+    <!-- Adaptado do favicon SVG do projeto, com as mesmas formas e cores-base. -->
+    <path android:fillColor="#0f172a" android:pathData="M32,2 A30,30 0,1 1,32,62 A30,30 0,1 1,32,2" />
+    <group android:pivotX="32" android:pivotY="32" android:scaleX="0.72" android:scaleY="0.72">
+        <path android:fillColor="#ffffff" android:pathData="M32,2 A30,30 0,1 1,32,62 A30,30 0,1 1,32,2" />
+        <path android:fillColor="#22d3ee" android:strokeColor="#0f172a" android:strokeWidth="2.5" android:strokeLineJoin="round" android:pathData="M 32 2 A 30 30 0 0 1 58 17 C 46 22 36 28 32 32 C 28 20 28 10 32 2 Z" />
+        <path android:fillColor="#f8fafc" android:strokeColor="#0f172a" android:strokeWidth="2.5" android:strokeLineJoin="round" android:pathData="M 32 2 C 24 10 22 20 22 32 C 14 26 8 18 6 17 A 30 30 0 0 1 32 2 Z" />
+        <path android:fillColor="#fb923c" android:strokeColor="#0f172a" android:strokeWidth="2.5" android:strokeLineJoin="round" android:pathData="M 62 32 A 30 30 0 0 1 47 58 C 42 46 36 36 32 32 C 44 28 54 28 62 32 Z" />
+        <path android:fillColor="#f8fafc" android:strokeColor="#0f172a" android:strokeWidth="2.5" android:strokeLineJoin="round" android:pathData="M 62 32 C 54 24 44 22 32 22 C 38 14 46 8 47 6 A 30 30 0 0 1 62 32 Z" />
+        <path android:fillColor="#22d3ee" android:strokeColor="#0f172a" android:strokeWidth="2.5" android:strokeLineJoin="round" android:pathData="M 2 32 A 30 30 0 0 0 17 58 C 22 46 28 36 32 32 C 20 28 10 28 2 32 Z" />
+        <path android:fillColor="#fb923c" android:strokeColor="#0f172a" android:strokeWidth="2.5" android:strokeLineJoin="round" android:pathData="M 32 62 A 30 30 0 0 0 58 47 C 46 42 36 36 32 32 C 28 44 28 54 32 62 Z" />
+        <path android:fillColor="#f8fafc" android:strokeColor="#0f172a" android:strokeWidth="2.5" android:strokeLineJoin="round" android:pathData="M 32 62 C 24 54 22 44 22 32 C 14 38 8 46 6 47 A 30 30 0 0 0 32 62 Z" />
+    </group>
+</vector>

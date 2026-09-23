@@ -47,3 +47,10 @@ desktop.ini
 
 # Worktrees temporarios de sub agentes
 .claude/worktrees/
+
+# Android / Wear OS
+.gradle/
+.kotlin/
+local.properties
+*.jks
+*.keystore

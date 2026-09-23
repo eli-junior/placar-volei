@@ -12,11 +12,11 @@ Audiência: o grupo de vôlei do Navigator. Escala esperada: dezenas de pessoas,
 
 ## Current State
 
-Versão `0.4.2` entregue e publicada na branch principal `master`. O Value inicial `CV1` teve todos os seus arcos de entrega (DS1 núcleo da partida, DS2 controle e permissões, DS3 regras da partida e DS4 auditoria visível) concluídos e validados. A faxina técnica de código legado de arenas e auto-seeding de fixtures foi concluída, garantindo inicialização com banco 100% limpo a cada nova versão.
+Versão `0.7.0` entregue e publicada na branch principal `master`. `CV1` (placar compartilhado) e `CV2` (ergonomia e acessibilidade) estão concluídos. O `CV3` (controle do placar no relógio) está em andamento: a `CV3.DS1.US1` entregou o vínculo pessoal do Galaxy Watch, validado em produção; marcar pontos, desfazer e operação offline vêm nas US2–US4.
 
 Repositório publicado e sincronizado em `github.com/eli-junior/placar-volei`.
 
-Trabalho mais importante agora: Validação do MVP em pelada real em quadra ou planejamento do próximo arco de valor / expansões com o Navigator.
+Trabalho mais importante agora: `CV3.DS1.US2`, ver e marcar pontos pelo relógio.
 
 ## Architecture Premises
 

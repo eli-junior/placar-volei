@@ -2,9 +2,43 @@
 
 Este changelog registra tanto o **trabalho ativo em andamento** (para coordenação multi-agente e handoff) quanto as **versões fechadas**.
 
-A seção `## [Em Andamento]
+## [Em Andamento]
 
-*Nenhum trabalho ativo em andamento no momento.*
+_Nenhum trabalho em andamento._
+
+
+## 0.7.0 - 2026-09-23
+
+Boundary: minor (nova capacidade: vincular o Galaxy Watch à sala pelo telefone, primeira entrega do CV3)
+
+Authors: Eli (Navigator); Codex (Driver, Passos 1–4); Claude Opus 5.5 (Driver, Passos 4–7)
+
+Git source: feature/cv3-ds1-us1-vincular-relogio (merge into master); API antecipada em feature/cv3-ds1-us1-api-relogio
+
+### Added
+
+- [Relógio] **Vínculo pessoal do Wear OS** (`CV3.DS1.US1`): o relógio gera um código de 8 dígitos, válido por 5 minutos; o dono aprova no telefone em **Relógio**. O relógio passa a representar o mesmo participante, sem duplicar a pessoa na sala. Credencial própria, guardada cifrada no Android Keystore e revogável pelo telefone sem derrubar a sessão dele.
+- [Relógio] **Apelido-senha `eli.relogio`**: quem entra com ele aparece só como `eli` e já fica habilitado para o relógio (`WATCH_AUTO_GRANT`). `scripts/watch_access.py` continua como alternativa com segredo de owner.
+- [Relógio] App Wear OS em `wear/` (Kotlin/Compose), com endereço do servidor pré-configurado.
+- API: `/api/watch/pairing`, `/api/watch/session`, `/api/watch/state`, `/api/owner/watch-access` e `/api/quadras/{court}/watch*`, com WebSocket por Bearer.
+
+### Fixed
+
+- [Relógio] O campo do código no site recusava todo código: em template Svelte, `pattern="[0-9]{8}"` era compilado como `[0-9]8`.
+
+### Decisions
+
+- `apelido-senha-habilita-relogio`: a habilitação usa um apelido que só o dono digita, e a sala vê apenas o nome público. Substitui a habilitação por apelido público, que podia ser copiada.
+
+### Debt
+
+- `debt-limite-de-vinculo-do-relogio-por-ip-e-em-memoria` (Carried).
+- `debt-banco-de-producao-sem-volume-persistente` (Carried).
+
+### Verification
+
+- `pytest` 133/133, `ruff check` e `ruff format --check` ok; web `npm test` 22/22, `npm run check` sem erros/avisos, `npm run build` ok; Android: 5 testes, `assembleDebug` e `lintDebug` ok.
+- Validação física no Galaxy Watch em produção aprovada pelo Navigator (cenários 1–4 do test-guide).
 
 ## 0.6.1 - 2026-09-20
 
