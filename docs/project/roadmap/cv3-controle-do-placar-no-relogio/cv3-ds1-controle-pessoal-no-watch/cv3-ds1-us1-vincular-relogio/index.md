@@ -23,3 +23,4 @@ Vínculo de dispositivo com credencial própria e revogável, identificação in
 
 ## Validation Route
 Telefone admin, Watch e navegador espectador: autorizar, verificar nome público, tentar acesso indevido e revogar; observar permissão nas três telas.
+- Em 2026-09-23 a US2 substituiu dois pontos deste desenho (registro `relogio-como-participante-com-controle-delegado`): o relógio passou a ser o participante próprio "Eli (Relógio)", e `eli` em qualquer caixa habilita, sem apelido-senha.

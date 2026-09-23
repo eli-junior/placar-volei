@@ -1,8 +1,8 @@
 ---
 code: CV3.DS1.US2
 level: User Story
-status: Active
-status_reason: Planejamento em andamento (Checkpoint 1)
+status: Done
+status_reason: Validada em produção e entregue na 0.8.0 (2026-09-23)
 updated: 2026-09-23
 ---
 
@@ -24,3 +24,8 @@ App Wear OS nativo; pontuação legível em tela circular; identificação das e
 
 ## Validation Route
 Watch real e espectador: sequência A, A, B; verificar 2×1 e três eventos. Repetir com telefone bloqueado, sob luz externa e com animações reduzidas. Verificar retomada ao levantar o pulso e ausência de comandos ao apagar a tela.
+
+## Notes
+- Entregue pela revisão 3 do [plano](plan.md): o relógio é o participante "Eli (Relógio)" e pontua quando o admin passa o controle para ele; `eli` em qualquer caixa habilita. Ver o registro de decisão `relogio-como-participante-com-controle-delegado`.
+- Validado no relógio real: vínculo, participante próprio e pontuação com controle delegado. Os demais cenários do [roteiro](test-guide.md) têm cobertura automatizada no servidor, mas não foram confirmados um a um no aparelho.
+- O envio acontece só com o app aberto; em segundo plano fica para a US4.

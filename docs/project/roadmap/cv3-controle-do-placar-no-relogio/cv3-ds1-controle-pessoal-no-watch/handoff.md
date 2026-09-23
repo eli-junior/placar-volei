@@ -1,4 +1,13 @@
-# Retomada — CV3.DS1.US1
+# Retomada — CV3.DS1
+
+## Estado em 2026-09-23 — US2 fechada
+
+- US2 validada no relógio real e preparada para a 0.8.0 (branch `feature/cv3-ds1-us2-ver-e-marcar`). Desenho final: participante "Eli (Relógio)", controle delegado pelo botão **Passar controle**, `eli` em qualquer caixa habilita (`WATCH_AUTO_GRANT=eli`).
+- Depois do merge, o Mini PC volta a seguir a master. Conferir que o `.env` não tem `WATCH_AUTO_GRANT=eli.relogio`.
+- Próximo trabalho: US3 (desfazer pelo relógio), em nova branch a partir da master. A fila e os recibos (`watch_recibos`) já estão prontos para receber a ação `desfazer`.
+- Ambiente: Node Linux em `/tmp/placar-watch-tools/node-v24.14.0-linux-x64/bin` (o npm do PATH é Windows); build Android com `JAVA_HOME=/home/eli/.sdkman/candidates/java/21.0.7-tem`.
+
+## Histórico da US1
 
 ## Estado em 2026-09-23 13h — Passo 6
 

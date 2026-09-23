@@ -15,7 +15,7 @@ Uso enquanto joga; Galaxy Watch 8 Bluetooth; telefone prepara a sala; identifica
 - Reconciliação verifica estado-base e mudanças relevantes; presença isolada não deve criar conflito falso. Aplicações parciais têm recibos individuais e retomada determinística.
 
 ## Decisões aprovadas
-1. Modelar o relógio como dispositivo de Eli, sem participante duplicado.
+1. Modelar o relógio como dispositivo de Eli, sem participante duplicado. *Substituída na US2 (2026-09-23) pelo registro `relogio-como-participante-com-controle-delegado`: o relógio é o participante "Eli (Relógio)" com controle delegado.*
 2. Em conflito real, preservar fila e revisar no telefone antes de aplicar/descartar; aprovado pelo Navigator.
 3. Interface ativa com toque simples e desfazer visível; sem marcação em modo ambiente. Não manter tela permanentemente acesa por padrão. Validar ergonomia real antes de fechar.
 

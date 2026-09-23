@@ -1,12 +1,15 @@
 ---
 id: apelido-senha-habilita-relogio
-status: Decided
+status: Superseded
+superseded_by: relogio-como-participante-com-controle-delegado
 date: 2026-09-23
 source: feature/cv3-ds1-us1-vincular-relogio (CV3.DS1.US1, Checkpoint 3)
 supersedes: none
 ---
 
 # Apelido-Senha Habilita o Relógio, e a Sala Vê Só o Nome Público
+
+> Substituída em 2026-09-23 por `relogio-como-participante-com-controle-delegado` (CV3.DS1.US2): `eli` em qualquer caixa passou a habilitar o relógio.
 
 ## Context
 

@@ -2,8 +2,8 @@
 code: CV3
 level: Value
 status: Active
-status_reason: US1 entregue na 0.7.0; próxima: US2 (ver e marcar pontos)
-updated: 2026-09-22
+status_reason: US1 (0.7.0) e US2 (0.8.0) entregues; próxima: US3 (desfazer pelo relógio)
+updated: 2026-09-23
 ---
 
 # CV3 — Controlar o placar enquanto joga
