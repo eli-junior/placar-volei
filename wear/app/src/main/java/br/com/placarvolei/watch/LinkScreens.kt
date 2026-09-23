@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -33,12 +34,14 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
+import androidx.wear.compose.material.MaterialTheme
 import androidx.wear.compose.material.Text
 
 private val Cinza = Color(0xFFB0B0B0)
@@ -57,11 +60,11 @@ fun LinkScreen(model: WatchModel) {
     when (model.stage) {
         Stage.ABERTURA -> Opening(model)
         Stage.CONFIRMAR_TROCA -> ConfirmSwitch(model)
-        Stage.CODIGO_NOVO -> CodeWaiting(model.code, returnLabel(model.court, "Voltar")) { model.giveUp() }
+        Stage.CODIGO_NOVO -> CodeWaiting(model.code, backLabel(model.court)) { model.giveUp() }
         Stage.PLACAR -> when {
-            model.linked -> Frame(null) {
+            model.linked || model.connecting -> Frame(null, reserveBar = true) {
                 Ball()
-                Caption("Carregando placar…")
+                Caption(model.notice ?: "Carregando placar…")
             }
             model.code.isNotEmpty() ->
                 CodeWaiting(model.code, if (model.busy) "Aguarde…" else "Gerar novo código", !model.busy) { model.generateCode() }
@@ -75,21 +78,38 @@ fun LinkScreen(model: WatchModel) {
 
 @Composable
 private fun Opening(model: WatchModel) {
+    // Enquanto o servidor não responde, só a bola: sem piscar "Retornar" para
+    // um vínculo que pode ter caído (ajuste do segundo teste físico).
+    if (model.linkCheck == LinkCheck.VERIFICANDO) {
+        Frame(null, reserveBar = true) { Ball() }
+        return
+    }
     // Gerar exige o servidor: o código novo precisa informar o vínculo que substitui.
     val canPair = model.linkCheck == LinkCheck.VALIDO && !model.busy
     Frame(Bar(if (model.busy) "Aguarde…" else "Parear outra quadra", canPair) { model.requestNewCode() }) {
-        Chip(
-            onClick = { model.returnToCourt() },
-            label = { Text("Retornar", fontWeight = FontWeight.Bold) },
-            secondaryLabel = { Text(model.court?.let { "Quadra $it" } ?: "Quadra atual") },
-            modifier = Modifier.fillMaxWidth(),
-        )
-        val status = model.notice ?: when (model.linkCheck) {
-            LinkCheck.VERIFICANDO -> "Verificando vínculo…"
-            LinkCheck.VALIDO -> null
-            LinkCheck.SEM_REDE -> "Sem conexão. Vínculo guardado."
-        }
+        ReturnButton(model.court) { model.returnToCourt() }
+        val status = model.notice ?: if (model.linkCheck == LinkCheck.SEM_REDE) "Sem conexão. Vínculo guardado." else null
         status?.let { Caption(it) }
+    }
+}
+
+/** Botão grande do centro: "Retornar" e o nome da quadra, centralizados. */
+@Composable
+private fun ReturnButton(court: String?, onTap: () -> Unit) {
+    Box(
+        Modifier.fillMaxWidth().height(78.dp).clip(RoundedCornerShape(39.dp))
+            .background(MaterialTheme.colors.primary)
+            .clickable(onClick = onTap)
+            .semantics { contentDescription = "Retornar" + (court?.let { " para $it" } ?: "") },
+        contentAlignment = Alignment.Center,
+    ) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text("Retornar", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            court?.let {
+                Text(it, fontSize = 14.sp, color = Color.Black.copy(alpha = 0.75f), maxLines = 1,
+                    overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
+            }
+        }
     }
 }
 
@@ -126,10 +146,10 @@ private class Bar(val label: String, val enabled: Boolean, val onTap: () -> Unit
 
 /** Centro do mostrador para o conteúdo; a faixa inferior, quando houver, para a ação. */
 @Composable
-private fun Frame(bar: Bar?, content: @Composable ColumnScope.() -> Unit) {
+private fun Frame(bar: Bar?, reserveBar: Boolean = false, content: @Composable ColumnScope.() -> Unit) {
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         Column(
-            Modifier.fillMaxSize().padding(start = 26.dp, end = 26.dp, top = 24.dp, bottom = if (bar != null) 62.dp else 24.dp),
+            Modifier.fillMaxSize().padding(start = 26.dp, end = 26.dp, top = 24.dp, bottom = if (bar != null || reserveBar) 62.dp else 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterVertically),
             content = content,

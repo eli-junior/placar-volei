@@ -31,6 +31,8 @@ Nível: User Story. Versão pretendida: `0.10.0` (minor, nova capacidade no rel�
 14. Sem vínculo: só uma bola de vôlei quicando e a faixa **Ingressar numa quadra**, sem título nem "Vínculo não encontrado".
 15. Código na tela: dica útil ("No telefone, toque no ícone do relógio, ao lado da engrenagem, e digite o código.") e a faixa **Gerar novo código**.
 16. Abertura: **Retornar** (com o número da quadra) no centro e a faixa **Parear outra quadra**; a confirmação usa **Parear mesmo assim**.
+17. Segundo teste físico: enquanto o relógio consulta o vínculo guardado, só a bola aparece (antes, "Retornar" piscava por um segundo para um vínculo que já tinha caído). Depois de **Retornar**, a bola fica até o placar chegar.
+18. **Retornar** vira um botão grande, com o texto centralizado e o **nome** da quadra no lugar do número. `GET /api/watch/session` passa a enviar `court_name`.
 
 ## Aceitação
 - **Dado** o relógio vinculado à quadra A com a sala ativa, **quando** reabrir o app, **então** vê "Retornar à quadra A" e "Gerar novo código"; "Retornar" leva ao placar de A.

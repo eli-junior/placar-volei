@@ -96,7 +96,7 @@ _ACTIVE_DEVICE = """
 
 def device_participant(conn, token, court=None):
     participant = conn.execute(
-        "SELECT p.id, p.quadra_id, p.apelido, p.papel, d.id AS device_id, d.owner_id"
+        "SELECT p.id, p.quadra_id, p.apelido, p.papel, d.id AS device_id, d.owner_id, q.nome"
         + _ACTIVE_DEVICE
         + " AND d.token_hash = ?",
         (room_cutoff(), hash_sessao(token)),
@@ -344,6 +344,8 @@ def pairing_status(request: Request, response: Response):
         return {
             "status": "linked",
             "court_id": p["quadra_id"],
+            # Nome da quadra (CV3.DS1.US5): o relógio mostra "Retornar" com ele.
+            "court_name": p["nome"],
             "participant_id": p["id"],
             "display_name": p["apelido"],
         }

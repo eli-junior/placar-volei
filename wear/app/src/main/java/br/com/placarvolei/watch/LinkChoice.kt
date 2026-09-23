@@ -21,15 +21,18 @@ fun openingStage(hasLink: Boolean, hasPendingCode: Boolean, cancelling: Boolean)
     else -> Stage.PLACAR
 }
 
-fun returnLabel(court: String?, verb: String = "Retornar") =
-    if (court.isNullOrBlank()) "$verb à quadra" else "$verb à quadra $court"
+/** Nome da quadra para a tela; sem nome, o número. */
+fun courtLabel(name: String?, id: String?): String? = name?.trim()?.ifBlank { null } ?: id?.let { "Quadra $it" }
+
+fun backLabel(court: String?) = if (court.isNullOrBlank()) "Voltar à quadra" else "Voltar para $court"
 
 /** Aviso antes de gerar o código novo; null = nenhum lance a abandonar. */
 fun abandonWarning(pending: Int, court: String?): String? {
     if (pending <= 0) return null
     val lances = if (pending == 1) "1 lance" else "$pending lances"
-    val quadra = if (court.isNullOrBlank()) "desta quadra" else "da quadra $court"
+    val quadra = if (court.isNullOrBlank()) "nesta quadra" else "em $court"
     val verbo = if (pending == 1) "ainda não foi enviado" else "ainda não foram enviados"
     val fim = if (pending == 1) "ele será abandonado" else "eles serão abandonados"
-    return "$lances $quadra $verbo. Se o novo código for aprovado, $fim."
+    val marcados = if (pending == 1) "marcado" else "marcados"
+    return "$lances $marcados $quadra $verbo. Se o novo código for aprovado, $fim."
 }

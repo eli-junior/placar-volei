@@ -59,7 +59,11 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         private set
     var linkCheck by mutableStateOf(LinkCheck.VERIFICANDO)
         private set
-    var court by mutableStateOf(store.court())
+    /** Nome da quadra do vínculo guardado (ou "Quadra 48291", sem nome). */
+    var court by mutableStateOf(store.courtName())
+        private set
+    /** Entrando na quadra guardada: a bola fica na tela até o servidor responder. */
+    var connecting by mutableStateOf(false)
         private set
     /** Aviso na tela de abertura (código expirado, falha ao gerar). */
     var notice by mutableStateOf<String?>(null)
@@ -254,6 +258,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     /** "Retornar à quadra": só agora começam presença e envio da fila. */
     fun returnToCourt() {
         notice = null
+        connecting = true
         stage = Stage.PLACAR
         poke.trySend(Unit)
     }
@@ -340,7 +345,8 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
             store.clearPending()
             return
         }
-        store.promotePending(data.getString("court_id"))
+        store.promotePending(courtLabel(data.optString("court_name"), data.getString("court_id")).orEmpty())
+        court = store.courtName()
         // Lances da quadra anterior: o abandono foi confirmado ao gerar o código.
         update(QueueState())
         socket?.let { old -> socket = null; old.close(1000, null) }
@@ -349,9 +355,13 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         linked = false
         invalid = false
         code = ""
+        connecting = true
         stage = Stage.PLACAR
         refresh()
     }
+
+    private fun saveCourt(session: JSONObject): String? =
+        courtLabel(session.optString("court_name"), session.optString("court_id"))?.also(store::saveCourtName)
 
     /** Tela de abertura: confere o vínculo guardado sem entrar na sala. */
     private suspend fun checkOpening() {
@@ -359,7 +369,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         when {
             status == 200 && data.optString("status") == "linked" -> {
                 linkCheck = LinkCheck.VALIDO
-                court = data.getString("court_id").also(store::saveCourt)
+                court = saveCourt(data)
             }
             // Primeiro código ainda sem aprovação, ou vínculo que caiu: fluxo de vínculo.
             status == 200 || status == 401 || status == 410 -> {
@@ -377,20 +387,23 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         val (status, data) = request("/api/watch/session")
         when {
             status == 200 && data.optString("status") == "linked" -> {
+                connecting = false
+                notice = null
                 linked = true
                 invalid = false
                 code = ""
                 store.saveCode("")
                 participantId = data.optString("participant_id").ifBlank { null }
-                court = data.getString("court_id").also(store::saveCourt)
+                court = saveCourt(data)
                 message = "Vinculado como ${data.getString("display_name")}\nSala ${data.getString("court_id")}"
                 connectPresence(data.getString("court_id"))
                 val (stateStatus, snapshot) = request("/api/watch/state")
                 if (stateStatus == 200) applySnapshot(Confirmed.fromSnapshot(snapshot))
                 wake.trySend(Unit)
             }
-            status == 200 -> { linked = false; message = "Aguardando autorização no telefone." }
+            status == 200 -> { connecting = false; linked = false; message = "Aguardando autorização no telefone." }
             status == 401 || status == 410 -> {
+                connecting = false
                 linked = false
                 invalid = true
                 code = ""
@@ -477,7 +490,10 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                         Stage.ABERTURA -> linkCheck = LinkCheck.SEM_REDE
                         // O código segue na tela: as instruções continuam valendo.
                         Stage.CODIGO_NOVO, Stage.CONFIRMAR_TROCA -> Unit
-                        Stage.PLACAR -> message = "Sem conexão. Vínculo preservado; tentando novamente."
+                        Stage.PLACAR -> {
+                            message = "Sem conexão. Vínculo preservado; tentando novamente."
+                            if (connecting) notice = "Sem conexão. Tentando novamente."
+                        }
                     }
                 }
             }

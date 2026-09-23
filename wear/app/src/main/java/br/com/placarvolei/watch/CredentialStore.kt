@@ -56,9 +56,9 @@ class CredentialStore(context: Context) {
     fun code() = prefs.getString("code", "").orEmpty()
     fun saveCode(code: String) { check(prefs.edit().putString("code", code).commit()) }
 
-    /** Número da quadra do vínculo ativo, para "Retornar à quadra" mesmo sem rede. */
-    fun court(): String? = prefs.getString("court", null)
-    fun saveCourt(court: String) { check(prefs.edit().putString("court", court).commit()) }
+    /** Nome da quadra do vínculo ativo, para "Retornar" mesmo sem rede. */
+    fun courtName(): String? = prefs.getString("court", null)
+    fun saveCourtName(name: String) { check(prefs.edit().putString("court", name).commit()) }
 
     /** Token do código novo (US5), guardado antes da rede, como o ativo. */
     fun pendingToken(): String? = read("pending", "pending-iv")
@@ -77,10 +77,10 @@ class CredentialStore(context: Context) {
     }
 
     /** Código novo aprovado: ele passa a ser o vínculo ativo, de uma vez. */
-    fun promotePending(court: String) {
+    fun promotePending(courtName: String) {
         val encrypted = prefs.getString("pending", null) ?: return
         val iv = prefs.getString("pending-iv", null)
-        check(prefs.edit().putString("token", encrypted).putString("iv", iv).putString("court", court)
+        check(prefs.edit().putString("token", encrypted).putString("iv", iv).putString("court", courtName)
             .remove("pending").remove("pending-iv").remove("pending-cancel").remove("code").commit()) {
             "Não foi possível guardar o vínculo."
         }

@@ -17,21 +17,23 @@ class LinkChoiceTest {
     @Test fun giveUpNotYetConfirmedDoesNotTrapTheWatchOnTheCode() {
         assertEquals(Stage.ABERTURA, openingStage(hasLink = true, hasPendingCode = true, cancelling = true))
     }
-    @Test fun returnLabelUsesStoredCourt() {
-        assertEquals("Retornar à quadra 48291", returnLabel("48291"))
-        assertEquals("Retornar à quadra", returnLabel(null))
+    @Test fun courtShownByNameOrNumber() {
+        assertEquals("q2", courtLabel(" q2 ", "48291"))
+        assertEquals("Quadra 48291", courtLabel("", "48291"))
+        assertEquals("Voltar para q2", backLabel("q2"))
+        assertEquals("Voltar à quadra", backLabel(null))
     }
     @Test fun noWarningWithoutPendingPoints() {
-        assertNull(abandonWarning(0, "48291"))
+        assertNull(abandonWarning(0, "q2"))
     }
     @Test fun warningCountsAbandonedPoints() {
         assertEquals(
-            "3 lances da quadra 48291 ainda não foram enviados. Se o novo código for aprovado, eles serão abandonados.",
-            abandonWarning(3, "48291"),
+            "3 lances marcados em q2 ainda não foram enviados. Se o novo código for aprovado, eles serão abandonados.",
+            abandonWarning(3, "q2"),
         )
         assertEquals(
-            "1 lance da quadra 48291 ainda não foi enviado. Se o novo código for aprovado, ele será abandonado.",
-            abandonWarning(1, "48291"),
+            "1 lance marcado em q2 ainda não foi enviado. Se o novo código for aprovado, ele será abandonado.",
+            abandonWarning(1, "q2"),
         )
     }
 }

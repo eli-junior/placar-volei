@@ -73,6 +73,7 @@ def test_approving_in_another_court_moves_watch_and_returns_control(client):
     assert client.get("/api/watch/state", headers=old).status_code == 401
     session = client.get("/api/watch/session", headers=new).json()
     assert session["court_id"] == b["id"]
+    assert session["court_name"] == b["nome"]
     assert apelidos(client, a) == ["Eli"]
     assert apelidos(client, b) == ["Eli", "Eli (Relógio)"]
     sala_a = client.get(f"/api/quadras/{a['id']}").json()
