@@ -24,7 +24,6 @@
     onConfigurarPartida = () => {},
     onVoltar,
     onAssumirControle = () => {},
-    onControleRelogio = (ativo) => {},
     onPromoverControlador = (id) => {},
     onRevogarControlador = (id) => {},
     onAutorizarAdmin = (id) => {},
@@ -198,10 +197,6 @@
 
   const temControle = $derived(podeControlar && quadra?.controle_id === eu?.id);
   const operador = $derived(participantes.find(p => p.id === quadra?.controle_id)?.apelido || (temControle ? eu?.apelido : 'aguardando atualização'));
-  // Chave "Controlar pelo Relógio" ligada: só o relógio pontua (CV3.DS1.US2).
-  const relogioNoControle = $derived(Boolean(quadra?.controle_relogio));
-  const donoRelogio = $derived(participantes.find(p => p.id === quadra?.controle_relogio)?.apelido || 'eli');
-
   // O relógio é pessoal do eli nesta fase; para os demais, só um aviso.
   let avisoRelogio = $state(false);
   let avisoRelogioTimer = null;
@@ -525,14 +520,10 @@
     {#if avisoRelogio}
       <span class="aviso-em-breve" role="status" transition:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>Em breve…</span>
     {/if}
-    {#if relogioNoControle}
-      <span in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>Controle: <strong>relógio de {donoRelogio}</strong></span>
-    {:else}
-      {#key quadra?.controle_id}
-        <span in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>Controle: <strong>{operador}</strong>{temControle ? ' (você)' : ''}</span>
-      {/key}
-    {/if}
-    {#if podeControlar && !temControle && !relogioNoControle}
+    {#key quadra?.controle_id}
+      <span in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>Controle: <strong>{operador}</strong>{temControle ? ' (você)' : ''}</span>
+    {/key}
+    {#if podeControlar && !temControle}
       <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir o controle</button>
     {/if}
     {#if !wsConectado}
@@ -557,8 +548,6 @@
     <Placar
       {estadoPartida}
       podeControlar={temControle}
-      {relogioNoControle}
-      {donoRelogio}
       desabilitado={!wsConectado}
       enviando={operando}
       {pendentes}
@@ -622,10 +611,6 @@
     <ModalConfigurarPartida
       {estadoPartida}
       isReinicio={isReinicioConfig}
-      {quadra}
-      {eu}
-      {participantes}
-      onAlternarRelogio={onControleRelogio}
       movimentoReduzido={prefersReducedMotion}
       submetendo={operando}
       onFechar={() => { modalConfigAberto = false; }}

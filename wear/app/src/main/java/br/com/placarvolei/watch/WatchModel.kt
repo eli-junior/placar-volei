@@ -70,8 +70,8 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         get() {
             val s = score ?: return "Carregando placar…"
             held?.let { return it }
-            if (s.controleRelogio == null || s.controleRelogio != participantId) {
-                return "Ative Controlar pelo Relógio no telefone."
+            if (s.controleId == null || s.controleId != participantId) {
+                return "Controle no telefone. Peça ao admin para passar o controle."
             }
             if (s.encerrada) return "Partida encerrada."
             val (a, b) = predicted(s, pending)
@@ -83,7 +83,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     fun tap(equipe: String): Boolean {
         val s = score ?: return false
         if (blockReason != null) return false
-        val command = PendingCommand(UUID.randomUUID().toString(), s.partidaId, s.relogioVersao, equipe)
+        val command = PendingCommand(UUID.randomUUID().toString(), s.partidaId, s.controleVersao, equipe)
         if (!update(queueState.copy(commands = queueState.commands + command))) return false
         wake.trySend(Unit)
         return true
@@ -117,7 +117,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
             }
             val result = try {
                 request("/api/watch/comandos", body = JSONObject().put("id", next.id)
-                    .put("partida_id", next.partidaId).put("relogio_versao", next.relogioVersao)
+                    .put("partida_id", next.partidaId).put("controle_versao", next.controleVersao)
                     .put("equipe", next.equipe).toString())
             } catch (e: CancellationException) {
                 throw e

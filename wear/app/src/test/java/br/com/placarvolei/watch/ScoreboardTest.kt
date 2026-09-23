@@ -77,20 +77,20 @@ class ScoreboardTest {
     fun parsesServerSnapshot() {
         val json = JSONObject("""
             {"partida_id": "p9", "seq": 7,
-             "quadra": {"controle_relogio": "eli-id", "relogio_versao": 3},
+             "quadra": {"controle_id": "relogio-id", "controle_versao": 3},
              "estado_partida": {"pontos_a": 2, "pontos_b": 1, "alvo": 15, "vantagem": false, "teto": null,
                "encerrada": false, "equipe_a": "Eli / Camila", "equipe_b": "Equipe B",
                "jogadores_a": ["Eli", "Camila"], "jogadores_b": []}}
         """.trimIndent())
         val c = Confirmed.fromSnapshot(json)
         assertEquals("p9", c.partidaId)
-        assertEquals(3, c.relogioVersao)
-        assertEquals("eli-id", c.controleRelogio)
+        assertEquals(3, c.controleVersao)
+        assertEquals("relogio-id", c.controleId)
         assertEquals(2 to 1, c.pontosA to c.pontosB)
         assertNull(c.teto)
         assertEquals(listOf("Eli", "Camila"), c.jogadoresA)
-        val off = JSONObject(json.toString()).apply { getJSONObject("quadra").put("controle_relogio", JSONObject.NULL) }
-        assertNull(Confirmed.fromSnapshot(off).controleRelogio)
+        val off = JSONObject(json.toString()).apply { getJSONObject("quadra").put("controle_id", JSONObject.NULL) }
+        assertNull(Confirmed.fromSnapshot(off).controleId)
     }
 
     @Test

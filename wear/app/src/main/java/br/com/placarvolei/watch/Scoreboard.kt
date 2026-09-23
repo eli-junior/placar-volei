@@ -7,8 +7,8 @@ import org.json.JSONObject
 data class Confirmed(
     val partidaId: String,
     val seq: Int,
-    val relogioVersao: Int,
-    val controleRelogio: String?,
+    val controleVersao: Int,
+    val controleId: String?,
     val pontosA: Int,
     val pontosB: Int,
     val alvo: Int,
@@ -27,8 +27,8 @@ data class Confirmed(
             return Confirmed(
                 partidaId = json.getString("partida_id"),
                 seq = json.optInt("seq", 0),
-                relogioVersao = sala.optInt("relogio_versao", 0),
-                controleRelogio = sala.optString("controle_relogio").takeUnless { sala.isNull("controle_relogio") || it.isEmpty() },
+                controleVersao = sala.optInt("controle_versao", 0),
+                controleId = sala.optString("controle_id").takeUnless { sala.isNull("controle_id") || it.isEmpty() },
                 pontosA = partida.getInt("pontos_a"),
                 pontosB = partida.getInt("pontos_b"),
                 alvo = partida.optInt("alvo", 12),

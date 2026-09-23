@@ -1,8 +1,13 @@
-"""Pontuação pelo relógio: chave da sala, recibo durável e idempotência (CV3.DS1.US2)."""
+"""Pontuação pelo relógio: participante próprio, delegação, recibo e idempotência.
+
+CV3.DS1.US2, revisão 3: o relógio é o participante "Eli (Relógio)" e pontua
+quando o admin passa o controle para ele, pelas mesmas regras do site.
+"""
 
 import json
 import uuid
 from concurrent.futures import ThreadPoolExecutor
+from datetime import UTC, datetime, timedelta
 
 import pytest
 from fastapi.testclient import TestClient
@@ -11,6 +16,7 @@ from app.config import settings
 from app.db import get_db
 from app.main import app
 from app.rate_limit import owner_rate_limiter
+from app.sucessao import verificar_controle_ocioso_sync, verificar_sucessao_quadra_sync
 from app.watch import approval_limit, creation_limit
 from tests.test_watch_pairing import link, prepare
 
@@ -26,33 +32,43 @@ def client(tmp_path, monkeypatch):
         yield client
 
 
-def ligar(client, court, ativo=True):
-    return client.post(
-        f"/api/quadras/{court['id']}/controle/relogio", json={"ativo": ativo}
-    )
-
-
 def estado(client, headers):
     return client.get("/api/watch/state", headers=headers).json()
 
 
-def comando(client, headers, equipe="A", *, id=None, base=None):
+def relogio_id(client, headers):
+    return client.get("/api/watch/session", headers=headers).json()["participant_id"]
+
+
+def comando(client, headers, equipe="A", *, base=None):
     base = base or estado(client, headers)
     body = {
-        "id": id or str(uuid.uuid4()),
+        "id": str(uuid.uuid4()),
         "partida_id": base["partida_id"],
-        "relogio_versao": base["quadra"]["relogio_versao"],
+        "controle_versao": base["quadra"]["controle_versao"],
         "equipe": equipe,
     }
     return client.post("/api/watch/comandos", json=body, headers=headers), body
 
 
+def delegar(client, court, headers):
+    """Admin promove o relógio e passa o controle para ele (botões do site)."""
+    watch = relogio_id(client, headers)
+    base = f"/api/quadras/{court['id']}/participantes/{watch}"
+    assert client.post(f"{base}/promover").status_code == 200
+    # Passar o controle exige o relógio conectado.
+    with client.websocket_connect(f"/ws/{court['id']}", headers=headers) as ws:
+        ws.receive_json()
+        assert client.post(f"{base}/controle").status_code == 200
+    return watch
+
+
 @pytest.fixture
 def sala(client):
-    """Sala com eli ADMIN, relógio vinculado e chave ligada."""
+    """Sala com Eli ADMIN, relógio vinculado e controle delegado ao relógio."""
     court = prepare(client)
     _, headers = link(client, court)
-    assert ligar(client, court).status_code == 200
+    delegar(client, court, headers)
     return court, headers
 
 
@@ -62,6 +78,15 @@ def eventos(court_id, tipo):
             "SELECT * FROM eventos WHERE quadra_id = ? AND tipo = ? ORDER BY seq",
             (court_id, tipo),
         ).fetchall()
+
+
+def envelhecer(participante_id, minutos=10):
+    passado = (datetime.now(UTC) - timedelta(minutes=minutos)).isoformat()
+    with get_db() as conn:
+        conn.execute(
+            "UPDATE participantes SET ultimo_visto_em = ? WHERE id = ?",
+            (passado, participante_id),
+        )
 
 
 def test_sequence_a_a_b_applies_three_points_with_receipts(client, sala):
@@ -75,16 +100,30 @@ def test_sequence_a_a_b_applies_three_points_with_receipts(client, sala):
     assert len(eventos(court["id"], "PONTO_MARCADO")) == 3
     with get_db() as conn:
         recibos = conn.execute(
-            "SELECT status, evento_seq FROM watch_comandos ORDER BY criado_em"
+            "SELECT status, evento_seq FROM watch_recibos ORDER BY criado_em"
         ).fetchall()
     assert [r["status"] for r in recibos] == ["APLICADO"] * 3
     # Cada recibo aponta para o seu evento: o lance é auditável.
     assert [r["evento_seq"] for r in recibos] == [
         e["seq"] for e in eventos(court["id"], "PONTO_MARCADO")
     ]
-    # O ponto do relógio é do participante eli, único na sala.
+    # O autor dos pontos é o participante do relógio.
     autores = {e["autor_id"] for e in eventos(court["id"], "PONTO_MARCADO")}
-    assert autores == {court["participante"]["id"]}
+    assert autores == {relogio_id(client, headers)}
+
+
+def test_watch_without_control_only_follows(client):
+    court = prepare(client)
+    _, headers = link(client, court)
+    response, body = comando(client, headers, "A")
+    assert response.status_code == 200
+    assert response.json()["recibo"]["status"] == "RECUSADO"
+    assert not eventos(court["id"], "PONTO_MARCADO")
+    # Delegar depois não transforma a recusa em ponto no reenvio.
+    delegar(client, court, headers)
+    again = client.post("/api/watch/comandos", json=body, headers=headers)
+    assert again.json()["recibo"]["status"] == "RECUSADO"
+    assert not eventos(court["id"], "PONTO_MARCADO")
 
 
 def test_resend_returns_original_receipt_without_new_event(client, sala):
@@ -113,7 +152,7 @@ def test_concurrent_resend_applies_once(client, sala):
     body = {
         "id": str(uuid.uuid4()),
         "partida_id": base["partida_id"],
-        "relogio_versao": base["quadra"]["relogio_versao"],
+        "controle_versao": base["quadra"]["controle_versao"],
         "equipe": "A",
     }
     with ThreadPoolExecutor(4) as pool:
@@ -142,81 +181,34 @@ def test_rapid_taps_keep_order_and_count(client, sala):
     ] == list("ABBAB")
 
 
-def test_browser_cannot_score_or_undo_while_watch_controls(client, sala):
-    court, headers = sala
-    comando(client, headers, "A")
+def test_site_cannot_score_while_watch_holds_control(client, sala):
+    court, _ = sala
     versao = str(client.get(f"/api/quadras/{court['id']}").json()["controle_versao"])
-    for rota, body in (("pontos", {"equipe": "A"}), ("desfazer", None)):
-        response = client.post(
-            f"/api/quadras/{court['id']}/{rota}",
-            json=body,
-            headers={"x-control-version": versao},
-        )
-        assert response.status_code == 409
-        assert "relógio" in response.json()["detail"]
-    # Configurar continua liberado para o admin.
-    assert (
-        client.post(
-            f"/api/quadras/{court['id']}/configurar", json={"alvo": 15}
-        ).status_code
-        == 200
+    response = client.post(
+        f"/api/quadras/{court['id']}/pontos",
+        json={"equipe": "A"},
+        headers={"x-control-version": versao},
     )
-    assert len(eventos(court["id"], "PONTO_MARCADO")) == 1
-
-
-def test_watch_command_rejected_with_receipt_when_switch_off(client):
-    court = prepare(client)
-    _, headers = link(client, court)
-    response, body = comando(client, headers, "A")
-    assert response.status_code == 200
-    assert response.json()["recibo"]["status"] == "RECUSADO"
-    assert "telefone" in response.json()["recibo"]["detalhe"]
-    assert not eventos(court["id"], "PONTO_MARCADO")
-    # Ligar depois não transforma a recusa em ponto no reenvio.
-    assert ligar(client, court).status_code == 200
-    again = client.post("/api/watch/comandos", json=body, headers=headers)
-    assert again.json()["recibo"]["status"] == "RECUSADO"
+    assert response.status_code == 403
     assert not eventos(court["id"], "PONTO_MARCADO")
 
 
-def test_toggle_invalidates_pending_commands(client, sala):
+def test_admin_takes_control_back_and_pending_is_rejected(client, sala):
     court, headers = sala
     base = estado(client, headers)
-    assert ligar(client, court, False).status_code == 200
-    assert ligar(client, court, True).status_code == 200
+    assumir = client.post(f"/api/quadras/{court['id']}/controle/assumir")
+    assert assumir.status_code == 200
     response, _ = comando(client, headers, "A", base=base)
     assert response.json()["recibo"]["status"] == "RECUSADO"
     assert not eventos(court["id"], "PONTO_MARCADO")
-
-
-def test_control_transfer_on_site_does_not_affect_watch(client, sala):
-    court, headers = sala
-    base = estado(client, headers)
-    with get_db() as conn:
-        conn.execute(
-            "UPDATE quadras SET controle_versao = controle_versao + 5 WHERE id = ?",
-            (court["id"],),
-        )
-    response, _ = comando(client, headers, "A", base=base)
-    assert response.json()["recibo"]["status"] == "APLICADO"
 
 
 def test_command_for_previous_match_is_not_applied_to_new_one(client, sala):
     court, headers = sala
     old = estado(client, headers)
-    ligar(client, court, False)
-    versao = client.get(f"/api/quadras/{court['id']}").json()["controle_versao"]
     for _ in range(12):
-        client.post(
-            f"/api/quadras/{court['id']}/pontos",
-            json={"equipe": "A"},
-            headers={"x-control-version": str(versao)},
-        )
+        comando(client, headers, "A", base=old)
     assert client.post(f"/api/quadras/{court['id']}/reiniciar").status_code == 200
-    ligar(client, court, True)
-    old["quadra"]["relogio_versao"] = estado(client, headers)["quadra"][
-        "relogio_versao"
-    ]
     response, _ = comando(client, headers, "A", base=old)
     assert response.json()["recibo"]["status"] == "RECUSADO"
     assert "nova partida" in response.json()["recibo"]["detalhe"].lower()
@@ -235,38 +227,52 @@ def test_finished_match_rejects_watch_point(client, sala):
     assert len(eventos(court["id"], "PONTO_MARCADO")) == 12
 
 
-def test_switch_on_requires_linked_watch(client):
-    court = prepare(client)
-    response = ligar(client, court)
-    assert response.status_code == 403
-    assert client.get(f"/api/quadras/{court['id']}").json()["controle_relogio"] is None
-
-
-def test_spectator_cannot_toggle_and_admin_can_turn_off(client, sala):
-    court, _ = sala
-    other = TestClient(app)
-    other.post(f"/api/quadras/{court['id']}/entrar", json={"apelido": "rafa"})
+def test_watch_control_is_not_returned_for_absence(client, sala):
+    court, headers = sala
+    watch = relogio_id(client, headers)
+    envelhecer(watch)
+    # Admin online, relógio ausente há 10 minutos: o controle fica com o relógio.
+    admin = court["participante"]["id"]
     assert (
-        other.post(
-            f"/api/quadras/{court['id']}/controle/relogio", json={"ativo": False}
-        ).status_code
-        == 403
+        verificar_controle_ocioso_sync(settings.db_path, court["id"], {admin}, 0)
+        is None
     )
-    assert ligar(client, court, False).status_code == 200
-    sala_atual = client.get(f"/api/quadras/{court['id']}").json()
-    assert sala_atual["controle_relogio"] is None
-    itens = client.get(f"/api/quadras/{court['id']}/linha-do-tempo").json()
-    descricoes = [i["descricao"] for i in itens.get("itens", itens)]
-    assert "Placar passou a ser controlado pelo relógio de eli" in descricoes
-    assert "Placar voltou a ser controlado pelo telefone" in descricoes
+    assert client.get(f"/api/quadras/{court['id']}").json()["controle_id"] == watch
 
 
-def test_revoking_watch_turns_switch_off_and_site_scores_again(client, sala):
+def test_connected_watch_keeps_owner_as_admin(client, sala):
+    court, headers = sala
+    watch = relogio_id(client, headers)
+    envelhecer(court["participante"]["id"])
+    # Telefone sumido há 10 min, mas o relógio do Eli está conectado.
+    assert (
+        verificar_sucessao_quadra_sync(settings.db_path, court["id"], {watch}, 60)
+        is None
+    )
+    # Relógio visto há pouco também segura; sumido também, a regra de sempre vale.
+    assert (
+        verificar_sucessao_quadra_sync(settings.db_path, court["id"], set(), 60) is None
+    )
+    envelhecer(watch)
+    assert (
+        verificar_sucessao_quadra_sync(settings.db_path, court["id"], set(), 60)
+        is not None
+    )
+
+
+def test_revoking_watch_removes_it_and_returns_control_to_owner(client, sala):
     court, headers = sala
     devices = client.get(f"/api/quadras/{court['id']}/watch").json()["devices"]
-    client.delete(f"/api/quadras/{court['id']}/watch/{devices[0]['id']}")
+    revoked = client.delete(f"/api/quadras/{court['id']}/watch/{devices[0]['id']}")
+    assert revoked.status_code == 200
     sala_atual = client.get(f"/api/quadras/{court['id']}").json()
-    assert sala_atual["controle_relogio"] is None
+    assert sala_atual["controle_id"] == court["participante"]["id"]
+    participantes = client.get(f"/api/quadras/{court['id']}/participantes").json()
+    assert [p["apelido"] for p in participantes["participantes"]] == ["Eli"]
+    itens = client.get(f"/api/quadras/{court['id']}/linha-do-tempo").json()
+    descricoes = [i["descricao"] for i in itens.get("itens", itens)]
+    assert "Controle devolvido para Eli: relógio desvinculado" in descricoes
+    # O site volta a pontuar; o relógio revogado não.
     assert (
         client.post(
             f"/api/quadras/{court['id']}/pontos",
@@ -275,19 +281,17 @@ def test_revoking_watch_turns_switch_off_and_site_scores_again(client, sala):
         ).status_code
         == 201
     )
-    assert (
-        client.post(
-            "/api/watch/comandos",
-            json={
-                "id": str(uuid.uuid4()),
-                "partida_id": sala_atual["partida_id"],
-                "relogio_versao": 0,
-                "equipe": "A",
-            },
-            headers=headers,
-        ).status_code
-        == 401
-    )
+    base = {"partida_id": sala_atual["partida_id"], "quadra": sala_atual}
+    assert comando(client, headers, "A", base=base)[0].status_code == 401
+
+
+def test_relink_keeps_watch_participant_and_delegation(client, sala):
+    court, headers = sala
+    watch = relogio_id(client, headers)
+    _, new_headers = link(client, court)
+    assert relogio_id(client, new_headers) == watch
+    assert client.get(f"/api/quadras/{court['id']}").json()["controle_id"] == watch
+    assert comando(client, new_headers, "B")[0].status_code == 201
 
 
 def test_watch_point_reaches_browser_by_broadcast(client, sala):
@@ -299,9 +303,6 @@ def test_watch_point_reaches_browser_by_broadcast(client, sala):
             pass
         assert msg["payload"]["estado_partida"]["pontos_b"] == 1
         assert msg["payload"]["comando_id"]
-        assert (
-            msg["payload"]["quadra"]["controle_relogio"] == court["participante"]["id"]
-        )
 
 
 def test_receipt_survives_restart(client, sala):

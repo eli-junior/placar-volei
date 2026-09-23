@@ -39,17 +39,17 @@ class ApelidoEmUso(ValueError):
 
 
 def apelido_de_relogio(apelido: str) -> str | None:
-    """Traduz o apelido-senha do relógio (ex.: "eli.relogio") no nome público.
+    """Nome público de quem pode vincular relógio, ou None.
 
-    Quem entra com um dos apelidos de `WATCH_AUTO_GRANT` aparece para a sala
-    só pelo trecho antes do ponto e ganha o vínculo de relógio. O sufixo nunca
-    é gravado nem exibido, para que ninguém copie o apelido-senha do placar.
+    Os apelidos de `WATCH_AUTO_GRANT` (padrão `eli`) valem em qualquer caixa e
+    são gravados em Title: `eli`, `ELI` e `Eli` entram como `Eli` e ganham o
+    vínculo de relógio (CV3.DS1.US2, revisão 3).
     """
     chave = apelido.strip().lower()
     for nome in settings.watch_auto_grant.split(","):
         nome = nome.strip()
         if nome and nome.lower() == chave:
-            return nome.split(".")[0] or nome
+            return nome.title()
     return None
 
 
@@ -256,8 +256,6 @@ def criar_quadra_sync(
         "partida_id": partida_id,
         "controle_id": participante["id"] if participante else None,
         "controle_versao": 1 if participante else 0,
-        "controle_relogio": None,
-        "relogio_versao": 0,
     }
     if participante:
         resultado["participante"] = participante
@@ -301,8 +299,7 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT id, nome, criado_em, atualizado_em, controle_id, controle_versao,
-                   controle_relogio, relogio_versao
+            SELECT id, nome, criado_em, atualizado_em, controle_id, controle_versao
             FROM quadras
             WHERE id = ?
             """,
@@ -327,8 +324,6 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
             "partida_id": partida_id,
             "controle_id": quadra["controle_id"],
             "controle_versao": quadra["controle_versao"],
-            "controle_relogio": quadra["controle_relogio"],
-            "relogio_versao": quadra["relogio_versao"],
         }
 
 

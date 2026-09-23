@@ -1,4 +1,10 @@
-"""Vínculo pessoal do Wear OS. Nome de dispositivo nunca concede permissão."""
+"""Relógio pessoal no Wear OS. Nome de dispositivo nunca concede permissão.
+
+Desde a CV3.DS1.US2 (revisão 3) o relógio age como um participante próprio da
+sala, "<dono> (Relógio)", que recebe o controle por delegação do admin. O dono
+é o participante do telefone que aprovou o código; é a habilitação dele
+(`watch_grants`) que mantém o relógio válido.
+"""
 
 import asyncio
 import re
@@ -13,12 +19,13 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from app.api import autenticar_owner, transmitir_estado
-from app.comandos import desligar_controle_relogio_sync, executar_sync, snapshot
+from app.comandos import executar_sync, snapshot
 from app.config import settings
 from app.db import get_db
-from app.eventos import get_quadra_lock
+from app.eventos import TipoEvento, append_evento_sync, get_quadra_lock
 from app.hub import hub
 from app.identidade import SESSION_COOKIE, hash_sessao
+from app.quadras import apelido_ja_usado
 from app.rate_limit import RateLimiter
 
 router = APIRouter(prefix="/api", tags=["relogio"])
@@ -28,6 +35,10 @@ approval_limit = RateLimiter(5, 600, 600)
 
 def now():
     return datetime.now(UTC)
+
+
+def room_cutoff():
+    return (now() - timedelta(seconds=settings.quadra_ttl_seconds)).isoformat()
 
 
 def bearer(headers):
@@ -54,11 +65,7 @@ def browser_participant(conn, request, court):
     participant = conn.execute(
         """SELECT p.* FROM participantes p JOIN quadras q ON q.id = p.quadra_id
         WHERE p.quadra_id = ? AND p.session_hash = ? AND q.atualizado_em >= ?""",
-        (
-            court,
-            hash_sessao(token or ""),
-            (now() - timedelta(seconds=settings.quadra_ttl_seconds)).isoformat(),
-        ),
+        (court, hash_sessao(token or ""), room_cutoff()),
     ).fetchone()
     if participant is None:
         raise HTTPException(403, "Entre novamente na sala pelo telefone.")
@@ -74,18 +81,25 @@ def permitted(conn, participant):
     )
 
 
+# Relógio válido: aprovado, não revogado, com dono habilitado e com permissão de
+# controle, em sala não expirada. O papel do próprio relógio não importa aqui:
+# espectador também acompanha; pontuar depende do controle (executar_sync).
+_ACTIVE_DEVICE = """
+    FROM watch_devices d
+    JOIN participantes p ON p.id = d.participant_id
+    JOIN participantes o ON o.id = d.owner_id
+    JOIN watch_grants g ON g.participant_id = o.id
+    JOIN quadras q ON q.id = p.quadra_id
+    WHERE d.revoked = 0 AND d.approved_at IS NOT NULL
+    AND o.papel IN ('ADMIN', 'CONTROLADOR') AND q.atualizado_em >= ?"""
+
+
 def device_participant(conn, token, court=None):
     participant = conn.execute(
-        """SELECT p.id, p.quadra_id, p.apelido, p.papel, d.id AS device_id
-        FROM watch_devices d JOIN participantes p ON p.id = d.participant_id
-        JOIN watch_grants g ON g.participant_id = p.id
-        JOIN quadras q ON q.id = p.quadra_id
-        WHERE d.token_hash = ? AND d.revoked = 0 AND d.approved_at IS NOT NULL
-        AND p.papel IN ('ADMIN', 'CONTROLADOR') AND q.atualizado_em >= ?""",
-        (
-            hash_sessao(token),
-            (now() - timedelta(seconds=settings.quadra_ttl_seconds)).isoformat(),
-        ),
+        "SELECT p.id, p.quadra_id, p.apelido, p.papel, d.id AS device_id, d.owner_id"
+        + _ACTIVE_DEVICE
+        + " AND d.token_hash = ?",
+        (room_cutoff(), hash_sessao(token)),
     ).fetchone()
     if participant is None or (court is not None and participant["quadra_id"] != court):
         raise HTTPException(
@@ -103,21 +117,64 @@ def device_active(device_id):
     with get_db() as conn:
         return (
             conn.execute(
-                """SELECT 1 FROM watch_devices d
-            JOIN participantes p ON p.id = d.participant_id
-            JOIN watch_grants g ON g.participant_id = p.id
-            JOIN quadras q ON q.id = p.quadra_id
-            WHERE d.id = ? AND d.revoked = 0 AND d.approved_at IS NOT NULL
-            AND p.papel IN ('ADMIN', 'CONTROLADOR') AND q.atualizado_em >= ?""",
-                (
-                    device_id,
-                    (
-                        now() - timedelta(seconds=settings.quadra_ttl_seconds)
-                    ).isoformat(),
-                ),
+                "SELECT 1" + _ACTIVE_DEVICE + " AND d.id = ?",
+                (room_cutoff(), device_id),
             ).fetchone()
             is not None
         )
+
+
+def watch_participant_of(conn, owner_id):
+    """Participante "<dono> (Relógio)" já criado para este dono, se houver."""
+    row = conn.execute(
+        """SELECT p.* FROM watch_devices d JOIN participantes p ON p.id = d.participant_id
+        WHERE d.owner_id = ? ORDER BY d.approved_at DESC LIMIT 1""",
+        (owner_id,),
+    ).fetchone()
+    return row
+
+
+def remove_watch_participant(conn, court, owner_id, reason):
+    """Tira o relógio da sala. Se ele estava no controle, o controle volta ao dono.
+
+    Apagar o participante apaga os vínculos (ON DELETE CASCADE); os recibos e
+    os eventos ficam, porque o log é append-only.
+    """
+    watch = watch_participant_of(conn, owner_id)
+    if watch is None:
+        return None
+    court_row = conn.execute(
+        "SELECT controle_id FROM quadras WHERE id = ?", (court,)
+    ).fetchone()
+    if court_row and court_row["controle_id"] == watch["id"]:
+        owner = conn.execute(
+            "SELECT id, apelido FROM participantes WHERE id = ?", (owner_id,)
+        ).fetchone()
+        conn.execute(
+            "UPDATE quadras SET controle_id = ?, controle_versao = controle_versao + 1 WHERE id = ?",
+            (owner_id, court),
+        )
+        match = conn.execute(
+            "SELECT id FROM partidas WHERE quadra_id = ? ORDER BY criado_em DESC LIMIT 1",
+            (court,),
+        ).fetchone()
+        append_evento_sync(
+            settings.db_path,
+            court,
+            match["id"],
+            TipoEvento.CONTROLE_DEVOLVIDO,
+            {
+                "anterior_id": watch["id"],
+                "anterior_apelido": watch["apelido"],
+                "controle_id": owner_id,
+                "apelido": owner["apelido"],
+                "motivo": reason,
+            },
+            owner_id,
+            connection=conn,
+        )
+    conn.execute("DELETE FROM participantes WHERE id = ?", (watch["id"],))
+    return watch["id"]
 
 
 class GrantBody(BaseModel):
@@ -139,10 +196,13 @@ async def grant_access(body: GrantBody, request: Request):
             if p is None:
                 raise HTTPException(404, "Participante não encontrado.")
             if body.enabled:
-                if p["papel"] not in ("ADMIN", "CONTROLADOR") or p["apelido"] != "eli":
+                if (
+                    p["papel"] not in ("ADMIN", "CONTROLADOR")
+                    or p["apelido"].strip().lower() != "eli"
+                ):
                     raise HTTPException(
                         409,
-                        "Nesta versão, habilite o participante eli com permissão de controle.",
+                        "Nesta versão, habilite o participante Eli com permissão de controle.",
                     )
                 conn.execute(
                     "INSERT OR IGNORE INTO watch_grants VALUES (?)", (p["id"],)
@@ -151,22 +211,14 @@ async def grant_access(body: GrantBody, request: Request):
                 conn.execute(
                     "DELETE FROM watch_grants WHERE participant_id = ?", (p["id"],)
                 )
-                conn.execute(
-                    "UPDATE watch_devices SET revoked = 1 WHERE participant_id = ?",
-                    (p["id"],),
-                )
-                desligar_controle_relogio_sync(
-                    conn,
-                    p["quadra_id"],
-                    p["id"],
-                    None,
-                    "acesso ao relógio desabilitado",
+                remove_watch_participant(
+                    conn, p["quadra_id"], p["id"], "relogio_desabilitado"
                 )
             return p["quadra_id"]
 
     court = await asyncio.to_thread(update)
     if not body.enabled:
-        await hub.close_watch_connections(court, participant_id=body.participant_id)
+        await hub.close_watch_connections(court)
         await transmitir_estado(court)
     return {"enabled": body.enabled}
 
@@ -276,7 +328,7 @@ def list_devices(court: str, request: Request, response: Response):
         devices = [
             dict(d)
             for d in conn.execute(
-                "SELECT id, approved_at FROM watch_devices WHERE participant_id = ? AND revoked = 0",
+                "SELECT id, approved_at FROM watch_devices WHERE owner_id = ? AND revoked = 0",
                 (p["id"],),
             )
         ]
@@ -311,24 +363,47 @@ async def approve_device(court: str, body: ApprovalBody, request: Request):
                 raise HTTPException(
                     400, "Código inválido, usado ou expirado. Confira o relógio."
                 )
-            # Um relógio pessoal por participante. Revínculo não deixa credencial antiga ativa.
+            current = now().isoformat()
+            # Revínculo reaproveita o participante do relógio: papel e controle
+            # delegados continuam valendo com o aparelho novo.
+            watch = watch_participant_of(conn, p["id"])
+            if watch is None:
+                name = f"{p['apelido']} (Relógio)"
+                if apelido_ja_usado(conn, court, name, None):
+                    raise HTTPException(
+                        409, f'O apelido "{name}" já está em uso nesta sala.'
+                    )
+                watch_id = str(uuid.uuid4())
+                conn.execute(
+                    """INSERT INTO participantes (id, quadra_id, apelido, papel, criado_em,
+                    ultimo_visto_em, session_hash) VALUES (?, ?, ?, 'ESPECTADOR', ?, ?, ?)""",
+                    # Hash inalcançável por navegador: o relógio só entra por Bearer.
+                    (
+                        watch_id,
+                        court,
+                        name,
+                        current,
+                        current,
+                        hash_sessao(f"relogio:{d['id']}"),
+                    ),
+                )
+            else:
+                watch_id, name = watch["id"], watch["apelido"]
+            # Um relógio por dono. Revínculo não deixa credencial antiga ativa.
             conn.execute(
-                "UPDATE watch_devices SET revoked = 1 WHERE participant_id = ?",
-                (p["id"],),
-            )
-            desligar_controle_relogio_sync(
-                conn, court, p["id"], p["id"], "outro relógio vinculado"
+                "UPDATE watch_devices SET revoked = 1 WHERE owner_id = ?", (p["id"],)
             )
             conn.execute(
-                "UPDATE watch_devices SET participant_id = ?, approved_at = ?, code_hash = NULL WHERE id = ?",
-                (p["id"], now().isoformat(), d["id"]),
+                """UPDATE watch_devices SET participant_id = ?, owner_id = ?, approved_at = ?,
+                code_hash = NULL WHERE id = ?""",
+                (watch_id, p["id"], current, d["id"]),
             )
             approval_limit.registrar_sucesso(p["id"])
-            return p["id"], p["apelido"]
+            return watch_id, name
 
     async with get_quadra_lock(court):
-        participant, name = await asyncio.to_thread(approve)
-        await hub.close_watch_connections(court, participant_id=participant)
+        watch_id, name = await asyncio.to_thread(approve)
+        await hub.close_watch_connections(court, participant_id=watch_id)
         await transmitir_estado(court)
     return {"status": "linked", "display_name": name}
 
@@ -340,14 +415,12 @@ async def revoke_device(court: str, device_id: str, request: Request):
             conn.execute("BEGIN IMMEDIATE")
             p = browser_participant(conn, request, court)
             result = conn.execute(
-                "UPDATE watch_devices SET revoked = 1 WHERE id = ? AND participant_id = ?",
+                "UPDATE watch_devices SET revoked = 1 WHERE id = ? AND owner_id = ?",
                 (device_id, p["id"]),
             )
             if not result.rowcount:
                 raise HTTPException(404, "Relógio não encontrado.")
-            desligar_controle_relogio_sync(
-                conn, court, p["id"], p["id"], "relógio revogado"
-            )
+            remove_watch_participant(conn, court, p["id"], "relogio_revogado")
 
     async with get_quadra_lock(court):
         await asyncio.to_thread(revoke)
@@ -359,7 +432,7 @@ async def revoke_device(court: str, device_id: str, request: Request):
 class CommandBody(BaseModel):
     id: str = Field(pattern=r"^[0-9a-fA-F-]{36}$")
     partida_id: str = Field(min_length=1, max_length=64)
-    relogio_versao: int = Field(ge=0)
+    controle_versao: int = Field(ge=0)
     acao: Literal["ponto"] = "ponto"
     equipe: Literal["A", "B"]
 
@@ -379,17 +452,17 @@ def apply_command(token, body: CommandBody, ids_online):
         p = device_participant(conn, token)
         court = p["quadra_id"]
         previous = conn.execute(
-            "SELECT * FROM watch_comandos WHERE device_id = ? AND comando_id = ?",
+            "SELECT * FROM watch_recibos WHERE device_id = ? AND comando_id = ?",
             (p["device_id"], body.id),
         ).fetchone()
         if previous is not None:
             # Reenvio: devolve o mesmo resultado, sem reaplicar efeitos.
             if (
                 previous["partida_id"],
-                previous["relogio_versao"],
+                previous["controle_versao"],
                 previous["acao"],
                 previous["equipe"],
-            ) != (body.partida_id, body.relogio_versao, body.acao, body.equipe):
+            ) != (body.partida_id, body.controle_versao, body.acao, body.equipe):
                 raise HTTPException(409, "Este lance já foi usado com outro conteúdo.")
             return 200, receipt(previous), snapshot(conn, court), False
         current = snapshot(conn, court)
@@ -400,16 +473,16 @@ def apply_command(token, body: CommandBody, ids_online):
                 raise HTTPException(
                     409, "Uma nova partida começou. Este lance não vale para ela."
                 )
+            # Mesma regra do site: só quem tem o controle, na versão vista, pontua.
             result = executar_sync(
                 settings.db_path,
                 court,
                 None,
                 "pontos",
                 equipe=body.equipe,
-                versao=str(body.relogio_versao),
+                versao=str(body.controle_versao),
                 ids_online=ids_online,
                 autor_id=p["id"],
-                origem="relogio",
                 connection=conn,
             )
             status, detail, seq = "APLICADO", None, result["evento"]["seq"]
@@ -421,8 +494,8 @@ def apply_command(token, body: CommandBody, ids_online):
             status, detail, seq = "RECUSADO", e.detail, None
         created = now().isoformat()
         conn.execute(
-            """INSERT INTO watch_comandos (device_id, comando_id, quadra_id, partida_id,
-            acao, equipe, relogio_versao, status, detalhe, evento_seq, criado_em)
+            """INSERT INTO watch_recibos (device_id, comando_id, quadra_id, partida_id,
+            acao, equipe, controle_versao, status, detalhe, evento_seq, criado_em)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (
                 p["device_id"],
@@ -431,7 +504,7 @@ def apply_command(token, body: CommandBody, ids_online):
                 body.partida_id,
                 body.acao,
                 body.equipe,
-                body.relogio_versao,
+                body.controle_versao,
                 status,
                 detail,
                 seq,

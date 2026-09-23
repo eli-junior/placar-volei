@@ -9,12 +9,3 @@
 export function ehDonoDoRelogio(apelido) {
   return typeof apelido === 'string' && apelido.trim().toLowerCase() === 'eli';
 }
-
-/**
- * A chave "Controlar pelo Relógio" aparece para quem tem relógio vinculado e,
- * com ela ligada, também para o admin — que precisa poder desligá-la se o
- * relógio ficar sem bateria.
- */
-export function mostrarChaveRelogio({ temRelogio, ligada, ehAdmin }) {
-  return Boolean(temRelogio || (ligada && ehAdmin));
-}

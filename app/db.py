@@ -24,10 +24,7 @@ CREATE TABLE IF NOT EXISTS quadras (
     atualizado_em TEXT NOT NULL,
     controle_id TEXT,
     controle_versao INTEGER NOT NULL DEFAULT 0,
-    codigo_mestre TEXT,
-    -- Participante cujo relógio controla o placar; NULL = controle pelo telefone.
-    controle_relogio TEXT,
-    relogio_versao INTEGER NOT NULL DEFAULT 0
+    codigo_mestre TEXT
 );
 
 CREATE TABLE IF NOT EXISTS partidas (
@@ -77,21 +74,22 @@ CREATE TABLE IF NOT EXISTS watch_devices (
     code_hash TEXT UNIQUE,
     expires_at TEXT NOT NULL,
     participant_id TEXT REFERENCES participantes(id) ON DELETE CASCADE,
+    owner_id TEXT REFERENCES participantes(id) ON DELETE CASCADE,
     revoked INTEGER NOT NULL DEFAULT 0,
     created_at TEXT NOT NULL,
     approved_at TEXT
 );
 
--- Recibo de cada comando do relógio, gravado na mesma transação do evento.
+-- Recibo de cada lance do relógio, gravado na mesma transação do evento.
 -- Recusas também geram recibo: o resultado de um id é sempre o mesmo.
-CREATE TABLE IF NOT EXISTS watch_comandos (
+CREATE TABLE IF NOT EXISTS watch_recibos (
     device_id TEXT NOT NULL,
     comando_id TEXT NOT NULL,
     quadra_id TEXT NOT NULL,
     partida_id TEXT NOT NULL,
     acao TEXT NOT NULL,
     equipe TEXT,
-    relogio_versao INTEGER NOT NULL,
+    controle_versao INTEGER NOT NULL,
     status TEXT NOT NULL,
     detalhe TEXT,
     evento_seq INTEGER,
@@ -212,11 +210,12 @@ def init_db_sync(db_path: str | None = None, *args, **kwargs) -> None:
             )
         if "codigo_mestre" not in colunas:
             cursor.execute("ALTER TABLE quadras ADD COLUMN codigo_mestre TEXT;")
-        if "controle_relogio" not in colunas:
-            cursor.execute("ALTER TABLE quadras ADD COLUMN controle_relogio TEXT;")
-        if "relogio_versao" not in colunas:
+        cursor.execute("PRAGMA table_info(watch_devices);")
+        if "owner_id" not in [row["name"] for row in cursor.fetchall()]:
+            # Dono do relógio (CV3.DS1.US2): participant_id passa a ser o
+            # participante próprio "<dono> (Relógio)".
             cursor.execute(
-                "ALTER TABLE quadras ADD COLUMN relogio_versao INTEGER NOT NULL DEFAULT 0;"
+                "ALTER TABLE watch_devices ADD COLUMN owner_id TEXT REFERENCES participantes(id) ON DELETE CASCADE;"
             )
 
         agora = datetime.now(UTC).isoformat()

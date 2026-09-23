@@ -5,8 +5,8 @@ import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
 
-/** Lance tocado no pulso, com a base (partida e versão da chave) vista no toque. */
-data class PendingCommand(val id: String, val partidaId: String, val relogioVersao: Int, val equipe: String)
+/** Lance tocado no pulso, com a base (partida e versão do controle) vista no toque. */
+data class PendingCommand(val id: String, val partidaId: String, val controleVersao: Int, val equipe: String)
 
 /** Fila e motivo de pausa, gravados juntos para sobreviver ao fechamento do app. */
 data class QueueState(val commands: List<PendingCommand> = emptyList(), val held: String? = null)
@@ -23,7 +23,7 @@ class CommandQueue(private val file: File) {
         QueueState(
             commands = (0 until list.length()).map { i ->
                 val c = list.getJSONObject(i)
-                PendingCommand(c.getString("id"), c.getString("partida_id"), c.getInt("relogio_versao"), c.getString("equipe"))
+                PendingCommand(c.getString("id"), c.getString("partida_id"), c.getInt("controle_versao"), c.getString("equipe"))
             },
             held = if (json.isNull("retido")) null else json.optString("retido"),
         )
@@ -34,7 +34,7 @@ class CommandQueue(private val file: File) {
             .put("comandos", JSONArray().apply {
                 state.commands.forEach {
                     put(JSONObject().put("id", it.id).put("partida_id", it.partidaId)
-                        .put("relogio_versao", it.relogioVersao).put("equipe", it.equipe))
+                        .put("controle_versao", it.controleVersao).put("equipe", it.equipe))
                 }
             })
             .put("retido", state.held ?: JSONObject.NULL)

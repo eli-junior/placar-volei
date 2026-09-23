@@ -253,7 +253,15 @@ def projetar_linha_do_tempo(
         elif evento.tipo == TipoEvento.CONTROLE_DEVOLVIDO:
             ausente = evento.payload.get("anterior_apelido", "o controlador")
             destino = evento.payload.get("apelido", "o admin")
-            descricao = f"Controle devolvido para {destino} por ausência de {ausente}"
+            if evento.payload.get("motivo") in (
+                "relogio_revogado",
+                "relogio_desabilitado",
+            ):
+                descricao = f"Controle devolvido para {destino}: relógio desvinculado"
+            else:
+                descricao = (
+                    f"Controle devolvido para {destino} por ausência de {ausente}"
+                )
 
         elif evento.tipo == TipoEvento.PAPEL_ALTERADO:
             novo_papel = evento.payload.get("papel")
@@ -276,16 +284,6 @@ def projetar_linha_do_tempo(
                 descricao = f"{novo_admin} assumiu a administração por sucessão (ausência de {antigo_admin})"
             else:
                 descricao = f"Administração vaga por ausência de {antigo_admin}"
-
-        elif evento.tipo == TipoEvento.CONTROLE_RELOGIO_ALTERADO:
-            dono = evento.payload.get("apelido") or "eli"
-            if evento.payload.get("ativo"):
-                descricao = f"Placar passou a ser controlado pelo relógio de {dono}"
-            else:
-                motivo = evento.payload.get("motivo")
-                descricao = "Placar voltou a ser controlado pelo telefone" + (
-                    f" ({motivo})" if motivo else ""
-                )
 
         elif evento.tipo == TipoEvento.PARTIDA_ENCERRADA:
             venc = evento.payload.get("vencedor")

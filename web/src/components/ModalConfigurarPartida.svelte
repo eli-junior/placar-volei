@@ -1,7 +1,6 @@
 <script>
   import Dialogo from './Dialogo.svelte';
   import Icone from './Icone.svelte';
-  import ChaveRelogio from './ChaveRelogio.svelte';
 
   let {
     estadoPartida = null,
@@ -10,11 +9,6 @@
     onFechar = () => {},
     movimentoReduzido = false,
     submetendo = false,
-    // Chave "Controlar pelo Relógio": só nas configurações da partida em curso.
-    quadra = null,
-    eu = null,
-    participantes = [],
-    onAlternarRelogio = (ativo) => {},
   } = $props();
 
   let timeAJogador1 = $state('');
@@ -222,10 +216,6 @@
           </div>
         {/if}
       </div>
-
-      {#if !isReinicio && quadra}
-        <ChaveRelogio {quadra} {eu} {participantes} ocupado={submetendo} onAlternar={onAlternarRelogio} />
-      {/if}
 
       <div class="modal-acoes">
         <button

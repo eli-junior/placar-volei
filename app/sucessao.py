@@ -40,12 +40,26 @@ def verificar_sucessao_quadra_sync(
             # Não há admin ativo na quadra (já foi sucedido ou posto vago)
             return None
 
-        # Se o admin estiver online, nenhuma sucessão deve ocorrer
-        if admin["id"] in online_ids:
+        # Se o admin estiver online, nenhuma sucessão deve ocorrer. O relógio
+        # vinculado a ele conta como presença do dono (CV3.DS1.US2): o
+        # telefone fica bloqueado no bolso enquanto o Eli joga.
+        relogios = cursor.execute(
+            """SELECT p.id, p.ultimo_visto_em FROM watch_devices d
+            JOIN participantes p ON p.id = d.participant_id
+            WHERE d.owner_id = ? AND d.revoked = 0""",
+            (admin["id"],),
+        ).fetchall()
+        if admin["id"] in online_ids or any(r["id"] in online_ids for r in relogios):
             return None
 
         agora = datetime.now(UTC)
-        ultimo_visto = datetime.fromisoformat(admin["ultimo_visto_em"])
+        ultimo_visto = max(
+            datetime.fromisoformat(v)
+            for v in [
+                admin["ultimo_visto_em"],
+                *(r["ultimo_visto_em"] for r in relogios),
+            ]
+        )
         segundos_offline = (agora - ultimo_visto).total_seconds()
         if segundos_offline < timeout:
             return None
@@ -200,6 +214,16 @@ def verificar_controle_ocioso_sync(
         )
         controlador = cursor.fetchone()
         if controlador and controlador["id"] in online_ids:
+            return None
+        # Controle delegado ao relógio não volta por ausência: a tela apaga
+        # durante o jogo. O admin retoma com "Assumir o controle".
+        if (
+            controlador
+            and cursor.execute(
+                "SELECT 1 FROM watch_devices WHERE participant_id = ? AND revoked = 0",
+                (controlador["id"],),
+            ).fetchone()
+        ):
             return None
 
         agora = datetime.now(UTC)

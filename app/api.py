@@ -537,17 +537,6 @@ async def post_configurar_partida(
     return await executar_comando(quadra_id, request, "configurar", **kwargs)
 
 
-class ControleRelogioBody(BaseModel):
-    ativo: bool
-
-
-@router.post("/quadras/{quadra_id}/controle/relogio")
-async def post_controle_relogio(
-    quadra_id: str, body: ControleRelogioBody, request: Request
-):
-    return await executar_comando(quadra_id, request, "modo_relogio", ativo=body.ativo)
-
-
 @router.post("/quadras/{quadra_id}/controle/assumir")
 async def post_assumir_controle(quadra_id: str, request: Request):
     return await executar_comando(quadra_id, request, "assumir")
