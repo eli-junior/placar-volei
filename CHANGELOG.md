@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### feature/cv3-ds1-us1-vincular-relogio
 - **História / Escopo**: CV3.DS1.US1 — vínculo pessoal do relógio; quatro HUs do arco registradas.
 - **Branch**: `feature/cv3-ds1-us1-vincular-relogio`
-- **Passo Ariad**: Passo 4 - Teste e Validação; campo de endereço corrigido após primeiro teste físico, aguardando revalidação.
-- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv3-watch-20260922 | Data: 2026-09-23
-- **Handoff / Próximos Passos**: Transferência solicitada pelo Navigator. Branch `feature/cv3-ds1-us1-vincular-relogio`. APK com URL pessoal e campo corrigido pronto; backend público ainda sem rotas watch na última consulta. Docker local construído e smoke de vínculo/revogação passou. Sincronizar esta branch no Mini PC, reconstruir contêiner fora de partida ativa (banco efêmero), habilitar eli e validar no Watch antes de Checkpoint 3. Instruções completas em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/handoff.md` e `wear/README.md`. Sem deploy remoto ou merge na master.
+- **Passo Ariad**: Passo 4 - Teste e Validação; API de vínculo já em produção (via master `a4b59ae`), aguardando validação física no Watch.
+- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: retomada-cv3-watch | Data: 2026-09-23 — Assumido a partir do Passo 4 (antes: Codex, cv3-watch-20260922)
+- **Handoff / Próximos Passos**: Master (com a API do relógio extraída em `feature/cv3-ds1-us1-api-relogio`) mesclada nesta branch; backend idêntico ao de produção. `https://placar.elijunior.click/openapi.json` confirmou em 2026-09-23 as rotas `/api/watch/*` e `/api/owner/watch-access` (versão exibida segue 0.6.1). Próximo: reinstalar o APK atual, habilitar eli na sala com `scripts/watch_access.py` e cumprir o test-guide da US1. O commit `29d70d7` (WATCH_AUTO_GRANT) existe só em `origin/feature/cv3-ds1-us1-api-relogio`, fora da master e desta branch; incorporação depende de decisão do Navigator. Detalhes em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/handoff.md`. Sem merge desta branch na master.
 
 
 ## 0.6.1 - 2026-09-20

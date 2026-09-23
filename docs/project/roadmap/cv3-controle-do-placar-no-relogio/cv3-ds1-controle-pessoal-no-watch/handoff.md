@@ -1,5 +1,13 @@
 # Retomada — CV3.DS1.US1
 
+## Atualização 2026-09-23 — API em produção
+
+- A API de vínculo foi extraída para `feature/cv3-ds1-us1-api-relogio` e mesclada na master (`a4b59ae`); essa master foi mesclada nesta branch. Backend (`app/`, `tests/`, `web/`, `scripts/`) desta branch é idêntico ao da master.
+- Produção confirmada: `/openapi.json` de `https://placar.elijunior.click` lista `/api/owner/watch-access`, `/api/watch/pairing`, `/api/watch/session`, `/api/watch/state` e as rotas `/api/quadras/{court}/watch*`. A etapa "sincronizar no Mini PC" do roteiro abaixo **já foi cumprida**.
+- `29d70d7` (habilitação automática via `WATCH_AUTO_GRANT`) está apenas na branch da API, fora da master. Não foi incorporado aqui: muda o desenho aprovado (habilitação explícita do owner). Aguarda decisão do Navigator.
+- Pytest após o merge: 130 passaram. APK local inalterado (SHA-256 `e9971e64…263e`).
+- Próximo passo: validação física (itens 4–8 abaixo).
+
 ## LEIA PRIMEIRO — transferência solicitada pelo Navigator
 
 **Branch de trabalho: `feature/cv3-ds1-us1-vincular-relogio`.**
