@@ -3,6 +3,7 @@ package br.com.placarvolei.watch
 import android.app.Application
 import android.util.Base64
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
@@ -70,74 +71,41 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         private set
     private val poke = Channel<Unit>(Channel.CONFLATED)
 
-    // Placar (CV3.DS1.US2): confirmado pelo servidor + fila durável de lances.
-    private val queue = CommandQueue(File(app.filesDir, "fila-lances.json"))
-    private var queueState by mutableStateOf(queue.load())
+    // Placar (CV3.DS1.US2, TS1): confirmado pelo servidor + fila durável de
+    // lances, persistidos juntos na `ScoreSync`. `rev` avisa a tela a cada mudança.
+    private val sync = ScoreSync(CommandQueue(File(app.filesDir, "fila-lances.json")))
+    private var rev by mutableIntStateOf(0)
     private val wake = Channel<Unit>(Channel.CONFLATED)
-    var score by mutableStateOf<Confirmed?>(null)
-        private set
-    var participantId by mutableStateOf<String?>(null)
-        private set
+    val score get() = rev.let { sync.score }
+    val participantId get() = rev.let { sync.participantId }
     var connection by mutableStateOf(Connection.RECONECTANDO)
         private set
-    val pending get() = queueState.commands
-    val held get() = queueState.held
+    val pending get() = rev.let { sync.pending }
+    val held get() = rev.let { sync.held }
     val labels get() = score?.let(::teamLabels) ?: ("Nós" to "Eles")
     val shown get() = score?.let { predicted(it, pending) }
 
     /** O controle do placar está com este relógio. */
-    val controlled get() = score?.controleId?.let { it == participantId } == true
-
-    /** Por que o relógio não opera o placar agora (pontos e desfazer); null = opera. */
-    private val controlReason: String?
-        get() {
-            val s = score ?: return "Carregando placar…"
-            held?.let { return it }
-            if (s.controleId == null || s.controleId != participantId) {
-                return "Controle no telefone. Peça ao admin para passar o controle."
-            }
-            return null
-        }
+    val controlled get() = rev.let { sync.controlled }
 
     /** Por que os botões de ponto estão travados agora; null = pode marcar. */
-    val blockReason: String?
-        get() {
-            controlReason?.let { return it }
-            val s = score ?: return "Carregando placar…"
-            if (s.encerrada) return "Partida encerrada."
-            val (a, b) = predicted(s, pending)
-            if (avaliarVitoria(a, b, s.alvo, s.vantagem, s.teto) != null) return "Fim de partida. Aguardando confirmação."
-            return null
-        }
-
-    /** Grava o lance antes de qualquer retorno visual. Devolve se foi aceito. */
-    fun tap(equipe: String): Boolean {
-        val s = score ?: return false
-        if (blockReason != null) return false
-        val command = PendingCommand(UUID.randomUUID().toString(), s.partidaId, s.controleVersao, equipe)
-        if (!update(queueState.copy(commands = queueState.commands + command))) return false
-        wake.trySend(Unit)
-        return true
-    }
-
-    /** Ponto no topo da pilha prevista; null = nada para desfazer. */
-    private val undoTarget get() = score?.let { stack(it, pending).lastOrNull() }
+    val blockReason get() = rev.let { sync.blockReason }
 
     /** Desfazer segue valendo com a vitória prevista ou a partida encerrada. */
-    val canUndo get() = controlReason == null && undoTarget != null
+    val canUndo get() = rev.let { sync.canUndo }
+
+    /** Grava o lance antes de qualquer retorno visual. Devolve se foi aceito. */
+    fun tap(equipe: String) = changed(sync.tap(equipe))
 
     /** Grava na fila o desfazer do ponto visto no topo, antes do retorno visual. */
-    fun undo(): Boolean {
-        val s = score ?: return false
-        val target = undoTarget ?: return false
-        if (!canUndo) return false
-        val command = PendingCommand(
-            UUID.randomUUID().toString(), s.partidaId, s.controleVersao, null, ACAO_DESFAZER,
-            alvoSeq = target.seq.takeIf { target.comando == null }, alvoComando = target.comando,
-        )
-        if (!update(queueState.copy(commands = queueState.commands + command))) return false
-        wake.trySend(Unit)
-        return true
+    fun undo() = changed(sync.undo())
+
+    /** Depois de mexer na `ScoreSync`: atualiza a tela e acorda o envio. */
+    private fun changed(accepted: Boolean = true): Boolean {
+        rev++
+        sync.saveError?.let { message = it }
+        if (accepted) wake.trySend(Unit)
+        return accepted
     }
 
     /** Dono do relógio é admin da quadra (CV3.DS2.US3); vem de `/api/watch/session`. */
@@ -153,7 +121,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     val showNewMatch get() = controlled && ownerAdmin && score?.encerrada == true
 
     /** Só com conexão e fila vazia: a partida nova não entra na fila offline. */
-    val canStartNewMatch get() = showNewMatch && controlReason == null && pending.isEmpty() &&
+    val canStartNewMatch get() = showNewMatch && sync.controlReason == null && pending.isEmpty() &&
         connection == Connection.CONECTADO && !startingMatch
 
     /** Nova partida nos mesmos moldes (CV3.DS2.US3), enviada direto ao servidor. */
@@ -170,7 +138,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 when {
                     status == 401 -> unlink(data)
                     data.has("recibo") -> {
-                        data.optJSONObject("estado")?.let { applySnapshot(Confirmed.fromSnapshot(it)) }
+                        data.optJSONObject("estado")?.let { sync.applySnapshot(it); changed(false) }
                         val recibo = data.getJSONObject("recibo")
                         if (recibo.optString("status") != "APLICADO") message = recibo.optString("detalhe")
                     }
@@ -187,61 +155,41 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
 
     /** Descarte explícito, confirmado no relógio, dos lances retidos por recusa. */
     fun discardHeld() {
-        if (update(QueueState())) wake.trySend(Unit)
-    }
-
-    private fun update(next: QueueState): Boolean = try {
-        queue.save(next)
-        queueState = next
-        true
-    } catch (e: Exception) {
-        message = "Não foi possível guardar o lance no relógio."
-        false
-    }
-
-    private fun applySnapshot(next: Confirmed) {
-        if (score?.accepts(next) != false) score = next
+        sync.discardHeld()
+        changed()
     }
 
     private suspend fun sendLoop() {
         var backoff = 1_000L
         while (true) {
-            val next = queueState.commands.firstOrNull()
-            if (!linked || stage != Stage.PLACAR || next == null || queueState.held != null) {
+            if (!linked || stage != Stage.PLACAR) {
                 wake.receive()
                 continue
             }
-            val result = try {
-                request("/api/watch/comandos", body = next.toJson().toString())
-            } catch (e: CancellationException) {
-                throw e
-            } catch (e: Exception) {
-                null
-            }
-            if (result == null || result.first >= 500) {
-                // Sem rede: o lance continua na fila e volta a ser enviado.
-                connection = Connection.SEM_CONEXAO
-                withTimeoutOrNull(backoff) { wake.receive() }
-                backoff = (backoff * 2).coerceAtMost(15_000L)
-                continue
-            }
-            backoff = 1_000L
-            connection = Connection.CONECTADO
-            val (status, data) = result
-            val stillQueued = queueState.commands.any { it.id == next.id }
-            when {
-                status == 401 -> unlink(data)
-                data.has("recibo") -> {
-                    data.optJSONObject("estado")?.let { applySnapshot(Confirmed.fromSnapshot(it)) }
-                    val recibo = data.getJSONObject("recibo")
-                    if (!stillQueued) Unit
-                    else if (recibo.optString("status") == "APLICADO") {
-                        update(queueState.copy(commands = queueState.commands.filterNot { it.id == next.id }))
-                    } else {
-                        update(queueState.copy(held = recibo.optString("detalhe").ifBlank { "Lance recusado." }))
+            val (result, data) = try {
+                sync.sendNext { body ->
+                    try {
+                        request("/api/watch/comandos", body = body.toString())
+                    } catch (e: CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        null
                     }
                 }
-                stillQueued -> update(queueState.copy(held = data.optString("detail", "Lance recusado.")))
+            } finally { changed(false) }
+            when (result) {
+                SendResult.OCIOSO -> wake.receive()
+                SendResult.SEM_REDE -> {
+                    // Sem rede: o lance continua na fila e volta a ser enviado.
+                    connection = Connection.SEM_CONEXAO
+                    withTimeoutOrNull(backoff) { wake.receive() }
+                    backoff = (backoff * 2).coerceAtMost(15_000L)
+                }
+                SendResult.NAO_AUTORIZADO -> unlink(data ?: JSONObject())
+                SendResult.ENVIADO -> {
+                    backoff = 1_000L
+                    connection = Connection.CONECTADO
+                }
             }
         }
     }
@@ -393,10 +341,9 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         store.promotePending(courtLabel(data.optString("court_name"), data.getString("court_id")).orEmpty())
         court = store.courtName()
         // Lances da quadra anterior: o abandono foi confirmado ao gerar o código.
-        update(QueueState())
+        sync.reset()
+        changed(false)
         socket?.let { old -> socket = null; old.close(1000, null) }
-        score = null
-        participantId = null
         linked = false
         invalid = false
         code = ""
@@ -438,13 +385,14 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 invalid = false
                 code = ""
                 store.saveCode("")
-                participantId = data.optString("participant_id").ifBlank { null }
+                sync.setParticipant(data.optString("participant_id").ifBlank { null })
+                changed(false)
                 ownerAdmin = data.optBoolean("pode_nova_partida", false)
                 court = saveCourt(data)
                 message = "Vinculado como ${data.getString("display_name")}\nSala ${data.getString("court_id")}"
                 connectPresence(data.getString("court_id"))
                 val (stateStatus, snapshot) = request("/api/watch/state")
-                if (stateStatus == 200) applySnapshot(Confirmed.fromSnapshot(snapshot))
+                if (stateStatus == 200) { sync.applySnapshot(snapshot); changed(false) }
                 wake.trySend(Unit)
             }
             status == 200 -> { connecting = false; linked = false; message = "Aguardando autorização no telefone." }
@@ -471,20 +419,17 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
             }
             override fun onMessage(webSocket: WebSocket, text: String) {
                 // Snapshot interpretado fora da thread principal; aplicado nela.
-                val (next, appliedId) = runCatching {
+                val payload = runCatching {
                     val json = JSONObject(text)
                     if (json.optString("tipo") in setOf("ESTADO_INICIAL", "PLACAR_ATUALIZADO")) {
-                        val payload = json.getJSONObject("payload")
-                        Confirmed.fromSnapshot(payload) to payload.optString("comando_id")
+                        json.getJSONObject("payload").also { Confirmed.fromSnapshot(it) }
                     } else null
                 }.getOrNull() ?: return
                 viewModelScope.launch {
                     if (socket !== webSocket) return@launch
-                    applySnapshot(next)
                     // Lance já confirmado: sai da fila junto com o snapshot, sem contar duas vezes.
-                    if (queueState.commands.any { it.id == appliedId }) {
-                        update(queueState.copy(commands = queueState.commands.filterNot { it.id == appliedId }))
-                    }
+                    sync.applySnapshot(payload, payload.optString("comando_id").ifBlank { null })
+                    changed(false)
                 }
             }
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {

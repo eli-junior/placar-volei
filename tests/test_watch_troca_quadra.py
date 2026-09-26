@@ -7,27 +7,17 @@ novo é aprovado; desistir cancela o código e mantém o vínculo atual.
 import secrets
 
 import pytest
-from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from app.config import settings
 from app.db import get_db, init_db_sync
-from app.main import app
-from app.rate_limit import owner_rate_limiter
-from app.watch import approval_limit, creation_limit
-from tests.test_watch_comandos import comando, delegar, relogio_id
-from tests.test_watch_pairing import link, prepare
-
-
-@pytest.fixture
-def client(tmp_path, monkeypatch):
-    monkeypatch.setattr(settings, "db_path", str(tmp_path / "watch.db"))
-    monkeypatch.setattr(settings, "owner_secret", "test-owner-only")
-    creation_limit.resetar()
-    approval_limit.resetar()
-    owner_rate_limiter.resetar()
-    with TestClient(app) as client:
-        yield client
+from tests.watch_support import (
+    comando,
+    delegar,
+    link,
+    prepare,
+    relogio_id,
+)
 
 
 def replacing(client, old_token):

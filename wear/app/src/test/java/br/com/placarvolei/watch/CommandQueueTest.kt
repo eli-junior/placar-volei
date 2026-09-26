@@ -61,5 +61,19 @@ class CommandQueueTest {
         val desfazer = PendingCommand("b", "p1", 1, null, ACAO_DESFAZER, alvoSeq = 4).toJson()
         assertEquals(setOf("id", "partida_id", "controle_versao", "acao", "alvo_seq"), desfazer.keys().asSequence().toSet())
         assertEquals(4, desfazer.getInt("alvo_seq"))
+        val comBase = PendingCommand("c", "p1", 1, "B", baseSeq = 9).toJson()
+        assertEquals(9, comBase.getInt("base_seq"))
+    }
+
+    @Test
+    fun confirmedScoreAndParticipantArePersistedWithTheQueue() {
+        val file = folder.root.resolve("fila.json")
+        val snapshot = """{"partida_id":"p1","seq":3}"""
+        val state = QueueState(listOf(PendingCommand("x", "p1", 2, "A", baseSeq = 3)), null, snapshot, "w1")
+        CommandQueue(file).save(state)
+        val loaded = CommandQueue(file).load()
+        assertEquals(state.commands, loaded.commands)
+        assertEquals("w1", loaded.participantId)
+        assertEquals(3, org.json.JSONObject(loaded.snapshot!!).getInt("seq"))
     }
 }

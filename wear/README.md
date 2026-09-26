@@ -1,6 +1,6 @@
 # Placar Vôlei — Wear OS
 
-APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca e desfaz pontos quando o admin passa o controle para ele (`CV3.DS1.US2`–`US3`, versão `0.9.0`). O servidor deve executar a mesma versão do APK: o desfazer precisa da `0.9.0` no servidor.
+APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca e desfaz pontos quando o admin passa o controle para ele (`CV3.DS1.US2`–`US3`) e, sem rede, segue marcando e sincroniza depois, mesmo após reabrir o app (`CV3.DS1.TS1`, versão `0.19.0`). O servidor deve executar a mesma versão do APK: a devolução do controle com fila pendente precisa da `0.19.0` no servidor.
 
 ## WSL / Android Studio
 
@@ -8,7 +8,7 @@ Ambiente preparado nesta sessão:
 
 - Android Studio: `/home/eli/.local/opt/android-studio/bin/studio.sh` (Quail 4 Patch 1, Linux, WSLg).
 - SDK: `/home/eli/Android/Sdk` (API 35, build-tools 35.0.0, platform-tools).
-- JDK de build: `/home/eli/.sdkman/candidates/java/21.0.7-tem`. **O JDK 25 embutido no Studio não é compatível com este Gradle.**
+- JDK de build: `/home/eli/.sdkman/candidates/java/21.0.7-tem`, padrão do `sdk` desde 2026-09-26. **O JDK 25 embutido no Studio não é compatível com este Gradle.**
 - AGP 8.9.2, Gradle 8.11.1, Kotlin 2.1.20; versões fixadas nos arquivos de build.
 
 No Android Studio, abra a pasta `wear`. Em **Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK**, selecione o JDK 21 acima. Configure o SDK em `/home/eli/Android/Sdk`. `local.properties` e configurações locais do IDE não são versionados.

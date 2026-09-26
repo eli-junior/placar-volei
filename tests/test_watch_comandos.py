@@ -18,52 +18,15 @@ from app.comandos import MSG_ALVO_MUDOU
 from app.config import settings
 from app.db import get_db, init_db_sync
 from app.main import app
-from app.rate_limit import owner_rate_limiter
 from app.sucessao import verificar_controle_ocioso_sync, verificar_sucessao_quadra_sync
-from app.watch import approval_limit, creation_limit
-from tests.test_watch_pairing import link, prepare
-
-
-@pytest.fixture
-def client(tmp_path, monkeypatch):
-    monkeypatch.setattr(settings, "db_path", str(tmp_path / "watch.db"))
-    monkeypatch.setattr(settings, "owner_secret", "test-owner-only")
-    creation_limit.resetar()
-    approval_limit.resetar()
-    owner_rate_limiter.resetar()
-    with TestClient(app) as client:
-        yield client
-
-
-def estado(client, headers):
-    return client.get("/api/watch/state", headers=headers).json()
-
-
-def relogio_id(client, headers):
-    return client.get("/api/watch/session", headers=headers).json()["participant_id"]
-
-
-def comando(client, headers, equipe="A", *, base=None):
-    base = base or estado(client, headers)
-    body = {
-        "id": str(uuid.uuid4()),
-        "partida_id": base["partida_id"],
-        "controle_versao": base["quadra"]["controle_versao"],
-        "equipe": equipe,
-    }
-    return client.post("/api/watch/comandos", json=body, headers=headers), body
-
-
-def delegar(client, court, headers):
-    """Admin promove o relógio e passa o controle para ele (botões do site)."""
-    watch = relogio_id(client, headers)
-    base = f"/api/quadras/{court['id']}/participantes/{watch}"
-    assert client.post(f"{base}/promover").status_code == 200
-    # Passar o controle exige o relógio conectado.
-    with client.websocket_connect(f"/ws/{court['id']}", headers=headers) as ws:
-        ws.receive_json()
-        assert client.post(f"{base}/controle").status_code == 200
-    return watch
+from tests.watch_support import (
+    comando,
+    delegar,
+    estado,
+    link,
+    prepare,
+    relogio_id,
+)
 
 
 @pytest.fixture
@@ -652,3 +615,110 @@ def test_new_match_shape_is_validated(client, sala):
         client.post("/api/watch/comandos", json=body, headers=headers).status_code
         == 422
     )
+
+
+# Fila offline (CV3.DS1.TS1): devolução do controle ao relógio com `base_seq`.
+
+
+def devolver_ao_relogio(client, court, headers):
+    """Admin assume o controle e depois o passa de novo ao relógio."""
+    assert (
+        client.post(f"/api/quadras/{court['id']}/controle/assumir").status_code == 200
+    )
+    watch = relogio_id(client, headers)
+    with client.websocket_connect(f"/ws/{court['id']}", headers=headers) as ws:
+        ws.receive_json()
+        assert (
+            client.post(
+                f"/api/quadras/{court['id']}/participantes/{watch}/controle"
+            ).status_code
+            == 200
+        )
+
+
+def test_queue_survives_control_returned_to_watch_with_match_unchanged(client, sala):
+    court, headers = sala
+    base = estado(client, headers)
+    devolver_ao_relogio(client, court, headers)
+    first, _ = comando(client, headers, "A", base=base, base_seq=base["seq"])
+    second, _ = comando(client, headers, "B", base=base, base_seq=base["seq"])
+    assert first.json()["recibo"]["status"] == "APLICADO"
+    assert second.json()["recibo"]["status"] == "APLICADO"
+    assert placar(client, headers) == (1, 1)
+
+
+def test_rebased_resend_does_not_duplicate(client, sala):
+    court, headers = sala
+    base = estado(client, headers)
+    devolver_ao_relogio(client, court, headers)
+    first, body = comando(client, headers, "A", base=base, base_seq=base["seq"])
+    again = client.post("/api/watch/comandos", json=body, headers=headers)
+    assert again.json()["recibo"] == first.json()["recibo"]
+    assert len(eventos(court["id"], "PONTO_MARCADO")) == 1
+
+
+def test_queue_is_rejected_when_someone_else_scored_meanwhile(client, sala):
+    court, headers = sala
+    base = estado(client, headers)
+    assert (
+        client.post(f"/api/quadras/{court['id']}/controle/assumir").status_code == 200
+    )
+    versao = str(client.get(f"/api/quadras/{court['id']}").json()["controle_versao"])
+    ponto = client.post(
+        f"/api/quadras/{court['id']}/pontos",
+        json={"equipe": "B"},
+        headers={"x-control-version": versao},
+    )
+    assert ponto.status_code == 201, ponto.text
+    watch = relogio_id(client, headers)
+    with client.websocket_connect(f"/ws/{court['id']}", headers=headers) as ws:
+        ws.receive_json()
+        client.post(f"/api/quadras/{court['id']}/participantes/{watch}/controle")
+    response, _ = comando(client, headers, "A", base=base, base_seq=base["seq"])
+    assert response.json()["recibo"]["status"] == "RECUSADO"
+    assert placar(client, headers) == (0, 1)
+
+
+def test_queue_is_rejected_while_control_is_with_someone_else(client, sala):
+    court, headers = sala
+    base = estado(client, headers)
+    assert (
+        client.post(f"/api/quadras/{court['id']}/controle/assumir").status_code == 200
+    )
+    response, _ = comando(client, headers, "A", base=base, base_seq=base["seq"])
+    assert response.json()["recibo"]["status"] == "RECUSADO"
+    assert not eventos(court["id"], "PONTO_MARCADO")
+
+
+def test_queue_is_rejected_after_rules_change(client, sala):
+    court, headers = sala
+    base = estado(client, headers)
+    assert (
+        client.post(f"/api/quadras/{court['id']}/controle/assumir").status_code == 200
+    )
+    regras = client.post(f"/api/quadras/{court['id']}/configurar", json={"alvo": 15})
+    assert regras.status_code == 200, regras.text
+    watch = relogio_id(client, headers)
+    with client.websocket_connect(f"/ws/{court['id']}", headers=headers) as ws:
+        ws.receive_json()
+        client.post(f"/api/quadras/{court['id']}/participantes/{watch}/controle")
+    response, _ = comando(client, headers, "A", base=base, base_seq=base["seq"])
+    assert response.json()["recibo"]["status"] == "RECUSADO"
+
+
+def test_own_points_after_base_do_not_block_rebase(client, sala):
+    court, headers = sala
+    base = estado(client, headers)
+    comando(client, headers, "A", base=base, base_seq=base["seq"])
+    devolver_ao_relogio(client, court, headers)
+    response, _ = comando(client, headers, "B", base=base, base_seq=base["seq"])
+    assert response.json()["recibo"]["status"] == "APLICADO"
+    assert placar(client, headers) == (1, 1)
+
+
+def test_without_base_seq_version_stays_strict(client, sala):
+    court, headers = sala
+    base = estado(client, headers)
+    devolver_ao_relogio(client, court, headers)
+    response, _ = comando(client, headers, "A", base=base)
+    assert response.json()["recibo"]["status"] == "RECUSADO"

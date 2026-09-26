@@ -5,58 +5,13 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 
 import pytest
-from fastapi.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from app.config import settings
 from app.db import get_db
 from app.hub import hub
 from app.identidade import SESSION_COOKIE, hash_sessao
-from app.main import app
-from app.rate_limit import owner_rate_limiter
-from app.watch import approval_limit, creation_limit
-
-
-@pytest.fixture
-def client(tmp_path, monkeypatch):
-    monkeypatch.setattr(settings, "db_path", str(tmp_path / "watch.db"))
-    monkeypatch.setattr(settings, "owner_secret", "test-owner-only")
-    creation_limit.resetar()
-    approval_limit.resetar()
-    owner_rate_limiter.resetar()
-    with TestClient(app) as client:
-        yield client
-
-
-def prepare(client):
-    court = client.post("/api/quadras", json={"apelido": "eli"}).json()
-    response = client.post(
-        "/api/owner/watch-access",
-        json={"participant_id": court["participante"]["id"]},
-        headers={"x-owner-secret": settings.owner_secret},
-    )
-    assert response.status_code == 200
-    return court
-
-
-def pairing(client):
-    token = secrets.token_urlsafe(32)
-    headers = {"Authorization": f"Bearer {token}"}
-    response = client.post("/api/watch/pairing", headers=headers)
-    assert response.status_code == 201
-    assert response.headers["Cache-Control"] == "no-store"
-    return token, headers, response.json()["code"]
-
-
-def link(client, court):
-    token, headers, code = pairing(client)
-    assert (
-        client.post(
-            f"/api/quadras/{court['id']}/watch/approve", json={"code": code}
-        ).status_code
-        == 200
-    )
-    return token, headers
+from tests.watch_support import link, pairing, prepare
 
 
 def test_link_creates_watch_participant_without_exposing_credentials(client):

@@ -50,3 +50,7 @@ Ver frontmatter.
 `web/tests/icones-usados.test.js` cobre só a classe de defeito do ícone.
 
 Atualizado na US5 (2026-09-23): o `WatchModel` tem 517 linhas; separar vínculo de placar/fila, previsto para o início da US4, facilita testar cada parte com um servidor falso.
+
+## Progresso
+
+- 2026-09-26 (CV3.DS1.TS1, 0.19.0): fila, placar confirmado e envio do relógio saíram para a `ScoreSync`, testada com servidor falso (`ScoreSyncTest`). Continuam sem teste: abertura, troca de quadra e cancelamento no `WatchModel`.
