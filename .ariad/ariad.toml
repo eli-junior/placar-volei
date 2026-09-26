@@ -1,0 +1,179 @@
+# Ariad sidecar configuration. See .ariad/README.md.
+# Agent flags were checked on 2026-09-25 (Claude Code 2.1.278, codex-cli 0.155.1,
+# GitHub Copilot CLI 1.0.88, agy 1.2.11). Run `check` after editing.
+
+[project]
+language = "pt-BR"           # language of docs and text values written by agents
+verify = [
+  "uv run pytest",
+  "uv run ruff check .",
+  "uv run ruff format --check .",
+]               # commands the orchestrator runs after each implementation
+plan_checkpoint_from = 4     # effort >= this stops for plan approval
+max_fix_rounds = 2           # automatic writer fix loops (verify failures + blocking findings)
+timeout_minutes = 45         # per agent call
+diff_limit_kb = 60           # diff embedded in reviewer prompts
+min_available = 10           # % of usage left below which an agent is "baixo"
+
+[roles]
+brain = "claude"
+brain_effort = 8             # band used for setup calls
+writer = "claude"
+reviewers = ["codex", "copilot", "gemini"]
+reviewers_by_effort = { 1 = 1, 8 = 2 }   # effort >= key uses that many reviewers
+
+# ---------------------------------------------------------------------------
+[agents.claude]
+exe = "claude"
+usage = "claude"
+write = ["-p", "--output-format", "stream-json", "--verbose", "--permission-mode", "acceptEdits",
+  "--allowedTools", "Read", "Edit", "Write", "Glob", "Grep",
+  "Bash(git status*)", "Bash(git diff*)", "Bash(git log*)", "Bash(git show*)",
+  "Bash(npm *)", "Bash(npx *)", "Bash(pnpm *)", "Bash(yarn *)", "Bash(uv *)",
+  "Bash(python *)", "Bash(py *)", "Bash(pytest*)", "Bash(go *)", "Bash(cargo *)",
+  "Bash(dotnet *)", "Bash(mvn *)", "Bash(gradle *)",
+  "--disallowedTools", "Bash(git commit*)", "Bash(git push*)"]
+read = ["-p", "--output-format", "stream-json", "--verbose",
+  "--allowedTools", "Read", "Glob", "Grep",
+  "Bash(git diff*)", "Bash(git log*)", "Bash(git show*)", "Bash(git status*)",
+  "--disallowedTools", "Edit", "Write", "NotebookEdit"]
+schema = ["--json-schema", "{schema}"]
+quota = ["usage limit", "limit reached", "hit your limit", "rate.?limit", "\\b429\\b"]
+
+[[agents.claude.bands]]
+from = 1
+to = 2
+model = "haiku/low"
+args = ["--model", "haiku", "--effort", "low"]
+
+[[agents.claude.bands]]
+from = 3
+to = 5
+model = "sonnet/low"
+args = ["--model", "sonnet", "--effort", "low"]
+
+[[agents.claude.bands]]
+from = 6
+to = 7
+model = "sonnet/medium"
+args = ["--model", "sonnet", "--effort", "medium"]
+
+[[agents.claude.bands]]
+from = 8
+to = 8
+model = "sonnet/high"
+args = ["--model", "sonnet", "--effort", "high"]
+
+[[agents.claude.bands]]
+from = 9
+to = 10
+model = "opus/medium"
+args = ["--model", "opus", "--effort", "medium"]
+
+# ---------------------------------------------------------------------------
+[agents.codex]
+exe = "codex"
+usage = "codex"
+write = ["exec", "--sandbox", "workspace-write", "--skip-git-repo-check"]
+read = ["exec", "--sandbox", "read-only", "--skip-git-repo-check"]
+schema = ["--output-schema", "{schema_file}"]
+out = ["-o", "{out}"]
+tail = ["-"]
+quota = ["usage limit", "usage_limit", "rate.?limit", "\\b429\\b", "quota"]
+
+[[agents.codex.bands]]
+from = 1
+to = 3
+model = "codex/low"
+args = ["-c", "model_reasoning_effort=low"]
+
+[[agents.codex.bands]]
+from = 4
+to = 6
+model = "codex/medium"
+args = ["-c", "model_reasoning_effort=medium"]
+
+[[agents.codex.bands]]
+from = 7
+to = 8
+model = "codex/high"
+args = ["-c", "model_reasoning_effort=high"]
+
+[[agents.codex.bands]]
+from = 9
+to = 10
+model = "codex/xhigh"
+args = ["-c", "model_reasoning_effort=xhigh"]
+
+# ---------------------------------------------------------------------------
+# --allow-all-tools is required in non-interactive mode; --deny-tool always wins.
+# No JSON Schema flag: the prompt and the parser shape the answer.
+[agents.copilot]
+exe = "copilot"
+usage = "copilot"
+write = ["--output-format", "json", "--no-ask-user", "--no-color", "--no-auto-update", "--disable-builtin-mcps",
+  "--allow-all-tools", "--deny-tool", "shell(git commit)", "--deny-tool", "shell(git push)"]
+read = ["--output-format", "json", "--no-ask-user", "--no-color", "--no-auto-update", "--disable-builtin-mcps",
+  "--allow-all-tools", "--deny-tool", "write", "--deny-tool", "shell"]
+tail = ["-p", "{prompt}"]
+quota = ["quota", "rate.?limit", "\\b429\\b", "exceeded", "credits"]
+
+[[agents.copilot.bands]]
+from = 1
+to = 3
+model = "auto/low"
+args = ["--reasoning-effort", "low"]
+
+[[agents.copilot.bands]]
+from = 4
+to = 6
+model = "auto/medium"
+args = ["--reasoning-effort", "medium"]
+
+[[agents.copilot.bands]]
+from = 7
+to = 8
+model = "auto/high"
+args = ["--reasoning-effort", "high"]
+
+[[agents.copilot.bands]]
+from = 9
+to = 10
+model = "auto/xhigh"
+args = ["--reasoning-effort", "xhigh"]
+
+# ---------------------------------------------------------------------------
+# Antigravity CLI. It ends the turn when a terminal command is denied, so it never runs commands.
+[agents.gemini]
+exe = ["agy", "gemini"]
+usage = "agy"
+write = ["--output-format", "stream-json", "--mode", "accept-edits", "--print-timeout", "0", "--add-dir", "{project}"]
+read = ["--output-format", "stream-json", "--mode", "plan", "--print-timeout", "0", "--add-dir", "{project}"]
+schema = ["--json-schema", "{schema_file}"]
+tail = ["-p", "{prompt}"]
+extra_prompt = "Do not run terminal commands. Only read, list, and edit files."
+quota = ["quota", "RESOURCE_EXHAUSTED", "\\b429\\b", "rate.?limit", "usage limit"]
+
+[[agents.gemini.bands]]
+from = 1
+to = 3
+model = "flash/low"
+args = ["--effort", "low"]
+
+[[agents.gemini.bands]]
+from = 4
+to = 6
+model = "flash/medium"
+args = ["--effort", "medium"]
+
+[[agents.gemini.bands]]
+from = 7
+to = 8
+model = "flash/high"
+args = ["--effort", "high"]
+
+[[agents.gemini.bands]]
+from = 9
+to = 10
+model = "gemini-3.1-pro-high"
+args = ["--model", "gemini-3.1-pro-high", "--effort", "high"]

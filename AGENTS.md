@@ -180,3 +180,8 @@ When a story or release closes and merges into `main`, remove its active entry f
 - the people, agents, or runtimes who made the change (including agent signatures);
 - the relevant Git source (merge commit, branch, or tag);
 - the summary of changes that matter.
+
+## Orchestrated Mode
+
+When a prompt starts with `ARIAD ORCHESTRATED`, follow that prompt: return only the requested JSON, never commit or push, and read only the development guide, the story file, and the code the story needs. `.ariad/` is orchestrator tooling: never edit it, and read from it only a file the prompt names.
+
