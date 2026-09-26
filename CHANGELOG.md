@@ -4,13 +4,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV3.DS2.US3 — Nova partida rápida pelo relógio
-
-- **História / Escopo**: `CV3.DS2.US3`. Na pontuação final, **▶ Nova** ao lado do **↶ Desfazer** começa uma partida nova com os mesmos times e regras, com um toque.
-- **Branch**: `feature/cv3-ds2-us3-nova-partida-rapida-no-relogio`.
-- **Passo Ariad**: Passo 7 - Conclusão e Merge (Checkpoint 3 aprovado em 2026-09-26; docs e 0.12.0 prontos).
-- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: 53afbbcf | Data: 2026-09-26 12:10 UTC
-- **Handoff / Próximos Passos**: servidor (`acao: "nova_partida"` em `/api/watch/comandos`, `pode_nova_partida` em `/api/watch/session`) e relógio (faixa **↶ Desfazer | ▶ Nova**) implementados. APK em `~/placar-watch/placar-volei-us3-nova-partida.apk`. Docs, decisão, worklog e versão 0.12.0 prontos. Aguardando Checkpoint 4 (merge na master). A correção da Home ficou anotada em `debt-erro-de-entrada-pela-home-fora-da-vista`.
+Nenhum trabalho ativo.
 
 ## 0.12.0 - 2026-09-26
 
@@ -18,7 +12,7 @@ Boundary: minor (nova capacidade no relógio: nova partida rápida ao fim da par
 
 Authors: Eli (Navigator); Claude Opus 5.5 (Driver) | Sessão: 53afbbcf
 
-Git source: feature/cv3-ds2-us3-nova-partida-rapida-no-relogio (merge into master)
+Git source: feature/cv3-ds2-us3-nova-partida-rapida-no-relogio (merge 7d1dd89 into master)
 
 ### Added
 
