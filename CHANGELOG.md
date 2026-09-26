@@ -10,7 +10,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 - **Branch**: `codex/cv4-ds1-us1-home`, criada de `origin/master` em `33534a5` após sincronização da versão `0.12.0`.
 - **Passo Ariad**: Passo 4 - Teste e Validação (Checkpoint 1 aprovado pelo Navigator em 2026-09-26).
 - **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e | Data: 2026-09-26 10:14 -03:00.
-- **Handoff / Próximos Passos**: Home implementada; `npm run check`, 30 testes de frontend e build passaram. Validação visual automatizada feita em 1440×1000 e 904×1000 com uma partida ativa. Executar a suíte Python, sincronizar a branch e apresentar o Checkpoint 2; não iniciar E2.
+- **Handoff / Próximos Passos**: Home implementada e ajustada após a primeira validação do Navigator: abertura promocional removida, código e ação centralizados, tema identificado por texto e card ao vivo reorganizado em três colunas. `npm run check`, 30 testes de frontend, build e 185 testes Python passaram. Validar a revisão em 658 px, Fold e temas; não iniciar E2.
 
 ## 0.12.0 - 2026-09-26
 

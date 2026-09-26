@@ -103,14 +103,9 @@
     </a>
     <button class="tema" type="button" onclick={alternarTema} aria-label={temaSol ? 'Ativar modo escuro' : 'Ativar modo claro'}>
       <Icone nome={temaSol ? 'lua' : 'sol'} tamanho="1.2em" />
+      <span>{temaSol ? 'Escuro' : 'Claro'}</span>
     </button>
   </nav>
-
-  <header class="hero">
-    <p class="sobretitulo">PLACAR AO VIVO PARA A SUA TURMA</p>
-    <h1>Sua quadra.<br /><span>Seu placar.</span></h1>
-    <p>Entre em uma partida em segundos ou abra um novo placar para começar a jogar.</p>
-  </header>
 
   <div class="layout">
     <section class="painel-acesso" aria-labelledby="titulo-acesso">
@@ -135,7 +130,7 @@
           <label for="apelido-espectador">Como vamos chamar você?</label>
           <input id="apelido-espectador" type="text" maxlength="30" autocomplete="nickname" bind:value={apelidoEspectador} placeholder="Seu nome ou apelido" required disabled={submetendo} />
           <button class="acao-principal" type="submit" disabled={submetendo || !codigoQuadra.trim() || !apelidoEspectador.trim()}>
-            <span>{submetendo ? 'Entrando…' : 'Acompanhar placar'}</span><Icone nome="seta" tamanho="1.1em" />
+            <span>{submetendo ? 'Entrando…' : 'Acompanhar placar'}</span>
           </button>
         </form>
       {:else}
@@ -150,7 +145,7 @@
           <label for="nome-quadra">Nome da quadra <span>(opcional)</span></label>
           <input id="nome-quadra" type="text" maxlength="50" bind:value={nomeQuadra} placeholder="Ex.: Vôlei de sábado" disabled={submetendo} />
           <button class="acao-principal" type="submit" disabled={submetendo || !apelidoCriador.trim()}>
-            <span>{submetendo ? 'Criando…' : 'Criar placar'}</span><Icone nome="seta" tamanho="1.1em" />
+            <span>{submetendo ? 'Criando…' : 'Criar placar'}</span>
           </button>
         </form>
       {/if}
@@ -172,7 +167,12 @@
         <div class="partidas">
           {#each quadrasAtivas as quadra (quadra.id)}
             <button class="partida" type="button" onclick={() => selecionarQuadraAtiva(quadra)} aria-label="Acompanhar {quadra.nome}, código {quadra.id}">
-              <div class="partida-topo"><div><span class="ao-vivo-badge">AO VIVO</span><h3>{quadra.nome}</h3></div><span class="codigo-sala">#{quadra.id}</span></div>
+              <div class="partida-info">
+                <span class="ao-vivo-badge">AO VIVO</span>
+                <h3>{quadra.nome}</h3>
+                <span class="codigo-sala">#{quadra.id}</span>
+                <span class="participantes"><Icone nome="pessoas" tamanho="1em" /> {quadra.participantes_count || 0}</span>
+              </div>
               {#if quadra.partida}
                 <div class="placar-resumo">
                   <div class="equipe equipe-a"><span>{quadra.partida.equipe_a}</span><strong>{quadra.partida.pontos_a}</strong></div>
@@ -182,7 +182,7 @@
               {:else}
                 <div class="aguardando">Aguardando o primeiro saque</div>
               {/if}
-              <div class="partida-rodape"><span><Icone nome="pessoas" tamanho="1em" /> {quadra.participantes_count || 0} acompanhando</span><strong>Abrir <Icone nome="seta" tamanho="1em" /></strong></div>
+              <strong class="partida-abrir">Abrir <Icone nome="seta" tamanho="1em" /></strong>
             </button>
           {/each}
         </div>
@@ -197,13 +197,9 @@
   .marca { display: inline-flex; align-items: center; gap: .7rem; color: var(--texto-forte); font-size: .78rem; font-weight: 700; letter-spacing: .18em; text-decoration: none; }
   .marca strong { color: var(--acento-info); }
   .marca-icone { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--acao-secundaria); border-radius: 10px; }
-  .tema, .secao-cabecalho > button { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); color: var(--texto-medio); cursor: pointer; }
-  .hero { max-width: 650px; padding: clamp(2.5rem, 7vw, 5.5rem) 0 clamp(2rem, 5vw, 4rem); }
-  .sobretitulo { margin: 0 0 1rem; color: var(--acento-info); font-size: .74rem; font-weight: 800; letter-spacing: .19em; }
-  .hero h1 { margin: 0; font-size: clamp(3.25rem, 8vw, 6rem); line-height: .88; letter-spacing: -.065em; }
-  .hero h1 span { color: var(--texto-suave); }
-  .hero > p:last-child { max-width: 540px; margin: 1.4rem 0 0; color: var(--texto-suave); font-size: clamp(.95rem, 2vw, 1.1rem); line-height: 1.65; }
-  .layout { display: grid; grid-template-columns: minmax(320px, .82fr) minmax(420px, 1.18fr); gap: clamp(1rem, 3vw, 2rem); align-items: start; }
+  .tema { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-width: 92px; height: 44px; padding: 0 .85rem; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); color: var(--texto-medio); font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; }
+  .secao-cabecalho > button { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); color: var(--texto-medio); cursor: pointer; }
+  .layout { display: grid; grid-template-columns: minmax(320px, .82fr) minmax(420px, 1.18fr); gap: clamp(1rem, 3vw, 2rem); align-items: start; padding-top: clamp(2rem, 6vw, 4.5rem); }
   .painel-acesso, .ao-vivo { min-width: 0; }
   .abas { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; margin-bottom: .75rem; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); }
   .abas button { min-height: 44px; border: 0; border-radius: 8px; background: transparent; color: var(--texto-suave); font: inherit; font-size: .86rem; font-weight: 750; cursor: pointer; }
@@ -218,10 +214,10 @@
   label span { color: var(--texto-apagado); font-weight: 500; }
   input { box-sizing: border-box; width: 100%; min-height: 48px; padding: .75rem .9rem; border: 1px solid var(--acao-secundaria); border-radius: 10px; outline: none; background: var(--fundo-base); color: var(--texto-forte); font: inherit; }
   input:focus { border-color: var(--foco-cor); box-shadow: var(--foco-anel); }
-  input.codigo { min-height: 68px; font-family: var(--fonte-numeros); font-size: 2.35rem; font-weight: 600; line-height: 1; letter-spacing: .18em; text-align: center; color: var(--acento-info); }
+  input.codigo { align-self: center; width: min(100%, 300px); min-height: 64px; padding: .25rem .8rem; font-family: var(--fonte-numeros); font-size: 3.15rem; font-weight: 600; line-height: 1; letter-spacing: .12em; text-align: center; text-indent: .12em; color: var(--acento-info); }
   input.codigo::placeholder { color: var(--texto-apagado); }
   .alerta { display: flex; align-items: flex-start; gap: .6rem; padding: .75rem; border: 1px solid color-mix(in srgb, var(--estado-erro) 45%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--estado-erro) 12%, transparent); color: var(--estado-erro-suave); font-size: .83rem; line-height: 1.4; }
-  .acao-principal { display: flex; align-items: center; justify-content: space-between; min-height: 52px; margin-top: .55rem; padding: 0 1.1rem; border: 0; border-radius: 10px; background: var(--acao-primaria); color: var(--acao-primaria-texto); font: inherit; font-weight: 800; cursor: pointer; }
+  .acao-principal { display: flex; align-items: center; justify-content: center; min-height: 52px; margin-top: .55rem; padding: 0 1.1rem; border: 0; border-radius: 10px; background: var(--acao-primaria); color: var(--acao-primaria-texto); font: inherit; font-weight: 800; text-align: center; cursor: pointer; }
   .acao-principal:disabled { opacity: .45; cursor: not-allowed; }
   .secao-cabecalho { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.1rem; border-bottom: 1px solid var(--acao-secundaria); }
   .secao-cabecalho > div { display: flex; align-items: center; gap: .55rem; }
@@ -229,24 +225,22 @@
   .pulso { width: 7px; height: 7px; border-radius: 50%; background: var(--estado-sucesso); box-shadow: 0 0 0 5px color-mix(in srgb, var(--estado-sucesso) 14%, transparent); }
   .contagem { display: grid; place-items: center; min-width: 24px; height: 24px; border-radius: 99px; background: var(--acao-secundaria); color: var(--texto-suave); font-size: .72rem; font-weight: 800; }
   .partidas { display: grid; gap: .75rem; padding: .75rem; }
-  .partida { width: 100%; padding: 0; overflow: hidden; border: 1px solid var(--acao-secundaria); border-top: 3px solid var(--time-a); border-radius: 13px; background: var(--fundo-cartao); color: inherit; text-align: left; cursor: pointer; transition: transform .15s ease, border-color .15s ease; }
+  .partida { display: grid; grid-template-columns: minmax(105px, 1fr) auto minmax(72px, .55fr); align-items: stretch; width: 100%; min-height: 132px; padding: 0; overflow: hidden; border: 1px solid var(--acao-secundaria); border-top: 3px solid var(--time-a); border-radius: 13px; background: var(--fundo-cartao); color: inherit; text-align: left; cursor: pointer; transition: transform .15s ease, border-color .15s ease; }
   .partida:hover { transform: translateY(-2px); border-color: var(--texto-apagado); }
-  .partida-topo, .partida-rodape { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding: .75rem .9rem; }
-  .partida-topo > div { min-width: 0; }
-  .partida-topo h3 { max-width: 280px; margin: .2rem 0 0; overflow: hidden; color: var(--texto-medio); font-size: .78rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+  .partida-info { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; min-width: 0; padding: .8rem .25rem .8rem .9rem; }
+  .partida-info h3 { max-width: 100%; margin: .2rem 0 .4rem; overflow: hidden; color: var(--texto-medio); font-size: .78rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
   .ao-vivo-badge { color: var(--estado-sucesso); font-size: .61rem; font-weight: 850; letter-spacing: .12em; }
-  .codigo-sala { color: var(--texto-suave); font-family: var(--fonte-numeros); font-size: 1.15rem; font-weight: 600; letter-spacing: .05em; }
-  .placar-resumo { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: .65rem; padding: .25rem .9rem .8rem; }
+  .codigo-sala { color: var(--texto-suave); font-family: var(--fonte-numeros); font-size: 1.05rem; font-weight: 600; letter-spacing: .05em; }
+  .participantes { display: inline-flex; align-items: center; gap: .3rem; margin-top: .45rem; color: var(--texto-suave); font-size: .68rem; }
+  .placar-resumo { display: grid; grid-template-columns: auto 24px auto; align-items: center; justify-content: center; gap: .35rem; min-width: 182px; padding: .65rem .75rem; border-inline: 1px solid var(--acao-secundaria); }
   .equipe { display: flex; flex-direction: column; min-width: 0; }
   .equipe-b { align-items: flex-end; text-align: right; }
   .equipe span { max-width: 100%; overflow: hidden; color: var(--texto-suave); font-size: .65rem; font-weight: 750; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
-  .equipe strong { font-family: var(--fonte-numeros); font-size: clamp(4.6rem, 10vw, 7.2rem); font-weight: 600; line-height: .8; letter-spacing: -.035em; }
+  .equipe strong { font-family: var(--fonte-numeros); font-size: clamp(4.8rem, 9vw, 6.7rem); font-weight: 600; line-height: .78; letter-spacing: -.035em; }
   .equipe-a strong { color: var(--time-a); text-shadow: 0 0 24px color-mix(in srgb, var(--time-a) 20%, transparent); }
   .equipe-b strong { color: var(--time-b); text-shadow: 0 0 24px color-mix(in srgb, var(--time-b) 20%, transparent); }
   .versus { color: var(--texto-apagado); font-size: 1.2rem; font-weight: 700; }
-  .partida-rodape { border-top: 1px solid var(--acao-secundaria); color: var(--texto-suave); font-size: .7rem; }
-  .partida-rodape span, .partida-rodape strong { display: inline-flex; align-items: center; gap: .35rem; }
-  .partida-rodape strong { color: var(--texto-medio); }
+  .partida-abrir { display: flex; align-items: center; justify-content: center; gap: .35rem; padding: .75rem; color: var(--texto-medio); font-size: .74rem; white-space: nowrap; }
   .aguardando, .estado-lista { display: grid; place-items: center; min-height: 145px; padding: 1rem; color: var(--texto-suave); font-size: .85rem; text-align: center; }
   .estado-lista p { margin: 0 0 .8rem; }
   .estado-lista button { min-height: 44px; padding: 0 1rem; border: 1px solid var(--acao-secundaria); border-radius: 9px; background: var(--fundo-cartao); color: var(--texto-medio); font: inherit; font-weight: 700; cursor: pointer; }
@@ -254,16 +248,17 @@
 
   @media (max-width: 800px) {
     .layout { grid-template-columns: 1fr; }
-    .hero { padding: 2.8rem 0 2.2rem; }
   }
   @media (max-width: 480px) {
     .home { padding: .75rem .8rem 2.5rem; }
-    .hero { padding: 2.2rem 0 1.8rem; }
-    .hero h1 { font-size: clamp(3rem, 15vw, 4.25rem); }
-    .hero > p:last-child { font-size: .88rem; line-height: 1.5; }
+    .layout { padding-top: 1.5rem; }
     .formulario { padding: 1rem; }
-    .equipe strong { font-size: clamp(4.6rem, 24vw, 6.4rem); }
-    .partida-topo h3 { max-width: 190px; }
+    .partida { grid-template-columns: minmax(88px, 1fr) auto 62px; min-height: 122px; }
+    .partida-info { padding-left: .65rem; }
+    .placar-resumo { min-width: 148px; padding-inline: .45rem; }
+    .equipe strong { font-size: 4.65rem; }
+    .equipe span { max-width: 54px; }
+    .partida-abrir { padding-inline: .35rem; }
   }
   @media (prefers-reduced-motion: reduce) { .partida { transition: none; } }
 </style>
