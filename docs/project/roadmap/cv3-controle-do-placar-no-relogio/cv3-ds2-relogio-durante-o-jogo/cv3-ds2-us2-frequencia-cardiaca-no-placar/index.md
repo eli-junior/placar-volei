@@ -1,8 +1,8 @@
 ---
 code: CV3.DS2.US2
 level: User Story
-status: Active
-status_reason: Checkpoint 1 aprovado em 2026-09-26 só com a frequência cardíaca (cronômetro retirado pelo Navigator)
+status: Done
+status_reason: Entregue na 0.11.0; teste físico no Galaxy Watch 8 com treino do Samsung Health aprovado em 2026-09-26
 updated: 2026-09-26
 related:
   - CV3.DS2.US1
@@ -26,3 +26,5 @@ Duração, calorias e zonas do Samsung Health (não legíveis por outros apps); 
 
 ## Notes
 - [Plano](plan.md).
+- Risco conhecido: só `BODY_SENSORS` é pedido em tempo de execução (`READ_HEART_RATE` está só no manifest). Funciona no Wear OS 6 pela compatibilidade; se uma atualização quebrar, o rótulo fica em "♥ --".
+- Bateria com tela acesa (US1) + sensor ligado ainda não medida.

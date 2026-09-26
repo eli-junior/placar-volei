@@ -1,12 +1,13 @@
 ---
 code: CV3.DS2
 level: Delivery Story
-status: Active
-status_reason: US1 (0.10.1) entregue; US2 em implementação (frequência cardíaca no placar)
+status: Done
+status_reason: US1 (0.10.1) e US2 (0.11.0) entregues
 updated: 2026-09-26
 related:
   - CV3.DS1
   - tela-acesa-no-placar-do-relogio
+  - batimento-no-relogio-por-measureclient
 ---
 
 # CV3.DS2 — Relógio durante o jogo e o treino
