@@ -4,13 +4,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV3.DS2 — Relógio durante o jogo e o treino
-
-- **História / Escopo**: `CV3.DS2.US2` frequência cardíaca no placar do relógio, lida do sensor enquanto o Samsung Health grava o treino (cronômetro retirado pelo Navigator). A US1 fechou na `0.10.1`.
-- **Branch**: `feature/cv3-ds2-us2-frequencia-cardiaca-no-placar`.
-- **Passo Ariad**: Passo 7 - Conclusão e Merge (Checkpoint 3 aprovado em 2026-09-26; docs e 0.11.0 prontos).
-- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: c5f8bb01 | Data: 2026-09-26 03:10 UTC
-- **Handoff / Próximos Passos**: `MeasureClient` implementado (`wear/.../HeartRate.kt`); APK em `~/placar-watch/placar-volei-us2-batimento.apk` no WSL. Docs, decisão, worklog e versão 0.11.0 prontos. Aguardando Checkpoint 4 (commit e merge na master).
+Nenhum trabalho ativo.
 
 ## 0.11.0 - 2026-09-26
 
@@ -18,7 +12,7 @@ Boundary: minor (nova capacidade no relógio: batimento no placar durante o trei
 
 Authors: Eli (Navigator); Claude Opus 5.5 (Driver) | Sessão: c5f8bb01
 
-Git source: feature/cv3-ds2-us2-frequencia-cardiaca-no-placar (merge into master)
+Git source: feature/cv3-ds2-us2-frequencia-cardiaca-no-placar (merge 296e847 into master)
 
 ### Added
 
