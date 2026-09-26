@@ -1,11 +1,12 @@
 ---
 code: CV3.DS2.US3
 level: User Story
-status: Active
-status_reason: Em planejamento (Checkpoint 1)
+status: Done
+status_reason: Entregue na 0.12.0; teste físico no Galaxy Watch 8 aprovado em 2026-09-26
 updated: 2026-09-26
 related:
   - CV3.DS1.US3
+  - nova-partida-pelo-relogio-de-admin
 ---
 
 # CV3.DS2.US3 — Nova partida rápida pelo relógio
@@ -25,3 +26,5 @@ Mudar times ou regras pelo relógio; nova partida com a partida em andamento.
 
 ## Notes
 - [Plano](plan.md).
+- Risco conhecido: recusa da nova partida não mostra aviso no relógio; o placar só fica na partida encerrada.
+- `pode_nova_partida` é lido ao entrar na quadra; se o papel do dono mudar, o servidor recusa e o botão não tem efeito.

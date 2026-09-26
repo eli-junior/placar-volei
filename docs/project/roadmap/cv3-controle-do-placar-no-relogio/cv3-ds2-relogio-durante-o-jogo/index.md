@@ -1,13 +1,14 @@
 ---
 code: CV3.DS2
 level: Delivery Story
-status: Active
-status_reason: US1 (0.10.1) e US2 (0.11.0) entregues; US3 (nova partida rápida) em planejamento
+status: Done
+status_reason: US1 (0.10.1), US2 (0.11.0) e US3 (0.12.0) entregues
 updated: 2026-09-26
 related:
   - CV3.DS1
   - tela-acesa-no-placar-do-relogio
   - batimento-no-relogio-por-measureclient
+  - nova-partida-pelo-relogio-de-admin
 ---
 
 # CV3.DS2 — Relógio durante o jogo e o treino

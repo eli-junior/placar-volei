@@ -8,9 +8,36 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: `CV3.DS2.US3`. Na pontuação final, **▶ Nova** ao lado do **↶ Desfazer** começa uma partida nova com os mesmos times e regras, com um toque.
 - **Branch**: `feature/cv3-ds2-us3-nova-partida-rapida-no-relogio`.
-- **Passo Ariad**: Passo 5 - Revisão (Checkpoint 2 aprovado pelo Navigator no relógio em 2026-09-26).
+- **Passo Ariad**: Passo 7 - Conclusão e Merge (Checkpoint 3 aprovado em 2026-09-26; docs e 0.12.0 prontos).
 - **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: 53afbbcf | Data: 2026-09-26 12:10 UTC
-- **Handoff / Próximos Passos**: servidor (`acao: "nova_partida"` em `/api/watch/comandos`, `pode_nova_partida` em `/api/watch/session`) e relógio (faixa **↶ Desfazer | ▶ Nova**) implementados. APK em `~/placar-watch/placar-volei-us3-nova-partida.apk`. Teste físico aprovado. Aguardando Checkpoint 3 (revisão). A correção da Home ficou anotada em `debt-erro-de-entrada-pela-home-fora-da-vista`.
+- **Handoff / Próximos Passos**: servidor (`acao: "nova_partida"` em `/api/watch/comandos`, `pode_nova_partida` em `/api/watch/session`) e relógio (faixa **↶ Desfazer | ▶ Nova**) implementados. APK em `~/placar-watch/placar-volei-us3-nova-partida.apk`. Docs, decisão, worklog e versão 0.12.0 prontos. Aguardando Checkpoint 4 (merge na master). A correção da Home ficou anotada em `debt-erro-de-entrada-pela-home-fora-da-vista`.
+
+## 0.12.0 - 2026-09-26
+
+Boundary: minor (nova capacidade no relógio: nova partida rápida ao fim da partida; fecha o CV3.DS2)
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) | Sessão: 53afbbcf
+
+Git source: feature/cv3-ds2-us3-nova-partida-rapida-no-relogio (merge into master)
+
+### Added
+
+- [Relógio] **Nova partida rápida** (`CV3.DS2.US3`): com a partida encerrada, a faixa inferior vira **↶ Desfazer | ▶ Nova**. Um toque começa a próxima partida em 0 × 0, com os mesmos times, jogadores, alvo, vantagem e teto. Só com conexão e fila vazia.
+- API: `acao: "nova_partida"` em `POST /api/watch/comandos` (reusa o `reiniciar`, com recibo idempotente) e `pode_nova_partida` em `GET /api/watch/session`.
+
+### Decisions
+
+- `nova-partida-pelo-relogio-de-admin`.
+
+### Debt
+
+- Novo: `debt-erro-de-entrada-pela-home-fora-da-vista` (relato do Navigator; anotado para depois).
+- Riscos anotados na US3: recusa sem aviso no relógio; `pode_nova_partida` lido ao entrar na quadra.
+
+### Verification
+
+- `pytest` 185/185, `ruff check` e `ruff format --check` ok; Android: 36 testes, `assembleDebug` e `lintDebug` (JDK 21).
+- Teste físico no Galaxy Watch 8 aprovado pelo Navigator.
 
 ## 0.11.0 - 2026-09-26
 
