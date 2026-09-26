@@ -10,6 +10,15 @@
   import ModalConfigurarPartida from './ModalConfigurarPartida.svelte';
   import ModalCelebracaoVitoria from './ModalCelebracaoVitoria.svelte';
   import { ehDonoDoRelogio } from '../lib/relogio.js';
+  import {
+    suportaTelaCheia,
+    estaEmTelaCheia,
+    solicitarTelaCheia,
+    sairDaTelaCheia,
+    observarTelaCheia,
+    podeOcultarControles,
+    MENSAGEM_TELA_CHEIA,
+  } from '../lib/telaCheia.js';
 
   let {
     quadra,
@@ -290,32 +299,94 @@
     } catch {}
   }
 
+  // Tela cheia do navegador (CV4.DS2.US2): independente da imersão. O estado
+  // vem sempre do navegador; nunca presumimos que o pedido deu certo.
+  const telaCheiaDisponivel = suportaTelaCheia();
+  let telaCheia = $state(estaEmTelaCheia());
+  let avisoTelaCheia = $state(null);
+  let avisoTelaCheiaTimer = null;
+
+  $effect(() => observarTelaCheia((ativa) => { telaCheia = ativa; }));
+
+  // Sair da sala não deixa a Home presa em tela cheia.
+  $effect(() => () => { sairDaTelaCheia(); });
+
+  function avisarTelaCheia(motivo) {
+    avisoTelaCheia = MENSAGEM_TELA_CHEIA[motivo];
+    clearTimeout(avisoTelaCheiaTimer);
+    avisoTelaCheiaTimer = setTimeout(() => { avisoTelaCheia = null; }, 4000);
+  }
+
+  // Chamado direto no clique: nenhum `await` antes do pedido, senão o
+  // navegador perde a ativação do usuário e recusa.
+  function alternarTelaCheia() {
+    if (telaCheia) {
+      sairDaTelaCheia();
+      return;
+    }
+    solicitarTelaCheia().then((r) => {
+      if (!r.ok) avisarTelaCheia(r.motivo);
+    });
+  }
+
+  function algumModalAberto() {
+    return (
+      modalRelogioAberto ||
+      modalLinhaDoTempoAberto ||
+      modalCompartilharAberto ||
+      modalConfigAberto ||
+      modalCelebracaoAberto
+    );
+  }
+
+  function focoDeTecladoEmControle() {
+    const ativo = typeof document === 'undefined' ? null : document.activeElement;
+    if (!ativo || ativo === document.body) return false;
+    try {
+      return ativo.matches(':focus-visible') && ativo.matches('button, input, select, textarea, a[href]');
+    } catch {
+      return false;
+    }
+  }
+
+  function agendarOcultacao() {
+    if (timerInatividade) clearTimeout(timerInatividade);
+    timerInatividade = setTimeout(() => {
+      const livre = podeOcultarControles({
+        modalAberto: algumModalAberto(),
+        focoDeTeclado: focoDeTecladoEmControle(),
+        erroPendente: Boolean(erro) || Boolean(avisoTelaCheia),
+      });
+      // Algo ainda precisa dos controles: tenta de novo em vez de esconder.
+      if (livre) modoImersivo = true;
+      else agendarOcultacao();
+    }, 3000);
+  }
+
+  // O toque que revela os controles não pode acionar o botão que surge sob
+  // o dedo: o clique seguinte à revelação é descartado.
+  let engolirClique = false;
+
+  function engolirCliqueDeRevelacao(event) {
+    if (!engolirClique) return;
+    engolirClique = false;
+    event.stopPropagation();
+    event.preventDefault();
+  }
+
   // Gerencia a revelação dos controles e retorno ao modo imersivo após 3s (US5)
   function tratarInteracaoUsuario(event) {
     if (podeControlar) return;
 
-    // Se estava em modo imersivo, sai dele
     if (modoImersivo) {
       modoImersivo = false;
-    }
-
-    // Reinicia o temporizador de 3 segundos de inatividade
-    if (timerInatividade) {
-      clearTimeout(timerInatividade);
-    }
-
-    timerInatividade = setTimeout(() => {
-      // Retorna ao modo imersivo apenas se nenhum modal estiver aberto
-      if (
-        !modalRelogioAberto &&
-        !modalLinhaDoTempoAberto &&
-        !modalCompartilharAberto &&
-        !modalConfigAberto &&
-        !modalCelebracaoAberto
-      ) {
-        modoImersivo = true;
+      if (event?.type === 'pointerdown') {
+        engolirClique = true;
+        setTimeout(() => { engolirClique = false; }, 500);
       }
-    }, 3000);
+    }
+
+    agendarOcultacao();
   }
 
   function handleAbrirLinhaDoTempo() {
@@ -343,14 +414,16 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
   class="sala-container"
-  class:em-modo-imersivo={modoImersivo && !podeControlar}
+  class:em-modo-imersivo={!podeControlar}
+  class:controles-ocultos={modoImersivo && !podeControlar}
   class:tela-girada={telaGirada}
   style="--tela-w: {telaW}px; --tela-h: {telaH}px;"
   in:fade={{ duration: prefersReducedMotion ? 0 : 200 }}
+  onclickcapture={engolirCliqueDeRevelacao}
   onclick={tratarInteracaoUsuario}
   onpointerdown={tratarInteracaoUsuario}
   onkeydown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape' || e.key === 'Tab') {
       tratarInteracaoUsuario(e);
     }
   }}
@@ -425,6 +498,20 @@
           <span class="inverter-icone">⇄</span>
           <span class="inverter-texto">{ladosInvertidos ? 'Lados Invertidos' : 'Inverter Lados'}</span>
         </button>
+
+        {#if !podeControlar && telaCheiaDisponivel}
+          <button
+            type="button"
+            class="btn-tela-cheia"
+            class:ativo={telaCheia}
+            onclick={alternarTelaCheia}
+            aria-pressed={telaCheia}
+            aria-label={telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
+            title={telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
+          >
+            <Icone nome={telaCheia ? 'recolher' : 'expandir'} tamanho="1.15em" />
+          </button>
+        {/if}
 
         {#if !podeControlar && !paisagemNativa}
           <button
@@ -520,8 +607,11 @@
     {/if}
   {/if}
 
-  {#if podeControlar || avisoRelogio || !wsConectado || erro}
+  {#if podeControlar || avisoRelogio || avisoTelaCheia || !wsConectado || erro}
   <div class="controle-painel" aria-live="polite">
+    {#if avisoTelaCheia}
+      <span class="aviso-em-breve" role="status" transition:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>{avisoTelaCheia}</span>
+    {/if}
     {#if avisoRelogio}
       <span class="aviso-em-breve" role="status" transition:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>Em breve…</span>
     {/if}
@@ -581,7 +671,8 @@
       {quadra}
       temaPlacar={quadra?.tema_placar || 'esportivo'}
       {prefersReducedMotion}
-      {modoImersivo}
+      modoImersivo={true}
+      controlesOcultos={modoImersivo}
       {paisagem}
       {ladosInvertidos}
       onAlternarLados={alternarLados}
@@ -656,9 +747,10 @@
     />
   {/if}
 
-  <!-- Lista de Participantes em Tempo Real (oculta em modo imersivo) -->
+  <!-- Lista de Participantes em Tempo Real (oculta em modo imersivo). Para o
+       espectador ela sobrepõe o placar em vez de empurrá-lo. -->
   {#if podeControlar || !modoImersivo}
-    <div in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
+    <div class="presentes-sobrepostos" class:sobreposto={!podeControlar} in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
       <ListaPresentes
         {prefersReducedMotion}
         {participantes}
@@ -739,7 +831,13 @@
     z-index: 5;
   }
 
+  /*
+   * Espectador (CV4.DS2.US2): o palco do placar é fixo. Cabeçalho e presentes
+   * aparecem sobre ele, para que revelar ou esconder os controles não mova os
+   * pontos.
+   */
   .sala-container.em-modo-imersivo {
+    position: relative;
     padding: max(8px, env(safe-area-inset-top))
       max(6px, env(safe-area-inset-right))
       max(8px, env(safe-area-inset-bottom))
@@ -756,6 +854,40 @@
     display: flex;
     width: 100%;
     min-height: 0;
+  }
+
+  .em-modo-imersivo:not(.controles-ocultos) {
+    cursor: auto;
+  }
+
+  .em-modo-imersivo > .sala-header {
+    position: absolute;
+    z-index: 6;
+    top: max(8px, env(safe-area-inset-top));
+    left: max(6px, env(safe-area-inset-left));
+    right: max(6px, env(safe-area-inset-right));
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
+    backdrop-filter: blur(6px);
+  }
+
+  .em-modo-imersivo > .sala-header .header-acoes {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 0;
+  }
+
+  .presentes-sobrepostos.sobreposto {
+    position: absolute;
+    z-index: 6;
+    left: max(6px, env(safe-area-inset-left));
+    right: max(6px, env(safe-area-inset-right));
+    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 52px);
+    max-height: 32%;
+    overflow-y: auto;
+    border-radius: 12px;
   }
 
   .em-modo-imersivo .placar-espectador-wrapper {
@@ -798,6 +930,7 @@
   }
 
   .btn-tema-header,
+  .btn-tela-cheia,
   .btn-compartilhar-header,
   .btn-config-header {
     display: flex;
@@ -818,11 +951,17 @@
   }
 
   .btn-tema-header:hover,
+  .btn-tela-cheia:hover,
   .btn-compartilhar-header:hover,
   .btn-config-header:hover {
     color: var(--text-primary);
     border-color: rgba(var(--veu), 0.25);
     background: var(--bg-card);
+  }
+
+  .btn-tela-cheia.ativo {
+    color: var(--text-primary);
+    border-color: var(--acento-info-ativo);
   }
 
   /* Alternador de inversão de lados e orientação */

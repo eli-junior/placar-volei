@@ -29,6 +29,8 @@ Cada um custou um ciclo de deploy no Mini PC, e cada deploy apaga as salas (`deb
 
 Na US5 (CV3.DS1.US5), o mesmo padrão no relógio: três ajustes de tela (elementos fora do centro no mostrador redondo, "Retornar" piscando antes da verificação, faixa "Ingressar numa quadra" aparecendo por um instante) só apareceram no teste físico, em três deploys. O fluxo de troca no aparelho (adotar o vínculo novo, cancelamento refeito ao reconectar, corrida entre aprovar e cancelar) tem teste só no servidor; no Android, só a lógica pura (`LinkChoice.kt`) é testada.
 
+Na CV4.DS2.US2, a estabilidade do placar ao revelar controles, o descarte do toque de revelação e a recusa de tela cheia foram verificados com scripts Playwright temporários, fora do repositório. Esses cenários devem entrar na suíte da `CV4.DS3.TS1`.
+
 ## Revisit Trigger
 
 Ver frontmatter.
