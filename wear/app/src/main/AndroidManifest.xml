@@ -1,5 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Batimento no placar (CV3.DS2.US2); o Wear OS 6 usa a permissão granular. -->
+    <uses-permission android:name="android.permission.BODY_SENSORS" />
+    <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
+    <queries>
+        <package android:name="com.google.android.wearable.healthservices" />
+    </queries>
     <uses-feature android:name="android.hardware.type.watch" />
     <application android:label="Placar Vôlei" android:icon="@drawable/ic_placar" android:dataExtractionRules="@xml/backup_rules" android:theme="@android:style/Theme.DeviceDefault" android:allowBackup="false" android:fullBackupContent="false" android:usesCleartextTraffic="false" android:supportsRtl="true">
         <meta-data android:name="com.google.android.wearable.standalone" android:value="true" />

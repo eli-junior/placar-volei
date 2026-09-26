@@ -29,6 +29,9 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
     implementation("androidx.wear.compose:compose-material:1.4.1")
     implementation("androidx.wear.compose:compose-foundation:1.4.1")
+    implementation("androidx.health:health-services-client:1.1.0")
+    // ListenableFuture do cancelamento do MeasureClient; mesma versão que o Health Services já traz.
+    implementation("com.google.guava:guava:32.0.1-android")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     testImplementation("junit:junit:4.13.2")
     // org.json do Android é stub nos testes locais da JVM.

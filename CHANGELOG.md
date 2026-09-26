@@ -6,11 +6,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ### CV3.DS2 — Relógio durante o jogo e o treino
 
-- **História / Escopo**: `CV3.DS2.US2` dados do treino no placar do relógio: frequência cardíaca do sensor e cronômetro da partida desde o primeiro ponto (substituto aprovado para a duração do Samsung Health, que não é legível). A US1 fechou na `0.10.1`.
+- **História / Escopo**: `CV3.DS2.US2` frequência cardíaca no placar do relógio, lida do sensor enquanto o Samsung Health grava o treino (cronômetro retirado pelo Navigator). A US1 fechou na `0.10.1`.
 - **Branch**: `feature/cv3-ds2-us2-frequencia-cardiaca-no-placar`.
-- **Passo Ariad**: Passo 2 - Planejamento.
+- **Passo Ariad**: Passo 4 - Teste e Validação (Checkpoint 1 aprovado em 2026-09-26, só batimento).
 - **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: c5f8bb01 | Data: 2026-09-26 03:10 UTC
-- **Handoff / Próximos Passos**: montar o plano da US2 e apresentar o Checkpoint 1. Primeira tarefa após o aceite: APK mínimo que prove o `MeasureClient` junto com o treino do Samsung Health no Watch 8.
+- **Handoff / Próximos Passos**: `MeasureClient` implementado (`wear/.../HeartRate.kt`); APK em `~/placar-watch/placar-volei-us2-batimento.apk` no WSL. Aguardando teste físico com o treino do Samsung Health ativo (Checkpoint 2).
 
 ## 0.10.1 - 2026-09-26
 
