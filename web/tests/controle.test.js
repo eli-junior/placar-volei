@@ -83,3 +83,8 @@ test('papel aparece em selo neutro, separado da posse', () => {
   assert.match(salaFonte, /<span class="selo-papel">\{eu\?\.papel\}<\/span>/);
   assert.doesNotMatch(salaFonte, /badge-admin/);
 });
+
+test('operação reusa a representação clássica pura, sem grade própria', () => {
+  assert.match(placar, /<PlacarClassico/);
+  assert.doesNotMatch(placar, /CartaoDobravel|placar-grid/);
+});

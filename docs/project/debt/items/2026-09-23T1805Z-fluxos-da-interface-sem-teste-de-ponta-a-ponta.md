@@ -31,6 +31,8 @@ Na US5 (CV3.DS1.US5), o mesmo padrão no relógio: três ajustes de tela (elemen
 
 Na CV4.DS2.US2, a estabilidade do placar ao revelar controles, o descarte do toque de revelação e a recusa de tela cheia foram verificados com scripts Playwright temporários, fora do repositório. Esses cenários devem entrar na suíte da `CV4.DS3.TS1`.
 
+Na CV4.DS3.US1, operação sem rolagem (390 e 1066 px), inversão dos +1, posse com dois clientes, `Assumir` e chamada forjada sem controle (403) foram verificados com scripts Playwright temporários. Entram na suíte da `CV4.DS3.TS1`.
+
 ## Revisit Trigger
 
 Ver frontmatter.

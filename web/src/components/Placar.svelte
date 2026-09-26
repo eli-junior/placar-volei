@@ -1,6 +1,6 @@
 <script>
   import { fly, fade, slide } from 'svelte/transition';
-  import CartaoDobravel from './CartaoDobravel.svelte';
+  import PlacarClassico from './PlacarClassico.svelte';
   import PlacarResultado from './PlacarResultado.svelte';
 
   let {
@@ -83,7 +83,7 @@
   /*
    * Um toque nunca é engolido por já haver outro em voo: o comando é entregue
    * ao pai, que serializa a fila. Aqui só cuidamos do retorno imediato — vibração,
-   * flash no card da equipe e `aria-busy` no botão enquanto o envio acontece.
+   * clarão no botão da equipe e `aria-busy` no botão enquanto o envio acontece.
    */
   function handleToquePonto(equipe) {
     if (!podeMarcar) return;
@@ -193,7 +193,7 @@
     </div>
   {/if}
 
-  <div class="palco" class:classico={temaPlacar !== 'esportivo'}>
+  <div class="palco">
     <div class="resultado">
       {#if temaPlacar === 'esportivo'}
         <PlacarResultado
@@ -206,17 +206,14 @@
           movimentoReduzido={prefersReducedMotion}
         />
       {:else}
-        <div class="placar-grid" class:lados-invertidos={ladosInvertidos}>
-          <div class="equipe-col col-time-a {feedbackEquipe === 'A' ? 'flash-a' : ''} {vencedor === 'A' ? 'col-vencedor' : ''}">
-            <span class="equipe-nome">{equipeA}</span>
-            <CartaoDobravel valor={pontosA} equipe={equipeA} tema="a" tamanho="normal" {prefersReducedMotion} />
-          </div>
-          <div class="vs-col"><span class="vs-simbolo">×</span></div>
-          <div class="equipe-col col-time-b {feedbackEquipe === 'B' ? 'flash-b' : ''} {vencedor === 'B' ? 'col-vencedor' : ''}">
-            <span class="equipe-nome">{equipeB}</span>
-            <CartaoDobravel valor={pontosB} equipe={equipeB} tema="b" tamanho="normal" {prefersReducedMotion} />
-          </div>
-        </div>
+        <PlacarClassico
+          {pontosA}
+          {pontosB}
+          {equipeA}
+          {equipeB}
+          {ladosInvertidos}
+          movimentoReduzido={prefersReducedMotion}
+        />
       {/if}
     </div>
 
@@ -338,21 +335,6 @@
     color: var(--marca);
     border-color: var(--marca);
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   /* Banner de Vitória */
   .banner-vitoria {
@@ -476,87 +458,6 @@
     font-style: italic;
   }
 
-  /* Grid Principal do Placar */
-  .placar-grid {
-    display: grid;
-    grid-template-columns: 1fr auto 1fr;
-    grid-template-areas: "time-a divisor time-b";
-    align-items: center;
-    gap: 12px;
-  }
-
-  .placar-grid.lados-invertidos {
-    grid-template-areas: "time-b divisor time-a";
-  }
-
-  .col-time-a {
-    grid-area: time-a;
-  }
-
-  .vs-col {
-    grid-area: divisor;
-  }
-
-  .col-time-b {
-    grid-area: time-b;
-  }
-
-  .equipe-col {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    background: rgba(var(--veu), 0.02);
-    border: 1px solid rgba(var(--veu), 0.05);
-    border-radius: var(--radius-md);
-    padding: 14px 10px;
-    transition: background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .equipe-col.flash-a {
-    background: rgba(6, 182, 212, 0.12);
-    border-color: var(--accent-cyan);
-    box-shadow: 0 0 16px rgba(6, 182, 212, 0.3);
-  }
-
-  .equipe-col.flash-b {
-    background: rgba(249, 115, 22, 0.12);
-    border-color: var(--accent-orange);
-    box-shadow: 0 0 16px rgba(249, 115, 22, 0.3);
-  }
-
-  .equipe-col.col-vencedor {
-    border-color: rgba(245, 158, 11, 0.5);
-    background: rgba(245, 158, 11, 0.08);
-  }
-
-  .equipe-nome {
-    font-size: 0.88rem;
-    font-weight: 700;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    text-align: center;
-    max-width: 120px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-
-  .vs-col {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-
-
-  .vs-simbolo {
-    font-size: 1.8rem;
-    font-weight: 700;
-    color: var(--text-muted);
-  }
-
   /* Avisos de transporte: conexão caída e envio em andamento */
   .aviso-envio {
     display: flex;
@@ -568,7 +469,6 @@
     font-weight: 600;
     line-height: 1.35;
   }
-
 
   .aviso-envio {
     color: #a5f3fc;
@@ -582,15 +482,8 @@
     flex: 0 0 auto;
   }
 
-
   .aviso-icone.pulsando {
     animation: pulsar-aviso 0.9s ease-in-out infinite;
-  }
-
-  @keyframes girar-aviso {
-    to {
-      transform: rotate(360deg);
-    }
   }
 
   @keyframes pulsar-aviso {
@@ -760,7 +653,6 @@
     cursor: not-allowed;
   }
 
-
   .desfazer-texto {
     color: var(--text-primary);
     font-weight: 800;
@@ -789,16 +681,6 @@
       gap: 10px;
     }
 
-
-    .placar-grid {
-      gap: 10px;
-    }
-
-    .equipe-col {
-      padding: 8px 10px;
-      gap: 6px;
-    }
-
     .btn-marcar {
       height: 60px;
     }
@@ -806,7 +688,6 @@
     .btn-plus {
       font-size: 1.7rem;
     }
-
 
     .btn-desfazer {
       height: 42px;
