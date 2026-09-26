@@ -6,6 +6,22 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo registrado.
 
+## 0.13.1 - 2026-09-26
+
+Boundary: patch (restaura a alternância de tema da Home)
+
+Authors: Eli (Navigator); Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e
+
+Git source: `fix/home-tema-claro-escuro`, hotfix autorizado pelo Navigator.
+
+### Fixed
+
+- O botão Claro/Escuro volta a aplicar e persistir o tema correto. O modo claro agora escreve `data-tema="sol"`, valor esperado pelos tokens, e o modo escuro remove o atributo.
+
+### Verification
+
+- Frontend: 32 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+
 ## 0.13.0 - 2026-09-26
 
 Boundary: minor (nova experiência de entrada e partidas ativas; fecha a CV4.DS1)

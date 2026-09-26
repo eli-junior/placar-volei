@@ -18,6 +18,11 @@
   let carregandoQuadras = $state(false);
   let erroQuadras = $state(false);
 
+  function aplicarTema() {
+    if (temaSol) document.documentElement.setAttribute('data-tema', 'sol');
+    else document.documentElement.removeAttribute('data-tema');
+  }
+
   $effect(() => {
     if (!erro || abaAtiva !== 'acompanhar' || !codigoQuadra) return;
     setTimeout(() => document.getElementById('apelido-espectador')?.focus(), 0);
@@ -32,7 +37,7 @@
         apelidoEspectador = apelidoSalvo;
       }
       temaSol = localStorage.getItem(CHAVE_TEMA) === 'sol';
-      document.documentElement.toggleAttribute('data-tema', temaSol);
+      aplicarTema();
     } catch {}
     carregarQuadrasAtivas();
     return () => document.body.classList.remove('tela-home');
@@ -40,7 +45,7 @@
 
   function alternarTema() {
     temaSol = !temaSol;
-    document.documentElement.toggleAttribute('data-tema', temaSol);
+    aplicarTema();
     try { localStorage.setItem(CHAVE_TEMA, temaSol ? 'sol' : 'padrao'); } catch {}
   }
 
