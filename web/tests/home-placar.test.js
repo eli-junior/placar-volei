@@ -30,3 +30,9 @@ test('recusa ao entrar devolve o foco ao apelido que precisa ser corrigido', () 
   assert.match(fonte, /if \(!erro \|\| abaAtiva !== 'acompanhar' \|\| !codigoQuadra\) return/);
   assert.match(fonte, /getElementById\('apelido-espectador'\)\?\.focus\(\)/);
 });
+
+test('modo claro escreve o valor sol esperado pelos tokens e o escuro remove o atributo', () => {
+  assert.match(fonte, /setAttribute\('data-tema', 'sol'\)/);
+  assert.match(fonte, /removeAttribute\('data-tema'\)/);
+  assert.doesNotMatch(fonte, /toggleAttribute\('data-tema'/);
+});
