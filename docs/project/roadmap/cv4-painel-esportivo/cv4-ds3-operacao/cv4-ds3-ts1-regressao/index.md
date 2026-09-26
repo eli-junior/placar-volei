@@ -1,8 +1,8 @@
 ---
 code: CV4.DS3.TS1
 level: Technical Story
-status: Active
-status_reason: Passo 5 - Checkpoint 3 (revisão) aguardando Navigator; V6 validada
+status: Validated
+status_reason: V6 validada; CI verde; Checkpoint 3 aprovado; aguardando merge (Checkpoint 4)
 updated: 2026-09-26
 effort: 6
 ---
@@ -31,7 +31,15 @@ Executar V6 no [guia de validação](../../test-guide.md), além das verificaç�
 
 - Branch de implementação: `feature/cv4-ds3-ts1-regressao`, criada de `master` `446282c`.
 - Último checkpoint aprovado desta história: Checkpoint 2 (V6 validada; CI aprovado), 2026-09-26.
-- Implementação: suíte de navegador concluída na branch; aguardando matriz física V6.
+- Implementação: concluída na branch; Checkpoints 1–3 aprovados em 2026-09-26.
+- Próxima ação: Checkpoint 4 (merge em `master` como 0.18.1), fechando CV4.DS3 e CV4.
+
+## Resultado
+
+- `npm run test:e2e`: 24 testes Playwright (espectador, operador, superfícies) e axe nos dois temas; teste de ausência de requisições externas.
+- CI em GitHub Actions a cada push/PR: pytest, ruff, `npm test`, `svelte-check`, build e navegador.
+- Google Fonts removido do `index.html`.
+- Dívida de contraste do Modo Sol paga; dívida de testes de ponta a ponta reduzida à parte do relógio; nova dívida `testes-estaticos-dependem-do-build`.
 - Próxima ação: conferir dependências e apresentar/confirmar o Checkpoint 1 desta entrega.
 - Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.
 

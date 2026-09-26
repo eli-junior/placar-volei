@@ -41,4 +41,10 @@ Este projeto usa **Ariad** como método de desenvolvimento humano-agente. O agen
 
 ## Desenvolvimento
 
-Ver `docs/process/development-guide.md`.
+Ver `docs/process/development-guide.md`. Verificação completa, a mesma do CI (`.github/workflows/ci.yml`):
+
+```bash
+cd web && npm ci && npm test && npm run check && npm run build && cd ..
+uv run pytest && uv run ruff check app tests
+cd web && npm run test:e2e   # Playwright + axe; na primeira vez: npx playwright install chromium
+```
