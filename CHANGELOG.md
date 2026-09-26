@@ -4,7 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo em `master`. Branches abertas com Checkpoint 1 aprovado: `feature/cv4-ds3-ts1-regressao`, `feature/cv3-ds1-us4-offline-reconciliacao` (entradas registradas em cada branch).
+### CV4.DS3.TS1 — Regressão, acessibilidade e consolidação
+
+- **Branch:** `feature/cv4-ds3-ts1-regressao` (criada de `master` `446282c`)
+- **Passo Ariad:** Passo 6 - Documentação concluído; Checkpoint 4 (merge como 0.18.1, fecha CV4.DS3 e CV4) aguardando Navigator. Checkpoints 1–3 aprovados; dívida de contraste paga.
+- **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
+- **Handoff / Próximos Passos:** suíte `npm run test:e2e` (Playwright 1.56.1 + axe 4.13.0, 24 testes) implementada; removido o Google Fonts do `index.html`. Falta a matriz física (Fold, tablet) e decidir sobre CI para a dívida de contraste.
 
 
 ## 0.18.0 - 2026-09-26

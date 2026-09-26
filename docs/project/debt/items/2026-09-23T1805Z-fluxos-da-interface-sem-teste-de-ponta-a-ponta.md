@@ -35,6 +35,8 @@ Na CV4.DS3.US1, operação sem rolagem (390 e 1066 px), inversão dos +1, posse 
 
 Na CV4.DS3.US2, retorno de foco após diálogos, menu ⋯ por papel, campo visível em tela baixa (teclado) e vitória em dois clientes foram verificados da mesma forma. Entram na suíte da `CV4.DS3.TS1`.
 
+**Atualização (CV4.DS3.TS1, 2026-09-26):** a parte web está coberta. `npm run test:e2e` (Playwright) percorre criar sala → tornar controlador → assumir/passar controle → pontuar em dois clientes, junto com os demais testes e no CI. Falta a metade do relógio (testes de tela Compose ou do `WatchModel` com servidor falso), prevista na `CV3.DS1.TS1`.
+
 ## Revisit Trigger
 
 Ver frontmatter.

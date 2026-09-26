@@ -1,6 +1,6 @@
 ---
 id: debt-contraste-do-modo-sol-sem-verificacao-automatica
-status: Carried
+status: Paid
 kind: accessibility
 severity: low
 source: fix/modo-sol-placar
@@ -29,3 +29,7 @@ Um terceiro tema, o retorno de acessibilidade ao roadmap, ou qualquer alteraçã
 ## Closure Condition
 
 Verificação automática de contraste cobrindo ambos os temas, rodando junto com os testes existentes.
+
+## Resolution
+
+Paga na `CV4.DS3.TS1` (2026-09-26). `web/e2e/acessibilidade.spec.js` roda axe (WCAG 2.2 AA, incluindo `color-contrast`) na home, na operação, no espectador e no menu, nos temas escuro e sol, sobre as telas reais renderizadas. O workflow `.github/workflows/ci.yml` executa a suíte a cada push e pull request; primeira execução verde: run #3 (`a9b2354`). axe não prova conformidade WCAG completa; contraste em sol forte segue na validação física.

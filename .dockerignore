@@ -29,3 +29,8 @@ docker-compose.yml
 wear/
 .gradle/
 .kotlin/
+
+# Playwright
+web/e2e/
+web/test-results/
+web/playwright-report/

@@ -1,8 +1,8 @@
 ---
 code: CV4.DS3.TS1
 level: Technical Story
-status: Planned
-status_reason: plano apresentado; Checkpoint 1 da implementação não aprovado
+status: Validated
+status_reason: V6 validada; CI verde; Checkpoint 3 aprovado; aguardando merge (Checkpoint 4)
 updated: 2026-09-26
 effort: 6
 ---
@@ -29,12 +29,26 @@ Executar V6 no [guia de validação](../../test-guide.md), além das verificaç�
 
 ## Estado para retomada
 
-- Branch de implementação: ainda não criada; usar branch própria a partir da master atualizada quando autorizada.
-- Último checkpoint aprovado desta história: nenhum.
-- Implementação: não iniciada.
+- Branch de implementação: `feature/cv4-ds3-ts1-regressao`, criada de `master` `446282c`.
+- Último checkpoint aprovado desta história: Checkpoint 2 (V6 validada; CI aprovado), 2026-09-26.
+- Implementação: concluída na branch; Checkpoints 1–3 aprovados em 2026-09-26.
+- Próxima ação: Checkpoint 4 (merge em `master` como 0.18.1), fechando CV4.DS3 e CV4.
+
+## Resultado
+
+- `npm run test:e2e`: 24 testes Playwright (espectador, operador, superfícies) e axe nos dois temas; teste de ausência de requisições externas.
+- CI em GitHub Actions a cada push/PR: pytest, ruff, `npm test`, `svelte-check`, build e navegador.
+- Google Fonts removido do `index.html`.
+- Dívida de contraste do Modo Sol paga; dívida de testes de ponta a ponta reduzida à parte do relógio; nova dívida `testes-estaticos-dependem-do-build`.
 - Próxima ação: conferir dependências e apresentar/confirmar o Checkpoint 1 desta entrega.
 - Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.
 
 ## Out of Scope
 
 Respeitar os limites da seção correspondente do plano. Não incorporar mudanças no motor de eventos, permissões ou Wear OS sem novo acordo.
+
+## Decisões do Navigator (2026-09-26)
+
+- Playwright e axe aprovados como ferramentas de teste de desenvolvimento, fora da imagem de runtime. Confirmar versões no início da implementação e registrar o comando definitivo em `web/package.json`, no guia de desenvolvimento e no test-guide.
+- Validação física do tablet adiada da `CV4.DS2.US2` para a matriz desta história.
+- Cenários de navegador já exercitados com scripts temporários nas US2 e DS3.US1 (ver dívida `fluxos-da-interface-sem-teste-de-ponta-a-ponta`) entram nesta suíte.

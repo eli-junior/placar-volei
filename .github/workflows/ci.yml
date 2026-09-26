@@ -1,0 +1,66 @@
+# Pipeline de testes (CV4.DS3.TS1). Roda o que o guia de desenvolvimento
+# chama de verificação automatizada, incluindo o navegador real com axe nos
+# dois temas — é o que fecha a dívida de contraste do Modo Sol.
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  testes:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.8.17"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Frontend — dependências
+        working-directory: web
+        run: npm ci
+
+      - name: Frontend — testes unitários, svelte-check e build
+        working-directory: web
+        run: |
+          npm test
+          npm run check
+          npm run build
+
+      # Os testes de rota estática do backend exigem o build em app/static.
+      - name: Backend — dependências
+        run: uv sync
+
+      - name: Backend — testes e lint
+        run: |
+          uv run pytest -q
+          uv run ruff check app tests
+          uv run ruff format --check app tests
+
+      - name: Navegador — Chromium do Playwright
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+
+      - name: Navegador — Playwright e axe (build incluído)
+        working-directory: web
+        run: npm run test:e2e
+
+      - name: Relatório do Playwright em caso de falha
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results
+          path: web/test-results/
+          retention-days: 7
