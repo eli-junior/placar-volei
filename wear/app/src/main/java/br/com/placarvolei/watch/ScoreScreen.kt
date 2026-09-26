@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -57,6 +58,12 @@ fun ScoreScreen(model: WatchModel) {
     val reason = model.blockReason
     val pending = model.pending.size
     val view = LocalView.current
+    // Tela acesa só no placar (CV3.DS2.US1): no jogo, o toque tem de estar
+    // pronto sem acordar o relógio. Vínculo e escolha seguem o tempo normal.
+    DisposableEffect(view) {
+        view.keepScreenOn = true
+        onDispose { view.keepScreenOn = false }
+    }
     fun tap(equipe: String) {
         if (model.tap(equipe)) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }

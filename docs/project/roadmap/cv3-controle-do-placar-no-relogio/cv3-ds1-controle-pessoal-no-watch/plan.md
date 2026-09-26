@@ -17,7 +17,7 @@ Uso enquanto joga; Galaxy Watch 8 Bluetooth; telefone prepara a sala; identifica
 ## Decisões aprovadas
 1. Modelar o relógio como dispositivo de Eli, sem participante duplicado. *Substituída na US2 (2026-09-23) pelo registro `relogio-como-participante-com-controle-delegado`: o relógio é o participante "Eli (Relógio)" com controle delegado.*
 2. Em conflito real, preservar fila e revisar no telefone antes de aplicar/descartar; aprovado pelo Navigator.
-3. Interface ativa com toque simples e desfazer visível; sem marcação em modo ambiente. Não manter tela permanentemente acesa por padrão. Validar ergonomia real antes de fechar.
+3. Interface ativa com toque simples e desfazer visível; sem marcação em modo ambiente. Não manter tela permanentemente acesa por padrão. Validar ergonomia real antes de fechar. *Substituída na CV3.DS2.US1 (2026-09-26) pelo registro `tela-acesa-no-placar-do-relogio`: o placar mantém a tela acesa enquanto está visível.*
 
 ## Alternativas consideradas
 - Página web no relógio: não escolhida para o plano por depender de navegador, armazenamento e ciclo de vida menos controláveis para fila offline.

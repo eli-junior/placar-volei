@@ -4,8 +4,42 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-_Nenhum trabalho em andamento._
+### CV3.DS2 — Relógio durante o jogo e o treino
 
+- **História / Escopo**: `CV3.DS2.US2` dados do treino no placar do relógio: frequência cardíaca do sensor e cronômetro da partida desde o primeiro ponto (substituto aprovado para a duração do Samsung Health, que não é legível). A US1 fechou na `0.10.1`.
+- **Branch**: `feature/cv3-ds2-us2-frequencia-cardiaca-no-placar`.
+- **Passo Ariad**: Passo 2 - Planejamento.
+- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: c5f8bb01 | Data: 2026-09-26 03:10 UTC
+- **Handoff / Próximos Passos**: montar o plano da US2 e apresentar o Checkpoint 1. Primeira tarefa após o aceite: APK mínimo que prove o `MeasureClient` junto com o treino do Samsung Health no Watch 8.
+
+## 0.10.1 - 2026-09-26
+
+Boundary: patch (ajuste de ergonomia no relógio: o placar mantém a tela acesa; primeira entrega do CV3.DS2)
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) | Sessão: c5f8bb01
+
+Git source: feature/cv3-ds2-us1-tela-acesa-no-placar (merge into master)
+
+### Changed
+
+- [Relógio] **Tela acesa no placar** (`CV3.DS2.US1`): enquanto o placar está visível, a tela não apaga sozinha e o toque marca sem acordar o relógio. Vínculo e escolha seguem o tempo normal de tela; cobrir com a palma ainda apaga.
+
+### Fixed
+
+- [Build] `.gitattributes` fixa LF em `gradlew` e `*.sh`: o checkout do Windows (`core.autocrlf=true`) quebrava `./wear/gradlew` no WSL.
+
+### Decisions
+
+- `tela-acesa-no-placar-do-relogio`: substitui a decisão 3 do plano do CV3.DS1 ("não manter tela permanentemente acesa por padrão").
+
+### Debt
+
+- Nenhum item novo. Medição de bateria com o placar aceso fica em aberto na US1.
+
+### Verification
+
+- Android: 33 testes, `assembleDebug` e `lintDebug` (0 erros), com o `./wear/gradlew` do checkout rodando no WSL; `pytest` 178/178, `ruff check` e `ruff format --check` ok.
+- Teste físico no Galaxy Watch 8 aprovado pelo Navigator; bateria não medida.
 
 ## 0.10.0 - 2026-09-23
 

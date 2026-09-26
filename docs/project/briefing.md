@@ -12,11 +12,11 @@ Audiência: o grupo de vôlei do Navigator. Escala esperada: dezenas de pessoas,
 
 ## Current State
 
-Versão `0.10.0` entregue e publicada na branch principal `master`. `CV1` (placar compartilhado) e `CV2` (ergonomia e acessibilidade) estão concluídos. O `CV3` (controle do placar no relógio) está em andamento: a `CV3.DS1.US1` entregou o vínculo pessoal do Galaxy Watch, e a `CV3.DS1.US2` a pontuação pelo pulso, com o relógio como participante "Eli (Relógio)" e controle delegado. A `CV3.DS1.US3` trouxe o desfazer pelo relógio, e a `CV3.DS1.US5` um vínculo por vez: retomar ou trocar de quadra ao reabrir o app. Falta a US4 (envio em segundo plano e reconciliação).
+Versão `0.10.1` entregue e publicada na branch principal `master`. `CV1` (placar compartilhado) e `CV2` (ergonomia e acessibilidade) estão concluídos. O `CV3` (controle do placar no relógio) está em andamento: a `CV3.DS1.US1` entregou o vínculo pessoal do Galaxy Watch, e a `CV3.DS1.US2` a pontuação pelo pulso, com o relógio como participante "Eli (Relógio)" e controle delegado. A `CV3.DS1.US3` trouxe o desfazer pelo relógio, e a `CV3.DS1.US5` um vínculo por vez: retomar ou trocar de quadra ao reabrir o app. O `CV3.DS2` (relógio durante o jogo e o treino) começou com a `CV3.DS2.US1`: tela acesa no placar. Faltam a `CV3.DS2.US2` (dados do treino do Samsung Health no placar) e a `CV3.DS1.US4` (envio em segundo plano e reconciliação).
 
 Repositório publicado e sincronizado em `github.com/eli-junior/placar-volei`.
 
-Trabalho mais importante agora: `CV3.DS1.US4`, envio em segundo plano e reconciliação da fila do relógio.
+Trabalho mais importante agora: `CV3.DS2.US2`, dados do treino do Samsung Health no placar do relógio. Depois, `CV3.DS1.US4`, envio em segundo plano e reconciliação da fila do relógio.
 
 ## Architecture Premises
 

@@ -2,8 +2,8 @@
 code: CV3
 level: Value
 status: Active
-status_reason: US1 (0.7.0), US2 (0.8.0), US3 (0.9.0) e US5 (0.10.0) entregues; falta a US4 (envio em segundo plano e reconciliação)
-updated: 2026-09-23
+status_reason: DS1 com US1 (0.7.0), US2 (0.8.0), US3 (0.9.0) e US5 (0.10.0) entregues, falta a US4; DS2 com US1 (0.10.1) entregue, falta a US2
+updated: 2026-09-26
 ---
 
 # CV3 — Controlar o placar enquanto joga
@@ -19,5 +19,6 @@ Completar uma partida no relógio real, incluindo desconexão e recuperação, c
 
 ## Notes
 - [DS1 — Controle pessoal no Watch](cv3-ds1-controle-pessoal-no-watch/index.md).
+- [DS2 — Relógio durante o jogo e o treino](cv3-ds2-relogio-durante-o-jogo/index.md).
 - Configuração de sala, equipes e regras continua no telefone.
 - Uso exclusivo de Eli nesta fase; APK de teste, sem publicação em loja.
