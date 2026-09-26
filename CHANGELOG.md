@@ -4,7 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-_Nenhum trabalho em andamento._
+### CV3.DS2 — Relógio durante o jogo e o treino
+
+- **História / Escopo**: `CV3.DS2.US1` tela sempre acesa no placar do relógio; `CV3.DS2.US2` frequência cardíaca no placar enquanto o Samsung Health grava o treino (branch própria, depois da US1).
+- **Branch**: `feature/cv3-ds2-us1-tela-acesa-no-placar` (US1). US2 prevista em `feature/cv3-ds2-us2-frequencia-cardiaca-no-placar`.
+- **Passo Ariad**: Passo 2 - Planejamento (Checkpoint 1 aguardando o Navigator).
+- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: c5f8bb01 | Data: 2026-09-26 02:40 UTC
+- **Handoff / Próximos Passos**: plano apresentado ao Navigator; nenhum código escrito. Após aceite, implementar a US1 no placar do relógio (`wear/.../ScoreScreen.kt`).
 
 
 ## 0.10.0 - 2026-09-23
