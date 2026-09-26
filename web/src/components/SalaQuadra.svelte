@@ -553,6 +553,7 @@
     -->
     <Placar
       {estadoPartida}
+      temaPlacar={quadra?.tema_placar || 'esportivo'}
       podeControlar={temControle}
       desabilitado={!wsConectado}
       enviando={operando}
@@ -578,6 +579,7 @@
     <PlacarManual
       {estadoPartida}
       {quadra}
+      temaPlacar={quadra?.tema_placar || 'esportivo'}
       {prefersReducedMotion}
       {modoImersivo}
       {paisagem}
@@ -618,6 +620,7 @@
   {#if modalConfigAberto}
     <ModalConfigurarPartida
       {estadoPartida}
+      temaPlacar={quadra?.tema_placar || 'esportivo'}
       isReinicio={isReinicioConfig}
       movimentoReduzido={prefersReducedMotion}
       submetendo={operando}
@@ -862,6 +865,8 @@
   }
 
   .ws-status {
+    box-sizing: border-box;
+    min-height: 44px;
     display: flex;
     align-items: center;
     gap: 6px;

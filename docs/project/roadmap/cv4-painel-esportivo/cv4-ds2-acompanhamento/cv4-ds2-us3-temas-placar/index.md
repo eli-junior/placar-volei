@@ -2,7 +2,7 @@
 code: CV4.DS2.US3
 level: User Story
 status: Active
-status_reason: decisões de produto confirmadas; plano aguardando Checkpoint 1
+status_reason: implementação concluída; Checkpoint 2 aguardando validação do Navigator
 updated: 2026-09-26
 effort: 9
 ---
@@ -135,6 +135,6 @@ Permitir que o administrador escolha entre os temas visuais **Esportivo** e **Cl
 ## Estado para retomada
 
 - Branch: `feature/cv4-ds2-us3-temas-placar`, baseada em `origin/master` `842d5c7`.
-- Passo Ariad: Passo 2 — Planejamento.
-- Último checkpoint aprovado: nenhum.
-- Próxima ação: obter aprovação do Checkpoint 1; depois implementar até o Checkpoint 2.
+- Passo Ariad: Passo 4 — Teste e Validação.
+- Último checkpoint aprovado: Checkpoint 1, em 2026-09-26.
+- Próxima ação: validação manual do Navigator (Checkpoint 2).

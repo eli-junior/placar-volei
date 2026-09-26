@@ -1,9 +1,11 @@
 <script>
   import { fly, fade, slide } from 'svelte/transition';
   import CartaoDobravel from './CartaoDobravel.svelte';
+  import PlacarResultado from './PlacarResultado.svelte';
 
   let {
     estadoPartida = null,
+    temaPlacar = 'esportivo',
     podeControlar = false,
     // `desabilitado` = não dá para agir agora (socket caído ou sem controle).
     desabilitado = false,
@@ -250,7 +252,42 @@
     </div>
   {/if}
 
-  <!-- Área do Placar com Alvos Grandes para Uma Mão -->
+  <!-- Área do placar; o tema é compartilhado pela sala. -->
+  {#if temaPlacar === 'esportivo'}
+    <div class="placar-esportivo-controle">
+      <div class="resultado-esportivo">
+        <PlacarResultado
+          {pontosA}
+          {pontosB}
+          {equipeA}
+          {equipeB}
+          {ladosInvertidos}
+          {vencedor}
+          movimentoReduzido={prefersReducedMotion}
+        />
+      </div>
+      {#if podeControlar}
+        <div class="acoes-ponto" class:lados-invertidos={ladosInvertidos}>
+          <button
+            type="button"
+            class="btn-marcar btn-marcar-a"
+            disabled={desabilitado || encerrada}
+            aria-busy={enviando}
+            onclick={() => handleToquePonto('A')}
+            aria-label="Marcar ponto para {equipeA}"
+          ><span class="btn-plus">+1</span><span class="btn-sub">{equipeA}</span></button>
+          <button
+            type="button"
+            class="btn-marcar btn-marcar-b"
+            disabled={desabilitado || encerrada}
+            aria-busy={enviando}
+            onclick={() => handleToquePonto('B')}
+            aria-label="Marcar ponto para {equipeB}"
+          ><span class="btn-plus">+1</span><span class="btn-sub">{equipeB}</span></button>
+        </div>
+      {/if}
+    </div>
+  {:else}
   <div class="placar-grid" class:lados-invertidos={ladosInvertidos}>
     <!-- Coluna Equipe A -->
     <div
@@ -315,6 +352,7 @@
       {/if}
     </div>
   </div>
+  {/if}
 
   {#if podeControlar}
     <!-- Ação de Correção: Desfazer Último Ponto (US3) -->
@@ -345,6 +383,26 @@
     gap: 18px;
     box-shadow: 0 4px 28px rgba(0, 0, 0, 0.35);
   }
+
+  .placar-esportivo-controle {
+    display: grid;
+    grid-template-rows: minmax(320px, 1fr) auto;
+    gap: 12px;
+    min-height: 460px;
+  }
+
+  .resultado-esportivo { min-height: 0; }
+
+  .acoes-ponto {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas: 'a b';
+    gap: 12px;
+  }
+
+  .acoes-ponto.lados-invertidos { grid-template-areas: 'b a'; }
+  .acoes-ponto .btn-marcar-a { grid-area: a; }
+  .acoes-ponto .btn-marcar-b { grid-area: b; }
 
   .placar-header {
     display: flex;

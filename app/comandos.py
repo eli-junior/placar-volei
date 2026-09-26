@@ -22,7 +22,10 @@ CAMPOS_PUBLICOS_QUADRA = (
     "atualizado_em",
     "controle_id",
     "controle_versao",
+    "tema_placar",
 )
+
+TEMAS_PLACAR = {"esportivo", "classico"}
 
 MSG_ALVO_MUDOU = "O placar mudou; este desfazer não foi aplicado."
 
@@ -331,6 +334,19 @@ def executar_sync(
             if not estado["encerrada"]:
                 raise HTTPException(400, "A partida atual ainda não foi encerrada.")
 
+            tema_placar = kwargs.get("tema_placar")
+            if tema_placar is not None:
+                if autor["papel"] != "ADMIN":
+                    raise HTTPException(
+                        403, "Apenas administradores podem escolher o tema do placar."
+                    )
+                if tema_placar not in TEMAS_PLACAR:
+                    raise HTTPException(422, "Tema de placar inválido.")
+                conn.execute(
+                    "UPDATE quadras SET tema_placar = ? WHERE id = ?",
+                    (tema_placar, quadra_id),
+                )
+
             agora = datetime.now(UTC).isoformat()
             conn.execute(
                 "UPDATE partidas SET status = 'ENCERRADA', encerrado_em = COALESCE(encerrado_em, ?) WHERE id = ?",
@@ -384,6 +400,18 @@ def executar_sync(
                     403,
                     "Apenas administradores podem ajustar as configurações da partida.",
                 )
+            tema_alterado = False
+            tema_placar = kwargs.get("tema_placar")
+            if tema_placar is not None:
+                if tema_placar not in TEMAS_PLACAR:
+                    raise HTTPException(422, "Tema de placar inválido.")
+                if tema_placar != quadra["tema_placar"]:
+                    conn.execute(
+                        "UPDATE quadras SET tema_placar = ? WHERE id = ?",
+                        (tema_placar, quadra_id),
+                    )
+                    tema_alterado = True
+
             payload_config = {}
             for k in (
                 "equipe_a",
@@ -398,6 +426,12 @@ def executar_sync(
                     payload_config[k] = kwargs[k]
                 elif k == "teto" and "teto" in kwargs:
                     payload_config["teto"] = kwargs["teto"]
+            if not payload_config and tema_alterado:
+                conn.execute(
+                    "UPDATE quadras SET atualizado_em = ? WHERE id = ?",
+                    (datetime.now(UTC).isoformat(), quadra_id),
+                )
+                return snapshot(conn, quadra_id)
             if not payload_config:
                 return atual
             tipo, payload = TipoEvento.REGRA_ALTERADA, payload_config

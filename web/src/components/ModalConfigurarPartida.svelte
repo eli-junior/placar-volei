@@ -4,6 +4,7 @@
 
   let {
     estadoPartida = null,
+    temaPlacar = 'esportivo',
     isReinicio = false,
     onSalvar = () => {},
     onFechar = () => {},
@@ -19,6 +20,11 @@
   let regraAlvo = $state(12);
   let regraVantagem = $state(true);
   let regraTeto = $state('');
+  let temaVisual = $state('esportivo');
+
+  $effect(() => {
+    temaVisual = temaPlacar === 'classico' ? 'classico' : 'esportivo';
+  });
 
   $effect(() => {
     if (estadoPartida) {
@@ -54,6 +60,7 @@
       alvo: Number(regraAlvo) || 12,
       vantagem: Boolean(regraVantagem),
       teto: regraVantagem && tetoNumerico !== null ? tetoNumerico : null,
+      tema_placar: temaVisual,
     });
   }
 </script>
@@ -84,6 +91,36 @@
     </header>
 
     <form onsubmit={handleSubmit} class="form-config">
+      <div class="secao-bloco">
+        <span class="secao-rotulo">Visual do placar</span>
+        <div class="seletor-tema" role="radiogroup" aria-label="Tema do placar para todos na quadra">
+          <button
+            type="button"
+            class="tema-opcao"
+            class:selecionado={temaVisual === 'esportivo'}
+            role="radio"
+            aria-checked={temaVisual === 'esportivo'}
+            onclick={() => { temaVisual = 'esportivo'; }}
+            disabled={submetendo}
+          >
+            <strong>Esportivo</strong>
+            <span>Números grandes e leitura à distância</span>
+          </button>
+          <button
+            type="button"
+            class="tema-opcao"
+            class:selecionado={temaVisual === 'classico'}
+            role="radio"
+            aria-checked={temaVisual === 'classico'}
+            onclick={() => { temaVisual = 'classico'; }}
+            disabled={submetendo}
+          >
+            <strong>Clássico</strong>
+            <span>Cartões mecânicos com efeito de virada</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Seção Duplas / Equipes -->
       <div class="secao-bloco">
         <span class="secao-rotulo">Equipes e Duplas da Rodada</span>
@@ -304,8 +341,41 @@
     gap: 12px;
   }
 
+  .seletor-tema {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .tema-opcao {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+    min-height: 78px;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .tema-opcao span {
+    color: var(--text-muted);
+    font-size: var(--texto-legenda);
+    line-height: 1.35;
+  }
+
+  .tema-opcao.selecionado {
+    border-color: var(--acento-info);
+    background: color-mix(in srgb, var(--acento-info-forte) 12%, var(--bg-card));
+    box-shadow: inset 0 0 0 1px var(--acento-info);
+  }
+
   @media (max-width: 480px) {
-    .grid-equipes {
+    .grid-equipes, .seletor-tema {
       grid-template-columns: 1fr;
     }
   }
