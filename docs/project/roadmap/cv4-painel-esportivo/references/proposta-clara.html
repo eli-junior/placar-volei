@@ -1,0 +1,177 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Teko:wght@300..700&amp;display=swap">
+<style>
+#pv-concept { --pv-bg:light-dark(#f4f5f1,#101411); --pv-panel:light-dark(#ffffff,#191f1b); --pv-ink:light-dark(#17201a,#f4f6f0); --pv-muted:light-dark(#58655d,#a7b5aa); --pv-line:light-dark(#dbe1d9,#354039); --pv-soft:light-dark(#edf1e9,#242e27); --pv-brand:#d4f25b; --pv-brand-ink:#17210a; --pv-a:light-dark(#007f99,#44cee7); --pv-b:light-dark(#b6400c,#ff935d); --pv-radius:18px; font-family:Inter, 'Segoe UI', sans-serif; color:var(--pv-ink); }
+#pv-concept { color-scheme:light; }
+#pv-concept * { box-sizing:border-box; }
+#pv-concept button,#pv-concept input,#pv-concept select { font:inherit; }
+#pv-concept button { cursor:pointer; }
+#pv-concept button:focus-visible,#pv-concept input:focus-visible,#pv-concept select:focus-visible { outline:3px solid var(--pv-a); outline-offset:3px; }
+#pv-concept .pv-preview { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:14px; color:var(--pv-muted); font-size:12px; }
+#pv-concept .pv-preview label { display:flex; align-items:center; gap:8px; }
+#pv-concept select { padding:9px 12px; border:1px solid var(--pv-line); border-radius:8px; background:var(--pv-panel); color:var(--pv-ink); }
+#pv-concept .pv-window { width:100%; max-width:100%; margin:auto; container-type:inline-size; background:var(--pv-bg); border:1px solid var(--pv-line); border-radius:22px; overflow:clip; }
+#pv-concept .pv-top { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:22px 30px; border-bottom:1px solid var(--pv-line); }
+#pv-concept .pv-wordmark { display:flex; align-items:center; gap:10px; font-weight:800; font-size:18px; letter-spacing:-.7px; }
+#pv-concept .pv-logo { display:grid; place-items:center; width:34px; height:34px; background:var(--pv-brand); color:var(--pv-brand-ink); border-radius:10px; }
+#pv-concept .pv-logo svg { width:23px; height:23px; }
+#pv-concept .pv-icon { display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border:1px solid var(--pv-line); color:var(--pv-ink); background:var(--pv-panel); border-radius:50%; }
+#pv-concept .pv-content { padding:34px 30px 26px; }
+#pv-concept .pv-eyebrow { color:var(--pv-muted); font-size:11px; font-weight:750; letter-spacing:2px; text-transform:uppercase; }
+#pv-concept h1 { font-size:clamp(32px,5.5cqw,52px); line-height:1.03; font-weight:850; letter-spacing:-2.2px; margin:10px 0 12px; color:var(--pv-ink); }
+#pv-concept .pv-sub { font-size:14px; line-height:1.6; margin:0; color:var(--pv-muted); }
+#pv-concept .pv-intro { margin-bottom:30px; }
+#pv-concept .pv-layout { display:grid; grid-template-columns:minmax(250px,.92fr) minmax(0,1.25fr); gap:26px; align-items:start; }
+#pv-concept .pv-entry { background:var(--pv-panel); border:1px solid var(--pv-line); padding:22px; border-radius:var(--pv-radius); }
+#pv-concept .pv-tabs { display:flex; gap:22px; border-bottom:1px solid var(--pv-line); margin-bottom:24px; }
+#pv-concept .pv-tab { position:relative; border:0; background:none; color:var(--pv-muted); padding:0 0 14px; min-height:44px; font-size:14px; font-weight:600; }
+#pv-concept .pv-tab[aria-selected=true] { color:var(--pv-ink); }
+#pv-concept .pv-tab[aria-selected=true]:after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:3px; background:var(--pv-ink); border-radius:2px; }
+#pv-concept .pv-field { display:block; color:var(--pv-muted); font-size:12px; font-weight:600; margin-bottom:18px; }
+#pv-concept .pv-field input { display:block; width:100%; min-height:50px; margin-top:8px; border:1px solid var(--pv-line); background:var(--pv-bg); color:var(--pv-ink); border-radius:10px; padding:12px 14px; font-size:16px; }
+#pv-concept .pv-field .pv-pin { text-align:center; font-size:28px; letter-spacing:9px; font-weight:700; min-height:66px; }
+#pv-concept input::placeholder { color:var(--pv-muted); opacity:.85; }
+#pv-concept .pv-main-action { width:100%; display:flex; align-items:center; justify-content:space-between; gap:12px; border:0; border-radius:10px; padding:16px; min-height:52px; background:var(--pv-brand); color:var(--pv-brand-ink); font-weight:750; font-size:14px; }
+#pv-concept .pv-form-note { color:var(--pv-muted); margin:14px 0 0; font-size:12px; line-height:1.55; }
+#pv-concept .pv-section-head { display:flex; justify-content:space-between; align-items:center; margin:2px 0 16px; gap:12px; }
+#pv-concept h2 { font-size:17px; letter-spacing:-.4px; color:var(--pv-ink); margin:0; font-weight:750; }
+#pv-concept .pv-count { font-size:12px; color:var(--pv-muted); }
+#pv-concept .pv-match-card { display:block; width:100%; text-align:left; padding:22px; border-radius:var(--pv-radius); background:var(--pv-panel); color:var(--pv-ink); border:1px solid var(--pv-line); }
+#pv-concept .pv-match-card:hover { border-color:var(--pv-muted); }
+#pv-concept .pv-match-meta { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px; }
+#pv-concept .pv-live { display:inline-flex; gap:6px; align-items:center; font-size:10px; font-weight:750; letter-spacing:1px; }
+#pv-concept .pv-live:before { content:''; width:6px; height:6px; border-radius:50%; background:light-dark(#257041,#80d399); }
+#pv-concept .pv-code { color:var(--pv-muted); font-size:12px; font-variant-numeric:tabular-nums; }
+#pv-concept .pv-match-title { font-size:14px; font-weight:600; letter-spacing:-.1px; margin:16px 0; color:var(--pv-muted); }
+#pv-concept .pv-scores { display:grid; grid-template-columns:minmax(0,1fr) 24px minmax(0,1fr); gap:10px; align-items:center; text-align:center; }
+#pv-concept .pv-score { background:var(--pv-soft); border-radius:12px; padding:18px 8px 16px; min-width:0; }
+#pv-concept .pv-score strong { display:block; font-family:'Teko','Arial Narrow',sans-serif; font-size:88px; font-weight:var(--pv-score-weight,600); line-height:.9; letter-spacing:-.03em; font-variant-numeric:tabular-nums; }
+#pv-concept .pv-team { display:block; margin-top:12px; font-size:12px; font-weight:650; overflow-wrap:anywhere; }
+#pv-concept .pv-team-a { border-top:3px solid var(--pv-a); }
+#pv-concept .pv-team-b { border-top:3px solid var(--pv-b); }
+#pv-concept .pv-divider { color:var(--pv-muted); font-size:20px; }
+#pv-concept .pv-match-foot { display:flex; justify-content:space-between; align-items:center; gap:12px; border-top:1px solid var(--pv-line); margin-top:22px; padding-top:18px; font-size:12px; color:var(--pv-muted); }
+#pv-concept .pv-follow { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--pv-ink); font-weight:700; }
+#pv-concept .pv-bottom { margin-top:28px; display:flex; justify-content:space-between; gap:8px; flex-wrap:wrap; font-size:11px; color:var(--pv-muted); }
+#pv-concept .pv-room { padding:20px 20px 24px; }
+#pv-concept .pv-room-header { display:flex; justify-content:space-between; gap:12px; align-items:center; margin-bottom:14px; }
+#pv-concept .pv-back { min-height:44px; border:0; background:transparent; color:var(--pv-ink); display:flex; align-items:center; gap:8px; padding:0 8px 0 0; font-size:13px; }
+#pv-concept .pv-room-title { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px 16px; margin-bottom:16px; }
+#pv-concept .pv-room-title h2 { font-size:15px; font-weight:600; color:var(--pv-muted); letter-spacing:0; }
+#pv-concept .pv-room-title p { font-size:12px; color:var(--pv-muted); margin:5px 0 0; }
+#pv-concept .pv-room .pv-score { display:flex; flex-direction:column-reverse; gap:20px; padding:30px 8px; background:var(--pv-panel); }
+#pv-concept .pv-room .pv-score strong { font-size:clamp(104px,var(--pv-score-scale,36cqw),350px); letter-spacing:-.03em; padding-right:.03em; }
+#pv-concept .pv-room .pv-team { font-size:clamp(14px,2.2cqw,20px); margin:0; }
+#pv-concept .pv-room-tools { display:flex; justify-content:center; flex-wrap:wrap; gap:10px; margin-top:24px; }
+#pv-concept .pv-secondary { display:flex; gap:8px; align-items:center; justify-content:center; border:1px solid var(--pv-line); border-radius:10px; background:var(--pv-panel); color:var(--pv-ink); padding:12px 16px; min-height:44px; font-size:13px; }
+#pv-concept .pv-room-note { text-align:center; color:var(--pv-muted); font-size:12px; margin:20px 0 0; }
+#pv-concept .pv-mini-panel { padding:18px; border:1px solid var(--pv-line); border-radius:12px; margin-top:18px; background:var(--pv-panel); font-size:13px; line-height:1.7; }
+#pv-concept .pv-full-control { margin:22px auto 0; }
+#pv-concept .pv-error { font-size:12px; color:light-dark(#a63118,#ffb5a2); margin:12px 0 0; }
+#pv-concept [hidden] { display:none!important; }
+@container (max-width:580px) {
+ #pv-concept .pv-top { padding:15px 18px; }
+ #pv-concept .pv-content { padding:26px 18px 22px; }
+ #pv-concept .pv-layout { grid-template-columns:minmax(0,1fr); gap:26px; }
+ #pv-concept h1 { font-size:38px; letter-spacing:-1.8px; }
+ #pv-concept .pv-intro { margin-bottom:24px; }
+ #pv-concept .pv-entry,#pv-concept .pv-match-card { padding:18px; }
+ #pv-concept .pv-room { padding:16px 12px; }
+ #pv-concept .pv-room-title { align-items:flex-start; }
+ #pv-concept .pv-room-title h2 { font-size:14px; }
+ #pv-concept .pv-room .pv-score { padding:24px 6px; gap:16px; }
+ #pv-concept .pv-room .pv-scores { gap:6px; grid-template-columns:minmax(0,1fr) 16px minmax(0,1fr); }
+}
+@media(prefers-reduced-motion:no-preference) { #pv-concept button { transition:background .15s,border-color .15s; } }
+</style>
+<div id="pv-concept" aria-label="Proposta visual do Placar Vôlei">
+ <div class="pv-preview"><span>MODO CLARO · Dados ilustrativos</span><label>Prévia <select id="pv-size" aria-label="Formato da prévia"><option value="wide">Tablet / computador</option><option value="fold">Fold aberto</option><option value="phone">Fold fechado</option></select></label></div>
+ <div class="pv-window">
+  <header class="pv-top"><div class="pv-wordmark"><span class="pv-logo"><i data-lucide="volleyball" aria-hidden="true"></i></span>PLACAR VÔLEI</div><button class="pv-icon" id="pv-theme" aria-label="Alternar tema claro e escuro"><i data-lucide="sun-moon" aria-hidden="true"></i></button></header>
+  <main class="pv-content" id="pv-home">
+   <div class="pv-intro"><div class="pv-eyebrow">DENTRO DO JOGO</div><h1>Sua quadra.<br>Seu placar.</h1><p class="pv-sub">Marque cada ponto. Acompanhe com a galera.</p></div>
+   <div class="pv-layout">
+    <section class="pv-entry" aria-label="Entrar ou criar uma quadra">
+     <div class="pv-tabs" role="tablist" aria-label="Como começar"><button class="pv-tab" id="pv-join-tab" role="tab" aria-selected="true" aria-controls="pv-form-panel">Entrar na quadra</button><button class="pv-tab" id="pv-create-tab" role="tab" aria-selected="false" aria-controls="pv-form-panel">Criar quadra</button></div>
+     <form id="pv-form-panel" role="tabpanel" aria-labelledby="pv-join-tab">
+      <label class="pv-field" id="pv-code-field">Código da quadra<input class="pv-pin" id="pv-code" inputmode="numeric" maxlength="5" placeholder="00000" autocomplete="off" aria-label="Código de cinco dígitos"></label>
+      <label class="pv-field">Seu nome ou apelido<input id="pv-name" placeholder="Como a galera te chama?" maxlength="30" autocomplete="off"></label>
+      <label class="pv-field" id="pv-court-field" hidden>Nome da quadra · opcional<input id="pv-court" placeholder="Ex.: Vôlei de sábado" maxlength="50"></label>
+      <button class="pv-main-action" type="submit"><span id="pv-submit-text">Acompanhar partida</span><i data-lucide="arrow-up-right" aria-hidden="true"></i></button>
+      <p class="pv-error" id="pv-error" role="alert" hidden></p><p class="pv-form-note" id="pv-form-note">Entre com o código compartilhado pela galera.</p>
+     </form>
+    </section>
+    <section aria-label="Quadras em andamento"><div class="pv-section-head"><h2>Na quadra agora</h2><span class="pv-count">1 partida</span></div>
+     <button class="pv-match-card" id="pv-open-match" aria-label="Acompanhar Vôlei de sábado. Eli e Bia 10, Ana e Caio 8.">
+      <div class="pv-match-meta"><span class="pv-live">AO VIVO</span><span class="pv-code">#82906</span></div><div class="pv-match-title">Vôlei de sábado</div>
+      <div class="pv-scores"><div class="pv-score pv-team-a"><strong>10</strong><span class="pv-team">Eli &amp; Bia</span></div><span class="pv-divider">:</span><div class="pv-score pv-team-b"><strong>08</strong><span class="pv-team">Ana &amp; Caio</span></div></div>
+      <div class="pv-match-foot"><span>3 pessoas na sala</span><span class="pv-follow">Acompanhar <i data-lucide="arrow-up-right" aria-hidden="true"></i></span></div>
+     </button>
+    </section>
+   </div><footer class="pv-bottom"><span>O mesmo jogo, em todas as telas.</span><span>Sem cadastro.</span></footer>
+  </main>
+  <section class="pv-room" id="pv-room" aria-label="Prévia da partida" hidden>
+   <div class="pv-room-header"><button class="pv-back" id="pv-back"><i data-lucide="arrow-left" aria-hidden="true"></i>Quadras</button><span class="pv-live">AO VIVO</span></div>
+   <div class="pv-room-title"><div><h2 id="pv-room-name">Vôlei de sábado</h2><p>Set único · Até 12 · Vantagem de 2</p></div><span class="pv-code">#82906</span></div>
+   <div class="pv-scores" id="pv-room-scores"><div class="pv-score pv-team-a"><strong id="pv-points-a">10</strong><span class="pv-team">Eli &amp; Bia</span></div><span class="pv-divider">:</span><div class="pv-score pv-team-b"><strong id="pv-points-b">08</strong><span class="pv-team">Ana &amp; Caio</span></div></div>
+   <div class="pv-room-tools" id="pv-room-tools"><button class="pv-secondary" id="pv-immersive"><i data-lucide="maximize" aria-hidden="true"></i>Tela cheia</button><button class="pv-secondary" id="pv-invert"><i data-lucide="arrow-left-right" aria-hidden="true"></i>Inverter lados</button><button class="pv-secondary" id="pv-history"><i data-lucide="list" aria-hidden="true"></i>Histórico</button></div>
+   <div class="pv-mini-panel" id="pv-history-panel" hidden><strong>Últimos pontos · Exemplo</strong><br>10 : 08 — Ponto de Eli &amp; Bia<br>09 : 08 — Ponto de Ana &amp; Caio</div>
+   <p class="pv-room-note" id="pv-room-note">Você acompanha · Eli está no controle</p>
+   <button class="pv-secondary pv-full-control" id="pv-exit-immersive" hidden><i data-lucide="minimize" aria-hidden="true"></i>Mostrar opções</button>
+  </section>
+ </div>
+</div>
+<script>
+(() => {
+ const root=document.getElementById('pv-concept');
+ const $=id=>root.querySelector('#'+id);
+ const win=root.querySelector('.pv-window');
+ const saved=window.openai?.widgetState;
+ const restore=settings=>({size:'wide',theme:'light',accent:'#d4f25b',radius:18,scoreScale:36,scoreWeight:600,...settings,...(settings?.designRevision===5?{}:{theme:'light'}),designRevision:5});
+ const state=restore(saved?.privateContent);
+ let create=false, immersive=false, swapped=false;
+ const persist=()=>window.openai?.setWidgetState?.({modelContent:{proposal:'painel-esportivo-placar-em-destaque',screen:$('pv-room').hidden?'inicio':'partida',...state},privateContent:state})?.catch(()=>{});
+ function render(){
+  win.style.width=state.size==='phone'?'360px':state.size==='fold'?'720px':'100%';
+  root.style.colorScheme=['light','dark'].includes(state.theme)?state.theme:'light dark';
+  root.style.setProperty('--pv-brand',state.accent);
+  root.style.setProperty('--pv-radius',state.radius+'px');
+  root.style.setProperty('--pv-score-scale',state.scoreScale+'cqw');
+  root.style.setProperty('--pv-score-weight',state.scoreWeight);
+  $('pv-size').value=state.size;
+ }
+ function setTab(value){
+  create=value;
+  $('pv-join-tab').setAttribute('aria-selected',String(!value));
+  $('pv-create-tab').setAttribute('aria-selected',String(value));
+  $('pv-form-panel').setAttribute('aria-labelledby',value?'pv-create-tab':'pv-join-tab');
+  $('pv-code-field').hidden=value; $('pv-court-field').hidden=!value;
+  $('pv-submit-text').textContent=value?'Criar e começar':'Acompanhar partida';
+  $('pv-form-note').textContent=value?'Duplas e regras podem ser ajustadas dentro da quadra.':'Entre com o código compartilhado pela galera.';
+  $('pv-error').hidden=true;
+ }
+ function room(name){
+  $('pv-home').hidden=true; $('pv-room').hidden=false;
+  $('pv-room-name').textContent=name||'Vôlei de sábado';
+  $('pv-points-a').textContent=create?'00':'10'; $('pv-points-b').textContent=create?'00':'08';
+  $('pv-room-note').textContent=create?'Prévia da quadra criada · Controles de pontuação na próxima proposta':'Você acompanha · Eli está no controle';
+ }
+ $('pv-size').onchange=e=>{state.size=e.target.value;render();persist();};
+ $('pv-theme').onclick=()=>{state.theme=state.theme==='dark'?'light':state.theme==='light'?'dark':matchMedia('(prefers-color-scheme: dark)').matches?'light':'dark';render();persist();};
+ $('pv-join-tab').onclick=()=>setTab(false); $('pv-create-tab').onclick=()=>setTab(true);
+ const tabs=[$('pv-join-tab'),$('pv-create-tab')];
+ tabs.forEach((tab,index)=>tab.onkeydown=e=>{if(['ArrowLeft','ArrowRight','Home','End'].includes(e.key)){e.preventDefault();const next=e.key==='Home'?0:e.key==='End'?1:1-index;setTab(next===1);tabs[next].focus();}});
+ $('pv-code').oninput=e=>{e.target.value=e.target.value.replace(/\D/g,'').slice(0,5);};
+ $('pv-form-panel').onsubmit=e=>{e.preventDefault();const err=$('pv-error');if(!$('pv-name').value.trim()){err.textContent='Preencha seu nome para continuar.';err.hidden=false;$('pv-name').focus();return;}if(!create&&!/^\d{5}$/.test($('pv-code').value)){err.textContent='Use um código com 5 dígitos.';err.hidden=false;$('pv-code').focus();return;}err.hidden=true;room(create?$('pv-court').value.trim()||'Minha quadra':null);};
+ $('pv-open-match').onclick=()=>{setTab(false);if(!$('pv-name').value.trim()){$('pv-code').value='82906';$('pv-error').textContent='Só falta seu nome para entrar nesta quadra.';$('pv-error').hidden=false;$('pv-name').focus();return;}room();};
+ function focusMode(value){immersive=value;root.querySelector('.pv-top').hidden=value;root.querySelector('.pv-room-header').hidden=value;$('pv-room-tools').hidden=value;$('pv-room-note').hidden=value;$('pv-exit-immersive').hidden=!value;$('pv-history-panel').hidden=true;}
+ $('pv-back').onclick=()=>{focusMode(false);$('pv-home').hidden=false;$('pv-room').hidden=true;};
+ $('pv-immersive').onclick=()=>focusMode(true);$('pv-exit-immersive').onclick=()=>focusMode(false);
+ $('pv-invert').onclick=()=>{swapped=!swapped;const teams=$('pv-room-scores').children;teams[0].style.order=swapped?'2':'0';teams[1].style.order='1';teams[2].style.order=swapped?'0':'2';};
+ $('pv-history').onclick=()=>{$('pv-history-panel').hidden=!$('pv-history-panel').hidden;};
+ render();
+ room();
+ focusMode(true);
+ window.addEventListener('openai:set_globals',e=>{const s=e.detail?.globals?.widgetState?.privateContent;if(s){Object.assign(state,restore(s));render();}});
+ if(globalThis.Tweak){const t=new Tweak({container:root,onChange:()=>{render();persist();}});t.addSlider(state,'scoreScale',{label:'Tamanho dos números',min:30,max:40,unit:'% da largura'});t.addSlider(state,'scoreWeight',{label:'Espessura dos números',min:400,max:700,step:100});t.addSelect(state,'accent',{label:'Acento da marca',options:[{label:'Lima esportivo',value:'#d4f25b'},{label:'Amarelo quadra',value:'#f3d45a'}]});}
+})();
+</script>

@@ -1,0 +1,40 @@
+---
+code: CV4.DS2.US1
+level: User Story
+status: Planned
+status_reason: plano apresentado; Checkpoint 1 da implementação não aprovado
+updated: 2026-09-26
+effort: 7
+---
+
+# CV4.DS2.US1 — Placar do espectador em qualquer tela
+
+## Intent / Scope
+
+Entrega E2 — seção 7 do [plano detalhado](../../plan.md). A seção correspondente contém escopo, tarefas com esforço individual, arquivos prováveis, decisões, riscos, limites e ponto seguro de pausa.
+
+**Esforço estimado:** 7/10. Não equivale a prazo em dias.
+
+## Dependências
+
+CV4.DS1.US1 aceita e integrada.
+
+## Acceptance / Done Condition
+
+Given espectador; When pontuar, corrigir ou redimensionar; Then o placar permanece legível e completo, com estado preservado e metadados secundários.
+
+## Validation Route
+
+Executar V2 no [guia de validação](../../test-guide.md), além das verificações obrigatórias transversais. Registrar resultados reais e aceite físico do Navigator.
+
+## Estado para retomada
+
+- Branch de implementação: ainda não criada; usar branch própria a partir da master atualizada quando autorizada.
+- Último checkpoint aprovado desta história: nenhum.
+- Implementação: não iniciada.
+- Próxima ação: conferir dependências e apresentar/confirmar o Checkpoint 1 desta entrega.
+- Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.
+
+## Out of Scope
+
+Respeitar os limites da seção correspondente do plano. Não incorporar mudanças no motor de eventos, permissões ou Wear OS sem novo acordo.

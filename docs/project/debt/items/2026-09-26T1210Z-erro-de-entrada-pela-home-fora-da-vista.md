@@ -1,6 +1,6 @@
 ---
 id: debt-erro-de-entrada-pela-home-fora-da-vista
-status: Carried
+status: Paid
 kind: usability
 severity: medium
 source: relato do Navigator em 2026-09-26
@@ -21,3 +21,7 @@ O Navigator pediu para anotar e priorizar a `CV3.DS2.US3`. O contorno é trocar 
 ## Proposed Fix
 
 Na recusa pelo card: abrir a aba **Acompanhar** com o código preenchido, colocar o foco no apelido e mostrar o erro ao lado do campo. Patch, com teste de componente. A branch `fix/entrar-na-quadra-pela-home` existe só com o registro no changelog.
+
+## Closure Evidence
+
+Pago por `CV4.DS1.US1` na branch `codex/cv4-ds1-us1-home`. Selecionar uma quadra abre a aba **Acompanhar** e preenche o código antes da chamada de entrada. Se a API recusa a entrada, a mensagem permanece junto ao formulário e o foco volta ao campo de apelido. O teste `home-placar.test.js` cobre ordem, visibilidade local e recuperação do foco; o Navigator aprovou a Home em 2026-09-26.

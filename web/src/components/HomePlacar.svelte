@@ -1,927 +1,269 @@
 <script>
   import { onMount } from 'svelte';
-  import { slide, fade } from 'svelte/transition';
+  import { fade } from 'svelte/transition';
   import Icone from './Icone.svelte';
 
-  let {
-    onCriarQuadra = () => {},
-    onEntrarQuadra = () => {},
-    submetendo = false,
-    erro = null,
-  } = $props();
+  let { onCriarQuadra = () => {}, onEntrarQuadra = () => {}, submetendo = false, erro = null } = $props();
 
   const CHAVE_APELIDO = 'placar:apelido';
   const CHAVE_TEMA = 'placar:tema';
 
-  let abaAtiva = $state('criar'); // 'criar' | 'acompanhar'
+  let abaAtiva = $state('acompanhar');
   let apelidoCriador = $state('');
   let nomeQuadra = $state('');
-  let temaSol = $state(false);
-
-  let timeAJogador1 = $state('');
-  let timeAJogador2 = $state('');
-  let timeBJogador1 = $state('');
-  let timeBJogador2 = $state('');
-
   let codigoQuadra = $state('');
   let apelidoEspectador = $state('');
-
+  let temaSol = $state(false);
   let quadrasAtivas = $state([]);
   let carregandoQuadras = $state(false);
+  let erroQuadras = $state(false);
+
+  $effect(() => {
+    if (!erro || abaAtiva !== 'acompanhar' || !codigoQuadra) return;
+    setTimeout(() => document.getElementById('apelido-espectador')?.focus(), 0);
+  });
 
   onMount(() => {
+    document.body.classList.add('tela-home');
     try {
-      const salvo = localStorage.getItem(CHAVE_APELIDO);
-      if (salvo) {
-        apelidoCriador = salvo;
-        apelidoEspectador = salvo;
+      const apelidoSalvo = localStorage.getItem(CHAVE_APELIDO);
+      if (apelidoSalvo) {
+        apelidoCriador = apelidoSalvo;
+        apelidoEspectador = apelidoSalvo;
       }
-      const salvoTema = localStorage.getItem(CHAVE_TEMA);
-      if (salvoTema === 'sol') {
-        temaSol = true;
-        document.documentElement.setAttribute('data-tema', 'sol');
-      }
+      temaSol = localStorage.getItem(CHAVE_TEMA) === 'sol';
+      document.documentElement.toggleAttribute('data-tema', temaSol);
     } catch {}
-
     carregarQuadrasAtivas();
+    return () => document.body.classList.remove('tela-home');
   });
 
   function alternarTema() {
     temaSol = !temaSol;
-    try {
-      localStorage.setItem(CHAVE_TEMA, temaSol ? 'sol' : 'padrao');
-    } catch {}
-    if (temaSol) {
-      document.documentElement.setAttribute('data-tema', 'sol');
-    } else {
-      document.documentElement.removeAttribute('data-tema');
-    }
+    document.documentElement.toggleAttribute('data-tema', temaSol);
+    try { localStorage.setItem(CHAVE_TEMA, temaSol ? 'sol' : 'padrao'); } catch {}
   }
 
   async function carregarQuadrasAtivas() {
+    carregandoQuadras = true;
+    erroQuadras = false;
     try {
-      carregandoQuadras = true;
-      const res = await fetch('/api/quadras');
-      if (res.ok) {
-        const data = await res.json();
-        quadrasAtivas = data.quadras || [];
-      }
-    } catch (e) {
-      console.warn('Erro ao carregar quadras ativas:', e);
+      const resposta = await fetch('/api/quadras');
+      if (!resposta.ok) throw new Error('Falha ao consultar quadras');
+      const dados = await resposta.json();
+      quadrasAtivas = dados.quadras || [];
+    } catch {
+      erroQuadras = true;
     } finally {
       carregandoQuadras = false;
     }
   }
 
-  let regraAlvo = $state(12);
-  let regraVantagem = $state(true);
-  let regraTeto = $state('');
+  function guardarApelido(apelido) {
+    try { localStorage.setItem(CHAVE_APELIDO, apelido); } catch {}
+  }
 
-  const tetoNumerico = $derived(
-    regraTeto !== '' && regraTeto !== null && regraTeto !== undefined
-      ? Number(regraTeto)
-      : null
-  );
-
-  const tetoInvalido = $derived(
-    regraVantagem && tetoNumerico !== null && tetoNumerico < regraAlvo
-  );
-
-  function handleSubmeterCriar(e) {
-    e.preventDefault();
+  function handleSubmeterCriar(evento) {
+    evento.preventDefault();
     const apelido = apelidoCriador.trim();
     if (!apelido) return;
-
-    try {
-      localStorage.setItem(CHAVE_APELIDO, apelido);
-    } catch {}
-
-    onCriarQuadra({
-      apelido,
-      nome: nomeQuadra.trim() || undefined,
-    });
+    guardarApelido(apelido);
+    onCriarQuadra({ apelido, nome: nomeQuadra.trim() || undefined });
   }
 
-  function handleSubmeterAcompanhar(e) {
-    e.preventDefault();
-    const codigo = codigoQuadra.trim();
+  function handleSubmeterAcompanhar(evento) {
+    evento.preventDefault();
+    const quadraId = codigoQuadra.trim();
     const apelido = apelidoEspectador.trim();
-    if (!codigo || !apelido) return;
-
-    try {
-      localStorage.setItem(CHAVE_APELIDO, apelido);
-    } catch {}
-
-    onEntrarQuadra({
-      quadraId: codigo,
-      apelido,
-    });
+    if (!quadraId || !apelido) return;
+    guardarApelido(apelido);
+    onEntrarQuadra({ quadraId, apelido });
   }
 
-  function selecionarQuadraAtiva(q) {
-    codigoQuadra = q.id;
+  function selecionarQuadraAtiva(quadra) {
+    abaAtiva = 'acompanhar';
+    codigoQuadra = quadra.id;
     const apelido = apelidoEspectador.trim() || apelidoCriador.trim();
     if (apelido) {
-      try {
-        localStorage.setItem(CHAVE_APELIDO, apelido);
-      } catch {}
-      onEntrarQuadra({
-        quadraId: q.id,
-        apelido,
-      });
-    } else {
-      abaAtiva = 'acompanhar';
-      if (typeof document !== 'undefined') {
-        setTimeout(() => {
-          document.getElementById('apelido-espectador')?.focus();
-        }, 60);
-      }
+      guardarApelido(apelido);
+      onEntrarQuadra({ quadraId: quadra.id, apelido });
+      return;
     }
+    setTimeout(() => document.getElementById('apelido-espectador')?.focus(), 60);
+  }
+
+  function mudarAbaPorTeclado(evento) {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(evento.key)) return;
+    evento.preventDefault();
+    abaAtiva = evento.key === 'ArrowLeft' || evento.key === 'Home' ? 'acompanhar' : 'criar';
+    document.getElementById(`aba-${abaAtiva}`)?.focus();
   }
 </script>
 
-<div class="home-container" in:fade={{ duration: 200 }}>
-  <div class="barra-superior-home">
-    <button
-      type="button"
-      class="btn-toggle-sol"
-      onclick={alternarTema}
-      aria-label={temaSol ? 'Ativar Modo Noite' : 'Ativar Modo Sol'}
-      title={temaSol ? 'Modo Noite' : 'Modo Sol (Alto Contraste)'}
-    >
-      <Icone nome={temaSol ? 'lua' : 'sol'} tamanho="1.15em" />
-      <span>{temaSol ? 'Modo Noite' : 'Modo Sol'}</span>
+<main class="home" in:fade={{ duration: 180 }}>
+  <nav class="topo" aria-label="Identidade e aparência">
+    <a class="marca" href="/" aria-label="Placar Vôlei, início">
+      <span class="marca-icone"><Icone nome="bola" tamanho="1.35em" /></span>
+      <span>PLACAR <strong>VÔLEI</strong></span>
+    </a>
+    <button class="tema" type="button" onclick={alternarTema} aria-label={temaSol ? 'Ativar modo escuro' : 'Ativar modo claro'}>
+      <Icone nome={temaSol ? 'lua' : 'sol'} tamanho="1.2em" />
+      <span>{temaSol ? 'Escuro' : 'Claro'}</span>
     </button>
-  </div>
+  </nav>
 
-  <header class="home-header">
-    <div class="logo-badge">🏐</div>
-    <h1 class="app-title">Placar de Vôlei</h1>
-    <p class="app-subtitle">Placar em tempo real para voleibol e beach tennis</p>
-  </header>
-
-  {#if erro}
-    <div class="alerta-erro" in:slide={{ duration: 200 }}>
-      <span class="alerta-icone">⚠️</span>
-      <span class="alerta-texto">{erro}</span>
-    </div>
-  {/if}
-
-  <div class="home-layout-grid">
-    <div class="coluna-acao">
-      <!-- Seletor de Abas -->
-      <div class="abas-navegacao" role="tablist">
-        <button
-          type="button"
-          role="tab"
-          aria-selected={abaAtiva === 'criar'}
-          class="aba-btn"
-          class:ativa={abaAtiva === 'criar'}
-          onclick={() => { abaAtiva = 'criar'; }}
-        >
-          <span class="aba-icone">⚡</span>
-          <span class="aba-label">Criar Placar</span>
+  <div class="layout">
+    <section class="painel-acesso" aria-labelledby="titulo-acesso">
+      <div class="abas" role="tablist" aria-label="Como começar">
+        <button id="aba-acompanhar" role="tab" type="button" aria-selected={abaAtiva === 'acompanhar'} aria-controls="painel-acompanhar" tabindex={abaAtiva === 'acompanhar' ? 0 : -1} class:ativa={abaAtiva === 'acompanhar'} onclick={() => abaAtiva = 'acompanhar'} onkeydown={mudarAbaPorTeclado}>
+          Acompanhar
         </button>
-
-        <button
-          type="button"
-          role="tab"
-          aria-selected={abaAtiva === 'acompanhar'}
-          class="aba-btn"
-          class:ativa={abaAtiva === 'acompanhar'}
-          onclick={() => { abaAtiva = 'acompanhar'; }}
-        >
-          <span class="aba-icone">👁️</span>
-          <span class="aba-label">Acompanhar</span>
+        <button id="aba-criar" role="tab" type="button" aria-selected={abaAtiva === 'criar'} aria-controls="painel-criar" tabindex={abaAtiva === 'criar' ? 0 : -1} class:ativa={abaAtiva === 'criar'} onclick={() => abaAtiva = 'criar'} onkeydown={mudarAbaPorTeclado}>
+          Criar placar
         </button>
       </div>
 
-      <!-- Cartão de Ação -->
-      <div class="cartao-acao">
-        {#if abaAtiva === 'criar'}
-          <form class="form-acao" onsubmit={handleSubmeterCriar} in:fade={{ duration: 150 }}>
-            <div class="card-intro">
-              <h2 class="card-titulo">Criar Nova Sala</h2>
-              <p class="card-desc">
-                Você será o <strong>Administrador</strong> da sala e controlará a pontuação. Um código de 5 dígitos será gerado.
-              </p>
-            </div>
+      {#if abaAtiva === 'acompanhar'}
+        <form id="painel-acompanhar" aria-labelledby="aba-acompanhar" class="formulario" onsubmit={handleSubmeterAcompanhar}>
+          <div class="intro">
+            <span class="numero-etapa">01</span>
+            <div><h2 id="titulo-acesso">Entre na quadra</h2><p>Use o código exibido no placar.</p></div>
+          </div>
+          {#if erro}<div class="alerta" role="alert"><Icone nome="alerta" tamanho="1.1em" /><span>{erro}</span></div>{/if}
+          <label for="codigo-quadra">Código da quadra</label>
+          <input id="codigo-quadra" class="codigo" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="5" autocomplete="one-time-code" bind:value={codigoQuadra} placeholder="00000" required disabled={submetendo} />
+          <label for="apelido-espectador">Como vamos chamar você?</label>
+          <input id="apelido-espectador" type="text" maxlength="30" autocomplete="nickname" bind:value={apelidoEspectador} placeholder="Seu nome ou apelido" required disabled={submetendo} />
+          <button class="acao-principal" type="submit" disabled={submetendo || !codigoQuadra.trim() || !apelidoEspectador.trim()}>
+            <span>{submetendo ? 'Entrando…' : 'Acompanhar placar'}</span>
+          </button>
+        </form>
+      {:else}
+        <form id="painel-criar" aria-labelledby="aba-criar" class="formulario" onsubmit={handleSubmeterCriar}>
+          <div class="intro">
+            <span class="numero-etapa">01</span>
+            <div><h2 id="titulo-acesso">Abra uma quadra</h2><p>Você começa como administrador do placar.</p></div>
+          </div>
+          {#if erro}<div class="alerta" role="alert"><Icone nome="alerta" tamanho="1.1em" /><span>{erro}</span></div>{/if}
+          <label for="apelido-criador">Como vamos chamar você?</label>
+          <input id="apelido-criador" type="text" maxlength="30" autocomplete="nickname" bind:value={apelidoCriador} placeholder="Seu nome ou apelido" required disabled={submetendo} />
+          <label for="nome-quadra">Nome da quadra <span>(opcional)</span></label>
+          <input id="nome-quadra" type="text" maxlength="50" bind:value={nomeQuadra} placeholder="Ex.: Vôlei de sábado" disabled={submetendo} />
+          <button class="acao-principal" type="submit" disabled={submetendo || !apelidoCriador.trim()}>
+            <span>{submetendo ? 'Criando…' : 'Criar placar'}</span>
+          </button>
+        </form>
+      {/if}
+    </section>
 
-            <div class="campo-grupo">
-              <label for="apelido-criador">Seu nome ou apelido <span class="obrigatorio">*</span></label>
-              <input
-                id="apelido-criador"
-                type="text"
-                bind:value={apelidoCriador}
-                placeholder="Ex: Carlos, Ana, Juiz"
-                maxlength="30"
-                required
-                disabled={submetendo}
-              />
-            </div>
-
-            <div class="campo-grupo">
-              <label for="nome-quadra">Nome da quadra (opcional)</label>
-              <input
-                id="nome-quadra"
-                type="text"
-                bind:value={nomeQuadra}
-                placeholder="Ex: Quadra Central, Areia 1"
-                maxlength="50"
-                disabled={submetendo}
-              />
-            </div>
-
-            <div class="card-info-box">
-              <Icone nome="informacao" tamanho="1.1em" class="info-icone" />
-              <span>Você poderá definir e trocar as duplas e regras da partida a qualquer momento dentro da sala.</span>
-            </div>
-
-            <button
-              type="submit"
-              class="btn-principal"
-              disabled={submetendo || !apelidoCriador.trim()}
-            >
-              {submetendo ? 'Criando sala...' : 'Criar Placar e Iniciar'}
-            </button>
-          </form>
-        {:else}
-          <form class="form-acao" onsubmit={handleSubmeterAcompanhar} in:fade={{ duration: 150 }}>
-            <div class="card-intro">
-              <h2 class="card-titulo">Acompanhar Sala</h2>
-              <p class="card-desc">
-                Digite o número de 5 dígitos da quadra para acompanhar a pontuação ao vivo como <strong>Espectador</strong>.
-              </p>
-            </div>
-
-            <div class="campo-grupo">
-              <label for="codigo-quadra">Código da Quadra (5 dígitos) <span class="obrigatorio">*</span></label>
-              <input
-                id="codigo-quadra"
-                class="input-codigo"
-                type="text"
-                inputmode="numeric"
-                pattern="[0-9]*"
-                maxlength="5"
-                bind:value={codigoQuadra}
-                placeholder="Ex: 12345"
-                required
-                disabled={submetendo}
-              />
-            </div>
-
-            <div class="campo-grupo">
-              <label for="apelido-espectador">Seu nome ou apelido <span class="obrigatorio">*</span></label>
-              <input
-                id="apelido-espectador"
-                type="text"
-                bind:value={apelidoEspectador}
-                placeholder="Ex: Torcedor, Bia"
-                maxlength="30"
-                required
-                disabled={submetendo}
-              />
-            </div>
-
-            <button
-              type="submit"
-              class="btn-principal"
-              disabled={submetendo || !codigoQuadra.trim() || !apelidoEspectador.trim()}
-            >
-              {submetendo ? 'Entrando...' : 'Entrar como Espectador'}
-            </button>
-          </form>
-        {/if}
-      </div>
-    </div>
-
-    <!-- Salas Ativas Disponíveis -->
-    <section class="secao-salas-ativas">
-      <div class="salas-header">
-        <h3 class="salas-titulo">
-          Quadras em Andamento
-          <span class="badge-contagem">{quadrasAtivas.length}/20</span>
-        </h3>
-        <button
-          type="button"
-          class="btn-recarregar"
-          onclick={carregarQuadrasAtivas}
-          disabled={carregandoQuadras}
-          title="Atualizar lista"
-          aria-label="Atualizar lista de quadras em andamento"
-        >
-          {carregandoQuadras ? '...' : '↻ Atualizar'}
-        </button>
-      </div>
+    <section class="ao-vivo" aria-labelledby="titulo-ao-vivo">
+      <header class="secao-cabecalho">
+        <div><span class="pulso" aria-hidden="true"></span><h2 id="titulo-ao-vivo">Agora na quadra</h2><span class="contagem">{quadrasAtivas.length}</span></div>
+        <button type="button" onclick={carregarQuadrasAtivas} disabled={carregandoQuadras} aria-label="Atualizar quadras"><Icone nome="atualizar" tamanho="1.1em" /></button>
+      </header>
 
       {#if carregandoQuadras && quadrasAtivas.length === 0}
-        <p class="salas-vazio">Verificando salas ativas...</p>
+        <div class="estado-lista">Procurando partidas…</div>
+      {:else if erroQuadras}
+        <div class="estado-lista"><p>Não foi possível carregar as quadras.</p><button type="button" onclick={carregarQuadrasAtivas}>Tentar novamente</button></div>
       {:else if quadrasAtivas.length === 0}
-        <div class="salas-card-vazio">
-          <p>Nenhuma quadra ativa no momento.</p>
-          <p class="sub-vazio">Crie uma nova sala acima para começar!</p>
-        </div>
+        <div class="estado-lista"><p>Nenhuma partida ao vivo agora.</p><button type="button" onclick={() => abaAtiva = 'criar'}>Criar o primeiro placar</button></div>
       {:else}
-        <div class="grade-salas">
-          {#each quadrasAtivas as q (q.id)}
-            <button
-              type="button"
-              class="item-sala"
-              onclick={() => selecionarQuadraAtiva(q)}
-              aria-label="Entrar na quadra {q.nome}, código {q.id}{q.partida ? `, placar ${q.partida.pontos_a} a ${q.partida.pontos_b}` : ''}"
-            >
-              <div class="sala-pin">
-                <span class="pin-label">CÓDIGO</span>
-                <span class="pin-numero">{q.id}</span>
+        <div class="partidas">
+          {#each quadrasAtivas as quadra (quadra.id)}
+            <button class="partida" type="button" onclick={() => selecionarQuadraAtiva(quadra)} aria-label="Acompanhar {quadra.nome}, código {quadra.id}">
+              <div class="partida-info">
+                <span class="ao-vivo-badge">AO VIVO</span>
+                <h3>{quadra.nome}</h3>
+                <span class="codigo-sala">#{quadra.id}</span>
+                <span class="participantes"><Icone nome="pessoas" tamanho="1em" /> {quadra.participantes_count || 0}</span>
               </div>
-
-              <div class="sala-detalhes">
-                <div class="sala-cabecalho-linha">
-                  <h4 class="sala-nome">{q.nome}</h4>
-                  {#if q.partida && !q.partida.encerrada}
-                    <span class="badge-ao-vivo">
-                      <span class="dot-ao-vivo" aria-hidden="true"></span>
-                      AO VIVO
-                    </span>
-                  {:else if q.partida && q.partida.encerrada}
-                    <span class="badge-finalizada">FINALIZADA</span>
-                  {/if}
+              {#if quadra.partida}
+                <div class="placar-resumo">
+                  <div class="equipe equipe-a"><span>{quadra.partida.equipe_a}</span><strong>{quadra.partida.pontos_a}</strong></div>
+                  <span class="versus">×</span>
+                  <div class="equipe equipe-b"><span>{quadra.partida.equipe_b}</span><strong>{quadra.partida.pontos_b}</strong></div>
                 </div>
-
-                {#if q.partida}
-                  <div class="sala-placar-resumo">
-                    <span class="placar-times">
-                      <span class="time-rotulo">{q.partida.equipe_a}</span>
-                      <strong class="placar-numeros">{q.partida.pontos_a} × {q.partida.pontos_b}</strong>
-                      <span class="time-rotulo">{q.partida.equipe_b}</span>
-                    </span>
-                  </div>
-                {:else}
-                  <span class="sala-aguardando">Aguardando início</span>
-                {/if}
-
-                <span class="sala-participantes">
-                  👥 {q.participantes_count || 0}/20 pessoas
-                </span>
-              </div>
-
-              <div class="sala-acao">
-                <span class="sala-entrar-label">{apelidoEspectador.trim() || apelidoCriador.trim() ? 'Entrar' : 'Acompanhar'}</span>
-                <span class="sala-seta" aria-hidden="true">→</span>
-              </div>
+              {:else}
+                <div class="aguardando">Aguardando o primeiro saque</div>
+              {/if}
+              <strong class="partida-abrir">Abrir <Icone nome="seta" tamanho="1em" /></strong>
             </button>
           {/each}
         </div>
       {/if}
     </section>
   </div>
-</div>
+</main>
 
 <style>
-  .home-container {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 1.5rem 1rem 3rem;
-    gap: 1.5rem;
-    box-sizing: border-box;
-    overflow-x: hidden;
-  }
-
-  .home-layout-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    width: 100%;
-  }
-
-  .coluna-acao {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    width: 100%;
-  }
-
-  .barra-superior-home {
-    display: flex;
-    justify-content: flex-end;
-    width: 100%;
-  }
-
-  .btn-toggle-sol {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-circular);
-    color: var(--text-primary);
-    padding: 6px 14px;
-    min-height: 44px;
-    box-sizing: border-box;
-    font-size: var(--texto-legenda);
-    font-weight: 600;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.15s ease;
-  }
-
-  .btn-toggle-sol:hover {
-    background: var(--bg-card-hover);
-    border-color: rgba(var(--veu), 0.2);
-  }
-
-  .home-header {
-    text-align: center;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.35rem;
-  }
-
-  .logo-badge {
-    font-size: 2.75rem;
-    line-height: 1;
-    margin-bottom: 0.25rem;
-  }
-
-  .app-title {
-    font-size: 1.75rem;
-    font-weight: 800;
-    color: var(--texto-forte);
-    margin: 0;
-    letter-spacing: -0.02em;
-  }
-
-  .app-subtitle {
-    font-size: 0.95rem;
-    color: var(--texto-suave);
-    margin: 0;
-  }
-
-  .alerta-erro {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.35);
-    color: var(--estado-erro-suave);
-    padding: 0.85rem 1rem;
-    border-radius: 12px;
-    font-size: 0.9rem;
-    line-height: 1.35;
-  }
-
-  .alerta-icone {
-    font-size: 1.25rem;
-    flex-shrink: 0;
-  }
-
-  .abas-navegacao {
-    display: flex;
-    background: var(--fundo-superficie);
-    padding: 0.3rem;
-    border-radius: 14px;
-    gap: 0.3rem;
-    border: 1px solid var(--acao-secundaria);
-  }
-
-  .aba-btn {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    background: transparent;
-    border: none;
-    color: var(--texto-suave);
-    padding: 0.75rem 0.5rem;
-    min-height: 44px;
-    box-sizing: border-box;
-    font-size: 0.95rem;
-    font-weight: 600;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-
-  .aba-btn.ativa {
-    background: var(--acento-info-forte);
-    color: #ffffff;
-    box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
-  }
-
-  .aba-btn:hover:not(.ativa) {
-    color: var(--texto-forte);
-    background: rgba(var(--veu), 0.04);
-  }
-
-  .cartao-acao {
-    background: var(--fundo-superficie);
-    border: 1px solid var(--acao-secundaria);
-    border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
-  }
-
-  .form-acao {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-  }
-
-  .card-intro {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-  }
-
-  .card-titulo {
-    font-size: 1.2rem;
-    font-weight: 700;
-    color: var(--texto-forte);
-    margin: 0;
-  }
-
-  .card-desc {
-    font-size: 0.85rem;
-    color: var(--texto-suave);
-    margin: 0;
-    line-height: 1.4;
-  }
-
-  .campo-grupo {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-
-  .campo-grupo label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--texto-medio);
-  }
-
-  .obrigatorio {
-    color: var(--estado-erro);
-  }
-
-  .campo-grupo input {
-    background: var(--fundo-base);
-    border: 1px solid var(--acao-secundaria);
-    color: var(--texto-forte);
-    padding: 0.8rem 1rem;
-    font-size: 1rem;
-    border-radius: 10px;
-    outline: none;
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .campo-grupo input:focus {
-    border-color: var(--acento-info);
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
-  }
-
-  .input-codigo {
-    font-size: 1.5rem !important;
-    font-weight: 800;
-    letter-spacing: 0.25em;
-    text-align: center;
-    color: var(--acento-info) !important;
-  }
-
-  .input-codigo::placeholder {
-    letter-spacing: normal;
-    font-size: 1rem;
-    font-weight: normal;
-    color: var(--texto-apagado);
-  }
-
-  .card-info-box {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.5rem;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--acao-secundaria);
-    padding: 0.65rem 0.85rem;
-    border-radius: 8px;
-    font-size: 0.78rem;
-    color: var(--texto-suave);
-    line-height: 1.35;
-  }
-
-  :global(.info-icone) {
-    flex-shrink: 0;
-  }
-
-  .btn-principal {
-    background: var(--acento-info-forte);
-    color: #ffffff;
-    border: none;
-    padding: 0.95rem 1.25rem;
-    font-size: 1rem;
-    font-weight: 700;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
-  .btn-principal:hover:not(:disabled) {
-    background: var(--acento-info-ativo);
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.4);
-    transform: translateY(-1px);
-  }
-
-  .btn-principal:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-
-  /* Seção Salas Ativas */
-  .secao-salas-ativas {
-    display: flex;
-    flex-direction: column;
-    gap: 0.85rem;
-  }
-
-  .salas-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  .salas-titulo {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--texto-medio);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-  }
-
-  .badge-contagem {
-    font-size: 0.75rem;
-    font-weight: 600;
-    background: var(--acao-secundaria);
-    color: var(--texto-suave);
-    padding: 0.15rem 0.45rem;
-    border-radius: 6px;
-  }
-
-  .btn-recarregar {
-    background: transparent;
-    border: 1px solid rgba(56, 189, 248, 0.25);
-    color: var(--acento-info);
-    font-size: 0.82rem;
-    font-weight: 600;
-    cursor: pointer;
-    padding: 6px 12px;
-    min-height: 44px;
-    box-sizing: border-box;
-    border-radius: 8px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-  }
-
-  .btn-recarregar:hover:not(:disabled) {
-    background: rgba(56, 189, 248, 0.15);
-    border-color: var(--acento-info);
-  }
-
-  .salas-vazio, .salas-card-vazio {
-    background: var(--fundo-superficie);
-    border: 1px dashed var(--acao-secundaria);
-    border-radius: 12px;
-    padding: 1.5rem;
-    text-align: center;
-    color: var(--texto-suave);
-    font-size: 0.9rem;
-    margin: 0;
-  }
-
-  .sub-vazio {
-    font-size: 0.8rem;
-    color: var(--texto-apagado);
-    margin-top: 0.25rem;
-  }
-
-  .grade-salas {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-
-  .item-sala {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    background: var(--fundo-superficie);
-    border: 1px solid var(--acao-secundaria);
-    border-radius: 14px;
-    padding: 0.85rem 1rem;
-    min-height: 64px;
-    box-sizing: border-box;
-    text-align: left;
-    color: inherit;
-    cursor: pointer;
-    transition: all 0.18s ease;
-  }
-
-  .item-sala:hover {
-    border-color: var(--acento-info);
-    background: var(--fundo-cartao);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-  }
-
-  .sala-pin {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    background: var(--fundo-base);
-    border: 1px solid var(--acento-info);
-    border-radius: 8px;
-    padding: 0.35rem 0.55rem;
-    min-width: 54px;
-    flex-shrink: 0;
-  }
-
-  .pin-label {
-    font-size: 0.6rem;
-    font-weight: 700;
-    color: var(--texto-suave);
-    letter-spacing: 0.05em;
-  }
-
-  .pin-numero {
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: var(--acento-info);
-    letter-spacing: 0.05em;
-  }
-
-  .sala-detalhes {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    min-width: 0;
-  }
-
-  .sala-cabecalho-linha {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 6px;
-    flex-wrap: wrap;
-  }
-
-  .sala-nome {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--texto-forte);
-    margin: 0;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 170px;
-  }
-
-  .badge-ao-vivo {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.65rem;
-    font-weight: 800;
-    color: var(--estado-erro);
-    background: rgba(239, 68, 68, 0.15);
-    border: 1px solid rgba(239, 68, 68, 0.4);
-    padding: 2px 7px;
-    border-radius: 999px;
-    letter-spacing: 0.05em;
-  }
-
-  .dot-ao-vivo {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background-color: var(--acao-destrutiva);
-    box-shadow: 0 0 6px var(--acao-destrutiva);
-    animation: pulso-dot 1.2s ease-in-out infinite;
-  }
-
-  @keyframes pulso-dot {
-    0%, 100% { opacity: 0.35; transform: scale(0.85); }
-    50% { opacity: 1; transform: scale(1.15); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .dot-ao-vivo {
-      animation: none;
-    }
-  }
-
-  .badge-finalizada {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--texto-suave);
-    background: var(--acao-secundaria);
-    padding: 2px 7px;
-    border-radius: 999px;
-  }
-
-  .sala-placar-resumo {
-    display: flex;
-    align-items: center;
-    margin: 1px 0;
-  }
-
-  .placar-times {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.82rem;
-    color: var(--texto-medio);
-    flex-wrap: wrap;
-  }
-
-  .time-rotulo {
-    max-width: 80px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  .placar-numeros {
-    font-family: var(--fonte-placar, 'Teko', sans-serif);
-    font-size: 1.35rem;
-    color: var(--acento-info);
-    letter-spacing: 0.04em;
-    line-height: 1;
-    font-weight: 700;
-  }
-
-  .sala-aguardando {
-    font-size: 0.78rem;
-    color: var(--texto-apagado);
-    font-style: italic;
-  }
-
-  .sala-participantes {
-    font-size: 0.78rem;
-    color: var(--texto-suave);
-  }
-
-  .sala-acao {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    color: var(--acento-info);
-    font-size: 0.82rem;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-
-  .sala-entrar-label {
-    letter-spacing: 0.02em;
-  }
-
-  .sala-seta {
-    color: var(--acento-info);
-    font-size: 1.1rem;
-    font-weight: bold;
-    transition: transform 0.15s ease;
-  }
-
-  .item-sala:hover .sala-seta {
-    transform: translateX(3px);
-  }
-
-  @media (min-width: 960px) {
-    .home-container {
-      max-width: 1060px;
-      padding: 2.5rem 2rem 4rem;
-      gap: 2rem;
-    }
-
-    .home-layout-grid {
-      display: grid;
-      grid-template-columns: 460px 1fr;
-      gap: 2.5rem;
-      align-items: start;
-    }
-
-    .grade-salas {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 0.85rem;
-    }
-  }
+  .home { width: min(1180px, 100%); margin: 0 auto; padding: 1.25rem clamp(1rem, 3vw, 2.5rem) 4rem; box-sizing: border-box; color: var(--texto-forte); }
+  .topo { display: flex; align-items: center; justify-content: space-between; min-height: 48px; }
+  .marca { display: inline-flex; align-items: center; gap: .7rem; color: var(--texto-forte); font-size: .78rem; font-weight: 700; letter-spacing: .18em; text-decoration: none; }
+  .marca strong { color: var(--acento-info); }
+  .marca-icone { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--acao-secundaria); border-radius: 10px; }
+  .tema { display: inline-flex; align-items: center; justify-content: center; gap: .5rem; min-width: 92px; height: 44px; padding: 0 .85rem; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); color: var(--texto-medio); font: inherit; font-size: .78rem; font-weight: 700; cursor: pointer; }
+  .secao-cabecalho > button { display: grid; place-items: center; width: 44px; height: 44px; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); color: var(--texto-medio); cursor: pointer; }
+  .layout { display: grid; grid-template-columns: minmax(320px, .82fr) minmax(420px, 1.18fr); gap: clamp(1rem, 3vw, 2rem); align-items: start; padding-top: clamp(2rem, 6vw, 4.5rem); }
+  .painel-acesso, .ao-vivo { min-width: 0; }
+  .abas { display: grid; grid-template-columns: 1fr 1fr; padding: 4px; margin-bottom: .75rem; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); }
+  .abas button { min-height: 44px; border: 0; border-radius: 8px; background: transparent; color: var(--texto-suave); font: inherit; font-size: .86rem; font-weight: 750; cursor: pointer; }
+  .abas button.ativa { background: var(--acao-primaria); color: var(--acao-primaria-texto); box-shadow: var(--sombra-sutil); }
+  .formulario, .ao-vivo { border: 1px solid var(--acao-secundaria); border-radius: 18px; background: var(--fundo-superficie); box-shadow: var(--sombra-sutil); }
+  .formulario { display: flex; flex-direction: column; gap: .65rem; padding: clamp(1.2rem, 3vw, 1.8rem); }
+  .intro { display: flex; align-items: flex-start; gap: .9rem; padding-bottom: 1rem; margin-bottom: .15rem; border-bottom: 1px solid var(--acao-secundaria); }
+  .numero-etapa { color: var(--acento-info); font-family: var(--fonte-numeros); font-size: 1.5rem; font-weight: 600; line-height: 1; }
+  .intro h2 { margin: 0 0 .2rem; font-size: 1.15rem; }
+  .intro p { margin: 0; color: var(--texto-suave); font-size: .82rem; }
+  label { margin-top: .45rem; color: var(--texto-medio); font-size: .78rem; font-weight: 700; }
+  label span { color: var(--texto-apagado); font-weight: 500; }
+  input { box-sizing: border-box; width: 100%; min-height: 48px; padding: .75rem .9rem; border: 1px solid var(--acao-secundaria); border-radius: 10px; outline: none; background: var(--fundo-base); color: var(--texto-forte); font: inherit; }
+  input:focus { border-color: var(--foco-cor); box-shadow: var(--foco-anel); }
+  input.codigo { align-self: center; width: min(100%, 300px); min-height: 64px; padding: .25rem .8rem; font-family: var(--fonte-numeros); font-size: 3.15rem; font-weight: 600; line-height: 1; letter-spacing: .12em; text-align: center; text-indent: .12em; color: var(--acento-info); }
+  input.codigo::placeholder { color: var(--texto-apagado); }
+  .alerta { display: flex; align-items: flex-start; gap: .6rem; padding: .75rem; border: 1px solid color-mix(in srgb, var(--estado-erro) 45%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--estado-erro) 12%, transparent); color: var(--estado-erro-suave); font-size: .83rem; line-height: 1.4; }
+  .acao-principal { display: flex; align-items: center; justify-content: center; min-height: 52px; margin-top: .55rem; padding: 0 1.1rem; border: 0; border-radius: 10px; background: var(--acao-primaria); color: var(--acao-primaria-texto); font: inherit; font-weight: 800; text-align: center; cursor: pointer; }
+  .acao-principal:disabled { opacity: .45; cursor: not-allowed; }
+  .secao-cabecalho { display: flex; align-items: center; justify-content: space-between; padding: 1rem 1.1rem; border-bottom: 1px solid var(--acao-secundaria); }
+  .secao-cabecalho > div { display: flex; align-items: center; gap: .55rem; }
+  .secao-cabecalho h2 { margin: 0; font-size: 1rem; }
+  .pulso { width: 7px; height: 7px; border-radius: 50%; background: var(--estado-sucesso); box-shadow: 0 0 0 5px color-mix(in srgb, var(--estado-sucesso) 14%, transparent); }
+  .contagem { display: grid; place-items: center; min-width: 24px; height: 24px; border-radius: 99px; background: var(--acao-secundaria); color: var(--texto-suave); font-size: .72rem; font-weight: 800; }
+  .partidas { display: grid; gap: .75rem; padding: .75rem; }
+  .partida { display: grid; grid-template-columns: minmax(110px, .72fr) minmax(250px, 1.55fr) minmax(104px, .68fr); align-items: stretch; width: 100%; min-height: 144px; padding: 0; overflow: hidden; border: 1px solid var(--acao-secundaria); border-top: 3px solid var(--time-a); border-radius: 13px; background: var(--fundo-cartao); color: inherit; text-align: left; cursor: pointer; transition: transform .15s ease, border-color .15s ease; }
+  .partida:hover { transform: translateY(-2px); border-color: var(--texto-apagado); }
+  .partida-info { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; min-width: 0; padding: .8rem .25rem .8rem .9rem; }
+  .partida-info h3 { max-width: 100%; margin: .2rem 0 .4rem; overflow: hidden; color: var(--texto-medio); font-size: .78rem; font-weight: 650; text-overflow: ellipsis; white-space: nowrap; }
+  .ao-vivo-badge { color: var(--estado-sucesso); font-size: .61rem; font-weight: 850; letter-spacing: .12em; }
+  .codigo-sala { color: var(--texto-suave); font-family: var(--fonte-numeros); font-size: 1.05rem; font-weight: 600; letter-spacing: .05em; }
+  .participantes { display: inline-flex; align-items: center; gap: .3rem; margin-top: .45rem; color: var(--texto-suave); font-size: .68rem; }
+  .placar-resumo { display: grid; grid-template-columns: minmax(72px, 1fr) 28px minmax(72px, 1fr); align-items: center; justify-items: center; gap: .35rem; min-width: 0; padding: .65rem 1rem; border-inline: 1px solid var(--acao-secundaria); background: linear-gradient(90deg, var(--time-a-tenue), transparent 38%, transparent 62%, var(--time-b-tenue)); }
+  .equipe { display: flex; flex-direction: column; align-items: center; gap: .38rem; min-width: 0; text-align: center; }
+  .equipe-b { align-items: center; text-align: center; }
+  .equipe span { max-width: 100%; overflow: hidden; color: var(--texto-suave); font-size: .65rem; font-weight: 750; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+  .equipe strong { font-family: var(--fonte-numeros); font-size: clamp(5.5rem, 10vw, 7.4rem); font-weight: 600; line-height: .76; letter-spacing: -.035em; }
+  .equipe-a strong { color: var(--time-a); text-shadow: 0 0 24px color-mix(in srgb, var(--time-a) 20%, transparent); }
+  .equipe-b strong { color: var(--time-b); text-shadow: 0 0 24px color-mix(in srgb, var(--time-b) 20%, transparent); }
+  .versus { color: var(--texto-apagado); font-size: 1.2rem; font-weight: 700; }
+  .partida-abrir { align-self: stretch; display: flex; align-items: center; justify-content: center; gap: .45rem; min-height: 100%; padding: 0 .9rem; background: var(--acao-primaria); color: var(--acao-primaria-texto); box-shadow: var(--sombra-sutil); font-size: .86rem; white-space: nowrap; }
+  .aguardando, .estado-lista { display: grid; place-items: center; min-height: 145px; padding: 1rem; color: var(--texto-suave); font-size: .85rem; text-align: center; }
+  .estado-lista p { margin: 0 0 .8rem; }
+  .estado-lista button { min-height: 44px; padding: 0 1rem; border: 1px solid var(--acao-secundaria); border-radius: 9px; background: var(--fundo-cartao); color: var(--texto-medio); font: inherit; font-weight: 700; cursor: pointer; }
+  button:focus-visible, a:focus-visible { outline: var(--foco-largura) solid var(--foco-cor); outline-offset: var(--foco-deslocamento); }
+
+  @media (max-width: 800px) {
+    .layout { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .home { padding: .75rem .8rem 2.5rem; }
+    .layout { padding-top: 1.5rem; }
+    .formulario { padding: 1rem; }
+    .partida { grid-template-columns: minmax(82px, .65fr) minmax(156px, 1.35fr) minmax(72px, .6fr); min-height: 128px; }
+    .partida-info { padding-left: .65rem; }
+    .placar-resumo { grid-template-columns: minmax(52px, 1fr) 20px minmax(52px, 1fr); padding-inline: .35rem; }
+    .equipe strong { font-size: 5rem; }
+    .equipe span { max-width: 52px; }
+    .partida-abrir { min-height: 100%; padding-inline: .5rem; }
+  }
+  @media (prefers-reduced-motion: reduce) { .partida { transition: none; } }
 </style>
