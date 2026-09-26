@@ -4,13 +4,124 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV3.DS1.US4 — Registrar offline e sincronizar com segurança
+### CV3.DS1.TS1 + CV3.DS1.US4 — Registrar offline e sincronizar com segurança
 
-- **Branch:** `feature/cv3-ds1-us4-offline-reconciliacao` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 2 - Planejamento (Checkpoint 1 aprovado em 2026-09-26: divisão em CV3.DS1.TS1 + US4; devolução ao relógio basta token válido). Implementar a TS1 primeiro
-- **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
-- **Handoff / Próximos Passos:** nenhuma linha de código alterada. Aguardar aprovação do Checkpoint 1; em seguida iniciar Passo 3 nesta branch.
+- **Branch:** `feature/cv3-ds1-us4-offline-reconciliacao` (criada de `master` `446282c`; atualizada com `master` 0.18.1 em 2026-09-26)
+- **Passo Ariad:** Passo 3 - Implementação (CV3.DS1.TS1 primeiro). Checkpoint 1 aprovado em 2026-09-26: divisão em TS1 + US4; devolução ao relógio basta token válido
+- **Assinatura:** Agente: Claude Code, Opus 5.5 (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 — assumido nesta sessão a partir do Passo 3
+- **Handoff / Próximos Passos:** implementar a fila offline e o reenvio da TS1 conforme `cv3-ds1-ts1-fila-offline-e-reenvio/index.md`; depois a US4.
 
+
+
+## 0.18.1 - 2026-09-26
+
+Boundary: patch (regressão, acessibilidade e CI; conclui `CV4.DS3.TS1`, `CV4.DS3` e o CV4)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66
+
+Git source: `feature/cv4-ds3-ts1-regressao`, integrada em `master` pelo merge `535fbc3` após o Checkpoint 4.
+
+### Fixed
+
+- A aplicação não carrega mais o Google Fonts: Inter e Teko já eram locais e o link externo sobrava no `index.html`.
+
+### Development
+
+- Suíte de navegador `npm run test:e2e` (Playwright 1.56.1 e axe 4.13.0, só desenvolvimento): 24 testes cobrindo espectador, operador, superfícies, axe nos dois temas e ausência de requisições externas.
+- CI no GitHub Actions a cada push e pull request: pytest, ruff, `npm test`, `svelte-check`, build e navegador.
+- Dívida de contraste do Modo Sol paga; nova dívida `testes-estaticos-dependem-do-build`.
+
+### Verification
+
+- Backend: 191 testes; frontend: 66 testes unitários e 24 de navegador; Svelte sem avisos.
+- CI verde (run #3, `a9b2354`).
+- Rota V6 e matriz física aprovadas pelo Navigator em 2026-09-26.
+
+## 0.18.0 - 2026-09-26
+
+Boundary: minor (superfícies auxiliares e estados coerentes; conclui `CV4.DS3.US2`)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66
+
+Git source: `feature/cv4-ds3-us2-superficies`, integrada em `master` pelo merge `834278e` após o Checkpoint 4.
+
+### Added
+
+- Menu ⋯ também para o espectador (compartilhar/QR, girar, tema e presentes), compartilhado com o operador em `MenuSala.svelte`.
+- Diálogos devolvem o foco a quem os abriu e mantêm o campo focado visível com o teclado virtual.
+
+### Changed
+
+- Cabeçalho do espectador: voltar, tela cheia, ⋯ e conexão.
+- Selos de papel (admin, controlador, espectador) neutros, sem as cores das equipes.
+
+### Removed
+
+- Botões de tema, compartilhar, inverter e girar do cabeçalho do espectador (cada ação ficou num lugar só) e a lista de presentes sobreposta ao placar.
+
+### Verification
+
+- Backend: 191 testes aprovados.
+- Frontend: 66 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Chromium headless com dois clientes: foco de retorno, menus por papel, 360 px sem estouro, campo visível em 390×380 e vitória nos dois clientes.
+- Rota V5 validada pelo Navigator em 2026-09-26.
+
+## 0.17.0 - 2026-09-26
+
+Boundary: minor (operação a um toque para admin e controlador; conclui `CV4.DS3.US1`)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66
+
+Git source: `feature/cv4-ds3-us1-controle`, integrada em `master` pelo merge `8063c75` após o Checkpoint 4.
+
+### Added
+
+- Faixa de posse do controle, separada do papel, com **Assumir** quando cabe.
+- Menu ⋯ único com compartilhar/QR, duplas e regras, linha do tempo, relógio, tema e presentes (promover, revogar, passar controle).
+- Desfazer indica o ponto que será anulado ("último: +1 Equipe").
+
+### Changed
+
+- Operação cabe numa tela sem rolagem: barra compacta com código e conexão; +1 sob cada equipe, nas laterais em paisagem, seguindo a inversão de lados.
+- Sem o controle, os +1 aparecem desabilitados em vez de sumir; papel aparece em selo neutro.
+- No tema Clássico, a operação usa a mesma representação do espectador.
+
+### Removed
+
+- Card de código da sala, cartão "conectado como" e botões repetidos (Duplas & Regras, Inverter, QR, Linha do Tempo).
+
+### Verification
+
+- Backend: 191 testes aprovados.
+- Frontend: 63 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Chromium headless com dois clientes: sem rolagem em 390×844 e 1066×600, inversão dos +1, troca de posse e chamada forjada sem controle recusada (403).
+- Rota V4 validada pelo Navigator em 2026-09-26.
+
+## 0.16.0 - 2026-09-26
+
+Boundary: minor (tela cheia real e imersão estável do espectador; conclui `CV4.DS2.US2` e a `CV4.DS2`)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66
+
+Git source: `feature/cv4-ds2-us2-imersao`, integrada em `master` pelo merge `492d798` após o Checkpoint 4.
+
+### Added
+
+- Botão **Tela cheia** para o espectador: pedido feito no próprio toque, estado confirmado pelo navegador e aviso claro em caso de recusa ou falta de suporte.
+- Módulo `web/src/lib/telaCheia.js`, testável sem navegador.
+
+### Changed
+
+- Controles do espectador sobrepõem o placar: revelar ou esconder não move os pontos.
+- O toque que revela os controles não aciona o botão que surge sob o dedo.
+- A ocultação automática (3 s) espera diálogo aberto, foco de teclado e avisos.
+
+### Verification
+
+- Backend: 191 testes aprovados.
+- Frontend: 54 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Chromium headless: posição do placar idêntica ao revelar controles em 360×640, 390×780 e 1066×600; entrada, saída e recusa de tela cheia.
+- Validação física no Fold aprovada pelo Navigator em 2026-09-26. Tablet segue na matriz física da `CV4.DS3.TS1`.
 
 ## 0.15.0 - 2026-09-26
 

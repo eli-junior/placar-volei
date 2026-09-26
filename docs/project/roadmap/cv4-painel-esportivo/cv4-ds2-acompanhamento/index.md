@@ -1,8 +1,8 @@
 ---
 code: CV4.DS2
 level: Delivery Story
-status: Active
-status_reason: CV4.DS2.US1 e CV4.DS2.US3 concluídas; falta CV4.DS2.US2 (fullscreen)
+status: Done
+status_reason: US1, US2 e US3 concluídas e integradas (0.14.0–0.16.0)
 updated: 2026-09-26
 ---
 

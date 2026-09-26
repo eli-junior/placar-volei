@@ -43,6 +43,7 @@ cd web && npm install
 cd web && npm run dev      # dev server com proxy para o backend
 cd web && npm run build    # gera os estáticos servidos pelo FastAPI
 cd web && npm run check    # svelte-check
+cd web && npm run test:e2e # build + Playwright/axe (sobe o FastAPI com SQLite descartável)
 
 # subir como roda no Mini PC
 docker compose up -d --build
@@ -57,6 +58,7 @@ Trabalho verificado neste projeto significa as três coisas abaixo, não apenas 
 **Verificação automatizada**
 
 - `npm run check` sem erros no frontend.
+- `npm run test:e2e` verde em mudança de interface: fluxos em navegador real, axe nos dois temas e ausência de requisições externas.
 
 - `uv run pytest` verde.
 - Toda mudança de comportamento tem teste. Regra de pontuação, projeção de eventos e permissão de papel não entram sem teste.

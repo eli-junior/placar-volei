@@ -1,6 +1,6 @@
 # Rota de validação — CV4
 
-Este documento descreve a validação das entregas. V1 foi executada em `CV4.DS1.US1` e V2 em `CV4.DS2.US1`; V3–V6 permanecem rotas futuras e não devem ser tratadas como resultados.
+Este documento descreve a validação das entregas. V1 foi executada em `CV4.DS1.US1`, V2 em `CV4.DS2.US1`, V3 em `CV4.DS2.US2` (Fold; tablet na V6), V4 em `CV4.DS3.US1`, V5 em `CV4.DS3.US2` e V6 em `CV4.DS3.TS1`, todas aprovadas pelo Navigator em 2026-09-26.
 
 ## Preparação do ambiente
 
@@ -144,6 +144,9 @@ Teste automatizado com fullscreen simulado comprova transições internas, não 
 **Falha:** teclado cobre campo/ação sem possibilidade de rolar; modal maior que a área disponível sem acesso ao fechamento; QR perde contraste; erro desaparece por timer.
 
 ## V6 — Consolidação (E6)
+
+**Executada em 2026-09-26.** Runner: `cd web && npm run test:e2e` (Playwright 1.56.1, @axe-core/playwright 4.13.0, Chromium). 24 testes verdes em três execuções locais e no CI (`.github/workflows/ci.yml`, run #3). Achado: Google Fonts removido do `index.html`; teste impede requisições externas. Matriz física (Fold, tablet, contraste em ambiente de jogo, Mini PC sem internet) aprovada pelo Navigator.
+
 
 1. Executar todos os testes obrigatórios e o runner de navegador aprovado; registrar versões de ambiente e comando real.
 2. Medir contraste dos temas, estados, foco e controles. Para texto normal usar referência de 4,5:1, texto grande 3:1 e elementos visuais essenciais 3:1; o teste deve avaliar o elemento/superfície real, não só uma variável isolada. Anotar critérios aplicáveis e exceções.

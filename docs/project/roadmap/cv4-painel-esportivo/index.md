@@ -1,8 +1,8 @@
 ---
 code: CV4
 level: Value
-status: Active
-status_reason: CV4.DS1 e placar responsivo concluídos; temas administrativos priorizados antes de fullscreen
+status: Done
+status_reason: todas as Delivery Stories concluídas e integradas (0.12.0–0.18.1)
 updated: 2026-09-26
 ---
 

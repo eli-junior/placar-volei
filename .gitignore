@@ -54,3 +54,7 @@ desktop.ini
 local.properties
 *.jks
 *.keystore
+
+# Playwright
+web/test-results/
+web/playwright-report/

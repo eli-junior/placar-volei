@@ -14,3 +14,40 @@ export function podePassarControle(participante, { euId, controleId, ehAdmin }) 
       (participante.papel === 'CONTROLADOR' || participante.papel === 'ADMIN'),
   );
 }
+
+/**
+ * Equipe do ponto que o próximo "Desfazer" vai anular (CV4.DS3.US1).
+ *
+ * A linha do tempo é cronológica e pode atravessar partidas; o servidor só
+ * desfaz pontos ativos da partida atual. Devolve `null` quando não há o que
+ * desfazer, e o botão cai para o rótulo simples.
+ */
+export function ultimoPontoDesfazivel(itens = []) {
+  for (let i = itens.length - 1; i >= 0; i -= 1) {
+    const item = itens[i];
+    if (item?.tipo === 'PARTIDA_INICIADA') return null;
+    if (item?.tipo === 'PONTO_MARCADO' && !item.anulado) {
+      return item.equipe === 'A' || item.equipe === 'B' ? item.equipe : null;
+    }
+  }
+  return null;
+}
+
+/**
+ * Texto da faixa de posse. Papel (quem pode) e posse (quem opera agora) são
+ * coisas diferentes: um admin sem o controle não pontua até assumir.
+ */
+export function descreverPosse({ temControle, ehAdmin, operador, conectado = true }) {
+  if (temControle) {
+    return {
+      titulo: 'Você está no controle',
+      detalhe: conectado ? 'Seus toques valem para todos' : 'Sem conexão — os botões voltam sozinhos',
+      podeAssumir: false,
+    };
+  }
+  return {
+    titulo: operador ? `Controle com ${operador}` : 'Controle sem operador',
+    detalhe: ehAdmin ? 'Você é admin: toque em Assumir para pontuar' : 'Você é controlador: toque em Assumir para pontuar',
+    podeAssumir: true,
+  };
+}

@@ -1,8 +1,8 @@
 ---
 code: CV4.DS3
 level: Delivery Story
-status: Planned
-status_reason: aguardando execução das histórias e aceite do Navigator
+status: Done
+status_reason: US1 (0.17.0), US2 (0.18.0) e TS1 (0.18.1) concluídas
 updated: 2026-09-26
 ---
 
