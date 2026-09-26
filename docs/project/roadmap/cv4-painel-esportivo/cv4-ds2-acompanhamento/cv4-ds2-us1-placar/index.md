@@ -2,7 +2,7 @@
 code: CV4.DS2.US1
 level: User Story
 status: Active
-status_reason: Checkpoints 1 e 2 aprovados pelo Navigator em 2026-09-26; revisão técnica em andamento
+status_reason: implementação, validação e revisão aprovadas; pronta para o Checkpoint 4
 updated: 2026-09-26
 effort: 7
 ---
@@ -76,12 +76,32 @@ Given espectador; When pontuar, corrigir ou redimensionar; Then o placar permane
 
 Executar V2 no [guia de validação](../../test-guide.md), além das verificações obrigatórias transversais. Registrar resultados reais e aceite físico do Navigator.
 
+## Resultado entregue
+
+- Pontos em Teko 600 dominam a área útil e escalam pela largura e altura do painel.
+- Resultados de um ou dois dígitos recebem a maior escala; três dígitos usam limite próprio para permanecer completos.
+- Nome da quadra, código e regras ficam em uma faixa compacta acima do resultado.
+- Tema, sala, sessão, placar e inversão local continuam preservados pelo fluxo existente.
+- Mudanças no resultado recebem feedback curto e anúncio acessível; movimento reduzido elimina a animação.
+- O espectador deixa de repetir o bloco operacional de código, perfil e controlador antes do placar.
+
+## Evidência
+
+- `uv run pytest`: 185 aprovados.
+- `npm test`: 39 aprovados.
+- `npm run check`: zero erros e zero advertências.
+- `npm run build`: concluído.
+- `uv run ruff check app tests` e `uv run ruff format --check app tests`: aprovados.
+- Inspeção com sala real isolada em 658 × 781 CSS px e 1066 × 600 CSS px, nos temas claro e escuro, incluindo inversão local.
+- Navigator aprovou a composição e pediu uma rodada adicional para ampliar os números; a escala final foi aprovada em 2026-09-26.
+- A matriz física completa de Fold e tablet permanece na verificação transversal `CV4.DS3.TS1`; não foi registrada como executada nesta história.
+
 ## Estado para retomada
 
 - Branch de implementação: `feature/cv4-ds2-us1-placar-espectador`, base `42f514d` (`origin/master`, versão 0.13.2).
-- Último checkpoint aprovado desta história: Checkpoint 1, em 2026-09-26.
-- Implementação: concluída e validada pelo Navigator no Checkpoint 2.
-- Próxima ação: apresentar a revisão técnica do Checkpoint 3 e, após aceite, concluir documentação e coerência.
+- Último checkpoint aprovado desta história: Checkpoint 3, em 2026-09-26.
+- Implementação, validação manual, revisão técnica e documentação: concluídas.
+- Próxima ação: obter autorização no Checkpoint 4 para integrar a branch em `master` e registrar a versão `0.14.0`.
 - Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.
 
 ## Out of Scope

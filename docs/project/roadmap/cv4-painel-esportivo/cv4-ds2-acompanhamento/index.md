@@ -2,7 +2,7 @@
 code: CV4.DS2
 level: Delivery Story
 status: Active
-status_reason: CV4.DS2.US1 puxada para planejamento em branch própria
+status_reason: CV4.DS2.US1 aceita e pronta para integração; CV4.DS2.US2 permanece planejada
 updated: 2026-09-26
 ---
 
@@ -24,3 +24,5 @@ Pontuação prioritária preservada ao abrir/fechar/girar; fullscreen e alternat
 ## Notes
 
 [Plano detalhado](../plan.md), [validação](../test-guide.md) e [handoff](../handoff.md). Aprovação visual não libera implementação. Aplicar checkpoints por história.
+
+`CV4.DS2.US1` concluiu os Checkpoints 1–3. A Delivery Story continua ativa porque fullscreen e estabilidade da imersão pertencem à `CV4.DS2.US2`.

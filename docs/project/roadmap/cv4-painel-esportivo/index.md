@@ -2,7 +2,7 @@
 code: CV4
 level: Value
 status: Active
-status_reason: CV4.DS1 concluída e aprovada; CV4.DS2 é a próxima frente planejada
+status_reason: CV4.DS1 concluída; placar da CV4.DS2 aceito e fullscreen permanece como próxima história
 updated: 2026-09-26
 ---
 

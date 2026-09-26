@@ -8,9 +8,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: substituir o placar retrô do espectador por um painel esportivo com pontos dominantes, escala por área disponível e estado preservado ao redimensionar.
 - **Branch**: `feature/cv4-ds2-us1-placar-espectador`, criada de `origin/master` em `42f514d` após a versão `0.13.2`.
-- **Passo Ariad**: Passo 5 - Revisão; Checkpoints 1 e 2 aprovados pelo Navigator em 2026-09-26.
+- **Passo Ariad**: Passo 7 - Conclusão e Merge; Checkpoints 1, 2 e 3 aprovados pelo Navigator em 2026-09-26.
 - **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e | Data: 2026-09-26.
-- **Handoff / Próximos Passos**: apresentar a revisão técnica no Checkpoint 3; após o aceite, atualizar documentação, coerência e histórico da entrega.
+- **Handoff / Próximos Passos**: apresentar o histórico e a integração da versão `0.14.0` no Checkpoint 4; somente após autorização integrar em `master` e fechar esta entrada.
 
 ## 0.13.2 - 2026-09-26
 
