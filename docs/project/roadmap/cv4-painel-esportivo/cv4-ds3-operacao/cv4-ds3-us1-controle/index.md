@@ -1,8 +1,8 @@
 ---
 code: CV4.DS3.US1
 level: User Story
-status: Validated
-status_reason: V4 validada pelo Navigator; Checkpoint 3 aprovado; aguardando merge (Checkpoint 4)
+status: Done
+status_reason: integrada em master como 0.17.0
 updated: 2026-09-26
 effort: 7
 ---
@@ -32,7 +32,7 @@ Executar V4 no [guia de validação](../../test-guide.md), além das verificaç�
 - Branch de implementação: `feature/cv4-ds3-us1-controle`, criada de `master` `446282c`.
 - Último checkpoint aprovado desta história: Checkpoint 1 e composição do operador (E4.1, menu opção (a)) e Checkpoint 2 (V4), 2026-09-26.
 - Implementação: concluída na branch; Checkpoints 1–3 aprovados em 2026-09-26.
-- Próxima ação: Checkpoint 4 (merge em `master` como 0.17.0).
+- Checkpoint 4 aprovado; integrada pelo merge `8063c75` como 0.17.0.
 
 ## Resultado
 

@@ -4,13 +4,39 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV4.DS3.US1 — Operação do admin e controlador
+Nenhum trabalho ativo em `master`. Branches abertas com Checkpoint 1 apresentado: `feature/cv4-ds3-us2-superficies`, `feature/cv4-ds3-ts1-regressao`, `feature/cv3-ds1-us4-offline-reconciliacao` (entradas registradas em cada branch).
 
-- **Branch:** `feature/cv4-ds3-us1-controle` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 6 - Documentação concluído; Checkpoint 4 (merge como 0.17.0) aguardando Navigator. Checkpoints 1–3 aprovados; dívida da representação clássica paga.
-- **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
-- **Handoff / Próximos Passos:** operação reescrita: barra compacta, faixa de posse, +1 sob as equipes (laterais em paisagem), Desfazer com último ponto, menu ⋯ com presentes. Web 62 testes, backend 191, check/build limpos. Falta a validação em três clientes (V4).
 
+## 0.17.0 - 2026-09-26
+
+Boundary: minor (operação a um toque para admin e controlador; conclui `CV4.DS3.US1`)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66
+
+Git source: `feature/cv4-ds3-us1-controle`, integrada em `master` pelo merge `8063c75` após o Checkpoint 4.
+
+### Added
+
+- Faixa de posse do controle, separada do papel, com **Assumir** quando cabe.
+- Menu ⋯ único com compartilhar/QR, duplas e regras, linha do tempo, relógio, tema e presentes (promover, revogar, passar controle).
+- Desfazer indica o ponto que será anulado ("último: +1 Equipe").
+
+### Changed
+
+- Operação cabe numa tela sem rolagem: barra compacta com código e conexão; +1 sob cada equipe, nas laterais em paisagem, seguindo a inversão de lados.
+- Sem o controle, os +1 aparecem desabilitados em vez de sumir; papel aparece em selo neutro.
+- No tema Clássico, a operação usa a mesma representação do espectador.
+
+### Removed
+
+- Card de código da sala, cartão "conectado como" e botões repetidos (Duplas & Regras, Inverter, QR, Linha do Tempo).
+
+### Verification
+
+- Backend: 191 testes aprovados.
+- Frontend: 63 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Chromium headless com dois clientes: sem rolagem em 390×844 e 1066×600, inversão dos +1, troca de posse e chamada forjada sem controle recusada (403).
+- Rota V4 validada pelo Navigator em 2026-09-26.
 
 ## 0.16.0 - 2026-09-26
 

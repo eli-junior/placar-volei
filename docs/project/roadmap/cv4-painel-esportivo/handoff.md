@@ -5,7 +5,7 @@
 ### Atualização mais recente — CV4.DS3.US1
 
 - Branch `feature/cv4-ds3-us1-controle` (master 0.16.0 mesclada). Claude Code (Driver), sessão `session_01SeCZMypfz5yGenXJ6UNy66`.
-- Checkpoints 1–3 aprovados; integração como `0.17.0` aguardando o Checkpoint 4.
+- Checkpoints 1–4 aprovados; integrada em `master` pelo merge `8063c75` como `0.17.0`.
 - Evidência: web 63 testes, backend 191, Svelte sem avisos, build aprovado; V4 validada pelo Navigator.
 - Próxima entrega: `CV4.DS3.US2` (menu ⋯ como local único; selo de papel da lista de presentes; foco dos diálogos).
 
