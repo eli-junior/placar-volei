@@ -520,6 +520,10 @@ class CommandBody(BaseModel):
     # confirmado vai pelo seq; um lance ainda na fila, pelo id do comando.
     alvo_seq: int | None = Field(default=None, ge=1)
     alvo_comando: str | None = Field(default=None, pattern=_UUID)
+    # Fila offline (CV3.DS1.TS1): último seq confirmado que o relógio viu no
+    # toque. Permite aceitar a fila quando o controle volta ao relógio sem
+    # que a partida tenha mudado. Sem ele, vale a versão estrita.
+    base_seq: int | None = Field(default=None, ge=0)
 
     @model_validator(mode="after")
     def check_shape(self):
@@ -571,6 +575,50 @@ def target_of(conn, device_id, body: CommandBody):
 
 
 ACOES = {"ponto": "pontos", "desfazer": "desfazer", "nova_partida": "reiniciar"}
+
+
+# Eventos que não mexem no placar nem nas regras: só trocam quem opera.
+EVENTOS_DE_CONTROLE = {
+    TipoEvento.PAPEL_ALTERADO,
+    TipoEvento.ADMIN_SUCEDIDO,
+    TipoEvento.ADMIN_ASSUMIDO,
+    TipoEvento.CONTROLE_ASSUMIDO,
+    TipoEvento.CONTROLE_TRANSFERIDO,
+    TipoEvento.CONTROLE_DEVOLVIDO,
+}
+
+
+def rebased_version(conn, court, p, body: CommandBody, current):
+    """Versão atual do controle se ele voltou ao relógio com a partida inalterada.
+
+    Decisão do Navigator (CV3.DS1.US4): na devolução do controle ao relógio
+    basta o token válido. A partida é a mesma e, depois de `base_seq`, só
+    houve troca de controle ou lances deste próprio relógio. Qualquer outra
+    mudança devolve None e a versão estrita recusa o lance.
+    """
+    if body.base_seq is None or body.acao == "nova_partida":
+        return None
+    quadra = conn.execute(
+        "SELECT controle_id, controle_versao FROM quadras WHERE id = ?", (court,)
+    ).fetchone()
+    if (
+        quadra["controle_id"] != p["id"]
+        or body.controle_versao == quadra["controle_versao"]
+        or body.base_seq > current["seq"]
+    ):
+        return None
+    later = conn.execute(
+        "SELECT tipo, autor_id FROM eventos WHERE partida_id = ? AND seq > ?",
+        (body.partida_id, body.base_seq),
+    ).fetchall()
+    for event in later:
+        own = event["autor_id"] == p["id"] and event["tipo"] in (
+            TipoEvento.PONTO_MARCADO,
+            TipoEvento.PONTO_DESFEITO,
+        )
+        if not own and event["tipo"] not in EVENTOS_DE_CONTROLE:
+            return None
+    return quadra["controle_versao"]
 
 
 def check_new_match(conn, court, p, body: CommandBody):
@@ -628,6 +676,7 @@ def apply_command(token, body: CommandBody, ids_online):
             # moldes, em nome do relógio que está com o controle de um admin.
             if body.acao == "nova_partida":
                 check_new_match(conn, court, p, body)
+            versao = rebased_version(conn, court, p, body, current)
             result = executar_sync(
                 settings.db_path,
                 court,
@@ -635,7 +684,7 @@ def apply_command(token, body: CommandBody, ids_online):
                 ACOES[body.acao],
                 equipe=body.equipe,
                 alvo_seq=alvo_seq,
-                versao=str(body.controle_versao),
+                versao=str(body.controle_versao if versao is None else versao),
                 ids_online=ids_online,
                 autor_id=p["id"],
                 connection=conn,

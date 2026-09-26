@@ -4,6 +4,10 @@ import pytest
 
 from app.config import settings
 
+# Fixture `client` e helpers dos testes do relógio (CV3.DS1.TS1). Arquivos
+# com `client` próprio continuam usando o seu.
+pytest_plugins = ["tests.watch_support"]
+
 
 @pytest.fixture(autouse=True)
 def isolate_test_settings(tmp_path: Path):
