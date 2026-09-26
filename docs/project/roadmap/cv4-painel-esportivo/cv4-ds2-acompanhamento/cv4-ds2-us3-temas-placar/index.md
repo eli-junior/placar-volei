@@ -1,8 +1,8 @@
 ---
 code: CV4.DS2.US3
 level: User Story
-status: Active
-status_reason: implementação concluída; Checkpoint 2 aguardando validação do Navigator
+status: Done
+status_reason: validada pelo Navigator; entregue na versão 0.15.0
 updated: 2026-09-26
 effort: 9
 ---
@@ -135,6 +135,7 @@ Permitir que o administrador escolha entre os temas visuais **Esportivo** e **Cl
 ## Estado para retomada
 
 - Branch: `feature/cv4-ds2-us3-temas-placar`, baseada em `origin/master` `842d5c7`.
-- Passo Ariad: Passo 4 — Teste e Validação.
-- Último checkpoint aprovado: Checkpoint 1, em 2026-09-26.
-- Próxima ação: validação manual do Navigator (Checkpoint 2).
+- Passo Ariad: Passo 6 — Documentação.
+- Checkpoints 1 a 3 aprovados em 2026-09-26.
+- Próxima ação: Checkpoint 4 (commit e merge em `master` como `0.15.0`).
+- Dívida aberta: [representação clássica duplicada na operação](../../../../debt/items/2026-09-26T1600Z-representacao-classica-duplicada-na-operacao.md).

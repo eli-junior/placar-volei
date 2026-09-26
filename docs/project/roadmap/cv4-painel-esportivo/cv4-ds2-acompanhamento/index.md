@@ -2,7 +2,7 @@
 code: CV4.DS2
 level: Delivery Story
 status: Active
-status_reason: CV4.DS2.US1 concluída; CV4.DS2.US3 priorizada antes da história de fullscreen
+status_reason: CV4.DS2.US1 e CV4.DS2.US3 concluídas; falta CV4.DS2.US2 (fullscreen)
 updated: 2026-09-26
 ---
 
@@ -28,4 +28,4 @@ Pontuação prioritária preservada ao abrir/fechar/girar; fullscreen e alternat
 
 `CV4.DS2.US1` concluiu os quatro checkpoints e foi integrada na versão `0.14.0`. A Delivery Story continua ativa porque fullscreen e estabilidade da imersão pertencem à `CV4.DS2.US2`.
 
-Por decisão do Navigator, `CV4.DS2.US3` será executada antes da US2. A numeração preserva os registros já publicados; a ordem de execução segue a prioridade atual.
+`CV4.DS2.US3` concluiu os checkpoints e entra na versão `0.15.0`. Por decisão do Navigator, ela foi executada antes da US2. A numeração preserva os registros já publicados; a ordem de execução segue a prioridade atual.
