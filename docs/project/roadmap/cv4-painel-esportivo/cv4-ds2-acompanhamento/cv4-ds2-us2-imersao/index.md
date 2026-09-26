@@ -1,8 +1,8 @@
 ---
 code: CV4.DS2.US2
 level: User Story
-status: Validated
-status_reason: validada no Fold pelo Navigator; Checkpoint 3 aprovado; aguardando merge (Checkpoint 4)
+status: Done
+status_reason: integrada em master como 0.16.0
 updated: 2026-09-26
 effort: 8
 ---
@@ -32,7 +32,7 @@ Executar V3 no [guia de validação](../../test-guide.md), além das verificaç�
 - Branch de implementação: `feature/cv4-ds2-us2-imersao`, criada de `master` `446282c`.
 - Último checkpoint aprovado desta história: Checkpoint 2 (validado no Fold, 2026-09-26).
 - Implementação: concluída na branch; Checkpoints 1–3 aprovados em 2026-09-26.
-- Próxima ação: Checkpoint 4 (merge em `master` como 0.16.0).
+- Checkpoint 4 aprovado; integrada pelo merge `492d798` como 0.16.0.
 
 ## Resultado e limitações
 

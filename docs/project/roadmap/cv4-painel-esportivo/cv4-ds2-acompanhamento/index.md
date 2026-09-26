@@ -1,8 +1,8 @@
 ---
 code: CV4.DS2
 level: Delivery Story
-status: Active
-status_reason: US1 e US3 concluídas; US2 validada, aguardando merge
+status: Done
+status_reason: US1, US2 e US3 concluídas e integradas (0.14.0–0.16.0)
 updated: 2026-09-26
 ---
 

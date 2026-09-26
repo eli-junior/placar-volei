@@ -4,13 +4,34 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV4.DS2.US2 — Imersão estável e tela cheia real
+Nenhum trabalho ativo em `master`. Branches abertas com Checkpoint 1 apresentado: `feature/cv4-ds3-us1-controle`, `feature/cv4-ds3-us2-superficies`, `feature/cv4-ds3-ts1-regressao`, `feature/cv3-ds1-us4-offline-reconciliacao` (entradas registradas em cada branch).
 
-- **Branch:** `feature/cv4-ds2-us2-imersao` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 6 - Documentação concluído; Checkpoint 4 (merge como 0.16.0) aguardando Navigator. Checkpoints 1–3 aprovados; tablet adiado para a CV4.DS3.TS1.
-- **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
-- **Handoff / Próximos Passos:** implementado `web/src/lib/telaCheia.js`, botão Tela cheia do espectador, controles sobrepostos sem mover o placar, descarte do toque de revelação e timer suspenso por modal/foco de teclado/erro. Web 54 testes, backend 191, check e build limpos. Falta a validação física (rota V3) antes do Checkpoint 3.
 
+## 0.16.0 - 2026-09-26
+
+Boundary: minor (tela cheia real e imersão estável do espectador; conclui `CV4.DS2.US2` e a `CV4.DS2`)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66
+
+Git source: `feature/cv4-ds2-us2-imersao`, integrada em `master` pelo merge `492d798` após o Checkpoint 4.
+
+### Added
+
+- Botão **Tela cheia** para o espectador: pedido feito no próprio toque, estado confirmado pelo navegador e aviso claro em caso de recusa ou falta de suporte.
+- Módulo `web/src/lib/telaCheia.js`, testável sem navegador.
+
+### Changed
+
+- Controles do espectador sobrepõem o placar: revelar ou esconder não move os pontos.
+- O toque que revela os controles não aciona o botão que surge sob o dedo.
+- A ocultação automática (3 s) espera diálogo aberto, foco de teclado e avisos.
+
+### Verification
+
+- Backend: 191 testes aprovados.
+- Frontend: 54 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Chromium headless: posição do placar idêntica ao revelar controles em 360×640, 390×780 e 1066×600; entrada, saída e recusa de tela cheia.
+- Validação física no Fold aprovada pelo Navigator em 2026-09-26. Tablet segue na matriz física da `CV4.DS3.TS1`.
 
 ## 0.15.0 - 2026-09-26
 

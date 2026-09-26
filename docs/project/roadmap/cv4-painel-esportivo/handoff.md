@@ -5,7 +5,7 @@
 ### Atualização mais recente — CV4.DS2.US2
 
 - Branch `feature/cv4-ds2-us2-imersao`, baseada em `master` `446282c`. Claude Code (Driver), sessão `session_01SeCZMypfz5yGenXJ6UNy66`.
-- Checkpoints 1–3 aprovados; integração como `0.16.0` aguardando o Checkpoint 4.
+- Checkpoints 1–4 aprovados; integrada em `master` pelo merge `492d798` como `0.16.0`. CV4.DS2 concluída.
 - Evidência: web 54 testes, backend 191, Svelte sem avisos, build aprovado; Fold validado pelo Navigator. Tablet vai para a matriz da `CV4.DS3.TS1`.
 - Novo módulo `web/src/lib/telaCheia.js`; controles do espectador sobrepostos ao palco.
 - Branches já abertas com Checkpoint 1 apresentado: `feature/cv4-ds3-us1-controle`, `feature/cv4-ds3-us2-superficies`, `feature/cv4-ds3-ts1-regressao`, `feature/cv3-ds1-us4-offline-reconciliacao`. Rebasear/mesclar a `master` antes de implementar.
