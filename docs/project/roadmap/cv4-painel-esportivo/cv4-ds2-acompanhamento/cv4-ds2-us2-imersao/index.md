@@ -1,8 +1,8 @@
 ---
 code: CV4.DS2.US2
 level: User Story
-status: Planned
-status_reason: plano apresentado; Checkpoint 1 da implementação não aprovado
+status: Active
+status_reason: Passo 2 - Planejamento; Checkpoint 1 apresentado, aguardando Navigator
 updated: 2026-09-26
 effort: 8
 ---
@@ -29,7 +29,7 @@ Executar V3 no [guia de validação](../../test-guide.md), além das verificaç�
 
 ## Estado para retomada
 
-- Branch de implementação: ainda não criada; usar branch própria a partir da master atualizada quando autorizada.
+- Branch de implementação: `feature/cv4-ds2-us2-imersao`, criada de `master` `446282c`.
 - Último checkpoint aprovado desta história: nenhum.
 - Implementação: não iniciada.
 - Próxima ação: conferir dependências e apresentar/confirmar o Checkpoint 1 desta entrega.
