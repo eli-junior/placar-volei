@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV3.DS1.TS1 + CV3.DS1.US4 — Registrar offline e sincronizar com segurança
 
 - **Branch:** `feature/cv3-ds1-us4-offline-reconciliacao` (criada de `master` `446282c`; atualizada com `master` 0.18.1 em 2026-09-26)
-- **Passo Ariad:** Passo 3 - Implementação (CV3.DS1.TS1 primeiro). Checkpoint 1 aprovado em 2026-09-26: divisão em TS1 + US4; devolução ao relógio basta token válido
+- **Passo Ariad:** Passo 4 - Teste e Validação da CV3.DS1.TS1 (Checkpoint 2 apresentado). Checkpoint 1 aprovado em 2026-09-26: divisão em TS1 + US4; devolução ao relógio basta token válido
 - **Assinatura:** Agente: Claude Code, Opus 5.5 (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 — assumido nesta sessão a partir do Passo 3
-- **Handoff / Próximos Passos:** implementar a fila offline e o reenvio da TS1 conforme `cv3-ds1-ts1-fila-offline-e-reenvio/index.md`; depois a US4.
+- **Handoff / Próximos Passos:** TS1 implementada (servidor aceita `base_seq`; relógio persiste o placar confirmado; `ScoreSync` extraída do `WatchModel`). Aguardar validação física pelo `test-guide.md` da TS1; depois Passo 5, e então a US4.
 
 
 
