@@ -1,8 +1,8 @@
 ---
 code: CV3.DS2.US2
 level: User Story
-status: Planned
-status_reason: Navigator pediu frequência cardíaca e a duração do exercício do Samsung Health; a duração depende de viabilidade técnica
+status: Active
+status_reason: Em planejamento; Navigator aprovou cronômetro da partida desde o primeiro ponto no lugar da duração do Samsung Health
 updated: 2026-09-26
 related:
   - CV3.DS2.US1
@@ -29,3 +29,6 @@ Como Eli, quero ver no placar do relógio os dados do treino que o Samsung Healt
 
 ## Out of Scope
 Calorias e zonas do Samsung Health, dados do treino no site, envio em segundo plano (CV3.DS1.US4).
+
+## Notes
+- [Plano](plan.md). A duração do Samsung Health não é legível por outros apps; substituída pelo cronômetro da partida (aprovado em 2026-09-26).
