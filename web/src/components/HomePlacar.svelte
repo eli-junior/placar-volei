@@ -233,14 +233,14 @@
   .codigo-sala { color: var(--texto-suave); font-family: var(--fonte-numeros); font-size: 1.05rem; font-weight: 600; letter-spacing: .05em; }
   .participantes { display: inline-flex; align-items: center; gap: .3rem; margin-top: .45rem; color: var(--texto-suave); font-size: .68rem; }
   .placar-resumo { display: grid; grid-template-columns: minmax(72px, 1fr) 28px minmax(72px, 1fr); align-items: center; justify-items: center; gap: .35rem; min-width: 0; padding: .65rem 1rem; border-inline: 1px solid var(--acao-secundaria); background: linear-gradient(90deg, var(--time-a-tenue), transparent 38%, transparent 62%, var(--time-b-tenue)); }
-  .equipe { display: flex; flex-direction: column; align-items: center; min-width: 0; text-align: center; }
+  .equipe { display: flex; flex-direction: column; align-items: center; gap: .38rem; min-width: 0; text-align: center; }
   .equipe-b { align-items: center; text-align: center; }
   .equipe span { max-width: 100%; overflow: hidden; color: var(--texto-suave); font-size: .65rem; font-weight: 750; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
   .equipe strong { font-family: var(--fonte-numeros); font-size: clamp(5.5rem, 10vw, 7.4rem); font-weight: 600; line-height: .76; letter-spacing: -.035em; }
   .equipe-a strong { color: var(--time-a); text-shadow: 0 0 24px color-mix(in srgb, var(--time-a) 20%, transparent); }
   .equipe-b strong { color: var(--time-b); text-shadow: 0 0 24px color-mix(in srgb, var(--time-b) 20%, transparent); }
   .versus { color: var(--texto-apagado); font-size: 1.2rem; font-weight: 700; }
-  .partida-abrir { align-self: center; display: flex; align-items: center; justify-content: center; gap: .45rem; min-height: 48px; margin: .75rem; padding: 0 .9rem; border-radius: 10px; background: var(--acao-primaria); color: var(--acao-primaria-texto); box-shadow: var(--sombra-sutil); font-size: .82rem; white-space: nowrap; }
+  .partida-abrir { align-self: stretch; display: flex; align-items: center; justify-content: center; gap: .45rem; min-height: 100%; padding: 0 .9rem; background: var(--acao-primaria); color: var(--acao-primaria-texto); box-shadow: var(--sombra-sutil); font-size: .86rem; white-space: nowrap; }
   .aguardando, .estado-lista { display: grid; place-items: center; min-height: 145px; padding: 1rem; color: var(--texto-suave); font-size: .85rem; text-align: center; }
   .estado-lista p { margin: 0 0 .8rem; }
   .estado-lista button { min-height: 44px; padding: 0 1rem; border: 1px solid var(--acao-secundaria); border-radius: 9px; background: var(--fundo-cartao); color: var(--texto-medio); font: inherit; font-weight: 700; cursor: pointer; }
@@ -258,7 +258,7 @@
     .placar-resumo { grid-template-columns: minmax(52px, 1fr) 20px minmax(52px, 1fr); padding-inline: .35rem; }
     .equipe strong { font-size: 5rem; }
     .equipe span { max-width: 52px; }
-    .partida-abrir { min-height: 44px; margin: .45rem; padding-inline: .5rem; }
+    .partida-abrir { min-height: 100%; padding-inline: .5rem; }
   }
   @media (prefers-reduced-motion: reduce) { .partida { transition: none; } }
 </style>
