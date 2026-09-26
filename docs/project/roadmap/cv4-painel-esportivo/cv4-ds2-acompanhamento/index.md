@@ -1,8 +1,8 @@
 ---
 code: CV4.DS2
 level: Delivery Story
-status: Planned
-status_reason: aguardando execução das histórias e aceite do Navigator
+status: Active
+status_reason: CV4.DS2.US1 concluída e integrada; CV4.DS2.US2 permanece planejada
 updated: 2026-09-26
 ---
 
@@ -24,3 +24,5 @@ Pontuação prioritária preservada ao abrir/fechar/girar; fullscreen e alternat
 ## Notes
 
 [Plano detalhado](../plan.md), [validação](../test-guide.md) e [handoff](../handoff.md). Aprovação visual não libera implementação. Aplicar checkpoints por história.
+
+`CV4.DS2.US1` concluiu os quatro checkpoints e foi integrada na versão `0.14.0`. A Delivery Story continua ativa porque fullscreen e estabilidade da imersão pertencem à `CV4.DS2.US2`.

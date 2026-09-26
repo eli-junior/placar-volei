@@ -4,7 +4,32 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo registrado.
+Nenhuma história ativa registrada neste checkout.
+
+## 0.14.0 - 2026-09-26
+
+Boundary: minor (placar esportivo responsivo do espectador; conclui `CV4.DS2.US1`)
+
+Authors: Eli (Navigator); Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e
+
+Git source: `feature/cv4-ds2-us1-placar-espectador`, integrada em `master` após o Checkpoint 4.
+
+### Added
+
+- Resultado visual reutilizável, sem dependência de transporte ou permissões, com pontos dominantes e escala pela área disponível.
+- Escala própria para placares de três dígitos, feedback curto de atualização e anúncio acessível.
+
+### Changed
+
+- O espectador passa a usar painel esportivo em lugar do cavalete retrô; identificação e regras ficam compactas.
+- A composição imersiva ocupa toda a altura útil e preserva tema, sessão, resultado, inversão local e linha do tempo.
+
+### Verification
+
+- Backend: 185 testes aprovados; Ruff check e format check aprovados.
+- Frontend: 39 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Inspeção visual com sala isolada nos temas claro e escuro, em 658 × 781 e 1066 × 600 CSS px; escala final aprovada pelo Navigator.
+- A matriz física completa de Fold e tablet permanece em `CV4.DS3.TS1`.
 
 ## 0.13.2 - 2026-09-26
 

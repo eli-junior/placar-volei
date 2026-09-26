@@ -1,6 +1,6 @@
 # Rota de validação — CV4
 
-Este documento descreve a validação das entregas. A V1 foi executada em `CV4.DS1.US1`; V2–V6 permanecem rotas futuras e não devem ser tratadas como resultados.
+Este documento descreve a validação das entregas. V1 foi executada em `CV4.DS1.US1` e V2 em `CV4.DS2.US1`; V3–V6 permanecem rotas futuras e não devem ser tratadas como resultados.
 
 ## Preparação do ambiente
 
@@ -83,6 +83,8 @@ Medir a área real do documento/contêiner; capturas de 968 ou 2160 pixels não 
 **Falha:** toque parece não fazer nada; erro fora da área visível; ação cortada; pedido duplicado por toque; identidade ou regras alteradas sem acordo. Lista estática rotulada como atualização contínua sem mecanismo correspondente também falha.
 
 ## V2 — Leitura e responsividade (E2)
+
+**Executada e aprovada em 2026-09-26 no navegador de desenvolvimento.** O Driver usou uma sala real isolada, marcou `8 × 6`, conferiu temas, modo imersivo, inversão local e dimensões de 658 × 781 e 1066 × 600 CSS px. Testes cobrem compilação, separação de transporte, escala de três dígitos, preenchimento da altura, ações preservadas e movimento reduzido. O Navigator aprovou o resultado após ampliar os números. Fold e tablet físicos, nomes extremos renderizados, zoom e matriz transversal completa continuam em `CV4.DS3.TS1`; não foram declarados como executados nesta E2.
 
 1. A controla e B acompanha. Em B, comparar tela normal e composição de acompanhamento.
 2. A marca e desfaz; observar transição curta e números corretos, inclusive com movimento reduzido.

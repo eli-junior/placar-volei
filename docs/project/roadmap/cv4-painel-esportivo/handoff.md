@@ -2,6 +2,16 @@
 
 ## Estado em 2026-09-26
 
+### Atualização mais recente — CV4.DS2.US1
+
+- Branch `feature/cv4-ds2-us1-placar-espectador`, baseada em `origin/master` `42f514d` (0.13.2).
+- Passo Ariad 7 concluído; Checkpoints 1–4 aprovados e integração em `master` autorizada.
+- O placar esportivo do espectador foi implementado, validado e integrado como versão `0.14.0`.
+- Evidência: backend 185 testes; frontend 39 testes; Svelte sem avisos; build e Ruff aprovados; inspeção visual nos dois temas em 658 × 781 e 1066 × 600 CSS px.
+- O Navigator pediu números maiores durante a validação e aprovou a escala final. Fullscreen continua exclusivamente na US2.
+- Próxima entrega: `CV4.DS2.US2`, em branch própria criada da `master` atualizada; apresentar seu Checkpoint 1 antes de implementar fullscreen.
+- A versão técnica continua `0.10.1` em backend/web porque `app.config.version` controla a recriação do banco. Este ciclo não deve usar esse campo como versão visual de release sem decisão de migração.
+
 - **Agente:** Codex (Driver), sessão `01a0dd8e-b3b3-7482-a278-5f22f9738d3e`.
 - **História concluída:** `CV4.DS1.US1 — Home esportiva e entrada responsiva`.
 - **Branch:** `codex/cv4-ds1-us1-home`.

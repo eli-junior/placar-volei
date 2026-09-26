@@ -451,7 +451,9 @@
       </div>
     </header>
 
-    <!-- Quadra Title & Meu Perfil -->
+    <!-- O controlador mantém os dados operacionais; o espectador recebe
+         contexto compacto dentro do próprio placar. -->
+    {#if podeControlar}
     <section class="quadra-hero" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
       <!-- Banner com Código de 5 Dígitos da Sala -->
       <div class="codigo-sala-destaque">
@@ -515,8 +517,10 @@
         </span>
       </div>
     </section>
+    {/if}
   {/if}
 
+  {#if podeControlar || avisoRelogio || !wsConectado || erro}
   <div class="controle-painel" aria-live="polite">
     {#if avisoRelogio}
       <span class="aviso-em-breve" role="status" transition:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>Em breve…</span>
@@ -535,6 +539,7 @@
     {/if}
     {#if erro}<p role="alert">{erro}</p>{/if}
   </div>
+  {/if}
 
   <!-- Exibição do Placar -->
   {#if !estadoPartida}
@@ -568,7 +573,8 @@
       onAbrirCompartilhar={() => { modalCompartilharAberto = true; }}
     />
   {:else}
-    <!-- Placar Dobrável Manual Retrô do Espectador (US5) -->
+    <!-- Painel esportivo responsivo do espectador -->
+    <div class="placar-espectador-wrapper">
     <PlacarManual
       {estadoPartida}
       {quadra}
@@ -579,6 +585,7 @@
       onAlternarLados={alternarLados}
       onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
     />
+    </div>
   {/if}
 
   <!-- Modal/Gaveta da Linha do Tempo (CV1.DS4.US1) -->
@@ -740,6 +747,17 @@
     height: var(--tela-h);
     min-height: 0;
     overflow: hidden;
+  }
+
+  .placar-espectador-wrapper {
+    display: flex;
+    width: 100%;
+    min-height: 0;
+  }
+
+  .em-modo-imersivo .placar-espectador-wrapper {
+    flex: 1 1 auto;
+    height: 100%;
   }
 
   .sala-header {
