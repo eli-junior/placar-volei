@@ -8,10 +8,38 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: `CV3.DS2.US1` tela sempre acesa no placar do relógio; `CV3.DS2.US2` frequência cardíaca no placar enquanto o Samsung Health grava o treino (branch própria, depois da US1).
 - **Branch**: `feature/cv3-ds2-us1-tela-acesa-no-placar` (US1). US2 prevista em `feature/cv3-ds2-us2-frequencia-cardiaca-no-placar`.
-- **Passo Ariad**: Passo 5 - Revisão (Checkpoint 2 aprovado pelo Navigator em 2026-09-26; US2 aguarda decisão sobre cronômetro).
-- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: c5f8bb01 | Data: 2026-09-26 02:40 UTC
-- **Handoff / Próximos Passos**: US1 implementada em `wear/.../ScoreScreen.kt` (`keepScreenOn` enquanto o placar está visível). Validada no Watch pelo Navigator; medição de bateria adiada. Aguardando Checkpoint 3.
+- **Passo Ariad**: Passo 7 - Conclusão e Merge (US1; Checkpoint 3 aprovado em 2026-09-26, aguardando Checkpoint 4). US2 em Planejamento: o Navigator pediu frequência cardíaca e a duração do exercício do Samsung Health.
+- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: c5f8bb01 | Data: 2026-09-26 03:00 UTC
+- **Handoff / Próximos Passos**: US1 documentada e fechada como `0.10.1` abaixo, na branch; falta o merge em `master`. Depois, abrir a branch da US2 a partir da `master` e apresentar o Checkpoint 1 (viabilidade da duração do Samsung Health).
 
+## 0.10.1 - 2026-09-26
+
+Boundary: patch (ajuste de ergonomia no relógio: o placar mantém a tela acesa; primeira entrega do CV3.DS2)
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) | Sessão: c5f8bb01
+
+Git source: feature/cv3-ds2-us1-tela-acesa-no-placar (merge into master)
+
+### Changed
+
+- [Relógio] **Tela acesa no placar** (`CV3.DS2.US1`): enquanto o placar está visível, a tela não apaga sozinha e o toque marca sem acordar o relógio. Vínculo e escolha seguem o tempo normal de tela; cobrir com a palma ainda apaga.
+
+### Fixed
+
+- [Build] `.gitattributes` fixa LF em `gradlew` e `*.sh`: o checkout do Windows (`core.autocrlf=true`) quebrava `./wear/gradlew` no WSL.
+
+### Decisions
+
+- `tela-acesa-no-placar-do-relogio`: substitui a decisão 3 do plano do CV3.DS1 ("não manter tela permanentemente acesa por padrão").
+
+### Debt
+
+- Nenhum item novo. Medição de bateria com o placar aceso fica em aberto na US1.
+
+### Verification
+
+- Android: 33 testes, `assembleDebug` e `lintDebug` (0 erros), com o `./wear/gradlew` do checkout rodando no WSL; `pytest` 178/178, `ruff check` e `ruff format --check` ok.
+- Teste físico no Galaxy Watch 8 aprovado pelo Navigator; bateria não medida.
 
 ## 0.10.0 - 2026-09-23
 

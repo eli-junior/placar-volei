@@ -101,6 +101,10 @@ python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA
 3. A faixa fica apagada quando não há ponto para desfazer, some quando o controle não está no relógio e continua ativa com a partida encerrada. Desfazer o ponto da vitória reabre a partida.
 4. Se o placar mudou no servidor antes do envio, o desfazer é recusado ("O placar mudou; este desfazer não foi aplicado."), nenhum outro ponto é tocado, e a fila pede **Descartar**.
 
+## Tela acesa
+
+Enquanto o placar está visível, a tela não apaga sozinha (`CV3.DS2.US1`, `0.10.1`): o toque já marca, sem acordar o relógio. Cobrir com a palma ainda apaga. As telas de vínculo e de escolha seguem o tempo normal de tela.
+
 O controle nas mãos do relógio não volta sozinho quando a tela apaga. Para retomar pelo telefone, use **Assumir o controle**.
 
 Revogar: no telefone, **ícone de relógio → Revogar acesso**. O Eli (Relógio) sai da sala, e o controle volta para o Eli. Vincular outro relógio revoga o anterior e mantém o papel e o controle já dados ao relógio.
