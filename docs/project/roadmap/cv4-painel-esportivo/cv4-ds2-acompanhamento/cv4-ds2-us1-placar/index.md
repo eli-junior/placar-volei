@@ -2,7 +2,7 @@
 code: CV4.DS2.US1
 level: User Story
 status: Active
-status_reason: branch criada da master 0.13.2; plano da implementação pronto para o Checkpoint 1
+status_reason: Checkpoint 1 aprovado pelo Navigator em 2026-09-26; implementação concluída e em validação
 updated: 2026-09-26
 effort: 7
 ---
@@ -79,9 +79,9 @@ Executar V2 no [guia de validação](../../test-guide.md), além das verificaç�
 ## Estado para retomada
 
 - Branch de implementação: `feature/cv4-ds2-us1-placar-espectador`, base `42f514d` (`origin/master`, versão 0.13.2).
-- Último checkpoint aprovado desta história: nenhum.
-- Implementação: não iniciada.
-- Próxima ação: obter aprovação do Checkpoint 1; depois implementar até o Checkpoint 2 sem incorporar fullscreen ou controles de operação.
+- Último checkpoint aprovado desta história: Checkpoint 1, em 2026-09-26.
+- Implementação: concluída; testes automatizados e validação visual em andamento.
+- Próxima ação: apresentar o Checkpoint 2 com evidências e rota de validação do Navigator.
 - Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.
 
 ## Out of Scope
