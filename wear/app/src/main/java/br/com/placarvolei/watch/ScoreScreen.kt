@@ -64,6 +64,7 @@ fun ScoreScreen(model: WatchModel) {
         view.keepScreenOn = true
         onDispose { view.keepScreenOn = false }
     }
+    val heart = rememberHeartRate()
     fun tap(equipe: String) {
         if (model.tap(equipe)) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }
@@ -78,7 +79,14 @@ fun ScoreScreen(model: WatchModel) {
             Box(Modifier.fillMaxHeight().width(2.dp).background(Color(0xFF333333)))
             TeamHalf(rotuloB, pontosB, CorEles, reason == null, pending > 0, Modifier.weight(1f)) { tap("B") }
         }
-        StatusDot(model.connection, pending, Modifier.align(Alignment.TopCenter).padding(top = 10.dp))
+        Row(
+            Modifier.align(Alignment.TopCenter).padding(top = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            StatusDot(model.connection, pending, Modifier)
+            if (heart.granted) HeartText(heart.bpm)
+        }
         if (model.controlled) {
             // Com o controle, a faixa de baixo é o desfazer; o motivo (fim de
             // partida) sobe para baixo da bolinha, longe dos números.
@@ -180,6 +188,20 @@ private fun StatusDot(connection: Connection, pending: Int, modifier: Modifier) 
             Text(if (pending > 9) "9+" else pending.toString(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Black)
         }
     }
+}
+
+/** Batimento ao lado da bolinha; fica só no relógio (CV3.DS2.US2). */
+@Composable
+private fun HeartText(bpm: Int?) {
+    val label = heartLabel(bpm)
+    val description = if (label == "♥ --") "Batimento sem leitura" else "Batimento $bpm por minuto"
+    Text(
+        label,
+        Modifier.semantics { contentDescription = description },
+        fontSize = 13.sp,
+        fontWeight = FontWeight.Bold,
+        color = Color(0xFFFF6B81),
+    )
 }
 
 @Composable

@@ -6,11 +6,36 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ### CV3.DS2 — Relógio durante o jogo e o treino
 
-- **História / Escopo**: `CV3.DS2.US2` dados do treino no placar do relógio: frequência cardíaca do sensor e cronômetro da partida desde o primeiro ponto (substituto aprovado para a duração do Samsung Health, que não é legível). A US1 fechou na `0.10.1`.
+- **História / Escopo**: `CV3.DS2.US2` frequência cardíaca no placar do relógio, lida do sensor enquanto o Samsung Health grava o treino (cronômetro retirado pelo Navigator). A US1 fechou na `0.10.1`.
 - **Branch**: `feature/cv3-ds2-us2-frequencia-cardiaca-no-placar`.
-- **Passo Ariad**: Passo 2 - Planejamento.
+- **Passo Ariad**: Passo 7 - Conclusão e Merge (Checkpoint 3 aprovado em 2026-09-26; docs e 0.11.0 prontos).
 - **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: c5f8bb01 | Data: 2026-09-26 03:10 UTC
-- **Handoff / Próximos Passos**: montar o plano da US2 e apresentar o Checkpoint 1. Primeira tarefa após o aceite: APK mínimo que prove o `MeasureClient` junto com o treino do Samsung Health no Watch 8.
+- **Handoff / Próximos Passos**: `MeasureClient` implementado (`wear/.../HeartRate.kt`); APK em `~/placar-watch/placar-volei-us2-batimento.apk` no WSL. Docs, decisão, worklog e versão 0.11.0 prontos. Aguardando Checkpoint 4 (commit e merge na master).
+
+## 0.11.0 - 2026-09-26
+
+Boundary: minor (nova capacidade no relógio: batimento no placar durante o treino do Samsung Health; fecha o CV3.DS2)
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) | Sessão: c5f8bb01
+
+Git source: feature/cv3-ds2-us2-frequencia-cardiaca-no-placar (merge into master)
+
+### Added
+
+- [Relógio] **Batimento no placar** (`CV3.DS2.US2`): `♥ bpm` ao lado da bolinha de conexão, lido pelo `MeasureClient` do Health Services só com o placar visível. O Samsung Health continua gravando o treino. Sem leitura, `♥ --`; sem permissão, o placar fica como era. O valor não sai do relógio.
+
+### Decisions
+
+- `batimento-no-relogio-por-measureclient`.
+
+### Debt
+
+- Nenhum item novo. Riscos anotados na US2: só `BODY_SENSORS` é pedido em tempo de execução; bateria com tela acesa e sensor ligado não medida.
+
+### Verification
+
+- Android: 36 testes e `assembleDebug` (JDK 21).
+- Teste físico no Galaxy Watch 8 com treino do Samsung Health ativo aprovado pelo Navigator.
 
 ## 0.10.1 - 2026-09-26
 
