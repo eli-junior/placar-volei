@@ -4,7 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### CV4.DS3.US2 — Superfícies auxiliares e estados coerentes
+
+- **Branch:** `feature/cv4-ds3-us2-superficies` (criada de `master` `446282c`)
+- **Passo Ariad:** Passo 2 - Planejamento (Checkpoint 1 apresentado, aguardando Navigator)
+- **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
+- **Handoff / Próximos Passos:** nenhuma linha de código alterada. Aguardar aprovação do Checkpoint 1; em seguida iniciar Passo 3 nesta branch.
 
 
 ## 0.15.0 - 2026-09-26
