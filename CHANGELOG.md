@@ -4,14 +4,40 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV3.DS1.TS1 + CV3.DS1.US4 — Registrar offline e sincronizar com segurança
+### CV3.DS1.TS1 — Fila offline e reenvio sem duplicar
 
-- **Branch:** `feature/cv3-ds1-us4-offline-reconciliacao` (criada de `master` `446282c`; atualizada com `master` 0.18.1 em 2026-09-26)
-- **Passo Ariad:** Passo 5 - Revisão da CV3.DS1.TS1 (Checkpoint 2 aprovado pelo Navigator em 2026-09-26, validação física). Checkpoint 1 aprovado em 2026-09-26: divisão em TS1 + US4; devolução ao relógio basta token válido
-- **Assinatura:** Agente: Claude Code, Opus 5.5 (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 — assumido nesta sessão a partir do Passo 3
-- **Handoff / Próximos Passos:** TS1 implementada (servidor aceita `base_seq`; relógio persiste o placar confirmado; `ScoreSync` extraída do `WatchModel`). Aguardar validação física pelo `test-guide.md` da TS1; depois Passo 5, e então a US4.
+- **Branch:** `feature/cv3-ds1-us4-offline-reconciliacao`
+- **Passo Ariad:** Passo 7 - Conclusão e Merge (Checkpoint 4 apresentado; notas da 0.19.0 preparadas abaixo)
+- **Assinatura:** Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 9c609b1a-8c8a-449c-84cd-7c42bcc4f75b | Data: 2026-09-26
+- **Handoff / Próximos Passos:** após o merge, a US4 (revisão de conflito pelo telefone) continua em branch nova a partir de `master`.
 
 
+## 0.19.0 - 2026-09-26
+
+Boundary: minor (fila offline do relógio com placar persistido; conclui `CV3.DS1.TS1`)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–2) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66; Claude Code, Opus 5.5 (Driver, Passos 3–7) | Sessão: 9c609b1a-8c8a-449c-84cd-7c42bcc4f75b
+
+Git source: `feature/cv3-ds1-us4-offline-reconciliacao`, integrada em `master` após o Checkpoint 4.
+
+### Added
+
+- Relógio reaberto sem rede mostra o último placar confirmado e segue marcando; a fila sincroniza ao reconectar, um efeito por lance.
+- Controle devolvido ao relógio com a partida inalterada: a fila pendente é aplicada em vez de retida (`base_seq`).
+
+### Changed
+
+- Versão exibida alinhada em 0.19.0 no backend, no web e no APK (estavam em 0.10.1 e 0.12.0).
+
+### Development
+
+- `ScoreSync` extraída do `WatchModel`, com testes de servidor falso; fixture e helpers do relógio em `tests/watch_support.py`.
+- Dívida `fluxos-da-interface-sem-teste-de-ponta-a-ponta` paga em parte.
+
+### Verification
+
+- Backend: 198 testes; ruff limpo. Relógio: 44 testes unitários, build e lint.
+- Cinco cenários físicos validados pelo Navigator em 2026-09-26.
 
 ## 0.18.1 - 2026-09-26
 

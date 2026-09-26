@@ -2,7 +2,7 @@
 code: CV3.DS1.US4
 level: User Story
 status: Active
-status_reason: Checkpoint 1 aprovado com divisão; depende da CV3.DS1.TS1
+status_reason: CV3.DS1.TS1 entregue na 0.19.0; falta a revisão de conflito pelo telefone
 updated: 2026-09-26
 ---
 
@@ -29,8 +29,9 @@ Watch e dois clientes web: modo avião por 30 s, sequência acima, reiniciar app
 ## Estado para retomada
 
 - Branch de implementação: `feature/cv3-ds1-us4-offline-reconciliacao`, criada de `master` `446282c`.
-- Último checkpoint aprovado desta história: nenhum (Checkpoint 1 apresentado em 2026-09-26).
-- Implementação: não iniciada.
+- Checkpoint 1 aprovado em 2026-09-26 (divisão em TS1 + US4).
+- Base técnica entregue pela [CV3.DS1.TS1](../cv3-ds1-ts1-fila-offline-e-reenvio/index.md) na 0.19.0: placar persistido, `base_seq` e `ScoreSync`. Lances recusados continuam retidos no relógio (`held`) com descarte explícito; é daí que parte a revisão pelo telefone.
+- Próximo passo: planejar a detecção de conflito e a revisão explícita pelo telefone. Fora de escopo até aqui: envio com o app em segundo plano.
 
 ## Decisões do Navigator (2026-09-26)
 

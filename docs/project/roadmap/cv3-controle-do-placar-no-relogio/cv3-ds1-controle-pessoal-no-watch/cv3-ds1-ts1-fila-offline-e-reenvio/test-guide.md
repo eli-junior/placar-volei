@@ -1,13 +1,12 @@
 # Roteiro de validação — CV3.DS1.TS1
 
-Branch: `feature/cv3-ds1-us4-offline-reconciliacao`. O servidor e o APK mudaram; a versão exibida só muda no fechamento.
+Branch: `feature/cv3-ds1-us4-offline-reconciliacao`. Servidor e APK `0.19.0`.
 
 ## Automático
 
 ```sh
 .venv/bin/python -m pytest -q          # 198 aprovados
 .venv/bin/ruff check app tests
-export JAVA_HOME=/home/eli/.sdkman/candidates/java/21.0.7-tem
 ./wear/gradlew -p wear testDebugUnitTest assembleDebug lintDebug
 ```
 
