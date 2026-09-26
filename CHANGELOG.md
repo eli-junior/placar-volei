@@ -4,7 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo em `master`. Branches abertas com Checkpoint 1 apresentado: `feature/cv4-ds3-us1-controle`, `feature/cv4-ds3-us2-superficies`, `feature/cv4-ds3-ts1-regressao`, `feature/cv3-ds1-us4-offline-reconciliacao` (entradas registradas em cada branch).
+### CV4.DS3.US1 — Operação do admin e controlador
+
+- **Branch:** `feature/cv4-ds3-us1-controle` (criada de `master` `446282c`)
+- **Passo Ariad:** Passo 6 - Documentação concluído; Checkpoint 4 (merge como 0.17.0) aguardando Navigator. Checkpoints 1–3 aprovados; dívida da representação clássica paga.
+- **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
+- **Handoff / Próximos Passos:** operação reescrita: barra compacta, faixa de posse, +1 sob as equipes (laterais em paisagem), Desfazer com último ponto, menu ⋯ com presentes. Web 62 testes, backend 191, check/build limpos. Falta a validação em três clientes (V4).
 
 
 ## 0.16.0 - 2026-09-26

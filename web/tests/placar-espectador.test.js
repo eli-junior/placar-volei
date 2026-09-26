@@ -44,8 +44,8 @@ test('espectador deixa os cartões dobráveis fora da nova composição', () => 
 });
 
 test('metadados operacionais não antecedem o placar do espectador', () => {
-  assert.match(sala, /\{#if podeControlar\}\s*<section class="quadra-hero"/);
-  assert.match(sala, /\{#if podeControlar \|\| avisoRelogio \|\| avisoTelaCheia \|\| !wsConectado \|\| erro\}/);
+  assert.doesNotMatch(sala, /class="quadra-hero"/);
+  assert.match(sala, /\{#if avisoRelogio \|\| avisoTelaCheia \|\| !wsConectado \|\| erro\}/);
   assert.match(espectador, /class="contexto"/);
 });
 

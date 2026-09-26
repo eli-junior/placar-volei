@@ -1,6 +1,6 @@
 ---
 id: debt-representacao-classica-duplicada-na-operacao
-status: Carried
+status: Paid
 kind: maintainability
 severity: low
 source: CV4.DS2.US3, revisão do Checkpoint 3 em 2026-09-26
@@ -21,3 +21,7 @@ Na operação os cartões são alvos de toque, com fila, `aria-busy` e feedback.
 ## Proposed Fix
 
 Dar a `PlacarClassico.svelte` um slot ou callbacks opcionais para o toque em cada lado e fazer `Placar.svelte` compor comandos em volta dele, como já faz com `PlacarResultado` no tema Esportivo.
+
+## Resolution
+
+Paga na `CV4.DS3.US1` (2026-09-26). Com os +1 fora dos cartões, a grade clássica da operação virou apresentação pura: `Placar.svelte` passou a compor `PlacarClassico.svelte`, como já fazia com `PlacarResultado`. Teste em `web/tests/controle.test.js` impede a volta da grade própria.

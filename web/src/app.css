@@ -453,6 +453,12 @@ body.placar-espectador #app {
   max-width: none;
 }
 
+/* A operação usa a largura do Fold aberto e do tablet para pôr os +1 nas
+   laterais (CV4.DS3.US1); em monitores largos, um limite confortável. */
+body.placar-operador #app {
+  max-width: 1280px;
+}
+
 /* Com a tela girada por software o quadro sai do fluxo (position: fixed):
    o documento não deve rolar nem reservar altura para ele. */
 body.placar-girado {

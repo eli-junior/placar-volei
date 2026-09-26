@@ -1,8 +1,8 @@
 ---
 code: CV4.DS3
 level: Delivery Story
-status: Planned
-status_reason: aguardando execução das histórias e aceite do Navigator
+status: Active
+status_reason: US1 validada, aguardando merge; US2 e TS1 planejadas
 updated: 2026-09-26
 ---
 
