@@ -25,6 +25,11 @@ A story is one `index.md` with the sections Intent, Acceptance, Plan, Validation
 
 `Planned`, `Active`, `Blocked`, `Validated`, `Done`, `Deferred`, `Dropped`. Give `Blocked`, `Deferred`, and `Dropped` a `status_reason`. Find work by searching `status: Active`.
 
+Automode stories awaiting the Navigator use `Validated`, `execution_mode: automode`, and
+`human_validation: pending`. They remain open for human acceptance via `ariad.py validate`;
+they never close their parents automatically. Failed human validation returns them to `Planned`
+with feedback. A strong-model review is required after every five implemented stories.
+
 ## Effort
 
 Stories carry `effort` from 1 to 10: 1-2 trivial, 3-4 small, 5-6 moderate, 7-8 large, 9-10 critical (prefer splitting).
