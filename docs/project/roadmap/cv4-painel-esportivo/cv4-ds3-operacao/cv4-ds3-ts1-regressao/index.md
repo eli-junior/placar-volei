@@ -2,7 +2,7 @@
 code: CV4.DS3.TS1
 level: Technical Story
 status: Active
-status_reason: Passo 2 - Planejamento; Checkpoint 1 apresentado, aguardando Navigator
+status_reason: Checkpoint 1 aprovado (Playwright e axe aceitos); aguardando US2 para implementar
 updated: 2026-09-26
 effort: 6
 ---
@@ -38,3 +38,9 @@ Executar V6 no [guia de validação](../../test-guide.md), além das verificaç�
 ## Out of Scope
 
 Respeitar os limites da seção correspondente do plano. Não incorporar mudanças no motor de eventos, permissões ou Wear OS sem novo acordo.
+
+## Decisões do Navigator (2026-09-26)
+
+- Playwright e axe aprovados como ferramentas de teste de desenvolvimento, fora da imagem de runtime. Confirmar versões no início da implementação e registrar o comando definitivo em `web/package.json`, no guia de desenvolvimento e no test-guide.
+- Validação física do tablet adiada da `CV4.DS2.US2` para a matriz desta história.
+- Cenários de navegador já exercitados com scripts temporários nas US2 e DS3.US1 (ver dívida `fluxos-da-interface-sem-teste-de-ponta-a-ponta`) entram nesta suíte.
