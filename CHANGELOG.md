@@ -6,11 +6,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ### CV3.DS2 — Relógio durante o jogo e o treino
 
-- **História / Escopo**: `CV3.DS2.US1` tela sempre acesa no placar do relógio; `CV3.DS2.US2` frequência cardíaca no placar enquanto o Samsung Health grava o treino (branch própria, depois da US1).
-- **Branch**: `feature/cv3-ds2-us1-tela-acesa-no-placar` (US1). US2 prevista em `feature/cv3-ds2-us2-frequencia-cardiaca-no-placar`.
-- **Passo Ariad**: Passo 7 - Conclusão e Merge (US1; Checkpoint 3 aprovado em 2026-09-26, aguardando Checkpoint 4). US2 em Planejamento: o Navigator pediu frequência cardíaca e a duração do exercício do Samsung Health.
-- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: c5f8bb01 | Data: 2026-09-26 03:00 UTC
-- **Handoff / Próximos Passos**: US1 documentada e fechada como `0.10.1` abaixo, na branch; falta o merge em `master`. Depois, abrir a branch da US2 a partir da `master` e apresentar o Checkpoint 1 (viabilidade da duração do Samsung Health).
+- **História / Escopo**: `CV3.DS2.US2` dados do treino no placar do relógio: frequência cardíaca do sensor e cronômetro da partida desde o primeiro ponto (substituto aprovado para a duração do Samsung Health, que não é legível). A US1 fechou na `0.10.1`.
+- **Branch**: `feature/cv3-ds2-us2-frequencia-cardiaca-no-placar`.
+- **Passo Ariad**: Passo 2 - Planejamento.
+- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: c5f8bb01 | Data: 2026-09-26 03:10 UTC
+- **Handoff / Próximos Passos**: montar o plano da US2 e apresentar o Checkpoint 1. Primeira tarefa após o aceite: APK mínimo que prove o `MeasureClient` junto com o treino do Samsung Health no Watch 8.
 
 ## 0.10.1 - 2026-09-26
 
