@@ -4,7 +4,7 @@ Arquivos preservados da conversa de 2026-09-26, para que outro agente possa reto
 
 - [Proposta do painel](proposta-painel.html): última prévia com Teko 600 e números ampliados, aprovada com “perfeito”. A aparência acompanha o ambiente e pode alternar entre claro e escuro.
 - [Proposta clara](proposta-clara.html): versão que inicia em modo claro, aprovada com “ótimo”.
-- [Proposta do operador](proposta-operador.html): composição do admin/controlador da `CV4.DS3.US1` (tarefa E4.1), com seletor de estados de posse, inversão, envio e conexão. **Em aprovação.**
+- [Proposta do operador](proposta-operador.html): composição do admin/controlador da `CV4.DS3.US1` (tarefa E4.1), com seletor de estados de posse, inversão, envio e conexão. Aprovada em 2026-09-26 com menu ⋯ único (opção a).
 
 São **referências documentais**, fora do build e do runtime da aplicação. Não importar como componentes. Dados, estados e interações são ilustrativos.
 

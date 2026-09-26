@@ -17,9 +17,11 @@
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
     onIniciarNovaPartida = () => {},
-    onAbrirLinhaDoTempo = () => {},
-    onAbrirConfiguracao = () => {},
     onAbrirCompartilhar = () => {},
+    // Ações secundárias ficam num único menu (CV4.DS3.US1).
+    onAbrirMenu = () => {},
+    // Equipe do ponto que o Desfazer vai anular, quando conhecida.
+    ultimoPonto = null,
     ladosInvertidos = false,
     onAlternarLados = () => {},
   } = $props();
@@ -57,6 +59,7 @@
   const pontosB = $derived(estadoPartida?.pontos_b ?? 0);
   const totalPontos = $derived(pontosA + pontosB);
   const podeDesfazer = $derived(podeControlar && totalPontos > 0 && !desabilitado);
+  const podeMarcar = $derived(podeControlar && !desabilitado && !encerrada);
 
   const equipeA = $derived(estadoPartida?.equipe_a || 'Equipe A');
   const equipeB = $derived(estadoPartida?.equipe_b || 'Equipe B');
@@ -69,6 +72,7 @@
   const vencedorNome = $derived(
     vencedor === 'A' ? equipeA : vencedor === 'B' ? equipeB : null
   );
+  const ultimoNome = $derived(ultimoPonto === 'A' ? equipeA : ultimoPonto === 'B' ? equipeB : null);
 
   function handleToqueDesfazer() {
     if (!podeDesfazer) return;
@@ -82,7 +86,7 @@
    * flash no card da equipe e `aria-busy` no botão enquanto o envio acontece.
    */
   function handleToquePonto(equipe) {
-    if (desabilitado || encerrada) return;
+    if (!podeMarcar) return;
 
     vibrar(35);
 
@@ -127,63 +131,21 @@
   });
 </script>
 
-<section class="placar-card" in:slide={{ duration: prefersReducedMotion ? 0 : 250 }}>
+<!--
+  Operação (CV4.DS3.US1): tudo que marca o placar cabe numa tela, sem rolar.
+  +1 fica sob cada equipe (nas laterais em paisagem) e segue a inversão de
+  lados; Desfazer está sempre a um toque. Ações secundárias vão para o menu ⋯.
+-->
+<section
+  class="placar-card"
+  class:lados-invertidos={ladosInvertidos}
+  in:slide={{ duration: prefersReducedMotion ? 0 : 250 }}
+>
   <!-- Anunciador dinâmico de acessibilidade WCAG (leitores de tela) -->
   <div class="sr-only" role="status" aria-live="polite" aria-atomic="true">
     {anuncioAcessivel}
   </div>
 
-  <!-- Cabeçalho de regras da partida e botão Linha do Tempo -->
-  <div class="placar-header">
-    <div class="header-left">
-      <span class="placar-badge">Set Único</span>
-      <span class="placar-regra">
-        Alvo: {alvo} pts
-        {#if vantagem}• Vantagem{/if}
-        {#if teto}• Teto: {teto}{/if}
-      </span>
-    </div>
-
-    <div class="header-right">
-      {#if podeControlar}
-        <button
-          type="button"
-          class="btn-cfg-toggle"
-          onclick={onAbrirConfiguracao}
-          aria-label="Configurar duplas e regras da partida"
-          title="Configurar duplas e regras"
-        >
-          <span class="cfg-icon">⚙️</span>
-          <span class="cfg-label">Duplas & Regras</span>
-        </button>
-      {/if}
-
-      <button
-        type="button"
-        class="btn-inverter-lados"
-        class:ativo={ladosInvertidos}
-        onclick={onAlternarLados}
-        aria-pressed={ladosInvertidos}
-        aria-label="Inverter lados das equipes"
-        title="Inverter lados das equipes nesta tela"
-      >
-        <span class="inverter-icon">⇄</span>
-        <span class="inverter-label">{ladosInvertidos ? 'Lados Invertidos' : 'Inverter Lados'}</span>
-      </button>
-
-      <button
-        type="button"
-        class="btn-lt-toggle"
-        onclick={onAbrirLinhaDoTempo}
-        aria-label="Abrir linha do tempo da partida"
-      >
-        <span class="lt-icon">📜</span>
-        <span class="lt-label">Linha do Tempo</span>
-      </button>
-    </div>
-  </div>
-
-  <!-- Banner de encerramento quando houver vencedor -->
   {#if encerrada && vencedorNome}
     <div class="banner-vitoria" in:slide={{ duration: prefersReducedMotion ? 0 : 250 }}>
       <div class="vitoria-cabecalho">
@@ -219,43 +181,21 @@
       {:else}
         <div class="aguardando-container">
           <span class="aguardando-nova-partida">Aguardando início da próxima partida…</span>
-          <button
-            type="button"
-            class="btn-compartilhar-vitoria"
-            onclick={onAbrirCompartilhar}
-            aria-label="Compartilhar resultado da partida"
-          >
-            <span>📢 Compartilhar Resultado</span>
-          </button>
         </div>
       {/if}
     </div>
   {/if}
 
-  <!-- Estado do transporte: quem opera precisa saber se o toque saiu ou não -->
-  {#if podeControlar && desabilitado}
-    <div class="aviso-conexao" role="status">
-      <span class="aviso-icone" aria-hidden="true">⟳</span>
-      <span>
-        Sem conexão com a sala. Os botões de ponto estão bloqueados e voltam
-        sozinhos assim que a reconexão acontecer — nada é marcado às cegas.
-      </span>
-    </div>
-  {:else if podeControlar && enviando}
+  {#if podeControlar && enviando && !desabilitado}
     <div class="aviso-envio" role="status">
       <span class="aviso-icone pulsando" aria-hidden="true">●</span>
-      <span>
-        {pendentes > 1
-          ? `Enviando ${pendentes} toques na fila…`
-          : 'Enviando o toque…'}
-      </span>
+      <span>{pendentes > 1 ? `Enviando ${pendentes} toques na fila…` : 'Enviando o toque…'}</span>
     </div>
   {/if}
 
-  <!-- Área do placar; o tema é compartilhado pela sala. -->
-  {#if temaPlacar === 'esportivo'}
-    <div class="placar-esportivo-controle">
-      <div class="resultado-esportivo">
+  <div class="palco" class:classico={temaPlacar !== 'esportivo'}>
+    <div class="resultado">
+      {#if temaPlacar === 'esportivo'}
         <PlacarResultado
           {pontosA}
           {pontosB}
@@ -265,234 +205,154 @@
           {vencedor}
           movimentoReduzido={prefersReducedMotion}
         />
-      </div>
-      {#if podeControlar}
-        <div class="acoes-ponto" class:lados-invertidos={ladosInvertidos}>
-          <button
-            type="button"
-            class="btn-marcar btn-marcar-a"
-            disabled={desabilitado || encerrada}
-            aria-busy={enviando}
-            onclick={() => handleToquePonto('A')}
-            aria-label="Marcar ponto para {equipeA}"
-          ><span class="btn-plus">+1</span><span class="btn-sub">{equipeA}</span></button>
-          <button
-            type="button"
-            class="btn-marcar btn-marcar-b"
-            disabled={desabilitado || encerrada}
-            aria-busy={enviando}
-            onclick={() => handleToquePonto('B')}
-            aria-label="Marcar ponto para {equipeB}"
-          ><span class="btn-plus">+1</span><span class="btn-sub">{equipeB}</span></button>
+      {:else}
+        <div class="placar-grid" class:lados-invertidos={ladosInvertidos}>
+          <div class="equipe-col col-time-a {feedbackEquipe === 'A' ? 'flash-a' : ''} {vencedor === 'A' ? 'col-vencedor' : ''}">
+            <span class="equipe-nome">{equipeA}</span>
+            <CartaoDobravel valor={pontosA} equipe={equipeA} tema="a" tamanho="normal" {prefersReducedMotion} />
+          </div>
+          <div class="vs-col"><span class="vs-simbolo">×</span></div>
+          <div class="equipe-col col-time-b {feedbackEquipe === 'B' ? 'flash-b' : ''} {vencedor === 'B' ? 'col-vencedor' : ''}">
+            <span class="equipe-nome">{equipeB}</span>
+            <CartaoDobravel valor={pontosB} equipe={equipeB} tema="b" tamanho="normal" {prefersReducedMotion} />
+          </div>
         </div>
       {/if}
     </div>
-  {:else}
-  <div class="placar-grid" class:lados-invertidos={ladosInvertidos}>
-    <!-- Coluna Equipe A -->
-    <div
-      class="equipe-col col-time-a {feedbackEquipe === 'A' ? 'flash-a' : ''} {vencedor === 'A' ? 'col-vencedor' : ''}"
-    >
-      <span class="equipe-nome">{equipeA}</span>
 
-      <CartaoDobravel
-        valor={pontosA}
-        equipe={equipeA}
-        tema="a"
-        tamanho="normal"
-        {prefersReducedMotion}
-      />
-
-      {#if podeControlar}
-        <button
-          type="button"
-          class="btn-marcar btn-marcar-a"
-          disabled={desabilitado || encerrada}
-          aria-busy={enviando}
-          onclick={() => handleToquePonto('A')}
-          aria-label="Marcar ponto para {equipeA}"
-        >
-          <span class="btn-plus">+1</span>
-          <span class="btn-sub">{equipeA}</span>
-        </button>
-      {/if}
-    </div>
-
-    <!-- Divisor Central -->
-    <div class="vs-col {podeControlar ? 'vs-com-botoes' : ''}">
-      <span class="vs-simbolo">×</span>
-    </div>
-
-    <!-- Coluna Equipe B -->
-    <div
-      class="equipe-col col-time-b {feedbackEquipe === 'B' ? 'flash-b' : ''} {vencedor === 'B' ? 'col-vencedor' : ''}"
-    >
-      <span class="equipe-nome">{equipeB}</span>
-
-      <CartaoDobravel
-        valor={pontosB}
-        equipe={equipeB}
-        tema="b"
-        tamanho="normal"
-        {prefersReducedMotion}
-      />
-
-      {#if podeControlar}
-        <button
-          type="button"
-          class="btn-marcar btn-marcar-b"
-          disabled={desabilitado || encerrada}
-          aria-busy={enviando}
-          onclick={() => handleToquePonto('B')}
-          aria-label="Marcar ponto para {equipeB}"
-        >
-          <span class="btn-plus">+1</span>
-          <span class="btn-sub">{equipeB}</span>
-        </button>
-      {/if}
-    </div>
+    <button
+      type="button"
+      class="btn-marcar btn-marcar-a"
+      class:flash={feedbackEquipe === 'A'}
+      disabled={!podeMarcar}
+      aria-busy={enviando}
+      onclick={() => handleToquePonto('A')}
+      aria-label="Marcar ponto para {equipeA}"
+    ><span class="btn-plus">+1</span><span class="btn-sub">{equipeA}</span></button>
+    <button
+      type="button"
+      class="btn-marcar btn-marcar-b"
+      class:flash={feedbackEquipe === 'B'}
+      disabled={!podeMarcar}
+      aria-busy={enviando}
+      onclick={() => handleToquePonto('B')}
+      aria-label="Marcar ponto para {equipeB}"
+    ><span class="btn-plus">+1</span><span class="btn-sub">{equipeB}</span></button>
   </div>
-  {/if}
 
-  {#if podeControlar}
-    <!-- Ação de Correção: Desfazer Último Ponto (US3) -->
-    <div class="desfazer-container">
-      <button
-        type="button"
-        class="btn-desfazer"
-        disabled={!podeDesfazer}
-        aria-busy={enviando}
-        onclick={handleToqueDesfazer}
-        aria-label="Desfazer último ponto marcado"
-      >
-        <span class="desfazer-icone">↺</span>
-        <span class="desfazer-texto">Desfazer Último Ponto</span>
-      </button>
-    </div>
-  {/if}
+  <div class="base">
+    <button
+      type="button"
+      class="btn-desfazer"
+      disabled={!podeDesfazer}
+      aria-busy={enviando}
+      onclick={handleToqueDesfazer}
+      aria-label={ultimoNome ? `Desfazer último ponto, de ${ultimoNome}` : 'Desfazer último ponto marcado'}
+    >
+      <span class="desfazer-texto"><span aria-hidden="true">↺</span> Desfazer</span>
+      {#if ultimoNome && podeDesfazer}<small>último: +1 {ultimoNome}</small>{/if}
+    </button>
+    <button
+      type="button"
+      class="btn-base"
+      class:ativo={ladosInvertidos}
+      onclick={onAlternarLados}
+      aria-pressed={ladosInvertidos}
+      aria-label="Inverter lados das equipes"
+      title="Inverter lados nesta tela"
+    ><span aria-hidden="true">⇄</span></button>
+    <button
+      type="button"
+      class="btn-base"
+      onclick={onAbrirMenu}
+      aria-haspopup="dialog"
+      aria-label="Mais ações: compartilhar, relógio, regras, presentes e tema"
+      title="Mais ações"
+    ><span aria-hidden="true">⋯</span></button>
+  </div>
 </section>
 
 <style>
+  /*
+   * Operação sem rolagem: a carta ocupa o que sobra da tela e o palco cresce.
+   * Em paisagem os +1 vão para as laterais, perto dos polegares.
+   */
   .placar-card {
-    background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-surface) 100%);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 20px 16px 24px 16px;
+    container-type: inline-size;
     display: flex;
     flex-direction: column;
-    gap: 18px;
-    box-shadow: 0 4px 28px rgba(0, 0, 0, 0.35);
+    gap: 10px;
+    flex: 1 1 auto;
+    min-height: 0;
   }
 
-  .placar-esportivo-controle {
-    display: grid;
-    grid-template-rows: minmax(320px, 1fr) auto;
-    gap: 12px;
-    min-height: 460px;
-  }
-
-  .resultado-esportivo { min-height: 0; }
-
-  .acoes-ponto {
+  .palco {
+    flex: 1 1 auto;
+    min-height: 0;
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-template-areas: 'a b';
-    gap: 12px;
-  }
-
-  .acoes-ponto.lados-invertidos { grid-template-areas: 'b a'; }
-  .acoes-ponto .btn-marcar-a { grid-area: a; }
-  .acoes-ponto .btn-marcar-b { grid-area: b; }
-
-  .placar-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 4px;
+    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'resultado resultado'
+      'a b';
     gap: 10px;
-    flex-wrap: wrap;
   }
 
-  .header-left {
-    display: flex;
-    align-items: center;
+  .lados-invertidos .palco { grid-template-areas: 'resultado resultado' 'b a'; }
+  .palco .resultado { grid-area: resultado; min-height: 0; display: flex; }
+  .palco .resultado > :global(*) { flex: 1 1 auto; min-width: 0; }
+  .palco .btn-marcar-a { grid-area: a; }
+  .palco .btn-marcar-b { grid-area: b; }
+
+  @container (min-width: 720px) {
+    .palco {
+      grid-template-columns: minmax(120px, 17%) minmax(0, 1fr) minmax(120px, 17%);
+      grid-template-rows: minmax(0, 1fr);
+      grid-template-areas: 'a resultado b';
+    }
+    .lados-invertidos .palco { grid-template-areas: 'b resultado a'; }
+    .palco .btn-marcar { height: auto; min-height: 120px; }
+  }
+
+  .base {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 56px 56px;
     gap: 8px;
-    flex-wrap: wrap;
   }
 
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .btn-cfg-toggle,
-  .btn-inverter-lados,
-  .btn-lt-toggle {
-    background: rgba(var(--veu), 0.05);
-    border: 1px solid rgba(var(--veu), 0.12);
+  .btn-base {
+    display: grid;
+    place-items: center;
+    min-height: 56px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
     color: var(--text-secondary);
-    border-radius: 999px;
-    padding: 6px 14px;
-    min-height: 44px;
-    box-sizing: border-box;
-    font-size: 0.78rem;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
+    font-size: 1.3rem;
+    font-weight: 800;
     cursor: pointer;
     touch-action: manipulation;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
   }
 
-  .btn-cfg-toggle:hover,
-  .btn-inverter-lados:hover,
-  .btn-lt-toggle:hover {
-    background: rgba(var(--veu), 0.1);
-    color: var(--texto-contraste);
-    border-color: rgba(var(--veu), 0.25);
+  .btn-base.ativo {
+    color: var(--marca);
+    border-color: var(--marca);
   }
 
-  .btn-inverter-lados.ativo {
-    color: var(--accent-orange);
-    border-color: var(--border-active);
-    background: rgba(249, 115, 22, 0.12);
-  }
 
-  .btn-cfg-toggle:active,
-  .btn-inverter-lados:active,
-  .btn-lt-toggle:active {
-    transform: scale(0.96);
-  }
 
-  .cfg-icon,
-  .inverter-icon,
-  .lt-icon {
-    font-size: 0.85rem;
-  }
 
-  .cfg-label,
-  .inverter-label,
-  .lt-label {
-    letter-spacing: 0.02em;
-  }
 
-  .placar-badge {
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--accent-cyan);
-    letter-spacing: 0.05em;
-  }
 
-  .placar-regra {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    font-weight: 500;
-  }
+
+
+
+
+
+
+
+
+
 
   /* Banner de Vitória */
   .banner-vitoria {
@@ -690,9 +550,6 @@
     justify-content: center;
   }
 
-  .vs-col.vs-com-botoes {
-    padding-bottom: 74px; /* alinha com os números */
-  }
 
   .vs-simbolo {
     font-size: 1.8rem;
@@ -701,7 +558,6 @@
   }
 
   /* Avisos de transporte: conexão caída e envio em andamento */
-  .aviso-conexao,
   .aviso-envio {
     display: flex;
     align-items: center;
@@ -713,11 +569,6 @@
     line-height: 1.35;
   }
 
-  .aviso-conexao {
-    color: #fde68a;
-    background: rgba(245, 158, 11, 0.14);
-    border: 1px solid rgba(245, 158, 11, 0.45);
-  }
 
   .aviso-envio {
     color: #a5f3fc;
@@ -731,9 +582,6 @@
     flex: 0 0 auto;
   }
 
-  .aviso-conexao .aviso-icone {
-    animation: girar-aviso 1.1s linear infinite;
-  }
 
   .aviso-icone.pulsando {
     animation: pulsar-aviso 0.9s ease-in-out infinite;
@@ -863,7 +711,6 @@
     .btn-nova-partida[aria-busy='true'],
     .btn-desfazer[aria-busy='true'],
     .btn-marcar[aria-busy='true']::after,
-    .aviso-conexao .aviso-icone,
     .aviso-icone.pulsando {
       animation: none !important;
     }
@@ -874,16 +721,14 @@
   }
 
   /* Estilos do Botão Desfazer (US3) */
-  .desfazer-container {
-    display: flex;
-    justify-content: center;
-    padding-top: 4px;
-  }
 
   .btn-desfazer {
     width: 100%;
-    height: 48px;
-    background: rgba(var(--veu), 0.04);
+    min-height: 56px;
+    flex-direction: column;
+    gap: 0;
+    line-height: 1.2;
+    background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     color: var(--text-secondary);
@@ -915,15 +760,24 @@
     cursor: not-allowed;
   }
 
-  .desfazer-icone {
-    font-size: 1.15rem;
-    font-weight: 700;
-    line-height: 1;
-  }
 
   .desfazer-texto {
+    color: var(--text-primary);
+    font-weight: 800;
     letter-spacing: 0.02em;
   }
+
+  .btn-desfazer small {
+    max-width: 100%;
+    overflow: hidden;
+    color: var(--text-secondary);
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .btn-marcar.flash { filter: brightness(1.2); }
+  .btn-sub { max-width: 100%; overflow: hidden; padding: 0 8px; text-overflow: ellipsis; white-space: nowrap; }
 
   /*
    * Celular deitado: a altura é o recurso escasso. Compacta a moldura e os
@@ -935,9 +789,6 @@
       gap: 10px;
     }
 
-    .placar-header {
-      gap: 8px;
-    }
 
     .placar-grid {
       gap: 10px;
@@ -956,9 +807,6 @@
       font-size: 1.7rem;
     }
 
-    .vs-col.vs-com-botoes {
-      padding-bottom: 50px;
-    }
 
     .btn-desfazer {
       height: 42px;

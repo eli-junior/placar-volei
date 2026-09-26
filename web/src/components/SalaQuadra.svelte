@@ -10,6 +10,8 @@
   import ModalConfigurarPartida from './ModalConfigurarPartida.svelte';
   import ModalCelebracaoVitoria from './ModalCelebracaoVitoria.svelte';
   import { ehDonoDoRelogio } from '../lib/relogio.js';
+  import { ultimoPontoDesfazivel, descreverPosse } from '../lib/controle.js';
+  import Dialogo from './Dialogo.svelte';
   import {
     suportaTelaCheia,
     estaEmTelaCheia,
@@ -206,6 +208,32 @@
   const ehAdmin = $derived(eu?.papel === 'ADMIN');
 
   const temControle = $derived(podeControlar && quadra?.controle_id === eu?.id);
+  const posse = $derived(
+    descreverPosse({ temControle, ehAdmin, operador: participantes.find(p => p.id === quadra?.controle_id)?.apelido, conectado: wsConectado })
+  );
+  const ultimoPonto = $derived(ultimoPontoDesfazivel(linhaDoTempo));
+  let menuAberto = $state(false);
+  let origemDoMenu = null;
+
+  function abrirMenu() {
+    origemDoMenu = typeof document === 'undefined' ? null : document.activeElement;
+    menuAberto = true;
+  }
+
+  // Fechar sem escolher nada devolve o foco ao ⋯ (o diálogo sai do DOM).
+  function fecharMenu() {
+    menuAberto = false;
+    const origem = origemDoMenu;
+    setTimeout(() => origem?.focus?.(), 0);
+  }
+
+  // Cada item do menu fecha o menu antes de abrir o seu diálogo: um só
+  // diálogo aberto por vez, e o foco volta ao ⋯ quando o menu fecha.
+  function doMenu(acao) {
+    menuAberto = false;
+    acao();
+  }
+
   const operador = $derived(participantes.find(p => p.id === quadra?.controle_id)?.apelido || (temControle ? eu?.apelido : 'aguardando atualização'));
   // O relógio é pessoal do eli nesta fase; para os demais, só um aviso.
   let avisoRelogio = $state(false);
@@ -277,10 +305,11 @@
     const espectador = !podeControlar;
 
     corpo.classList.toggle('placar-espectador', espectador);
+    corpo.classList.toggle('placar-operador', !espectador);
     corpo.classList.toggle('placar-girado', telaGirada);
 
     return () => {
-      corpo.classList.remove('placar-espectador', 'placar-girado');
+      corpo.classList.remove('placar-espectador', 'placar-operador', 'placar-girado');
     };
   });
 
@@ -415,6 +444,7 @@
 <div
   class="sala-container"
   class:em-modo-imersivo={!podeControlar}
+  class:operador={podeControlar}
   class:controles-ocultos={modoImersivo && !podeControlar}
   class:tela-girada={telaGirada}
   style="--tela-w: {telaW}px; --tela-h: {telaH}px;"
@@ -432,7 +462,35 @@
   aria-label="Quadra de Vôlei"
 >
   <!-- Top Bar com Botão Voltar e Status de Conexão -->
-  {#if podeControlar || !modoImersivo}
+  {#if podeControlar}
+    <!-- Operação (CV4.DS3.US1): barra compacta e faixa de posse; o resto das
+         ações fica no menu ⋯ para o placar caber sem rolagem. -->
+    <header class="barra-operador">
+      <button type="button" class="btn-voltar-compacto" onclick={onVoltar} aria-label="Voltar para a lista de quadras">←</button>
+      <button type="button" class="chip-codigo" onclick={copiarCodigo} title="Copiar código da sala" aria-label="Copiar código da sala {quadra.id}">
+        <strong>#{quadra.id}</strong>
+        <span>{copiado ? 'Copiado!' : quadra.nome}</span>
+      </button>
+      <div class="ws-status">
+        <span class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"></span>
+        <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Conectando...'}</span>
+      </div>
+    </header>
+
+    <div class="faixa-posse" class:minha={temControle} aria-live="polite">
+      <span class="pino" aria-hidden="true"></span>
+      {#key quadra?.controle_id}
+        <div class="posse-texto" in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>
+          <strong>{posse.titulo}</strong>
+          <small>{posse.detalhe}</small>
+        </div>
+      {/key}
+      <span class="selo-papel">{eu?.papel}</span>
+      {#if posse.podeAssumir}
+        <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
+      {/if}
+    </div>
+  {:else if !modoImersivo}
     <header class="sala-header" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
       <button
         type="button"
@@ -465,26 +523,6 @@
           <Icone nome="compartilhar" tamanho="1.1em" />
         </button>
 
-        {#if podeControlar}
-          <button
-            type="button"
-            class="btn-config-header"
-            onclick={abrirRelogio}
-            aria-label="Vincular ou revogar meu relógio"
-            title="Relógio"
-          >
-            <Icone nome="relogio" tamanho="1.15em" />
-          </button>
-          <button
-            type="button"
-            class="btn-config-header"
-            onclick={() => { modalConfigAberto = true; isReinicioConfig = false; }}
-            aria-label="Configurar duplas e regras da partida"
-            title="Configurações da partida"
-          >
-            <Icone nome="engrenagem" tamanho="1.15em" />
-          </button>
-        {/if}
 
         <button
           type="button"
@@ -538,88 +576,15 @@
       </div>
     </header>
 
-    <!-- O controlador mantém os dados operacionais; o espectador recebe
-         contexto compacto dentro do próprio placar. -->
-    {#if podeControlar}
-    <section class="quadra-hero" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
-      <!-- Banner com Código de 5 Dígitos da Sala -->
-      <div class="codigo-sala-destaque">
-        <div class="codigo-sala-info">
-          <span class="codigo-sala-label">CÓDIGO DA SALA</span>
-          <span class="codigo-sala-num">{quadra.id}</span>
-        </div>
-        <div class="codigo-sala-botoes">
-          <button
-            type="button"
-            class="btn-copiar-pin"
-            onclick={copiarCodigo}
-            title="Copiar código da sala"
-          >
-            {copiado ? '✓ Copiado!' : '📋 Copiar'}
-          </button>
-          <button
-            type="button"
-            class="btn-compartilhar-pin"
-            onclick={() => { modalCompartilharAberto = true; }}
-            title="Abrir QR Code e Compartilhar"
-          >
-            <Icone nome="compartilhar" tamanho="1em" />
-            <span>QR</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="quadra-title-row">
-        <h2 class="quadra-title">{quadra.nome}</h2>
-        <div class="quadra-tags-group">
-          {#if estadoPartida}
-            <span class="regra-tag">
-              🎯 Até {estadoPartida.alvo} pts • {estadoPartida.vantagem ? 'Vantagem' : 'Sem vantagem'}{estadoPartida.teto ? ` • Teto ${estadoPartida.teto}` : ''}
-            </span>
-          {/if}
-          {#if podeControlar}
-            <button
-              type="button"
-              class="btn-ajustar-regras"
-              onclick={() => { modalConfigAberto = true; isReinicioConfig = false; }}
-              title="Ajustar duplas e regras da partida"
-            >
-              <Icone nome="regras" tamanho="0.95em" />
-              <span>Duplas & Regras</span>
-            </button>
-          {/if}
-          <span class="quadra-tag">
-            🏟️ Sala Ativa
-          </span>
-        </div>
-      </div>
-
-      <div class="meu-perfil-card">
-        <div class="meu-perfil-info">
-          <span class="label-voce">Você está conectado como:</span>
-          <span class="meu-apelido">{eu?.apelido || 'Participante'}</span>
-        </div>
-        <span class="badge {eu?.papel === 'ADMIN' ? 'badge-admin' : eu?.papel === 'CONTROLADOR' ? 'badge-controlador' : 'badge-espectador'}">
-          {eu?.papel || 'ESPECTADOR'}
-        </span>
-      </div>
-    </section>
-    {/if}
   {/if}
 
-  {#if podeControlar || avisoRelogio || avisoTelaCheia || !wsConectado || erro}
+  {#if avisoRelogio || avisoTelaCheia || !wsConectado || erro}
   <div class="controle-painel" aria-live="polite">
     {#if avisoTelaCheia}
       <span class="aviso-em-breve" role="status" transition:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>{avisoTelaCheia}</span>
     {/if}
     {#if avisoRelogio}
       <span class="aviso-em-breve" role="status" transition:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>Em breve…</span>
-    {/if}
-    {#key quadra?.controle_id}
-      <span in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>Controle: <strong>{operador}</strong>{temControle ? ' (você)' : ''}</span>
-    {/key}
-    {#if podeControlar && !temControle}
-      <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir o controle</button>
     {/if}
     {#if !wsConectado}
       <span class="chip-reconectando" role="status">
@@ -656,11 +621,8 @@
         modalConfigAberto = true;
         isReinicioConfig = true;
       }}
-      onAbrirConfiguracao={() => {
-        modalConfigAberto = true;
-        isReinicioConfig = false;
-      }}
-      onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
+      {ultimoPonto}
+      onAbrirMenu={abrirMenu}
       onAbrirCompartilhar={() => { modalCompartilharAberto = true; }}
     />
   {:else}
@@ -747,10 +709,49 @@
     />
   {/if}
 
+  {#if menuAberto}
+    <Dialogo rotulo="Mais ações" variante="folha" largura="520px" movimentoReduzido={prefersReducedMotion} onFechar={fecharMenu}>
+      <div class="menu-operador">
+        <div class="menu-acoes">
+          <button type="button" onclick={() => doMenu(() => { modalCompartilharAberto = true; })}>
+            <Icone nome="compartilhar" tamanho="1.1em" /><span>Compartilhar e QR</span>
+          </button>
+          <button type="button" onclick={() => doMenu(() => { modalConfigAberto = true; isReinicioConfig = false; })}>
+            <Icone nome="engrenagem" tamanho="1.1em" /><span>Duplas e regras</span>
+          </button>
+          <button type="button" onclick={() => doMenu(handleAbrirLinhaDoTempo)}>
+            <Icone nome="linhaDoTempo" tamanho="1.1em" /><span>Linha do tempo</span>
+          </button>
+          <button type="button" onclick={() => doMenu(abrirRelogio)}>
+            <Icone nome="relogio" tamanho="1.1em" /><span>Relógio</span>
+          </button>
+          <button type="button" onclick={alternarTema} aria-pressed={temaSol}>
+            <Icone nome={temaSol ? 'lua' : 'sol'} tamanho="1.1em" /><span>{temaSol ? 'Modo escuro' : 'Modo sol'}</span>
+          </button>
+          <button type="button" onclick={fecharMenu}>
+            <Icone nome="fechar" tamanho="1.1em" /><span>Fechar</span>
+          </button>
+        </div>
+        <ListaPresentes
+          {prefersReducedMotion}
+          {participantes}
+          euId={eu?.id}
+          podeAutorizar={ehAdmin}
+          controleId={quadra?.controle_id}
+          {onPassarControle}
+          desabilitado={!wsConectado || operando}
+          {onPromoverControlador}
+          {onRevogarControlador}
+          {onAutorizarAdmin}
+        />
+      </div>
+    </Dialogo>
+  {/if}
+
   <!-- Lista de Participantes em Tempo Real (oculta em modo imersivo). Para o
        espectador ela sobrepõe o placar em vez de empurrá-lo. -->
-  {#if podeControlar || !modoImersivo}
-    <div class="presentes-sobrepostos" class:sobreposto={!podeControlar} in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
+  {#if !podeControlar && !modoImersivo}
+    <div class="presentes-sobrepostos sobreposto" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
       <ListaPresentes
         {prefersReducedMotion}
         {participantes}
@@ -768,6 +769,80 @@
 </div>
 
 <style>
+  /* Operação sem rolagem (CV4.DS3.US1). */
+  .sala-container.operador {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    gap: 8px;
+    padding: max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+    overflow: hidden;
+  }
+
+  .barra-operador { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 0 auto; }
+  .btn-voltar-compacto,
+  .chip-codigo {
+    min-height: 44px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .btn-voltar-compacto { width: 44px; flex: 0 0 44px; font-size: 1.1rem; }
+  .chip-codigo { display: flex; align-items: baseline; gap: 8px; min-width: 0; padding: 0 12px; }
+  .chip-codigo strong { font-family: var(--fonte-numeros); font-size: 1.35rem; letter-spacing: .04em; color: var(--text-primary); }
+  .chip-codigo span { overflow: hidden; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
+  .barra-operador .ws-status { margin-left: auto; }
+
+  .faixa-posse {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 6px 8px 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    flex: 0 0 auto;
+  }
+  .faixa-posse .pino { width: 10px; height: 10px; flex: 0 0 10px; border-radius: 50%; background: var(--text-secondary); }
+  .faixa-posse.minha .pino { background: var(--estado-sucesso, #34d399); }
+  .posse-texto { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; color: var(--text-primary); }
+  .posse-texto small { color: var(--text-secondary); font-size: .75rem; }
+  .selo-papel {
+    margin-left: auto;
+    padding: 3px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .06em;
+  }
+  .faixa-posse .btn-assumir { min-height: 44px; padding: 0 14px; }
+
+  .menu-operador { display: flex; flex-direction: column; gap: 14px; padding: 16px; max-height: 80dvh; overflow-y: auto; }
+  .menu-acoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
+  .menu-acoes button {
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 0 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    font: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+
   .controle-painel { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 10px; color: var(--text-primary); }
   .controle-painel p { color: var(--estado-erro-suave); width: 100%; text-align: center; }
   .aviso-em-breve {
@@ -931,8 +1006,7 @@
 
   .btn-tema-header,
   .btn-tela-cheia,
-  .btn-compartilhar-header,
-  .btn-config-header {
+  .btn-compartilhar-header {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -952,8 +1026,7 @@
 
   .btn-tema-header:hover,
   .btn-tela-cheia:hover,
-  .btn-compartilhar-header:hover,
-  .btn-config-header:hover {
+  .btn-compartilhar-header:hover {
     color: var(--text-primary);
     border-color: rgba(var(--veu), 0.25);
     background: var(--bg-card);
@@ -1021,190 +1094,6 @@
     color: var(--text-secondary);
   }
 
-  .quadra-hero {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    flex: 0 0 auto;
-  }
-
-  .codigo-sala-destaque {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--fundo-base);
-    border: 2px solid var(--acento-info-forte);
-    border-radius: 14px;
-    padding: 10px 16px;
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
-  }
-
-  .codigo-sala-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .codigo-sala-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--texto-suave);
-    letter-spacing: 0.08em;
-  }
-
-  .codigo-sala-num {
-    font-size: 1.6rem;
-    font-weight: 900;
-    color: var(--acento-info);
-    letter-spacing: 0.15em;
-    line-height: 1;
-  }
-
-  .codigo-sala-botoes {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .btn-copiar-pin {
-    background: var(--fundo-superficie);
-    border: 1px solid var(--acao-secundaria);
-    color: var(--texto-forte);
-    padding: 0.5rem 1rem;
-    min-height: 44px;
-    box-sizing: border-box;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-  }
-
-  .btn-copiar-pin:hover {
-    background: var(--acento-info-forte);
-    border-color: var(--acento-info-forte);
-    color: #ffffff;
-  }
-
-  .btn-compartilhar-pin {
-    background: rgba(2, 132, 199, 0.2);
-    border: 1px solid var(--acento-info-forte);
-    color: var(--acento-info);
-    padding: 0.5rem 1rem;
-    min-height: 44px;
-    box-sizing: border-box;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: all 0.15s ease;
-  }
-
-  .btn-compartilhar-pin:hover {
-    background: var(--acento-info-forte);
-    color: #ffffff;
-  }
-
-  .quadra-tags-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .regra-tag {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: var(--acento-info);
-    background: rgba(56, 189, 248, 0.12);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    padding: 4px 8px;
-    border-radius: 6px;
-    letter-spacing: 0.02em;
-  }
-
-  .btn-ajustar-regras {
-    background: rgba(14, 165, 233, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.4);
-    color: var(--acento-info);
-    padding: 6px 12px;
-    min-height: 40px;
-    box-sizing: border-box;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: all 0.15s ease;
-  }
-
-  .btn-ajustar-regras:hover {
-    background: rgba(14, 165, 233, 0.3);
-    border-color: var(--acento-info);
-    color: #ffffff;
-  }
-
-  .quadra-tag {
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--accent-orange);
-    letter-spacing: 0.05em;
-  }
-
-  .quadra-title {
-    font-size: 1.7rem;
-    font-weight: 800;
-    color: var(--texto-contraste);
-    line-height: 1.2;
-  }
-
-  .meu-perfil-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .meu-perfil-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .label-voce {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-  }
-
-  .meu-apelido {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--texto-contraste);
-  }
-
-  /* Com a tela girada o espaço vertical é curto: enxuga o cabeçalho revelado */
-  .tela-girada .quadra-title {
-    font-size: 1.25rem;
-  }
-
-  .tela-girada .meu-perfil-card {
-    padding: 8px 14px;
-  }
-
   .tela-girada:not(.em-modo-imersivo) {
     gap: 12px;
     padding: 10px 16px 20px 16px;
@@ -1216,12 +1105,6 @@
       padding: 10px 16px 20px 16px;
     }
 
-    .quadra-title {
-      font-size: 1.25rem;
-    }
 
-    .meu-perfil-card {
-      padding: 8px 14px;
-    }
   }
 </style>

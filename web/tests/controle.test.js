@@ -15,3 +15,71 @@ test('não oferece passar para espectador, para si, para quem já controla ou se
   assert.equal(podePassarControle({ id: 'relogio', papel: 'CONTROLADOR' }, { ...ctx, controleId: 'relogio' }), false);
   assert.equal(podePassarControle({ id: 'relogio', papel: 'CONTROLADOR' }, { ...ctx, ehAdmin: false }), false);
 });
+
+import { ultimoPontoDesfazivel, descreverPosse } from '../src/lib/controle.js';
+
+test('desfazer aponta o último ponto ativo da partida atual', () => {
+  const itens = [
+    { tipo: 'PARTIDA_INICIADA' },
+    { tipo: 'PONTO_MARCADO', equipe: 'A' },
+    { tipo: 'PONTO_MARCADO', equipe: 'B', anulado: true },
+    { tipo: 'PONTO_DESFEITO' },
+    { tipo: 'CONTROLE_ASSUMIDO' },
+  ];
+  assert.equal(ultimoPontoDesfazivel(itens), 'A');
+  assert.equal(ultimoPontoDesfazivel([]), null);
+});
+
+test('pontos da partida anterior não são oferecidos para desfazer', () => {
+  const itens = [
+    { tipo: 'PARTIDA_INICIADA' },
+    { tipo: 'PONTO_MARCADO', equipe: 'B' },
+    { tipo: 'PARTIDA_ENCERRADA' },
+    { tipo: 'PARTIDA_INICIADA' },
+  ];
+  assert.equal(ultimoPontoDesfazivel(itens), null);
+});
+
+test('posse é distinta do papel', () => {
+  assert.deepEqual(descreverPosse({ temControle: true, ehAdmin: true, operador: 'Eli' }).podeAssumir, false);
+  const relogio = descreverPosse({ temControle: false, ehAdmin: true, operador: 'Eli (Relógio)' });
+  assert.equal(relogio.titulo, 'Controle com Eli (Relógio)');
+  assert.equal(relogio.podeAssumir, true);
+  assert.match(descreverPosse({ temControle: false, ehAdmin: false, operador: 'Ana' }).detalhe, /controlador/);
+  assert.match(descreverPosse({ temControle: true, conectado: false }).detalhe, /Sem conexão/);
+});
+
+import { readFileSync } from 'node:fs';
+import { compile } from 'svelte/compiler';
+
+const ler = (nome) => readFileSync(new URL(`../src/components/${nome}`, import.meta.url), 'utf8');
+const placar = ler('Placar.svelte');
+const salaFonte = ler('SalaQuadra.svelte');
+
+test('operação compila sem avisos', () => {
+  assert.equal(compile(placar, { filename: 'Placar.svelte' }).warnings.length, 0);
+  assert.equal(compile(salaFonte, { filename: 'SalaQuadra.svelte' }).warnings.length, 0);
+});
+
+test('+1 acompanham a inversão de lados, inclusive em paisagem', () => {
+  assert.match(placar, /\.lados-invertidos \.palco \{ grid-template-areas: 'resultado resultado' 'b a'; \}/);
+  assert.match(placar, /\.lados-invertidos \.palco \{ grid-template-areas: 'b resultado a'; \}/);
+});
+
+test('desfazer fica fora de menu e sem confirmação', () => {
+  assert.match(placar, /class="btn-desfazer"[\s\S]*?onclick=\{handleToqueDesfazer\}/);
+  assert.doesNotMatch(placar, /confirm\(/);
+});
+
+test('ações secundárias aparecem uma vez só, no menu', () => {
+  for (const rotulo of ['Compartilhar e QR', 'Duplas e regras', 'Linha do tempo', 'Relógio']) {
+    assert.equal(salaFonte.split(`<span>${rotulo}</span>`).length - 1, 1, rotulo);
+  }
+  assert.doesNotMatch(placar, /Duplas & Regras|Linha do Tempo/);
+  assert.match(salaFonte, /\{#if !podeControlar && !modoImersivo\}\s*<div class="presentes-sobrepostos/);
+});
+
+test('papel aparece em selo neutro, separado da posse', () => {
+  assert.match(salaFonte, /<span class="selo-papel">\{eu\?\.papel\}<\/span>/);
+  assert.doesNotMatch(salaFonte, /badge-admin/);
+});
