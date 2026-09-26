@@ -192,7 +192,7 @@
               {:else}
                 <div class="aguardando">Aguardando o primeiro saque</div>
               {/if}
-              <strong class="partida-abrir">Abrir <Icone nome="seta" tamanho="1em" /></strong>
+              <strong class="partida-abrir">Abrir</strong>
             </button>
           {/each}
         </div>
@@ -224,7 +224,7 @@
   label span { color: var(--texto-apagado); font-weight: 500; }
   input { box-sizing: border-box; width: 100%; min-height: 48px; padding: .75rem .9rem; border: 1px solid var(--acao-secundaria); border-radius: 10px; outline: none; background: var(--fundo-base); color: var(--texto-forte); font: inherit; }
   input:focus { border-color: var(--foco-cor); box-shadow: var(--foco-anel); }
-  input.codigo { align-self: center; width: min(100%, 300px); min-height: 64px; padding: .25rem .8rem; font-family: var(--fonte-numeros); font-size: 3.15rem; font-weight: 600; line-height: 1; letter-spacing: .12em; text-align: center; text-indent: .12em; color: var(--acento-info); }
+  input.codigo { align-self: center; width: min(100%, 300px); min-height: 64px; padding: .25rem .8rem; font-family: var(--fonte-numeros); font-size: 3.15rem; font-weight: 600; line-height: 1; letter-spacing: .12em; text-align: center; color: var(--acento-info); }
   input.codigo::placeholder { color: var(--texto-apagado); }
   .alerta { display: flex; align-items: flex-start; gap: .6rem; padding: .75rem; border: 1px solid color-mix(in srgb, var(--estado-erro) 45%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--estado-erro) 12%, transparent); color: var(--estado-erro-suave); font-size: .83rem; line-height: 1.4; }
   .acao-principal { display: flex; align-items: center; justify-content: center; min-height: 52px; margin-top: .55rem; padding: 0 1.1rem; border: 0; border-radius: 10px; background: var(--acao-primaria); color: var(--acao-primaria-texto); font: inherit; font-weight: 800; text-align: center; cursor: pointer; }
@@ -250,7 +250,7 @@
   .equipe-a strong { color: var(--time-a); text-shadow: 0 0 24px color-mix(in srgb, var(--time-a) 20%, transparent); }
   .equipe-b strong { color: var(--time-b); text-shadow: 0 0 24px color-mix(in srgb, var(--time-b) 20%, transparent); }
   .versus { color: var(--texto-apagado); font-size: 1.2rem; font-weight: 700; }
-  .partida-abrir { align-self: stretch; display: flex; align-items: center; justify-content: center; gap: .45rem; min-height: 100%; padding: 0 .9rem; background: var(--acao-primaria); color: var(--acao-primaria-texto); box-shadow: var(--sombra-sutil); font-size: .86rem; white-space: nowrap; }
+  .partida-abrir { align-self: stretch; display: flex; align-items: center; justify-content: center; min-height: 100%; padding: 0 .5rem; background: var(--acao-primaria); color: var(--acao-primaria-texto); box-shadow: var(--sombra-sutil); font-size: 1.08rem; font-weight: 850; letter-spacing: .015em; white-space: nowrap; }
   .aguardando, .estado-lista { display: grid; place-items: center; min-height: 145px; padding: 1rem; color: var(--texto-suave); font-size: .85rem; text-align: center; }
   .estado-lista p { margin: 0 0 .8rem; }
   .estado-lista button { min-height: 44px; padding: 0 1rem; border: 1px solid var(--acao-secundaria); border-radius: 9px; background: var(--fundo-cartao); color: var(--texto-medio); font: inherit; font-weight: 700; cursor: pointer; }
@@ -268,7 +268,7 @@
     .placar-resumo { grid-template-columns: minmax(52px, 1fr) 20px minmax(52px, 1fr); padding-inline: .35rem; }
     .equipe strong { font-size: 5rem; }
     .equipe span { max-width: 52px; }
-    .partida-abrir { min-height: 100%; padding-inline: .5rem; }
+    .partida-abrir { min-height: 100%; padding-inline: .25rem; font-size: 1rem; }
   }
   @media (prefers-reduced-motion: reduce) { .partida { transition: none; } }
 </style>

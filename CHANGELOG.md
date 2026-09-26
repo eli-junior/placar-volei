@@ -6,6 +6,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo registrado.
 
+## 0.13.2 - 2026-09-26
+
+Boundary: patch (ajuste de alinhamento e proporção na Home)
+
+Authors: Eli (Navigator); Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e
+
+Git source: `fix/home-alinhamento-codigo-abrir`, aprovada pelo Navigator.
+
+### Fixed
+
+- Código da quadra centralizado sem recuo tipográfico adicional.
+- Ação **Abrir** sem seta, com texto maior e preenchimento integral da última coluna.
+
+### Verification
+
+- Frontend: 32 testes aprovados, Svelte com zero erros/advertências, build concluído e validação visual aprovada em 658 px.
+
 ## 0.13.1 - 2026-09-26
 
 Boundary: patch (restaura a alternância de tema da Home)
