@@ -2,7 +2,7 @@
 code: CV4.DS3.TS1
 level: Technical Story
 status: Active
-status_reason: Checkpoint 1 aprovado (Playwright e axe aceitos); aguardando US2 para implementar
+status_reason: Passo 5 - Checkpoint 3 (revisão) aguardando Navigator; V6 validada
 updated: 2026-09-26
 effort: 6
 ---
@@ -30,7 +30,7 @@ Executar V6 no [guia de validação](../../test-guide.md), além das verificaç�
 ## Estado para retomada
 
 - Branch de implementação: `feature/cv4-ds3-ts1-regressao`, criada de `master` `446282c`.
-- Último checkpoint aprovado desta história: Checkpoint 1 (2026-09-26).
+- Último checkpoint aprovado desta história: Checkpoint 2 (V6 validada; CI aprovado), 2026-09-26.
 - Implementação: suíte de navegador concluída na branch; aguardando matriz física V6.
 - Próxima ação: conferir dependências e apresentar/confirmar o Checkpoint 1 desta entrega.
 - Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.

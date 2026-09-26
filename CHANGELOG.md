@@ -7,7 +7,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV4.DS3.TS1 — Regressão, acessibilidade e consolidação
 
 - **Branch:** `feature/cv4-ds3-ts1-regressao` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 4 - Teste e Validação (Checkpoint 2 aguardando validação física V6)
+- **Passo Ariad:** Passo 5 - Revisão (Checkpoint 2 aprovado: V6 validada pelo Navigator em 2026-09-26; CI opção (a) aprovada; Checkpoint 3 aguardando Navigator)
 - **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
 - **Handoff / Próximos Passos:** suíte `npm run test:e2e` (Playwright 1.56.1 + axe 4.13.0, 24 testes) implementada; removido o Google Fonts do `index.html`. Falta a matriz física (Fold, tablet) e decidir sobre CI para a dívida de contraste.
 
