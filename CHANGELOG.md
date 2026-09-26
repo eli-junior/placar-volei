@@ -4,7 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### Correção — Entrar na quadra pela Home
+
+- **História / Escopo**: correção. O card da quadra ativa na Home mostra **Entrar**, mas o toque parece não fazer nada.
+- **Branch**: `fix/entrar-na-quadra-pela-home`.
+- **Passo Ariad**: Passo 2 - Planejamento.
+- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: 53afbbcf | Data: 2026-09-26 11:50 UTC
+- **Handoff / Próximos Passos**: hipótese reproduzida localmente. Com o mesmo apelido, uma segunda sessão recebe 409 (`apelido_em_uso`), e o erro aparece no topo da Home, fora da vista de quem tocou no card. Aguardando o Checkpoint 1.
 
 ## 0.11.0 - 2026-09-26
 
