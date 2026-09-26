@@ -443,6 +443,11 @@ body {
   position: relative;
 }
 
+/* A entrada usa o espaço disponível no computador e no Fold aberto. */
+body.tela-home #app {
+  max-width: none;
+}
+
 /* O placar do espectador é tela cheia: sem trilho de 540px e sem rolagem. */
 body.placar-espectador #app {
   max-width: none;

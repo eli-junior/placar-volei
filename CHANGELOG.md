@@ -4,13 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV4 — Painel esportivo e leitura em qualquer tela (planejamento)
+### CV4.DS1.US1 — Home esportiva e entrada responsiva
 
-- **História / Escopo**: plano do `CV4`, iniciado pela Home, seguido do placar de acompanhamento, imersão/tela cheia e operação. Direção visual aprovada; implementação ainda não autorizada.
-- **Branch**: `codex/plano-cv4-painel-esportivo`, criada de `origin/master` em `ab2cedb`.
-- **Passo Ariad**: Passo 2 - Planejamento; aguardando Checkpoint 1 do plano e da primeira entrega.
-- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e | Data: 2026-09-26 09:38 -03:00.
-- **Handoff / Próximos Passos**: ler `docs/project/roadmap/cv4-painel-esportivo/plan.md` e `handoff.md`. Nenhum arquivo de aplicação alterado. Consultar a correção concorrente `origin/fix/entrar-na-quadra-pela-home` antes da entrega da Home. Plano e referências visuais serão sincronizados nesta branch; merge em `master` depende do Navigator.
+- **História / Escopo**: `CV4.DS1.US1`, novo início em painel esportivo com entrada por código prioritária, criação preservada, cards de partidas e adaptação ao Fold/tablet nos dois temas.
+- **Branch**: `codex/cv4-ds1-us1-home`, criada de `origin/master` em `33534a5` após sincronização da versão `0.12.0`.
+- **Passo Ariad**: Passo 4 - Teste e Validação (Checkpoint 1 aprovado pelo Navigator em 2026-09-26).
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e | Data: 2026-09-26 10:14 -03:00.
+- **Handoff / Próximos Passos**: Home implementada; `npm run check`, 30 testes de frontend e build passaram. Validação visual automatizada feita em 1440×1000 e 904×1000 com uma partida ativa. Executar a suíte Python, sincronizar a branch e apresentar o Checkpoint 2; não iniciar E2.
 
 ## 0.12.0 - 2026-09-26
 

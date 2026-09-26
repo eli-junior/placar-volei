@@ -1,8 +1,8 @@
 ---
 code: CV4.DS1.US1
 level: User Story
-status: Planned
-status_reason: plano apresentado; Checkpoint 1 da implementação não aprovado
+status: Validation
+status_reason: Implementação concluída; verificações automatizadas e validação do Navigator em preparação
 updated: 2026-09-26
 effort: 6
 ---
@@ -29,10 +29,11 @@ Executar V1 no [guia de validação](../../test-guide.md), além das verificaç�
 
 ## Estado para retomada
 
-- Branch de implementação: ainda não criada; usar branch própria a partir da master atualizada quando autorizada.
-- Último checkpoint aprovado desta história: nenhum.
-- Implementação: não iniciada.
-- Próxima ação: conferir dependências e apresentar/confirmar o Checkpoint 1 desta entrega.
+- Branch de implementação: `codex/cv4-ds1-us1-home`, base `33534a5` (`origin/master`, versão 0.12.0).
+- Último checkpoint aprovado: Checkpoint 1, pelo Navigator em 2026-09-26.
+- Implementação: concluída, aguardando validação manual do Navigator no Checkpoint 2.
+- Dependência conferida: `origin/fix/entrar-na-quadra-pela-home` registra o diagnóstico, sem patch de aplicação; a dívida na master será tratada nesta US.
+- Próxima ação: seguir a rota de validação do Checkpoint 2 e registrar o retorno do Navigator.
 - Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.
 
 ## Out of Scope
