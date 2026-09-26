@@ -30,8 +30,8 @@ Executar V6 no [guia de validação](../../test-guide.md), além das verificaç�
 ## Estado para retomada
 
 - Branch de implementação: `feature/cv4-ds3-ts1-regressao`, criada de `master` `446282c`.
-- Último checkpoint aprovado desta história: nenhum.
-- Implementação: não iniciada.
+- Último checkpoint aprovado desta história: Checkpoint 1 (2026-09-26).
+- Implementação: suíte de navegador concluída na branch; aguardando matriz física V6.
 - Próxima ação: conferir dependências e apresentar/confirmar o Checkpoint 1 desta entrega.
 - Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.
 
