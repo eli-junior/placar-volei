@@ -202,7 +202,7 @@
 
   .eu-tag {
     font-size: 0.8rem;
-    color: var(--accent-orange);
+    color: var(--text-secondary);
     font-weight: 600;
     margin-left: 4px;
   }

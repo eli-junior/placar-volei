@@ -17,6 +17,9 @@ test('todo ícone usado nos componentes existe no conjunto', () => {
       // `nome="sol"` ou literais em expressão: `nome={temaSol ? 'lua' : 'sol'}`.
       for (const [, literal, fixo] of bloco.matchAll(/'([a-z]+)'|nome="([a-z]+)"/g)) usados.add(literal ?? fixo);
     }
+    // Ícones passados como dado (menu da sala): `icone: 'engrenagem'`.
+    for (const [, nome] of fonte.matchAll(/icone: (?:[^,]*\? )?'([a-zA-Z]+)'/g)) usados.add(nome);
+    for (const [, nome] of fonte.matchAll(/icone: [^,]*? : '([a-zA-Z]+)'/g)) usados.add(nome);
   }
   const faltando = [...usados].filter(nome => !ICONES[nome]);
   assert.ok(usados.has('engrenagem'));

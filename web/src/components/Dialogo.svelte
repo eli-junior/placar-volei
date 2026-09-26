@@ -45,6 +45,11 @@
 
   let elemento = $state(null);
 
+  // Quem abriu o diálogo recebe o foco de volta ao fechar (CV4.DS3.US2). O
+  // diálogo sai do DOM pelo `{#if}` do pai, então o navegador não devolve
+  // sozinho; se o acionador também sumiu, o foco fica onde o navegador puser.
+  const acionador = typeof document === 'undefined' ? null : document.activeElement;
+
   $effect(() => {
     const dialogo = elemento;
     if (dialogo && !dialogo.open) {
@@ -52,8 +57,20 @@
     }
     return () => {
       if (dialogo?.open) dialogo.close();
+      setTimeout(() => {
+        if (acionador?.isConnected && acionador !== document.body) acionador.focus?.();
+      }, 0);
     };
   });
+
+  // Teclado virtual: o campo focado não pode ficar escondido atrás dele. O
+  // meta `interactive-widget=resizes-content` resolve no Chrome Android; este
+  // ajuste cobre navegadores que só encolhem a viewport visual.
+  function aoFocar(evento) {
+    const alvo = evento.target;
+    if (!alvo?.matches?.('input, textarea, select')) return;
+    setTimeout(() => alvo.scrollIntoView?.({ block: 'center', behavior: 'smooth' }), 250);
+  }
 
   // `cancel` é o evento do Esc. Impedimos o fechamento nativo para que o
   // estado continue no pai: quem abriu é quem fecha.
@@ -78,6 +95,7 @@
   aria-label={rotuladoPor ? undefined : rotulo || undefined}
   oncancel={aoCancelar}
   onclick={aoClicar}
+  onfocusin={aoFocar}
 >
   {#if variante === 'folha'}
     <div class="dialogo-caixa" in:fly={{ y: 80, duration: duracao }}>
