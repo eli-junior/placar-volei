@@ -4,13 +4,31 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV4.DS2.US3 — Temas de placar escolhidos pelo administrador
+Nenhum trabalho ativo.
 
-- **História / Escopo**: oferecer os temas visuais `Esportivo` e `Clássico` para todos os papéis, com escolha administrativa persistida por sala e sincronizada em tempo real; normalizar também a altura do indicador `Ao vivo`.
-- **Branch**: `feature/cv4-ds2-us3-temas-placar`, criada de `origin/master` em `842d5c7` após a versão `0.14.0`.
-- **Passo Ariad**: Passo 7 - Conclusão e Merge; Checkpoints 1–3 aprovados em 2026-09-26.
-- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 97b0d6cb-d126-47e1-abd8-f3528d3bf7b0 | Data: 2026-09-26. Assumido a partir do Passo 3 do Codex (Sessão 01a0dd8e-b3b3-7482-a278-5f22f9738d3e), cujo trabalho não commitado veio do worktree local.
-- **Handoff / Próximos Passos**: implementação concluída (persistência, sincronização, seletor, representações Esportivo/Clássico, altura do `Ao vivo`). Backend 191 e frontend 45 testes aprovados. Documentação concluída; aguardando Checkpoint 4 para merge em `master` como 0.15.0.
+## 0.15.0 - 2026-09-26
+
+Boundary: minor (temas de placar escolhidos pelo administrador; conclui `CV4.DS2.US3`)
+
+Authors: Eli (Navigator); Codex (Driver, Passos 1–3) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e; Claude Code, Opus 5.5 (Driver, Passos 3–7) | Sessão: 97b0d6cb-d126-47e1-abd8-f3528d3bf7b0
+
+Git source: `feature/cv4-ds2-us3-temas-placar`, integrada em `master` pelo merge `59c389d` após o Checkpoint 4.
+
+### Added
+
+- Temas visuais **Esportivo** (padrão) e **Clássico**, escolhidos pelo administrador nas configurações, persistidos na sala e aplicados na hora a administradores, controladores e espectadores.
+- Representação clássica reutilizável (`PlacarClassico`), sem regras nem transporte.
+
+### Changed
+
+- O indicador **Ao vivo** tem a mesma altura dos demais controles do cabeçalho.
+- Claro/escuro continua preferência local do aparelho, independente do tema do placar.
+
+### Verification
+
+- Backend: 191 testes aprovados; Ruff check e format check aprovados.
+- Frontend: 45 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Validação manual aprovada pelo Navigator em 2026-09-26.
 
 ## 0.14.0 - 2026-09-26
 
