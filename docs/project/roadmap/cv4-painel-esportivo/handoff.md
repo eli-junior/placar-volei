@@ -7,7 +7,7 @@
 - **Branch:** `codex/cv4-ds1-us1-home`.
 - **Base sincronizada:** `origin/master` em `33534a5`, release 0.12.0.
 - **Checkout:** `C:/Users/eli/.codex/worktrees/cv4-home-esportiva/placar_volei`.
-- **Passo Ariad:** Passo 6 concluído; Checkpoints 1, 2 e 3 aprovados. Checkpoint 4 pendente.
+- **Passo Ariad:** Passo 7 concluído; Checkpoints 1, 2, 3 e 4 aprovados. Merge autorizado.
 - **Remoto:** branch publicada e atualizada continuamente.
 
 ## Resultado da E1
@@ -32,14 +32,11 @@
 
 ## Próxima ação exata
 
-Apresentar o Checkpoint 4 com o histórico proposto. Após autorização explícita:
+Integração autorizada no Checkpoint 4:
 
-1. registrar a conclusão final no changelog;
-2. commitar qualquer ajuste de fechamento;
-3. atualizar a branch com `origin/master` se necessário;
-4. integrar `codex/cv4-ds1-us1-home` em `master`;
-5. enviar `master` ao remoto;
-6. encerrar os servidores locais de validação.
+1. integrar `codex/cv4-ds1-us1-home` em `master`;
+2. enviar `master` ao remoto;
+3. encerrar os servidores locais de validação.
 
 Não iniciar `CV4.DS2` na mesma branch. A próxima história precisa de branch própria baseada na master já integrada.
 

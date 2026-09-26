@@ -51,7 +51,7 @@ Executar V1 no [guia de validação](../../test-guide.md), além das verificaç�
 - Último checkpoint aprovado: Checkpoint 1, pelo Navigator em 2026-09-26.
 - Implementação, validação manual e revisão: concluídas; Checkpoints 2 e 3 aprovados pelo Navigator em 2026-09-26.
 - Dependência conferida: `origin/fix/entrar-na-quadra-pela-home` registra o diagnóstico, sem patch de aplicação; a dívida na master será tratada nesta US.
-- Próxima ação: concluir documentação, coerência e histórico no Checkpoint 4.
+- Checkpoint 4 aprovado em 2026-09-26; integração em `master` autorizada.
 - Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.
 
 ## Out of Scope

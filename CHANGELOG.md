@@ -4,13 +4,35 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV4.DS1.US1 — Home esportiva e entrada responsiva
+Nenhum trabalho ativo registrado.
 
-- **História / Escopo**: `CV4.DS1.US1`, novo início em painel esportivo com entrada por código prioritária, criação preservada, cards de partidas e adaptação ao Fold/tablet nos dois temas.
-- **Branch**: `codex/cv4-ds1-us1-home`, criada de `origin/master` em `33534a5` após sincronização da versão `0.12.0`.
-- **Passo Ariad**: Passo 7 - Conclusão e Merge (Checkpoint 3 aprovado; Checkpoint 4 pendente).
-- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e | Data: 2026-09-26 10:14 -03:00.
-- **Handoff / Próximos Passos**: Implementação, validação, revisão, documentação e coerência concluídas. Intenção de versão: `0.13.0`, pois a Home entrega uma capacidade visual e de entrada nova. Apresentar o Checkpoint 4; após autorização, integrar na `master` e encerrar a branch sem iniciar E2.
+## 0.13.0 - 2026-09-26
+
+Boundary: minor (nova experiência de entrada e partidas ativas; fecha a CV4.DS1)
+
+Authors: Eli (Navigator); Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e
+
+Git source: `codex/cv4-ds1-us1-home`, integrada em `master` após o Checkpoint 4.
+
+### Added
+
+- Home em painel esportivo (`CV4.DS1.US1`) com entrada por código como ação inicial, criação preservada e composição responsiva para telefone, Fold, tablet e computador.
+- Cards de partidas ativas em três colunas: metadados compactos, placar Teko dominante e ação **Abrir** ocupando a coluna final.
+- Identificação textual do tema Claro/Escuro e uso integral de fontes e ícones locais.
+
+### Fixed
+
+- Recusas ao entrar por uma partida ativa agora mantêm a aba Acompanhar, preservam o código, mostram o erro junto ao formulário e devolvem o foco ao apelido.
+
+### Debt
+
+- Pago: `debt-erro-de-entrada-pela-home-fora-da-vista`.
+
+### Verification
+
+- Backend: 185 testes aprovados; Ruff check e format check aprovados.
+- Frontend: 31 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Inspeção visual em 658, 904 e 1440 px; quatro rodadas de validação no navegador aprovadas pelo Navigator.
 
 ## 0.12.0 - 2026-09-26
 
