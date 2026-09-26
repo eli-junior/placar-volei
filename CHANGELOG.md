@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV4.DS2.US2 — Imersão estável e tela cheia real
 
 - **Branch:** `feature/cv4-ds2-us2-imersao` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 2 - Planejamento (Checkpoint 1 apresentado, aguardando Navigator)
+- **Passo Ariad:** Passo 4 - Teste e Validação (Checkpoint 1 aprovado em 2026-09-26; Checkpoint 2 aguardando validação física do Navigator)
 - **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
-- **Handoff / Próximos Passos:** nenhuma linha de código alterada. Aguardar aprovação do Checkpoint 1; em seguida iniciar Passo 3 nesta branch.
+- **Handoff / Próximos Passos:** implementado `web/src/lib/telaCheia.js`, botão Tela cheia do espectador, controles sobrepostos sem mover o placar, descarte do toque de revelação e timer suspenso por modal/foco de teclado/erro. Web 54 testes, backend 191, check e build limpos. Falta a validação física (rota V3) antes do Checkpoint 3.
 
 
 ## 0.15.0 - 2026-09-26

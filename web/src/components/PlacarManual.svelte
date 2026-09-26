@@ -10,6 +10,8 @@
     temaPlacar = 'esportivo',
     prefersReducedMotion = false,
     modoImersivo = true,
+    /** Só troca o conteúdo do rodapé; o layout não muda ao revelar controles. */
+    controlesOcultos = true,
     paisagem = false,
     ladosInvertidos = false,
     onAlternarLados = () => {},
@@ -80,7 +82,7 @@
   </div>
 
   <footer class="rodape">
-    {#if modoImersivo}
+    {#if controlesOcultos}
       <p class="dica" in:fade={{ duration: prefersReducedMotion ? 0 : 160 }}>Toque na tela para ver opções</p>
     {:else}
       <div class="acoes" in:fade={{ duration: prefersReducedMotion ? 0 : 160 }}>
@@ -191,7 +193,7 @@
     grid-area: rodape;
     display: grid;
     place-items: center;
-    min-height: 42px;
+    min-height: 46px;
   }
 
   .dica {
@@ -243,7 +245,7 @@
   @media (max-height: 540px) {
     .placar-esportivo { grid-template-rows: auto auto minmax(0, 1fr) auto; gap: .3rem; }
     .contexto { flex-direction: row; }
-    .rodape { min-height: 34px; }
+    .rodape { min-height: 40px; }
     .dica { padding-block: .2rem; }
     .acoes button { min-height: 40px; }
   }
