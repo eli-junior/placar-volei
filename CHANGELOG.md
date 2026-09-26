@@ -4,12 +4,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### chore/atualizar-ariad-0.2.0
-- **História / Escopo**: Atualização do Ariad para v0.2.0: instalação do sidecar em `.ariad/` (`ariad.py`, `ariad.toml`, `README.md`, `templates/`), configuração de verificação e idioma local, e suporte ao `## Orchestrated Mode` em `AGENTS.md`.
-- **Branch**: `chore/atualizar-ariad-0.2.0`
-- **Passo Ariad**: Passo 4 - Teste e Validação
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 990c0464-4741-430c-9081-3baf29df716c | Data: 2026-09-26 13:10
-- **Handoff / Próximos Passos**: Validação concluída via `python3 .ariad/ariad.py status` e `python3 .ariad/ariad.py agents`. Pronto para commit.
+Nenhum trabalho ativo.
 
 
 ## 0.15.0 - 2026-09-26
