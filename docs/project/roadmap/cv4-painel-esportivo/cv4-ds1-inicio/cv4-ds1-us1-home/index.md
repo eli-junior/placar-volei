@@ -1,8 +1,8 @@
 ---
 code: CV4.DS1.US1
 level: User Story
-status: Validation
-status_reason: Implementação concluída; verificações automatizadas e validação do Navigator em preparação
+status: Review
+status_reason: Checkpoint 2 aprovado pelo Navigator em 2026-09-26; revisão técnica em andamento
 updated: 2026-09-26
 effort: 6
 ---
@@ -31,9 +31,9 @@ Executar V1 no [guia de validação](../../test-guide.md), além das verificaç�
 
 - Branch de implementação: `codex/cv4-ds1-us1-home`, base `33534a5` (`origin/master`, versão 0.12.0).
 - Último checkpoint aprovado: Checkpoint 1, pelo Navigator em 2026-09-26.
-- Implementação: concluída, aguardando validação manual do Navigator no Checkpoint 2.
+- Implementação e validação manual: concluídas; Checkpoint 2 aprovado pelo Navigator em 2026-09-26.
 - Dependência conferida: `origin/fix/entrar-na-quadra-pela-home` registra o diagnóstico, sem patch de aplicação; a dívida na master será tratada nesta US.
-- Próxima ação: seguir a rota de validação do Checkpoint 2 e registrar o retorno do Navigator.
+- Próxima ação: apresentar revisão, refatoração e impacto em dívida no Checkpoint 3.
 - Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.
 
 ## Out of Scope

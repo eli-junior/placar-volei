@@ -18,6 +18,11 @@
   let carregandoQuadras = $state(false);
   let erroQuadras = $state(false);
 
+  $effect(() => {
+    if (!erro || abaAtiva !== 'acompanhar' || !codigoQuadra) return;
+    setTimeout(() => document.getElementById('apelido-espectador')?.focus(), 0);
+  });
+
   onMount(() => {
     document.body.classList.add('tela-home');
     try {

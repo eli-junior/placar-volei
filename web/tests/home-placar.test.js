@@ -26,3 +26,7 @@ test('selecionar uma quadra preenche o código antes de tentar entrar', () => {
   assert.ok(funcao.indexOf('codigoQuadra = quadra.id') < funcao.indexOf('onEntrarQuadra'));
 });
 
+test('recusa ao entrar devolve o foco ao apelido que precisa ser corrigido', () => {
+  assert.match(fonte, /if \(!erro \|\| abaAtiva !== 'acompanhar' \|\| !codigoQuadra\) return/);
+  assert.match(fonte, /getElementById\('apelido-espectador'\)\?\.focus\(\)/);
+});
