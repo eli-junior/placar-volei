@@ -8,9 +8,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: `CV4.DS1.US1`, novo início em painel esportivo com entrada por código prioritária, criação preservada, cards de partidas e adaptação ao Fold/tablet nos dois temas.
 - **Branch**: `codex/cv4-ds1-us1-home`, criada de `origin/master` em `33534a5` após sincronização da versão `0.12.0`.
-- **Passo Ariad**: Passo 5 - Revisão (Checkpoint 2 aprovado pelo Navigator em 2026-09-26).
+- **Passo Ariad**: Passo 7 - Conclusão e Merge (Checkpoint 3 aprovado; Checkpoint 4 pendente).
 - **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e | Data: 2026-09-26 10:14 -03:00.
-- **Handoff / Próximos Passos**: Home aprovada pelo Navigator após três rodadas de ajuste visual. Revisão confirmou escopo estável e acrescentou foco no apelido após recusa de entrada, completando a condição da dívida existente. Preparar o Checkpoint 3; não iniciar E2 nem documentação final antes do aceite.
+- **Handoff / Próximos Passos**: Implementação, validação, revisão, documentação e coerência concluídas. Intenção de versão: `0.13.0`, pois a Home entrega uma capacidade visual e de entrada nova. Apresentar o Checkpoint 4; após autorização, integrar na `master` e encerrar a branch sem iniciar E2.
 
 ## 0.12.0 - 2026-09-26
 

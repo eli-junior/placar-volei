@@ -1,8 +1,8 @@
 ---
 code: CV4.DS1
 level: Delivery Story
-status: Planned
-status_reason: aguardando execução das histórias e aceite do Navigator
+status: Done
+status_reason: CV4.DS1.US1 implementada, validada e aprovada pelo Navigator em 2026-09-26
 updated: 2026-09-26
 ---
 
@@ -22,4 +22,4 @@ Entrar/criar funciona em telas estreitas e largas, com dados reais, temas e erro
 
 ## Notes
 
-[Plano detalhado](../plan.md), [validação](../test-guide.md) e [handoff](../handoff.md). Aprovação visual não libera implementação. Aplicar checkpoints por história.
+[Plano detalhado](../plan.md), [validação](../test-guide.md) e [handoff](../handoff.md). A única história desta Delivery Story foi aceita; as próximas mudanças de acompanhamento pertencem à CV4.DS2.

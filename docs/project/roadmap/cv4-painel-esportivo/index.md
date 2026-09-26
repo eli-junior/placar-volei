@@ -1,8 +1,8 @@
 ---
 code: CV4
 level: Value
-status: Planned
-status_reason: direção visual aprovada; plano de execução apresentado, aguardando Checkpoint 1
+status: Active
+status_reason: CV4.DS1 concluída e aprovada; CV4.DS2 é a próxima frente planejada
 updated: 2026-09-26
 ---
 

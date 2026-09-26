@@ -1,8 +1,8 @@
 ---
 code: CV4.DS1.US1
 level: User Story
-status: Review
-status_reason: Checkpoint 2 aprovado pelo Navigator em 2026-09-26; revisão técnica em andamento
+status: Done
+status_reason: implementação, validação e revisão aprovadas pelo Navigator em 2026-09-26
 updated: 2026-09-26
 effort: 6
 ---
@@ -27,13 +27,31 @@ Given Home em cliente novo ou com apelido salvo; When criar ou entrar; Then conc
 
 Executar V1 no [guia de validação](../../test-guide.md), além das verificações obrigatórias transversais. Registrar resultados reais e aceite físico do Navigator.
 
+## Resultado entregue
+
+- Entrada por código é a ação inicial; criação permanece disponível na aba vizinha.
+- Computador e Fold aberto aproveitam duas colunas; larguras menores empilham acesso e partidas.
+- Cards ativos separam informações, placar central dominante e ação **Abrir** em coluna inteira.
+- Tema claro/escuro é identificado por texto; fonte Teko local usa peso 600 nos números.
+- Recusas de entrada aparecem no formulário com código preservado e foco devolvido ao apelido.
+- Navigator aprovou a composição após validação iterativa em `http://localhost:5173/`.
+
+## Evidência
+
+- `uv run pytest`: 185 aprovados.
+- `npm test`: 31 aprovados.
+- `npm run check`: zero erros e zero advertências.
+- `npm run build`: concluído.
+- `uv run ruff check .` e `uv run ruff format --check .`: aprovados.
+- Inspeção visual em 658, 904 e 1440 px, com dados reais isolados e sala ativa.
+
 ## Estado para retomada
 
 - Branch de implementação: `codex/cv4-ds1-us1-home`, base `33534a5` (`origin/master`, versão 0.12.0).
 - Último checkpoint aprovado: Checkpoint 1, pelo Navigator em 2026-09-26.
-- Implementação e validação manual: concluídas; Checkpoint 2 aprovado pelo Navigator em 2026-09-26.
+- Implementação, validação manual e revisão: concluídas; Checkpoints 2 e 3 aprovados pelo Navigator em 2026-09-26.
 - Dependência conferida: `origin/fix/entrar-na-quadra-pela-home` registra o diagnóstico, sem patch de aplicação; a dívida na master será tratada nesta US.
-- Próxima ação: apresentar revisão, refatoração e impacto em dívida no Checkpoint 3.
+- Próxima ação: concluir documentação, coerência e histórico no Checkpoint 4.
 - Atualizar este arquivo, changelog e [handoff](../../handoff.md) ao assumir ou interromper.
 
 ## Out of Scope

@@ -1,6 +1,6 @@
 # Rota de validação — CV4
 
-Este documento descreve testes **a executar durante a implementação**. Nenhum resultado de aplicação foi produzido pelo planejamento. As verificações documentais desta branch estão no handoff.
+Este documento descreve a validação das entregas. A V1 foi executada em `CV4.DS1.US1`; V2–V6 permanecem rotas futuras e não devem ser tratadas como resultados.
 
 ## Preparação do ambiente
 
@@ -68,6 +68,8 @@ Executar os cenários afetados nos **dois temas**. Variar papéis conforme cada 
 Medir a área real do documento/contêiner; capturas de 968 ou 2160 pixels não fornecem diretamente a largura CSS. Não multiplicar medidas pelo fator de resolução da imagem.
 
 ## V1 — Home (E1)
+
+**Executada e aprovada em 2026-09-26.** O Driver verificou entrada, criação, quadra ativa, falhas da lista, erro local, teclado, build e larguras de 658, 904 e 1440 px. O Navigator conduziu quatro rodadas de inspeção visual no navegador e aprovou a versão final. Fold físico, tablet e matriz completa de acessibilidade continuam no escopo transversal da CV4; não foram declarados como executados nesta E1.
 
 1. Cliente A abre `/` sem apelido salvo. Alterna Entrar/Criar e os dois temas.
 2. A cria quadra; B usa o PIN e um apelido diferente para entrar.
