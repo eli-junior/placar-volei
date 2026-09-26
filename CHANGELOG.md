@@ -8,9 +8,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: `CV3.DS2.US1` tela sempre acesa no placar do relógio; `CV3.DS2.US2` frequência cardíaca no placar enquanto o Samsung Health grava o treino (branch própria, depois da US1).
 - **Branch**: `feature/cv3-ds2-us1-tela-acesa-no-placar` (US1). US2 prevista em `feature/cv3-ds2-us2-frequencia-cardiaca-no-placar`.
-- **Passo Ariad**: Passo 4 - Teste e Validação (Checkpoint 1 aprovado em 2026-09-26 só para a US1; US2 aguarda decisão sobre cronômetro).
+- **Passo Ariad**: Passo 5 - Revisão (Checkpoint 2 aprovado pelo Navigator em 2026-09-26; US2 aguarda decisão sobre cronômetro).
 - **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: c5f8bb01 | Data: 2026-09-26 02:40 UTC
-- **Handoff / Próximos Passos**: US1 implementada em `wear/.../ScoreScreen.kt` (`keepScreenOn` enquanto o placar está visível). Aguardando validação no Watch (Checkpoint 2).
+- **Handoff / Próximos Passos**: US1 implementada em `wear/.../ScoreScreen.kt` (`keepScreenOn` enquanto o placar está visível). Validada no Watch pelo Navigator; medição de bateria adiada. Aguardando Checkpoint 3.
 
 
 ## 0.10.0 - 2026-09-23
