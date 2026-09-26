@@ -7,7 +7,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV4.DS3.US2 — Superfícies auxiliares e estados coerentes
 
 - **Branch:** `feature/cv4-ds3-us2-superficies` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 4 - Teste e Validação (Checkpoint 2 aguardando validação física V5)
+- **Passo Ariad:** Passo 5 - Revisão (Checkpoint 2 aprovado: V5 validada pelo Navigator em 2026-09-26; Checkpoint 3 aguardando Navigator)
 - **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
 - **Handoff / Próximos Passos:** implementado: `MenuSala.svelte` único para operador e espectador (presentes dentro), cabeçalho do espectador só com ←, Tela cheia, ⋯ e Ao vivo; papéis neutros; `Dialogo` devolve o foco e mantém campo acima do teclado. Web 66 testes, backend 191. Falta validação V5.
 
