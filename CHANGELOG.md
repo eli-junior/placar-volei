@@ -7,7 +7,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV3.DS1.US4 — Registrar offline e sincronizar com segurança
 
 - **Branch:** `feature/cv3-ds1-us4-offline-reconciliacao` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 2 - Planejamento (Checkpoint 1 apresentado, aguardando Navigator)
+- **Passo Ariad:** Passo 2 - Planejamento (Checkpoint 1 aprovado em 2026-09-26: divisão em CV3.DS1.TS1 + US4; devolução ao relógio basta token válido). Implementar a TS1 primeiro
 - **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
 - **Handoff / Próximos Passos:** nenhuma linha de código alterada. Aguardar aprovação do Checkpoint 1; em seguida iniciar Passo 3 nesta branch.
 

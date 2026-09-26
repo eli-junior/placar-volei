@@ -2,7 +2,7 @@
 code: CV3.DS1.US4
 level: User Story
 status: Active
-status_reason: Passo 2 - Planejamento; Checkpoint 1 apresentado, aguardando Navigator
+status_reason: Checkpoint 1 aprovado com divisão; depende da CV3.DS1.TS1
 updated: 2026-09-26
 ---
 
@@ -31,3 +31,8 @@ Watch e dois clientes web: modo avião por 30 s, sequência acima, reiniciar app
 - Branch de implementação: `feature/cv3-ds1-us4-offline-reconciliacao`, criada de `master` `446282c`.
 - Último checkpoint aprovado desta história: nenhum (Checkpoint 1 apresentado em 2026-09-26).
 - Implementação: não iniciada.
+
+## Decisões do Navigator (2026-09-26)
+
+- **Divisão aprovada.** A fila persistente no relógio, o reenvio idempotente e o placar previsto vão para a [CV3.DS1.TS1](../cv3-ds1-ts1-fila-offline-e-reenvio/index.md). Esta US fica com a detecção de conflito, a pausa da sincronização e a revisão explícita pelo telefone (reaplicar ou descartar, listando os lances).
+- **Devolução automática de controle ao relógio:** basta um token de vínculo válido; não exige nova autorização explícita. Revogação continua nunca ignorada: token revogado ou expirado pausa a fila e cai na revisão.
