@@ -1,9 +1,9 @@
 ---
 code: CV3.DS1.US4
 level: User Story
-status: Planned
-status_reason: Escopo aprovado; aguardando conclusão das HUs anteriores
-updated: 2026-09-22
+status: Active
+status_reason: Passo 2 - Planejamento; Checkpoint 1 apresentado, aguardando Navigator
+updated: 2026-09-26
 ---
 
 # CV3.DS1.US4 — Registrar offline e sincronizar com segurança
@@ -25,3 +25,9 @@ Fila persistente no relógio com ID único por comando, sala, partida, ordem, ve
 
 ## Validation Route
 Watch e dois clientes web: modo avião por 30 s, sequência acima, reiniciar app e reconectar; conferir estado e histórico. Repetir com outro operador pontuando, troca de partida e revogação. Reiniciar backend após confirmação e verificar idempotência de reenvio.
+
+## Estado para retomada
+
+- Branch de implementação: `feature/cv3-ds1-us4-offline-reconciliacao`, criada de `master` `446282c`.
+- Último checkpoint aprovado desta história: nenhum (Checkpoint 1 apresentado em 2026-09-26).
+- Implementação: não iniciada.
