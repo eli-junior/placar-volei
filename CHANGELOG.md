@@ -8,9 +8,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: `CV3.DS2.US3`. Na pontuação final, **▶ Nova** ao lado do **↶ Desfazer** começa uma partida nova com os mesmos times e regras, com um toque.
 - **Branch**: `feature/cv3-ds2-us3-nova-partida-rapida-no-relogio`.
-- **Passo Ariad**: Passo 2 - Planejamento.
+- **Passo Ariad**: Passo 4 - Teste e Validação (Checkpoint 1 aprovado em 2026-09-26, com a regra "controle e dono administrador").
 - **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: 53afbbcf | Data: 2026-09-26 12:10 UTC
-- **Handoff / Próximos Passos**: plano em `docs/project/roadmap/.../cv3-ds2-us3-nova-partida-rapida-no-relogio/plan.md`. Aguardando Checkpoint 1. A correção da Home ficou anotada em `debt-erro-de-entrada-pela-home-fora-da-vista`.
+- **Handoff / Próximos Passos**: servidor (`acao: "nova_partida"` em `/api/watch/comandos`, `pode_nova_partida` em `/api/watch/session`) e relógio (faixa **↶ Desfazer | ▶ Nova**) implementados. APK em `~/placar-watch/placar-volei-us3-nova-partida.apk`. Aguardando teste físico: Mini PC na branch da HU (Checkpoint 2). A correção da Home ficou anotada em `debt-erro-de-entrada-pela-home-fora-da-vista`.
 
 ## 0.11.0 - 2026-09-26
 

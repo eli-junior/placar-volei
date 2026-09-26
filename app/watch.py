@@ -96,7 +96,7 @@ _ACTIVE_DEVICE = """
 
 def device_participant(conn, token, court=None):
     participant = conn.execute(
-        "SELECT p.id, p.quadra_id, p.apelido, p.papel, d.id AS device_id, d.owner_id, q.nome"
+        "SELECT p.id, p.quadra_id, p.apelido, p.papel, d.id AS device_id, d.owner_id, o.papel AS dono_papel, q.nome"
         + _ACTIVE_DEVICE
         + " AND d.token_hash = ?",
         (room_cutoff(), hash_sessao(token)),
@@ -348,6 +348,8 @@ def pairing_status(request: Request, response: Response):
             "court_name": p["nome"],
             "participant_id": p["id"],
             "display_name": p["apelido"],
+            # Nova partida pelo relógio (CV3.DS2.US3): só com dono administrador.
+            "pode_nova_partida": p["dono_papel"] == "ADMIN",
         }
 
 
@@ -512,7 +514,7 @@ class CommandBody(BaseModel):
     id: str = Field(pattern=_UUID)
     partida_id: str = Field(min_length=1, max_length=64)
     controle_versao: int = Field(ge=0)
-    acao: Literal["ponto", "desfazer"] = "ponto"
+    acao: Literal["ponto", "desfazer", "nova_partida"] = "ponto"
     equipe: Literal["A", "B"] | None = None
     # Desfazer (CV3.DS1.US3): o ponto que o relógio viu no topo. Um ponto já
     # confirmado vai pelo seq; um lance ainda na fila, pelo id do comando.
@@ -526,6 +528,8 @@ class CommandBody(BaseModel):
             raise ValueError("Ponto leva a equipe e nenhum alvo.")
         if self.acao == "desfazer" and (self.equipe is not None or alvos != 1):
             raise ValueError("Desfazer leva exatamente um alvo e nenhuma equipe.")
+        if self.acao == "nova_partida" and (self.equipe is not None or alvos):
+            raise ValueError("Nova partida não leva equipe nem alvo.")
         return self
 
     @property
@@ -566,6 +570,22 @@ def target_of(conn, device_id, body: CommandBody):
     return target["evento_seq"]
 
 
+ACOES = {"ponto": "pontos", "desfazer": "desfazer", "nova_partida": "reiniciar"}
+
+
+def check_new_match(conn, court, p, body: CommandBody):
+    """Relógio no controle, na versão vista, de um dono que é admin da quadra."""
+    if p["dono_papel"] != "ADMIN":
+        raise HTTPException(403, "Só o relógio de um administrador inicia partida.")
+    quadra = conn.execute(
+        "SELECT controle_id, controle_versao FROM quadras WHERE id = ?", (court,)
+    ).fetchone()
+    if quadra["controle_id"] != p["id"]:
+        raise HTTPException(403, "Outro operador está no controle do placar.")
+    if body.controle_versao != quadra["controle_versao"]:
+        raise HTTPException(409, "O controle mudou. Aguarde a atualização do placar.")
+
+
 def apply_command(token, body: CommandBody, ids_online):
     with get_db() as conn:
         conn.execute("BEGIN IMMEDIATE")
@@ -604,17 +624,22 @@ def apply_command(token, body: CommandBody, ids_online):
             if body.alvo_comando is not None:
                 alvo_seq = target_of(conn, p["device_id"], body)
             # Mesma regra do site: só quem tem o controle, na versão vista, pontua.
+            # Nova partida (CV3.DS2.US3): o `reiniciar` do site, nos mesmos
+            # moldes, em nome do relógio que está com o controle de um admin.
+            if body.acao == "nova_partida":
+                check_new_match(conn, court, p, body)
             result = executar_sync(
                 settings.db_path,
                 court,
                 None,
-                "pontos" if body.acao == "ponto" else "desfazer",
+                ACOES[body.acao],
                 equipe=body.equipe,
                 alvo_seq=alvo_seq,
                 versao=str(body.controle_versao),
                 ids_online=ids_online,
                 autor_id=p["id"],
                 connection=conn,
+                dono_admin=body.acao == "nova_partida",
             )
             status, detail, seq = "APLICADO", None, result["evento"]["seq"]
             # Vai junto no broadcast: o relógio tira o lance da fila ao ver o

@@ -7,6 +7,7 @@ import java.io.FileOutputStream
 
 const val ACAO_PONTO = "ponto"
 const val ACAO_DESFAZER = "desfazer"
+const val ACAO_NOVA_PARTIDA = "nova_partida"
 
 /**
  * Lance tocado no pulso, com a base (partida e versão do controle) vista no toque.
