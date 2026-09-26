@@ -4,13 +4,37 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV4.DS3.US2 — Superfícies auxiliares e estados coerentes
+Nenhum trabalho ativo em `master`. Branches abertas com Checkpoint 1 aprovado: `feature/cv4-ds3-ts1-regressao`, `feature/cv3-ds1-us4-offline-reconciliacao` (entradas registradas em cada branch).
 
-- **Branch:** `feature/cv4-ds3-us2-superficies` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 6 - Documentação concluído; Checkpoint 4 (merge como 0.18.0) aguardando Navigator. Checkpoints 1–3 aprovados.
-- **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
-- **Handoff / Próximos Passos:** implementado: `MenuSala.svelte` único para operador e espectador (presentes dentro), cabeçalho do espectador só com ←, Tela cheia, ⋯ e Ao vivo; papéis neutros; `Dialogo` devolve o foco e mantém campo acima do teclado. Web 66 testes, backend 191. Falta validação V5.
 
+## 0.18.0 - 2026-09-26
+
+Boundary: minor (superfícies auxiliares e estados coerentes; conclui `CV4.DS3.US2`)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66
+
+Git source: `feature/cv4-ds3-us2-superficies`, integrada em `master` pelo merge `834278e` após o Checkpoint 4.
+
+### Added
+
+- Menu ⋯ também para o espectador (compartilhar/QR, girar, tema e presentes), compartilhado com o operador em `MenuSala.svelte`.
+- Diálogos devolvem o foco a quem os abriu e mantêm o campo focado visível com o teclado virtual.
+
+### Changed
+
+- Cabeçalho do espectador: voltar, tela cheia, ⋯ e conexão.
+- Selos de papel (admin, controlador, espectador) neutros, sem as cores das equipes.
+
+### Removed
+
+- Botões de tema, compartilhar, inverter e girar do cabeçalho do espectador (cada ação ficou num lugar só) e a lista de presentes sobreposta ao placar.
+
+### Verification
+
+- Backend: 191 testes aprovados.
+- Frontend: 66 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Chromium headless com dois clientes: foco de retorno, menus por papel, 360 px sem estouro, campo visível em 390×380 e vitória nos dois clientes.
+- Rota V5 validada pelo Navigator em 2026-09-26.
 
 ## 0.17.0 - 2026-09-26
 

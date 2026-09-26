@@ -5,7 +5,7 @@
 ### Atualização mais recente — CV4.DS3.US2
 
 - Branch `feature/cv4-ds3-us2-superficies` (master 0.17.0 mesclada). Claude Code (Driver), sessão `session_01SeCZMypfz5yGenXJ6UNy66`.
-- Checkpoints 1–3 aprovados; integração como `0.18.0` aguardando o Checkpoint 4.
+- Checkpoints 1–4 aprovados; integrada em `master` pelo merge `834278e` como `0.18.0`.
 - Evidência: web 66 testes, backend 191, Svelte sem avisos, build aprovado; V5 validada pelo Navigator.
 - Próxima entrega: `CV4.DS3.TS1` (Playwright e axe aprovados; tablet na matriz física; cenários acumulados no item de dívida de testes de ponta a ponta).
 
