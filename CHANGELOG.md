@@ -4,7 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhuma história ativa registrada neste checkout.
+### CV4.DS2.US3 — Temas de placar escolhidos pelo administrador
+
+- **História / Escopo**: oferecer os temas visuais `Esportivo` e `Clássico` para todos os papéis, com escolha administrativa persistida por sala e sincronizada em tempo real; normalizar também a altura do indicador `Ao vivo`.
+- **Branch**: `feature/cv4-ds2-us3-temas-placar`, criada de `origin/master` em `842d5c7` após a versão `0.14.0`.
+- **Passo Ariad**: Passo 2 - Planejamento; Checkpoint 1 pendente.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e | Data: 2026-09-26.
+- **Handoff / Próximos Passos**: obter aceite do plano; depois implementar persistência, sincronização, seletor administrativo e as duas representações sem incorporar fullscreen.
 
 ## 0.14.0 - 2026-09-26
 
