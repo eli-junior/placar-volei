@@ -4,13 +4,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV3.DS1.TS1 — Fila offline e reenvio sem duplicar
-
-- **Branch:** `feature/cv3-ds1-us4-offline-reconciliacao`
-- **Passo Ariad:** Passo 7 - Conclusão e Merge (Checkpoint 4 apresentado; notas da 0.19.0 preparadas abaixo)
-- **Assinatura:** Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 9c609b1a-8c8a-449c-84cd-7c42bcc4f75b | Data: 2026-09-26
-- **Handoff / Próximos Passos:** após o merge, a US4 (revisão de conflito pelo telefone) continua em branch nova a partir de `master`.
-
+Nenhum trabalho ativo em `master`. Próximo: CV3.DS1.US4 (revisão de conflito pelo telefone), a planejar em branch nova.
 
 ## 0.19.0 - 2026-09-26
 
@@ -18,7 +12,7 @@ Boundary: minor (fila offline do relógio com placar persistido; conclui `CV3.DS
 
 Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–2) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66; Claude Code, Opus 5.5 (Driver, Passos 3–7) | Sessão: 9c609b1a-8c8a-449c-84cd-7c42bcc4f75b
 
-Git source: `feature/cv3-ds1-us4-offline-reconciliacao`, integrada em `master` após o Checkpoint 4.
+Git source: `feature/cv3-ds1-us4-offline-reconciliacao`, integrada em `master` pelo merge `b5e71f4` após o Checkpoint 4.
 
 ### Added
 
