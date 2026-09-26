@@ -30,10 +30,10 @@ test('representação recebe placar pronto e não depende de sala ou transporte'
 
 test('pontos escalam pela largura e altura e preservam números tabulares', () => {
   assert.match(resultado, /container-type: size/);
-  assert.match(resultado, /min\(34cqw, 52cqh\)/);
+  assert.match(resultado, /min\(50cqw, 74cqh\)/);
   assert.match(resultado, /font-variant-numeric: tabular-nums/);
   assert.match(resultado, /tresDigitosA/);
-  assert.match(resultado, /strong\.tres-digitos \{ font-size: clamp\(4\.5rem, min\(24cqw, 46cqh\), 15rem\); \}/);
+  assert.match(resultado, /strong\.tres-digitos \{ font-size: clamp\(5rem, min\(27cqw, 54cqh\), 18rem\); \}/);
 });
 
 test('espectador deixa os cartões dobráveis fora da nova composição', () => {

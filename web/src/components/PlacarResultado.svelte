@@ -131,7 +131,7 @@
     max-width: 100%;
     color: var(--cor-time);
     font-family: var(--fonte-numeros);
-    font-size: clamp(6rem, min(34cqw, 52cqh), 22rem);
+    font-size: clamp(7rem, min(50cqw, 74cqh), 32rem);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     letter-spacing: -.045em;
@@ -141,7 +141,7 @@
   }
 
   strong.destaque { animation: ponto .36s ease-out; }
-  strong.tres-digitos { font-size: clamp(4.5rem, min(24cqw, 46cqh), 15rem); }
+  strong.tres-digitos { font-size: clamp(5rem, min(27cqw, 54cqh), 18rem); }
 
   .time.vencedor {
     background: linear-gradient(180deg, color-mix(in srgb, var(--cor-time) 24%, transparent), transparent 72%);
@@ -189,7 +189,8 @@
   @media (max-aspect-ratio: 3 / 4) {
     .resultado { grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr); }
     .time { padding-inline: clamp(.35rem, 1.5cqw, .8rem); }
-    strong { font-size: clamp(6rem, min(36cqw, 42cqh), 18rem); }
+    strong { font-size: clamp(7rem, min(50cqw, 66cqh), 28rem); }
+    strong.tres-digitos { font-size: clamp(5rem, min(27cqw, 48cqh), 17rem); }
   }
 
   @media (prefers-reduced-motion: reduce) {
