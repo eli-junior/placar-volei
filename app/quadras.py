@@ -256,6 +256,7 @@ def criar_quadra_sync(
         "partida_id": partida_id,
         "controle_id": participante["id"] if participante else None,
         "controle_versao": 1 if participante else 0,
+        "tema_placar": "esportivo",
     }
     if participante:
         resultado["participante"] = participante
@@ -299,7 +300,7 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
         cursor = conn.cursor()
         cursor.execute(
             """
-            SELECT id, nome, criado_em, atualizado_em, controle_id, controle_versao
+            SELECT id, nome, criado_em, atualizado_em, controle_id, controle_versao, tema_placar
             FROM quadras
             WHERE id = ?
             """,
@@ -324,6 +325,7 @@ def obter_quadra_sync(db_path: str, quadra_id: str) -> dict[str, Any] | None:
             "partida_id": partida_id,
             "controle_id": quadra["controle_id"],
             "controle_versao": quadra["controle_versao"],
+            "tema_placar": quadra["tema_placar"],
         }
 
 
@@ -627,7 +629,7 @@ def listar_quadras_owner_sync(db_path: str) -> list[dict[str, Any]]:
         cursor.execute(
             """
             SELECT q.id, q.nome, q.criado_em, q.atualizado_em,
-                   q.controle_id, q.controle_versao, q.codigo_mestre
+                   q.controle_id, q.controle_versao, q.codigo_mestre, q.tema_placar
             FROM quadras q
             ORDER BY q.atualizado_em DESC
             """
@@ -680,6 +682,7 @@ def listar_quadras_owner_sync(db_path: str) -> list[dict[str, Any]]:
                     "atualizado_em": q["atualizado_em"],
                     "controle_id": q["controle_id"],
                     "controle_versao": q["controle_versao"],
+                    "tema_placar": q["tema_placar"],
                     "partida_id": partida_id,
                     "total_participantes": len(participantes),
                     "participantes": participantes,

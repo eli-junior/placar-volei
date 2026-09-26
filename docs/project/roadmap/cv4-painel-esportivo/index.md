@@ -2,7 +2,7 @@
 code: CV4
 level: Value
 status: Active
-status_reason: CV4.DS1 concluída; placar da CV4.DS2 aceito e fullscreen permanece como próxima história
+status_reason: CV4.DS1 e placar responsivo concluídos; temas administrativos priorizados antes de fullscreen
 updated: 2026-09-26
 ---
 

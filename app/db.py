@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS quadras (
     atualizado_em TEXT NOT NULL,
     controle_id TEXT,
     controle_versao INTEGER NOT NULL DEFAULT 0,
+    tema_placar TEXT NOT NULL DEFAULT 'esportivo',
     codigo_mestre TEXT
 );
 
@@ -212,6 +213,10 @@ def init_db_sync(db_path: str | None = None, *args, **kwargs) -> None:
             )
         if "codigo_mestre" not in colunas:
             cursor.execute("ALTER TABLE quadras ADD COLUMN codigo_mestre TEXT;")
+        if "tema_placar" not in colunas:
+            cursor.execute(
+                "ALTER TABLE quadras ADD COLUMN tema_placar TEXT NOT NULL DEFAULT 'esportivo';"
+            )
         cursor.execute("PRAGMA table_info(watch_devices);")
         if "owner_id" not in [row["name"] for row in cursor.fetchall()]:
             # Dono do relógio (CV3.DS1.US2): participant_id passa a ser o

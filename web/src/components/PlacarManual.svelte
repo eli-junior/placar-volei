@@ -2,10 +2,12 @@
   import { fade, slide } from 'svelte/transition';
   import Icone from './Icone.svelte';
   import PlacarResultado from './PlacarResultado.svelte';
+  import PlacarClassico from './PlacarClassico.svelte';
 
   let {
     estadoPartida = null,
     quadra = null,
+    temaPlacar = 'esportivo',
     prefersReducedMotion = false,
     modoImersivo = true,
     paisagem = false,
@@ -55,15 +57,26 @@
   {/if}
 
   <div class="area-resultado">
-    <PlacarResultado
-      {pontosA}
-      {pontosB}
-      {equipeA}
-      {equipeB}
-      {ladosInvertidos}
-      {vencedor}
-      movimentoReduzido={prefersReducedMotion}
-    />
+    {#if temaPlacar === 'classico'}
+      <PlacarClassico
+        {pontosA}
+        {pontosB}
+        {equipeA}
+        {equipeB}
+        {ladosInvertidos}
+        movimentoReduzido={prefersReducedMotion}
+      />
+    {:else}
+      <PlacarResultado
+        {pontosA}
+        {pontosB}
+        {equipeA}
+        {equipeB}
+        {ladosInvertidos}
+        {vencedor}
+        movimentoReduzido={prefersReducedMotion}
+      />
+    {/if}
   </div>
 
   <footer class="rodape">

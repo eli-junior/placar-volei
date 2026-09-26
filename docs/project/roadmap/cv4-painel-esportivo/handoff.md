@@ -2,6 +2,16 @@
 
 ## Estado em 2026-09-26
 
+### Atualização mais recente — CV4.DS2.US3
+
+- Branch `feature/cv4-ds2-us3-temas-placar`, baseada em `origin/master` `842d5c7` (0.14.0).
+- Checkpoints 1–3 aprovados; integração como `0.15.0` aguardando o Checkpoint 4. Assumida no Passo 3 pelo Claude Code (Opus 5.5) a partir do trabalho do Codex.
+- Evidência: backend 191 testes; frontend 45 testes; Svelte sem avisos; build e Ruff aprovados; validação manual do Navigator aprovada.
+- Próxima entrega: `CV4.DS2.US2`, em branch própria da `master` atualizada.
+- Decisões confirmadas: temas `Esportivo` e `Clássico`, escolha exclusiva do administrador, persistência por sala, atualização imediata para todos os papéis e independência de claro/escuro.
+- O plano detalhado está na [US3](cv4-ds2-acompanhamento/cv4-ds2-us3-temas-placar/index.md), com esforço geral 9/10.
+- A US3 foi priorizada antes da US2 sem renumerar registros publicados. Não implementar fullscreen nesta branch.
+
 ### Atualização mais recente — CV4.DS2.US1
 
 - Branch `feature/cv4-ds2-us1-placar-espectador`, baseada em `origin/master` `42f514d` (0.13.2).

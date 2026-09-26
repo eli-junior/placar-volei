@@ -2,7 +2,7 @@ import asyncio
 import secrets
 import uuid
 from dataclasses import asdict
-from typing import Any
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Request, Response, status
 from pydantic import BaseModel, Field
@@ -192,6 +192,7 @@ class ReiniciarPartidaBody(BaseModel):
     alvo: int | None = Field(default=None, ge=1, le=100)
     vantagem: bool | None = None
     teto: int | None = Field(default=None, ge=1, le=200)
+    tema_placar: Literal["esportivo", "classico"] | None = None
 
 
 class ConfigurarPartidaBody(BaseModel):
@@ -204,6 +205,7 @@ class ConfigurarPartidaBody(BaseModel):
     alvo: int | None = Field(default=None, ge=1, le=100)
     vantagem: bool | None = None
     teto: int | None = Field(default=None, ge=1, le=200)
+    tema_placar: Literal["esportivo", "classico"] | None = None
 
 
 class EntrarQuadraBody(BaseModel):
@@ -506,6 +508,8 @@ async def post_reiniciar_partida(
             kwargs["vantagem"] = body.vantagem
         if body.teto is not None:
             kwargs["teto"] = body.teto
+        if body.tema_placar is not None:
+            kwargs["tema_placar"] = body.tema_placar
 
     return await executar_comando(quadra_id, request, "reiniciar", **kwargs)
 
@@ -533,6 +537,8 @@ async def post_configurar_partida(
         kwargs["vantagem"] = body.vantagem
     if body.teto is not None:
         kwargs["teto"] = body.teto
+    if body.tema_placar is not None:
+        kwargs["tema_placar"] = body.tema_placar
 
     return await executar_comando(quadra_id, request, "configurar", **kwargs)
 
