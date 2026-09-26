@@ -4,7 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### CV3.DS2.US3 — Nova partida rápida pelo relógio
+
+- **História / Escopo**: `CV3.DS2.US3`. Na pontuação final, **▶ Nova** ao lado do **↶ Desfazer** começa uma partida nova com os mesmos times e regras, com um toque.
+- **Branch**: `feature/cv3-ds2-us3-nova-partida-rapida-no-relogio`.
+- **Passo Ariad**: Passo 2 - Planejamento.
+- **Assinatura do Agente**: Agente: Claude Opus 5.5 (Driver) | Sessão: 53afbbcf | Data: 2026-09-26 12:10 UTC
+- **Handoff / Próximos Passos**: plano em `docs/project/roadmap/.../cv3-ds2-us3-nova-partida-rapida-no-relogio/plan.md`. Aguardando Checkpoint 1. A correção da Home ficou anotada em `debt-erro-de-entrada-pela-home-fora-da-vista`.
 
 ## 0.11.0 - 2026-09-26
 
