@@ -4,7 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### CV4 — Painel esportivo e leitura em qualquer tela (planejamento)
+
+- **História / Escopo**: plano do `CV4`, iniciado pela Home, seguido do placar de acompanhamento, imersão/tela cheia e operação. Direção visual aprovada; implementação ainda não autorizada.
+- **Branch**: `codex/plano-cv4-painel-esportivo`, criada de `origin/master` em `ab2cedb`.
+- **Passo Ariad**: Passo 2 - Planejamento; aguardando Checkpoint 1 do plano e da primeira entrega.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e | Data: 2026-09-26 09:38 -03:00.
+- **Handoff / Próximos Passos**: ler `docs/project/roadmap/cv4-painel-esportivo/plan.md` e `handoff.md`. Nenhum arquivo de aplicação alterado. Consultar a correção concorrente `origin/fix/entrar-na-quadra-pela-home` antes da entrega da Home. Plano e referências visuais serão sincronizados nesta branch; merge em `master` depende do Navigator.
 
 ## 0.12.0 - 2026-09-26
 
