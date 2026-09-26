@@ -7,7 +7,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV4.DS3.US1 — Operação do admin e controlador
 
 - **Branch:** `feature/cv4-ds3-us1-controle` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 4 - Teste e Validação (Checkpoint 1 e composição E4.1 aprovados em 2026-09-26, opção (a) do menu; Checkpoint 2 aguardando validação física)
+- **Passo Ariad:** Passo 5 - Revisão (Checkpoint 2 aprovado: V4 validada pelo Navigator em 2026-09-26; Checkpoint 3 aguardando Navigator)
 - **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
 - **Handoff / Próximos Passos:** operação reescrita: barra compacta, faixa de posse, +1 sob as equipes (laterais em paisagem), Desfazer com último ponto, menu ⋯ com presentes. Web 62 testes, backend 191, check/build limpos. Falta a validação em três clientes (V4).
 
