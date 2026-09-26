@@ -2,6 +2,13 @@
 
 ## Estado em 2026-09-26
 
+### Atualização mais recente — CV4.DS2.US1
+
+- Branch `feature/cv4-ds2-us1-placar-espectador`, baseada em `origin/master` `42f514d` (0.13.2).
+- Passo Ariad 2 — planejamento; Checkpoint 1 pendente.
+- CV4.DS1 permanece concluída. A próxima mudança autorizável é o placar esportivo do espectador; fullscreen continua na US2.
+- O plano detalhado está no arquivo da [US1](cv4-ds2-acompanhamento/cv4-ds2-us1-placar/index.md). Não alterar implementação antes do aceite do Navigator.
+
 - **Agente:** Codex (Driver), sessão `01a0dd8e-b3b3-7482-a278-5f22f9738d3e`.
 - **História concluída:** `CV4.DS1.US1 — Home esportiva e entrada responsiva`.
 - **Branch:** `codex/cv4-ds1-us1-home`.

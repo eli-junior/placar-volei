@@ -1,8 +1,8 @@
 ---
 code: CV4.DS2
 level: Delivery Story
-status: Planned
-status_reason: aguardando execução das histórias e aceite do Navigator
+status: Active
+status_reason: CV4.DS2.US1 puxada para planejamento em branch própria
 updated: 2026-09-26
 ---
 

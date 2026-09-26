@@ -4,7 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo registrado.
+### CV4.DS2.US1 — Placar do espectador em qualquer tela
+
+- **História / Escopo**: substituir o placar retrô do espectador por um painel esportivo com pontos dominantes, escala por área disponível e estado preservado ao redimensionar.
+- **Branch**: `feature/cv4-ds2-us1-placar-espectador`, criada de `origin/master` em `42f514d` após a versão `0.13.2`.
+- **Passo Ariad**: Passo 2 - Planejamento; Checkpoint 1 pendente.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: 01a0dd8e-b3b3-7482-a278-5f22f9738d3e | Data: 2026-09-26.
+- **Handoff / Próximos Passos**: plano atualizado a partir do código integrado; apresentar o Checkpoint 1 antes de alterar a implementação.
 
 ## 0.13.2 - 2026-09-26
 
