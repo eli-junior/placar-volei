@@ -8,9 +8,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: oferecer os temas visuais `Esportivo` e `Clássico` para todos os papéis, com escolha administrativa persistida por sala e sincronizada em tempo real; normalizar também a altura do indicador `Ao vivo`.
 - **Branch**: `feature/cv4-ds2-us3-temas-placar`, criada de `origin/master` em `842d5c7` após a versão `0.14.0`.
-- **Passo Ariad**: Passo 4 - Teste e Validação; Checkpoint 2 aguardando validação do Navigator.
+- **Passo Ariad**: Passo 5 - Revisão; Checkpoint 2 aprovado pelo Navigator em 2026-09-26.
 - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 97b0d6cb-d126-47e1-abd8-f3528d3bf7b0 | Data: 2026-09-26. Assumido a partir do Passo 3 do Codex (Sessão 01a0dd8e-b3b3-7482-a278-5f22f9738d3e), cujo trabalho não commitado veio do worktree local.
-- **Handoff / Próximos Passos**: implementação concluída (persistência, sincronização, seletor, representações Esportivo/Clássico, altura do `Ao vivo`). Backend 191 e frontend 45 testes aprovados. Falta a validação manual do Navigator no Checkpoint 2.
+- **Handoff / Próximos Passos**: implementação concluída (persistência, sincronização, seletor, representações Esportivo/Clássico, altura do `Ao vivo`). Backend 191 e frontend 45 testes aprovados. Validação manual aprovada; em revisão (Checkpoint 3).
 
 ## 0.14.0 - 2026-09-26
 
