@@ -7,10 +7,67 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV4.DS3.US2 — Superfícies auxiliares e estados coerentes
 
 - **Branch:** `feature/cv4-ds3-us2-superficies` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 2 - Planejamento (Checkpoint 1 apresentado, aguardando Navigator)
+- **Passo Ariad:** Passo 4 - Teste e Validação (Checkpoint 2 aguardando validação física V5)
 - **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
-- **Handoff / Próximos Passos:** nenhuma linha de código alterada. Aguardar aprovação do Checkpoint 1; em seguida iniciar Passo 3 nesta branch.
+- **Handoff / Próximos Passos:** implementado: `MenuSala.svelte` único para operador e espectador (presentes dentro), cabeçalho do espectador só com ←, Tela cheia, ⋯ e Ao vivo; papéis neutros; `Dialogo` devolve o foco e mantém campo acima do teclado. Web 66 testes, backend 191. Falta validação V5.
 
+
+## 0.17.0 - 2026-09-26
+
+Boundary: minor (operação a um toque para admin e controlador; conclui `CV4.DS3.US1`)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66
+
+Git source: `feature/cv4-ds3-us1-controle`, integrada em `master` pelo merge `8063c75` após o Checkpoint 4.
+
+### Added
+
+- Faixa de posse do controle, separada do papel, com **Assumir** quando cabe.
+- Menu ⋯ único com compartilhar/QR, duplas e regras, linha do tempo, relógio, tema e presentes (promover, revogar, passar controle).
+- Desfazer indica o ponto que será anulado ("último: +1 Equipe").
+
+### Changed
+
+- Operação cabe numa tela sem rolagem: barra compacta com código e conexão; +1 sob cada equipe, nas laterais em paisagem, seguindo a inversão de lados.
+- Sem o controle, os +1 aparecem desabilitados em vez de sumir; papel aparece em selo neutro.
+- No tema Clássico, a operação usa a mesma representação do espectador.
+
+### Removed
+
+- Card de código da sala, cartão "conectado como" e botões repetidos (Duplas & Regras, Inverter, QR, Linha do Tempo).
+
+### Verification
+
+- Backend: 191 testes aprovados.
+- Frontend: 63 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Chromium headless com dois clientes: sem rolagem em 390×844 e 1066×600, inversão dos +1, troca de posse e chamada forjada sem controle recusada (403).
+- Rota V4 validada pelo Navigator em 2026-09-26.
+
+## 0.16.0 - 2026-09-26
+
+Boundary: minor (tela cheia real e imersão estável do espectador; conclui `CV4.DS2.US2` e a `CV4.DS2`)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66
+
+Git source: `feature/cv4-ds2-us2-imersao`, integrada em `master` pelo merge `492d798` após o Checkpoint 4.
+
+### Added
+
+- Botão **Tela cheia** para o espectador: pedido feito no próprio toque, estado confirmado pelo navegador e aviso claro em caso de recusa ou falta de suporte.
+- Módulo `web/src/lib/telaCheia.js`, testável sem navegador.
+
+### Changed
+
+- Controles do espectador sobrepõem o placar: revelar ou esconder não move os pontos.
+- O toque que revela os controles não aciona o botão que surge sob o dedo.
+- A ocultação automática (3 s) espera diálogo aberto, foco de teclado e avisos.
+
+### Verification
+
+- Backend: 191 testes aprovados.
+- Frontend: 54 testes aprovados, Svelte com zero erros/advertências e build de produção concluído.
+- Chromium headless: posição do placar idêntica ao revelar controles em 360×640, 390×780 e 1066×600; entrada, saída e recusa de tela cheia.
+- Validação física no Fold aprovada pelo Navigator em 2026-09-26. Tablet segue na matriz física da `CV4.DS3.TS1`.
 
 ## 0.15.0 - 2026-09-26
 

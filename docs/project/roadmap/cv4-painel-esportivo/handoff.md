@@ -2,6 +2,22 @@
 
 ## Estado em 2026-09-26
 
+### Atualização mais recente — CV4.DS3.US1
+
+- Branch `feature/cv4-ds3-us1-controle` (master 0.16.0 mesclada). Claude Code (Driver), sessão `session_01SeCZMypfz5yGenXJ6UNy66`.
+- Checkpoints 1–4 aprovados; integrada em `master` pelo merge `8063c75` como `0.17.0`.
+- Evidência: web 63 testes, backend 191, Svelte sem avisos, build aprovado; V4 validada pelo Navigator.
+- Próxima entrega: `CV4.DS3.US2` (menu ⋯ como local único; selo de papel da lista de presentes; foco dos diálogos).
+
+### Atualização mais recente — CV4.DS2.US2
+
+- Branch `feature/cv4-ds2-us2-imersao`, baseada em `master` `446282c`. Claude Code (Driver), sessão `session_01SeCZMypfz5yGenXJ6UNy66`.
+- Checkpoints 1–4 aprovados; integrada em `master` pelo merge `492d798` como `0.16.0`. CV4.DS2 concluída.
+- Evidência: web 54 testes, backend 191, Svelte sem avisos, build aprovado; Fold validado pelo Navigator. Tablet vai para a matriz da `CV4.DS3.TS1`.
+- Novo módulo `web/src/lib/telaCheia.js`; controles do espectador sobrepostos ao palco.
+- Branches já abertas com Checkpoint 1 apresentado: `feature/cv4-ds3-us1-controle`, `feature/cv4-ds3-us2-superficies`, `feature/cv4-ds3-ts1-regressao`, `feature/cv3-ds1-us4-offline-reconciliacao`. Rebasear/mesclar a `master` antes de implementar.
+- Próxima entrega sugerida: `CV4.DS3.US1` (exige aprovar a composição do operador antes do código).
+
 ### Atualização mais recente — CV4.DS2.US3
 
 - Branch `feature/cv4-ds2-us3-temas-placar`, baseada em `origin/master` `842d5c7` (0.14.0).

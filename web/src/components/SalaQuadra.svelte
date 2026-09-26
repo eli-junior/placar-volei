@@ -10,6 +10,17 @@
   import ModalConfigurarPartida from './ModalConfigurarPartida.svelte';
   import ModalCelebracaoVitoria from './ModalCelebracaoVitoria.svelte';
   import { ehDonoDoRelogio } from '../lib/relogio.js';
+  import { ultimoPontoDesfazivel, descreverPosse } from '../lib/controle.js';
+  import MenuSala from './MenuSala.svelte';
+  import {
+    suportaTelaCheia,
+    estaEmTelaCheia,
+    solicitarTelaCheia,
+    sairDaTelaCheia,
+    observarTelaCheia,
+    podeOcultarControles,
+    MENSAGEM_TELA_CHEIA,
+  } from '../lib/telaCheia.js';
 
   let {
     quadra,
@@ -197,6 +208,29 @@
   const ehAdmin = $derived(eu?.papel === 'ADMIN');
 
   const temControle = $derived(podeControlar && quadra?.controle_id === eu?.id);
+  const posse = $derived(
+    descreverPosse({ temControle, ehAdmin, operador: participantes.find(p => p.id === quadra?.controle_id)?.apelido, conectado: wsConectado })
+  );
+  const ultimoPonto = $derived(ultimoPontoDesfazivel(linhaDoTempo));
+  let menuAberto = $state(false);
+
+  // Local único das ações secundárias (CV4.DS3.US1/US2). Cada papel vê só o
+  // que pode fazer; o que já tem lugar próprio na tela não se repete aqui.
+  const acoesDoMenu = $derived([
+    { rotulo: 'Compartilhar e QR', icone: 'compartilhar', acao: () => { modalCompartilharAberto = true; } },
+    ...(podeControlar
+      ? [
+          { rotulo: 'Duplas e regras', icone: 'engrenagem', acao: () => { modalConfigAberto = true; isReinicioConfig = false; } },
+          { rotulo: 'Linha do tempo', icone: 'linhaDoTempo', acao: handleAbrirLinhaDoTempo },
+          { rotulo: 'Relógio', icone: 'relogio', acao: abrirRelogio },
+        ]
+      : []),
+    ...(!podeControlar && !paisagemNativa
+      ? [{ rotulo: girado ? 'Placar em retrato' : 'Girar para paisagem', icone: 'atualizar', acao: alternarGiro, pressionado: girado, fechaMenu: false }]
+      : []),
+    { rotulo: temaSol ? 'Modo escuro' : 'Modo sol', icone: temaSol ? 'lua' : 'sol', acao: alternarTema, pressionado: temaSol, fechaMenu: false },
+  ]);
+
   const operador = $derived(participantes.find(p => p.id === quadra?.controle_id)?.apelido || (temControle ? eu?.apelido : 'aguardando atualização'));
   // O relógio é pessoal do eli nesta fase; para os demais, só um aviso.
   let avisoRelogio = $state(false);
@@ -268,10 +302,11 @@
     const espectador = !podeControlar;
 
     corpo.classList.toggle('placar-espectador', espectador);
+    corpo.classList.toggle('placar-operador', !espectador);
     corpo.classList.toggle('placar-girado', telaGirada);
 
     return () => {
-      corpo.classList.remove('placar-espectador', 'placar-girado');
+      corpo.classList.remove('placar-espectador', 'placar-operador', 'placar-girado');
     };
   });
 
@@ -290,32 +325,95 @@
     } catch {}
   }
 
+  // Tela cheia do navegador (CV4.DS2.US2): independente da imersão. O estado
+  // vem sempre do navegador; nunca presumimos que o pedido deu certo.
+  const telaCheiaDisponivel = suportaTelaCheia();
+  let telaCheia = $state(estaEmTelaCheia());
+  let avisoTelaCheia = $state(null);
+  let avisoTelaCheiaTimer = null;
+
+  $effect(() => observarTelaCheia((ativa) => { telaCheia = ativa; }));
+
+  // Sair da sala não deixa a Home presa em tela cheia.
+  $effect(() => () => { sairDaTelaCheia(); });
+
+  function avisarTelaCheia(motivo) {
+    avisoTelaCheia = MENSAGEM_TELA_CHEIA[motivo];
+    clearTimeout(avisoTelaCheiaTimer);
+    avisoTelaCheiaTimer = setTimeout(() => { avisoTelaCheia = null; }, 4000);
+  }
+
+  // Chamado direto no clique: nenhum `await` antes do pedido, senão o
+  // navegador perde a ativação do usuário e recusa.
+  function alternarTelaCheia() {
+    if (telaCheia) {
+      sairDaTelaCheia();
+      return;
+    }
+    solicitarTelaCheia().then((r) => {
+      if (!r.ok) avisarTelaCheia(r.motivo);
+    });
+  }
+
+  function algumModalAberto() {
+    return (
+      modalRelogioAberto ||
+      modalLinhaDoTempoAberto ||
+      modalCompartilharAberto ||
+      modalConfigAberto ||
+      modalCelebracaoAberto ||
+      menuAberto
+    );
+  }
+
+  function focoDeTecladoEmControle() {
+    const ativo = typeof document === 'undefined' ? null : document.activeElement;
+    if (!ativo || ativo === document.body) return false;
+    try {
+      return ativo.matches(':focus-visible') && ativo.matches('button, input, select, textarea, a[href]');
+    } catch {
+      return false;
+    }
+  }
+
+  function agendarOcultacao() {
+    if (timerInatividade) clearTimeout(timerInatividade);
+    timerInatividade = setTimeout(() => {
+      const livre = podeOcultarControles({
+        modalAberto: algumModalAberto(),
+        focoDeTeclado: focoDeTecladoEmControle(),
+        erroPendente: Boolean(erro) || Boolean(avisoTelaCheia),
+      });
+      // Algo ainda precisa dos controles: tenta de novo em vez de esconder.
+      if (livre) modoImersivo = true;
+      else agendarOcultacao();
+    }, 3000);
+  }
+
+  // O toque que revela os controles não pode acionar o botão que surge sob
+  // o dedo: o clique seguinte à revelação é descartado.
+  let engolirClique = false;
+
+  function engolirCliqueDeRevelacao(event) {
+    if (!engolirClique) return;
+    engolirClique = false;
+    event.stopPropagation();
+    event.preventDefault();
+  }
+
   // Gerencia a revelação dos controles e retorno ao modo imersivo após 3s (US5)
   function tratarInteracaoUsuario(event) {
     if (podeControlar) return;
 
-    // Se estava em modo imersivo, sai dele
     if (modoImersivo) {
       modoImersivo = false;
-    }
-
-    // Reinicia o temporizador de 3 segundos de inatividade
-    if (timerInatividade) {
-      clearTimeout(timerInatividade);
-    }
-
-    timerInatividade = setTimeout(() => {
-      // Retorna ao modo imersivo apenas se nenhum modal estiver aberto
-      if (
-        !modalRelogioAberto &&
-        !modalLinhaDoTempoAberto &&
-        !modalCompartilharAberto &&
-        !modalConfigAberto &&
-        !modalCelebracaoAberto
-      ) {
-        modoImersivo = true;
+      if (event?.type === 'pointerdown') {
+        engolirClique = true;
+        setTimeout(() => { engolirClique = false; }, 500);
       }
-    }, 3000);
+    }
+
+    agendarOcultacao();
   }
 
   function handleAbrirLinhaDoTempo() {
@@ -343,14 +441,17 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
   class="sala-container"
-  class:em-modo-imersivo={modoImersivo && !podeControlar}
+  class:em-modo-imersivo={!podeControlar}
+  class:operador={podeControlar}
+  class:controles-ocultos={modoImersivo && !podeControlar}
   class:tela-girada={telaGirada}
   style="--tela-w: {telaW}px; --tela-h: {telaH}px;"
   in:fade={{ duration: prefersReducedMotion ? 0 : 200 }}
+  onclickcapture={engolirCliqueDeRevelacao}
   onclick={tratarInteracaoUsuario}
   onpointerdown={tratarInteracaoUsuario}
   onkeydown={(e) => {
-    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape') {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Escape' || e.key === 'Tab') {
       tratarInteracaoUsuario(e);
     }
   }}
@@ -359,7 +460,35 @@
   aria-label="Quadra de Vôlei"
 >
   <!-- Top Bar com Botão Voltar e Status de Conexão -->
-  {#if podeControlar || !modoImersivo}
+  {#if podeControlar}
+    <!-- Operação (CV4.DS3.US1): barra compacta e faixa de posse; o resto das
+         ações fica no menu ⋯ para o placar caber sem rolagem. -->
+    <header class="barra-operador">
+      <button type="button" class="btn-voltar-compacto" onclick={onVoltar} aria-label="Voltar para a lista de quadras">←</button>
+      <button type="button" class="chip-codigo" onclick={copiarCodigo} title="Copiar código da sala" aria-label="Copiar código da sala {quadra.id}">
+        <strong>#{quadra.id}</strong>
+        <span>{copiado ? 'Copiado!' : quadra.nome}</span>
+      </button>
+      <div class="ws-status">
+        <span class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"></span>
+        <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Conectando...'}</span>
+      </div>
+    </header>
+
+    <div class="faixa-posse" class:minha={temControle} aria-live="polite">
+      <span class="pino" aria-hidden="true"></span>
+      {#key quadra?.controle_id}
+        <div class="posse-texto" in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>
+          <strong>{posse.titulo}</strong>
+          <small>{posse.detalhe}</small>
+        </div>
+      {/key}
+      <span class="selo-papel">{eu?.papel}</span>
+      {#if posse.podeAssumir}
+        <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
+      {/if}
+    </div>
+  {:else if !modoImersivo}
     <header class="sala-header" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
       <button
         type="button"
@@ -372,75 +501,30 @@
       </button>
 
       <div class="header-acoes">
-        <button
-          type="button"
-          class="btn-tema-header"
-          onclick={alternarTema}
-          aria-label={temaSol ? 'Ativar modo escuro' : 'Ativar modo sol de alto contraste'}
-          title={temaSol ? 'Modo Escuro' : 'Modo Sol (Alto Contraste)'}
-        >
-          <Icone nome={temaSol ? 'lua' : 'sol'} tamanho="1.15em" />
-        </button>
-
-        <button
-          type="button"
-          class="btn-compartilhar-header"
-          onclick={() => { modalCompartilharAberto = true; }}
-          aria-label="Compartilhar sala"
-          title="Compartilhar sala e QR Code"
-        >
-          <Icone nome="compartilhar" tamanho="1.1em" />
-        </button>
-
-        {#if podeControlar}
+        {#if !podeControlar && telaCheiaDisponivel}
           <button
             type="button"
-            class="btn-config-header"
-            onclick={abrirRelogio}
-            aria-label="Vincular ou revogar meu relógio"
-            title="Relógio"
+            class="btn-tela-cheia"
+            class:ativo={telaCheia}
+            onclick={alternarTelaCheia}
+            aria-pressed={telaCheia}
+            aria-label={telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
+            title={telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
           >
-            <Icone nome="relogio" tamanho="1.15em" />
-          </button>
-          <button
-            type="button"
-            class="btn-config-header"
-            onclick={() => { modalConfigAberto = true; isReinicioConfig = false; }}
-            aria-label="Configurar duplas e regras da partida"
-            title="Configurações da partida"
-          >
-            <Icone nome="engrenagem" tamanho="1.15em" />
+            <Icone nome={telaCheia ? 'recolher' : 'expandir'} tamanho="1.15em" />
           </button>
         {/if}
 
         <button
           type="button"
-          class="btn-inverter-lados-header"
-          class:ativo={ladosInvertidos}
-          onclick={alternarLados}
-          aria-pressed={ladosInvertidos}
-          title="Inverter lados das equipes na sua tela"
-          aria-label="Inverter lados das equipes"
+          class="btn-tela-cheia"
+          onclick={() => { menuAberto = true; }}
+          aria-haspopup="dialog"
+          aria-label="Mais ações: compartilhar, girar, tema e presentes"
+          title="Mais ações"
         >
-          <span class="inverter-icone">⇄</span>
-          <span class="inverter-texto">{ladosInvertidos ? 'Lados Invertidos' : 'Inverter Lados'}</span>
+          <span aria-hidden="true">⋯</span>
         </button>
-
-        {#if !podeControlar && !paisagemNativa}
-          <button
-            type="button"
-            class="btn-girar"
-            class:ativo={girado}
-            onclick={alternarGiro}
-            aria-pressed={girado}
-            aria-label={girado
-              ? 'Voltar o placar para retrato'
-              : 'Girar o placar para paisagem'}
-          >
-            <span class="girar-icone">⟳</span>
-            <span class="girar-texto">{girado ? 'Retrato' : 'Paisagem'}</span>
-          </button>
-        {/if}
 
         <div class="ws-status">
           <span
@@ -451,85 +535,15 @@
       </div>
     </header>
 
-    <!-- O controlador mantém os dados operacionais; o espectador recebe
-         contexto compacto dentro do próprio placar. -->
-    {#if podeControlar}
-    <section class="quadra-hero" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
-      <!-- Banner com Código de 5 Dígitos da Sala -->
-      <div class="codigo-sala-destaque">
-        <div class="codigo-sala-info">
-          <span class="codigo-sala-label">CÓDIGO DA SALA</span>
-          <span class="codigo-sala-num">{quadra.id}</span>
-        </div>
-        <div class="codigo-sala-botoes">
-          <button
-            type="button"
-            class="btn-copiar-pin"
-            onclick={copiarCodigo}
-            title="Copiar código da sala"
-          >
-            {copiado ? '✓ Copiado!' : '📋 Copiar'}
-          </button>
-          <button
-            type="button"
-            class="btn-compartilhar-pin"
-            onclick={() => { modalCompartilharAberto = true; }}
-            title="Abrir QR Code e Compartilhar"
-          >
-            <Icone nome="compartilhar" tamanho="1em" />
-            <span>QR</span>
-          </button>
-        </div>
-      </div>
-
-      <div class="quadra-title-row">
-        <h2 class="quadra-title">{quadra.nome}</h2>
-        <div class="quadra-tags-group">
-          {#if estadoPartida}
-            <span class="regra-tag">
-              🎯 Até {estadoPartida.alvo} pts • {estadoPartida.vantagem ? 'Vantagem' : 'Sem vantagem'}{estadoPartida.teto ? ` • Teto ${estadoPartida.teto}` : ''}
-            </span>
-          {/if}
-          {#if podeControlar}
-            <button
-              type="button"
-              class="btn-ajustar-regras"
-              onclick={() => { modalConfigAberto = true; isReinicioConfig = false; }}
-              title="Ajustar duplas e regras da partida"
-            >
-              <Icone nome="regras" tamanho="0.95em" />
-              <span>Duplas & Regras</span>
-            </button>
-          {/if}
-          <span class="quadra-tag">
-            🏟️ Sala Ativa
-          </span>
-        </div>
-      </div>
-
-      <div class="meu-perfil-card">
-        <div class="meu-perfil-info">
-          <span class="label-voce">Você está conectado como:</span>
-          <span class="meu-apelido">{eu?.apelido || 'Participante'}</span>
-        </div>
-        <span class="badge {eu?.papel === 'ADMIN' ? 'badge-admin' : eu?.papel === 'CONTROLADOR' ? 'badge-controlador' : 'badge-espectador'}">
-          {eu?.papel || 'ESPECTADOR'}
-        </span>
-      </div>
-    </section>
-    {/if}
   {/if}
 
-  {#if podeControlar || avisoRelogio || !wsConectado || erro}
+  {#if avisoRelogio || avisoTelaCheia || !wsConectado || erro}
   <div class="controle-painel" aria-live="polite">
+    {#if avisoTelaCheia}
+      <span class="aviso-em-breve" role="status" transition:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>{avisoTelaCheia}</span>
+    {/if}
     {#if avisoRelogio}
       <span class="aviso-em-breve" role="status" transition:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>Em breve…</span>
-    {/if}
-    {#key quadra?.controle_id}
-      <span in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>Controle: <strong>{operador}</strong>{temControle ? ' (você)' : ''}</span>
-    {/key}
-    {#if podeControlar && !temControle}
-      <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir o controle</button>
     {/if}
     {#if !wsConectado}
       <span class="chip-reconectando" role="status">
@@ -566,11 +580,8 @@
         modalConfigAberto = true;
         isReinicioConfig = true;
       }}
-      onAbrirConfiguracao={() => {
-        modalConfigAberto = true;
-        isReinicioConfig = false;
-      }}
-      onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
+      {ultimoPonto}
+      onAbrirMenu={() => { menuAberto = true; }}
       onAbrirCompartilhar={() => { modalCompartilharAberto = true; }}
     />
   {:else}
@@ -581,7 +592,8 @@
       {quadra}
       temaPlacar={quadra?.tema_placar || 'esportivo'}
       {prefersReducedMotion}
-      {modoImersivo}
+      modoImersivo={true}
+      controlesOcultos={modoImersivo}
       {paisagem}
       {ladosInvertidos}
       onAlternarLados={alternarLados}
@@ -656,9 +668,8 @@
     />
   {/if}
 
-  <!-- Lista de Participantes em Tempo Real (oculta em modo imersivo) -->
-  {#if podeControlar || !modoImersivo}
-    <div in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
+  {#if menuAberto}
+    <MenuSala acoes={acoesDoMenu} movimentoReduzido={prefersReducedMotion} onFechar={() => { menuAberto = false; }}>
       <ListaPresentes
         {prefersReducedMotion}
         {participantes}
@@ -671,11 +682,67 @@
         {onRevogarControlador}
         {onAutorizarAdmin}
       />
-    </div>
+    </MenuSala>
   {/if}
 </div>
 
 <style>
+  /* Operação sem rolagem (CV4.DS3.US1). */
+  .sala-container.operador {
+    height: 100vh;
+    height: 100dvh;
+    min-height: 0;
+    gap: 8px;
+    padding: max(8px, env(safe-area-inset-top))
+      max(8px, env(safe-area-inset-right))
+      max(8px, env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+    overflow: hidden;
+  }
+
+  .barra-operador { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 0 auto; }
+  .btn-voltar-compacto,
+  .chip-codigo {
+    min-height: 44px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+  }
+  .btn-voltar-compacto { width: 44px; flex: 0 0 44px; font-size: 1.1rem; }
+  .chip-codigo { display: flex; align-items: baseline; gap: 8px; min-width: 0; padding: 0 12px; }
+  .chip-codigo strong { font-family: var(--fonte-numeros); font-size: 1.35rem; letter-spacing: .04em; color: var(--text-primary); }
+  .chip-codigo span { overflow: hidden; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
+  .barra-operador .ws-status { margin-left: auto; }
+
+  .faixa-posse {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 6px 8px 6px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    flex: 0 0 auto;
+  }
+  .faixa-posse .pino { width: 10px; height: 10px; flex: 0 0 10px; border-radius: 50%; background: var(--text-secondary); }
+  .faixa-posse.minha .pino { background: var(--estado-sucesso, #34d399); }
+  .posse-texto { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; color: var(--text-primary); }
+  .posse-texto small { color: var(--text-secondary); font-size: .75rem; }
+  .selo-papel {
+    margin-left: auto;
+    padding: 3px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-size: .68rem;
+    font-weight: 800;
+    letter-spacing: .06em;
+  }
+  .faixa-posse .btn-assumir { min-height: 44px; padding: 0 14px; }
+
   .controle-painel { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 10px; color: var(--text-primary); }
   .controle-painel p { color: var(--estado-erro-suave); width: 100%; text-align: center; }
   .aviso-em-breve {
@@ -739,7 +806,13 @@
     z-index: 5;
   }
 
+  /*
+   * Espectador (CV4.DS2.US2): o palco do placar é fixo. Cabeçalho e presentes
+   * aparecem sobre ele, para que revelar ou esconder os controles não mova os
+   * pontos.
+   */
   .sala-container.em-modo-imersivo {
+    position: relative;
     padding: max(8px, env(safe-area-inset-top))
       max(6px, env(safe-area-inset-right))
       max(8px, env(safe-area-inset-bottom))
@@ -756,6 +829,29 @@
     display: flex;
     width: 100%;
     min-height: 0;
+  }
+
+  .em-modo-imersivo:not(.controles-ocultos) {
+    cursor: auto;
+  }
+
+  .em-modo-imersivo > .sala-header {
+    position: absolute;
+    z-index: 6;
+    top: max(8px, env(safe-area-inset-top));
+    left: max(6px, env(safe-area-inset-left));
+    right: max(6px, env(safe-area-inset-right));
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: color-mix(in srgb, var(--bg-surface) 92%, transparent);
+    backdrop-filter: blur(6px);
+  }
+
+  .em-modo-imersivo > .sala-header .header-acoes {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    min-width: 0;
   }
 
   .em-modo-imersivo .placar-espectador-wrapper {
@@ -797,9 +893,7 @@
     font-size: 1.1rem;
   }
 
-  .btn-tema-header,
-  .btn-compartilhar-header,
-  .btn-config-header {
+  .btn-tela-cheia {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -817,52 +911,17 @@
     transition: all 0.15s ease;
   }
 
-  .btn-tema-header:hover,
-  .btn-compartilhar-header:hover,
-  .btn-config-header:hover {
+  .btn-tela-cheia:hover {
     color: var(--text-primary);
     border-color: rgba(var(--veu), 0.25);
     background: var(--bg-card);
   }
 
-  /* Alternador de inversão de lados e orientação */
-  .btn-inverter-lados-header,
-  .btn-girar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
-    padding: 6px 14px;
-    min-height: 44px;
-    box-sizing: border-box;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    touch-action: manipulation;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  }
-
-  .btn-inverter-lados-header:hover,
-  .btn-girar:hover {
+  .btn-tela-cheia.ativo {
     color: var(--text-primary);
-    border-color: rgba(var(--veu), 0.2);
+    border-color: var(--acento-info-ativo);
   }
 
-  .btn-inverter-lados-header.ativo,
-  .btn-girar.ativo {
-    color: var(--accent-orange);
-    border-color: var(--border-active);
-    background: rgba(249, 115, 22, 0.12);
-  }
-
-  .inverter-icone,
-  .girar-icone {
-    font-size: 0.95rem;
-    line-height: 1;
-  }
 
   .ws-status {
     box-sizing: border-box;
@@ -882,190 +941,6 @@
     color: var(--text-secondary);
   }
 
-  .quadra-hero {
-    display: flex;
-    flex-direction: column;
-    gap: 14px;
-    flex: 0 0 auto;
-  }
-
-  .codigo-sala-destaque {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background: var(--fundo-base);
-    border: 2px solid var(--acento-info-forte);
-    border-radius: 14px;
-    padding: 10px 16px;
-    box-shadow: 0 4px 14px rgba(2, 132, 199, 0.25);
-  }
-
-  .codigo-sala-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .codigo-sala-label {
-    font-size: 0.65rem;
-    font-weight: 700;
-    color: var(--texto-suave);
-    letter-spacing: 0.08em;
-  }
-
-  .codigo-sala-num {
-    font-size: 1.6rem;
-    font-weight: 900;
-    color: var(--acento-info);
-    letter-spacing: 0.15em;
-    line-height: 1;
-  }
-
-  .codigo-sala-botoes {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .btn-copiar-pin {
-    background: var(--fundo-superficie);
-    border: 1px solid var(--acao-secundaria);
-    color: var(--texto-forte);
-    padding: 0.5rem 1rem;
-    min-height: 44px;
-    box-sizing: border-box;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-  }
-
-  .btn-copiar-pin:hover {
-    background: var(--acento-info-forte);
-    border-color: var(--acento-info-forte);
-    color: #ffffff;
-  }
-
-  .btn-compartilhar-pin {
-    background: rgba(2, 132, 199, 0.2);
-    border: 1px solid var(--acento-info-forte);
-    color: var(--acento-info);
-    padding: 0.5rem 1rem;
-    min-height: 44px;
-    box-sizing: border-box;
-    font-size: 0.85rem;
-    font-weight: 600;
-    border-radius: 8px;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: all 0.15s ease;
-  }
-
-  .btn-compartilhar-pin:hover {
-    background: var(--acento-info-forte);
-    color: #ffffff;
-  }
-
-  .quadra-tags-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .regra-tag {
-    font-size: 0.78rem;
-    font-weight: 700;
-    color: var(--acento-info);
-    background: rgba(56, 189, 248, 0.12);
-    border: 1px solid rgba(56, 189, 248, 0.3);
-    padding: 4px 8px;
-    border-radius: 6px;
-    letter-spacing: 0.02em;
-  }
-
-  .btn-ajustar-regras {
-    background: rgba(14, 165, 233, 0.15);
-    border: 1px solid rgba(56, 189, 248, 0.4);
-    color: var(--acento-info);
-    padding: 6px 12px;
-    min-height: 40px;
-    box-sizing: border-box;
-    border-radius: 8px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    transition: all 0.15s ease;
-  }
-
-  .btn-ajustar-regras:hover {
-    background: rgba(14, 165, 233, 0.3);
-    border-color: var(--acento-info);
-    color: #ffffff;
-  }
-
-  .quadra-tag {
-    font-size: 0.78rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    color: var(--accent-orange);
-    letter-spacing: 0.05em;
-  }
-
-  .quadra-title {
-    font-size: 1.7rem;
-    font-weight: 800;
-    color: var(--texto-contraste);
-    line-height: 1.2;
-  }
-
-  .meu-perfil-card {
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 14px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-
-  .meu-perfil-info {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  .label-voce {
-    font-size: 0.78rem;
-    color: var(--text-muted);
-  }
-
-  .meu-apelido {
-    font-size: 1.15rem;
-    font-weight: 700;
-    color: var(--texto-contraste);
-  }
-
-  /* Com a tela girada o espaço vertical é curto: enxuga o cabeçalho revelado */
-  .tela-girada .quadra-title {
-    font-size: 1.25rem;
-  }
-
-  .tela-girada .meu-perfil-card {
-    padding: 8px 14px;
-  }
-
   .tela-girada:not(.em-modo-imersivo) {
     gap: 12px;
     padding: 10px 16px 20px 16px;
@@ -1077,12 +952,5 @@
       padding: 10px 16px 20px 16px;
     }
 
-    .quadra-title {
-      font-size: 1.25rem;
-    }
-
-    .meu-perfil-card {
-      padding: 8px 14px;
-    }
   }
 </style>
