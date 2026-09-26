@@ -28,6 +28,18 @@ jobs:
           cache: npm
           cache-dependency-path: web/package-lock.json
 
+      - name: Frontend — dependências
+        working-directory: web
+        run: npm ci
+
+      - name: Frontend — testes unitários, svelte-check e build
+        working-directory: web
+        run: |
+          npm test
+          npm run check
+          npm run build
+
+      # Os testes de rota estática do backend exigem o build em app/static.
       - name: Backend — dependências
         run: uv sync
 
@@ -36,16 +48,6 @@ jobs:
           uv run pytest -q
           uv run ruff check app tests
           uv run ruff format --check app tests
-
-      - name: Frontend — dependências
-        working-directory: web
-        run: npm ci
-
-      - name: Frontend — testes unitários e svelte-check
-        working-directory: web
-        run: |
-          npm test
-          npm run check
 
       - name: Navegador — Chromium do Playwright
         working-directory: web
