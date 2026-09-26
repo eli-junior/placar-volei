@@ -140,6 +140,51 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         return true
     }
 
+    /** Dono do relógio é admin da quadra (CV3.DS2.US3); vem de `/api/watch/session`. */
+    var ownerAdmin by mutableStateOf(false)
+        private set
+    /** Pedido de nova partida em andamento: o botão não aceita outro toque. */
+    var startingMatch by mutableStateOf(false)
+        private set
+    // Mesmo id para a mesma partida encerrada: reenviar nunca cria duas.
+    private var newMatchId: Pair<String, String>? = null
+
+    /** Partida encerrada com o controle: a faixa de baixo ganha "▶ Nova". */
+    val showNewMatch get() = controlled && ownerAdmin && score?.encerrada == true
+
+    /** Só com conexão e fila vazia: a partida nova não entra na fila offline. */
+    val canStartNewMatch get() = showNewMatch && controlReason == null && pending.isEmpty() &&
+        connection == Connection.CONECTADO && !startingMatch
+
+    /** Nova partida nos mesmos moldes (CV3.DS2.US3), enviada direto ao servidor. */
+    fun startNewMatch(): Boolean {
+        val s = score ?: return false
+        if (!canStartNewMatch) return false
+        val id = newMatchId?.takeIf { it.first == s.partidaId }?.second ?: UUID.randomUUID().toString()
+        newMatchId = s.partidaId to id
+        startingMatch = true
+        viewModelScope.launch {
+            try {
+                val body = PendingCommand(id, s.partidaId, s.controleVersao, null, ACAO_NOVA_PARTIDA).toJson()
+                val (status, data) = request("/api/watch/comandos", body = body.toString())
+                when {
+                    status == 401 -> unlink(data)
+                    data.has("recibo") -> {
+                        data.optJSONObject("estado")?.let { applySnapshot(Confirmed.fromSnapshot(it)) }
+                        val recibo = data.getJSONObject("recibo")
+                        if (recibo.optString("status") != "APLICADO") message = recibo.optString("detalhe")
+                    }
+                    else -> message = data.optString("detail", "Não foi possível iniciar a partida.")
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                connection = Connection.SEM_CONEXAO
+            } finally { startingMatch = false }
+        }
+        return true
+    }
+
     /** Descarte explícito, confirmado no relógio, dos lances retidos por recusa. */
     fun discardHeld() {
         if (update(QueueState())) wake.trySend(Unit)
@@ -394,6 +439,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 code = ""
                 store.saveCode("")
                 participantId = data.optString("participant_id").ifBlank { null }
+                ownerAdmin = data.optBoolean("pode_nova_partida", false)
                 court = saveCourt(data)
                 message = "Vinculado como ${data.getString("display_name")}\nSala ${data.getString("court_id")}"
                 connectPresence(data.getString("court_id"))

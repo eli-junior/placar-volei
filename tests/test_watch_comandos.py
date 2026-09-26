@@ -538,3 +538,117 @@ def test_old_receipts_table_gains_target_column(tmp_path, monkeypatch):
     with get_db(str(path)) as conn:
         colunas = [r["name"] for r in conn.execute("PRAGMA table_info(watch_recibos)")]
     assert "alvo" in colunas
+
+
+# CV3.DS2.US3: nova partida rápida pelo relógio, nos mesmos moldes.
+
+
+def nova_partida(client, headers, *, base=None, id=None):
+    base = base or estado(client, headers)
+    body = {
+        "id": id or str(uuid.uuid4()),
+        "partida_id": base["partida_id"],
+        "controle_versao": base["quadra"]["controle_versao"],
+        "acao": "nova_partida",
+    }
+    return client.post("/api/watch/comandos", json=body, headers=headers), body
+
+
+def encerrar(client, headers):
+    base = estado(client, headers)
+    for _ in range(12):
+        comando(client, headers, "A", base=base)
+    final = estado(client, headers)
+    assert final["estado_partida"]["encerrada"] is True
+    return final
+
+
+def test_session_says_admin_owner_can_start_new_match(client, sala):
+    _, headers = sala
+    session = client.get("/api/watch/session", headers=headers).json()
+    assert session["pode_nova_partida"] is True
+
+
+def test_new_match_keeps_teams_and_rules_and_resets_score(client, sala):
+    court, headers = sala
+    antes = encerrar(client, headers)
+    response, _ = nova_partida(client, headers, base=antes)
+    assert response.status_code == 201
+    assert response.json()["recibo"]["status"] == "APLICADO"
+    depois = response.json()["estado"]
+    assert depois["partida_id"] != antes["partida_id"]
+    partida = depois["estado_partida"]
+    assert (partida["pontos_a"], partida["pontos_b"], partida["encerrada"]) == (
+        0,
+        0,
+        False,
+    )
+    for campo in ("equipe_a", "equipe_b", "alvo", "vantagem", "teto"):
+        assert partida[campo] == antes["estado_partida"][campo]
+    iniciadas = eventos(court["id"], "PARTIDA_INICIADA")
+    assert iniciadas[-1]["autor_id"] == relogio_id(client, headers)
+    # O relógio segue no controle e já marca na partida nova.
+    again, _ = comando(client, headers, "B")
+    assert again.json()["recibo"]["status"] == "APLICADO"
+
+
+def test_resent_new_match_creates_only_one(client, sala):
+    court, headers = sala
+    antes = encerrar(client, headers)
+    first, body = nova_partida(client, headers, base=antes)
+    again, _ = nova_partida(client, headers, base=antes, id=body["id"])
+    assert again.status_code == 200
+    assert again.json()["recibo"] == first.json()["recibo"]
+    # Toque duplo com outro id: a partida anterior já não é a atual.
+    other, _ = nova_partida(client, headers, base=antes)
+    assert other.json()["recibo"]["status"] == "RECUSADO"
+    assert len(eventos(court["id"], "PARTIDA_INICIADA")) == 2
+
+
+def test_new_match_needs_finished_match(client, sala):
+    _, headers = sala
+    response, _ = nova_partida(client, headers)
+    assert response.json()["recibo"]["status"] == "RECUSADO"
+    assert "não foi encerrada" in response.json()["recibo"]["detalhe"]
+
+
+def test_new_match_needs_control(client, sala):
+    court, headers = sala
+    antes = encerrar(client, headers)
+    assert (
+        client.post(f"/api/quadras/{court['id']}/controle/assumir").status_code == 200
+    )
+    response, _ = nova_partida(client, headers)
+    assert response.json()["recibo"]["status"] == "RECUSADO"
+    assert estado(client, headers)["partida_id"] == antes["partida_id"]
+
+
+def test_new_match_needs_admin_owner(client, sala):
+    court, headers = sala
+    antes = encerrar(client, headers)
+    with get_db() as conn:
+        conn.execute(
+            "UPDATE participantes SET papel = 'CONTROLADOR' WHERE id = ?",
+            (court["participante"]["id"],),
+        )
+    session = client.get("/api/watch/session", headers=headers).json()
+    assert session["pode_nova_partida"] is False
+    response, _ = nova_partida(client, headers, base=antes)
+    assert response.json()["recibo"]["status"] == "RECUSADO"
+    assert "administrador" in response.json()["recibo"]["detalhe"]
+
+
+def test_new_match_shape_is_validated(client, sala):
+    _, headers = sala
+    base = estado(client, headers)
+    body = {
+        "id": str(uuid.uuid4()),
+        "partida_id": base["partida_id"],
+        "controle_versao": base["quadra"]["controle_versao"],
+        "acao": "nova_partida",
+        "equipe": "A",
+    }
+    assert (
+        client.post("/api/watch/comandos", json=body, headers=headers).status_code
+        == 422
+    )

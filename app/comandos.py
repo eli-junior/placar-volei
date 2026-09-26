@@ -101,6 +101,7 @@ def executar_sync(
     ids_online=None,
     autor_id=None,
     connection=None,
+    dono_admin=False,
     **kwargs,
 ):
     # A presença chega como valor, vinda da borda HTTP que conhece o hub. A
@@ -321,7 +322,8 @@ def executar_sync(
                 },
             )
         elif acao == "reiniciar":
-            if autor["papel"] != "ADMIN":
+            # O relógio de um admin (CV3.DS2.US3) chega com `dono_admin`.
+            if autor["papel"] != "ADMIN" and not dono_admin:
                 raise HTTPException(
                     403, "Apenas administradores podem iniciar uma nova partida."
                 )

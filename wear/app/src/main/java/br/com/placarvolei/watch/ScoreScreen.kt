@@ -68,6 +68,9 @@ fun ScoreScreen(model: WatchModel) {
     fun tap(equipe: String) {
         if (model.tap(equipe)) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }
+    fun newMatch() {
+        if (model.startNewMatch()) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+    }
     fun undo() {
         // Vibração diferente da do ponto: o pulso sente que foi uma correção.
         if (model.undo()) view.performHapticFeedback(HapticFeedbackConstants.REJECT)
@@ -90,7 +93,11 @@ fun ScoreScreen(model: WatchModel) {
         if (model.controlled) {
             // Com o controle, a faixa de baixo é o desfazer; o motivo (fim de
             // partida) sobe para baixo da bolinha, longe dos números.
-            UndoBar(model.canUndo, Modifier.align(Alignment.BottomCenter), ::undo)
+            if (model.showNewMatch) {
+                UndoAndNewBar(model.canUndo, model.canStartNewMatch, Modifier.align(Alignment.BottomCenter), ::undo, ::newMatch)
+            } else {
+                UndoBar(model.canUndo, Modifier.align(Alignment.BottomCenter), ::undo)
+            }
             if (reason != null && model.held == null) {
                 ReasonText(reason, Modifier.align(Alignment.TopCenter).padding(top = 34.dp))
             }
@@ -219,6 +226,44 @@ private fun ReasonText(reason: String, modifier: Modifier) {
 @Composable
 private fun UndoBar(enabled: Boolean, modifier: Modifier, onTap: () -> Unit) =
     BottomBar("↶ Desfazer", enabled, modifier, "Desfazer o último ponto", onTap = onTap)
+
+/**
+ * Partida encerrada (CV3.DS2.US3): a faixa se divide em desfazer e nova partida.
+ * No mostrador redondo, cada texto encosta no meio, onde a faixa é larga.
+ */
+@Composable
+private fun UndoAndNewBar(
+    canUndo: Boolean, canStart: Boolean, modifier: Modifier, onUndo: () -> Unit, onStart: () -> Unit,
+) {
+    Row(modifier.fillMaxWidth().height(52.dp)) {
+        SplitHalf("↶ Desfazer", canUndo, "Desfazer o último ponto", Alignment.TopEnd, Modifier.weight(1f), onUndo)
+        Box(Modifier.fillMaxHeight().width(2.dp).background(Color.Black))
+        SplitHalf("▶ Nova", canStart, "Nova partida com os mesmos times e regras", Alignment.TopStart, Modifier.weight(1f), onStart)
+    }
+}
+
+@Composable
+private fun SplitHalf(
+    label: String, enabled: Boolean, description: String, align: Alignment, modifier: Modifier, onTap: () -> Unit,
+) {
+    Box(
+        modifier
+            .fillMaxHeight()
+            .background(if (enabled) Color(0xFF3A3A3A) else Color(0xFF1A1A1A))
+            .clickable(enabled = enabled, onClick = onTap)
+            .semantics { contentDescription = description },
+        contentAlignment = align,
+    ) {
+        Text(
+            label,
+            Modifier.padding(top = 8.dp, start = 8.dp, end = 8.dp),
+            fontSize = 13.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            color = Color.White.copy(alpha = if (enabled) 1f else 0.3f),
+        )
+    }
+}
 
 @Composable
 private fun HeldOverlay(reason: String, count: Int, onDiscard: () -> Unit) {

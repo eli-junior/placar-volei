@@ -2,7 +2,7 @@
 code: CV3
 level: Value
 status: Active
-status_reason: DS1 com US1 (0.7.0), US2 (0.8.0), US3 (0.9.0) e US5 (0.10.0) entregues, falta a US4; DS2 completo com US1 (0.10.1) e US2 (0.11.0)
+status_reason: DS1 com US1 (0.7.0), US2 (0.8.0), US3 (0.9.0) e US5 (0.10.0) entregues, falta a US4; DS2 completo com US1 (0.10.1), US2 (0.11.0) e US3 (0.12.0)
 updated: 2026-09-26
 ---
 
