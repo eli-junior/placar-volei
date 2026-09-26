@@ -22,6 +22,12 @@ writer = "claude"
 reviewers = ["codex", "copilot", "gemini"]
 reviewers_by_effort = { 1 = 1, 8 = 2 }   # effort >= key uses that many reviewers
 
+# Persistent gate after every five implemented stories (also across invocations).
+[strong_review]
+agent = "claude"
+model = "opus/high"
+args = ["--model", "opus", "--effort", "high"]
+
 # ---------------------------------------------------------------------------
 [agents.claude]
 exe = "claude"
@@ -121,26 +127,26 @@ quota = ["quota", "rate.?limit", "\\b429\\b", "exceeded", "credits"]
 [[agents.copilot.bands]]
 from = 1
 to = 3
-model = "auto/low"
-args = ["--reasoning-effort", "low"]
+model = "auto"
+args = ["--model", "auto"]
 
 [[agents.copilot.bands]]
 from = 4
 to = 6
-model = "auto/medium"
-args = ["--reasoning-effort", "medium"]
+model = "auto"
+args = ["--model", "auto"]
 
 [[agents.copilot.bands]]
 from = 7
 to = 8
-model = "auto/high"
-args = ["--reasoning-effort", "high"]
+model = "auto"
+args = ["--model", "auto"]
 
 [[agents.copilot.bands]]
 from = 9
 to = 10
-model = "auto/xhigh"
-args = ["--reasoning-effort", "xhigh"]
+model = "auto"
+args = ["--model", "auto"]
 
 # ---------------------------------------------------------------------------
 # Antigravity CLI. It ends the turn when a terminal command is denied, so it never runs commands.

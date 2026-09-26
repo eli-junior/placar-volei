@@ -185,3 +185,5 @@ When a story or release closes and merges into `main`, remove its active entry f
 
 When a prompt starts with `ARIAD ORCHESTRATED`, follow that prompt: return only the requested JSON, never commit or push, and read only the development guide, the story file, and the code the story needs. `.ariad/` is orchestrator tooling: never edit it, and read from it only a file the prompt names.
 
+Explicit `run --automode` defers human checkpoints, not verification or review. Automatic commits remain `Validated` with `human_validation: pending`; only the Navigator makes them `Done`. Every five stories require a cumulative strong-model review before more work.
+

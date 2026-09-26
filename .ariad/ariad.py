@@ -26,6 +26,7 @@ import threading
 import time
 import tomllib
 import unicodedata
+import urllib.request
 import zipfile
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
@@ -132,7 +133,30 @@ def menu(letters: str) -> str:
 
 
 def banner(text: str) -> None:
-    print(f"\n══ {text} ══")
+    width = min(shutil.get_terminal_size((88, 24)).columns - 4, 100)
+    color = sys.stdout.isatty() and not os.environ.get("NO_COLOR")
+    title = f"\033[1;36m{text}\033[0m" if color else text
+    print(f"\n╭{'─' * max(20, width)}\n│ {title}\n╰{'─' * max(20, width)}")
+
+
+def render_answer(step: str, label: str, answer: dict) -> None:
+    """Render structured answers in Python; raw protocol output stays in the log."""
+    import textwrap
+    banner(f"{step} · {label}")
+    labels = {"summary": "Resumo", "scope": "Escopo", "approach": "Plano", "risks": "Riscos",
+              "changed_files": "Arquivos alterados", "tests": "Testes", "verdict": "Parecer",
+              "findings": "Achados", "validation_route": "Como validar", "commit_message": "Commit"}
+    width = max(30, min(100, shutil.get_terminal_size((88, 24)).columns - 6))
+    for key, title in labels.items():
+        value = answer.get(key)
+        if not value:
+            continue
+        print(f"  {title}")
+        values = value if isinstance(value, list) else [value]
+        for item in values:
+            content = (" · ".join(f"{k}: {v}" for k, v in item.items() if v not in (None, "", []))
+                       if isinstance(item, dict) else str(item))
+            print(textwrap.fill(content, width=width, initial_indent="    • ", subsequent_indent="      "))
 
 
 # ==== State ====
@@ -588,6 +612,16 @@ def build_call(name: str, agent: dict, role_args: str, band: dict, prompt: str, 
     if agent.get("extra_prompt"):
         prompt = prompt.rstrip() + "\n" + agent["extra_prompt"].strip()
     args = [*agent[role_args], *band["args"]]
+    if name == "copilot":
+        # Migrate old configs: Auto cannot accept an explicit reasoning effort.
+        model = args[args.index("--model") + 1] if "--model" in args else "auto"
+        if model == "auto":
+            band = {**band, "model": "auto"}
+            while "--reasoning-effort" in args:
+                at = args.index("--reasoning-effort")
+                del args[at:at + 2]
+            if "--model" not in args:
+                args += ["--model", "auto"]
     schema_file = out_file = None
     if schema is not None and agent.get("schema"):
         schema_file = files.with_name(files.name + ".schema.json")
@@ -666,7 +700,7 @@ def display_text(line: str) -> str | None:
 
 
 def run_process(cmd: list[str] | str, stdin: str | None, cwd: Path, timeout_s: float, log: Path,
-                stream: bool = False, on_line=None) -> Result:
+                stream: bool = False, on_line=None, progress: str = "") -> Result:
     """Runs a command and tees its output to `log`. A string command runs through the shell."""
     log.parent.mkdir(parents=True, exist_ok=True)
     env = {**os.environ, "NO_COLOR": "1", "PYTHONIOENCODING": "utf-8"}
@@ -698,15 +732,37 @@ def run_process(cmd: list[str] | str, stdin: str | None, cwd: Path, timeout_s: f
         except OSError:
             pass
         timed_out = False
+        started = time.monotonic()
         try:
-            proc.wait(timeout=timeout_s)
+            if progress and sys.stdout.isatty():
+                tick = 0
+                while proc.poll() is None:
+                    elapsed = time.monotonic() - started
+                    remaining = timeout_s - elapsed
+                    if remaining <= 0:
+                        raise subprocess.TimeoutExpired(cmd, timeout_s)
+                    sys.stdout.write(f"\r  {'◐◓◑◒'[tick % 4]} {progress} · {elapsed:.0f}s ")
+                    sys.stdout.flush()
+                    tick += 1
+                    try:
+                        proc.wait(timeout=min(0.5, remaining))
+                    except subprocess.TimeoutExpired:
+                        pass
+            else:
+                proc.wait(timeout=timeout_s)
         except subprocess.TimeoutExpired:
             timed_out = True
             kill_tree(proc)
         except KeyboardInterrupt:
             kill_tree(proc)
             raise
+        finally:
+            if progress and sys.stdout.isatty():
+                sys.stdout.write("\r" + " " * (len(progress) + 24) + "\r")
+                sys.stdout.flush()
         reader.join(timeout=5)
+        if not reader.is_alive():
+            proc.stdout.close()
         printer.end()
     return Result(proc.returncode, "".join(chunks), timed_out)
 
@@ -748,6 +804,7 @@ class Ctx:
     cfg: dict
     usage: dict = field(default_factory=dict)       # agent -> Availability, updated live
     exhausted: dict = field(default_factory=dict)   # agent -> reset text
+    automode: bool = False
 
     @property
     def logs(self) -> Path:
@@ -777,8 +834,9 @@ def call_agent(ctx: Ctx, name: str, role_args: str, effort: int, tag: str, step:
         call = build_call(name, agent, role_args, band, text, project=ctx.root, schema=schema, files=stem)
         log = stem.with_name(stem.name + ".log")
         print(f"  · {step} · {call.label}")
-        result = run_process(call.cmd, call.stdin, ctx.root, timeout, log, stream=stream,
-                             on_line=lambda line: ctx.note_usage(name, line))
+        result = run_process(call.cmd, call.stdin, ctx.root, timeout, log, stream=False,
+                             on_line=lambda line: ctx.note_usage(name, line),
+                             progress=f"{step} · {call.label}" if stream else "")
         if result.timed_out:
             raise Stop(f"{name} excedeu {timeout / 60:.0f} min. Log: {log}")
         output = result.output
@@ -786,13 +844,20 @@ def call_agent(ctx: Ctx, name: str, role_args: str, effort: int, tag: str, step:
             output = read(call.out_file)
         answer = extract_json(output)
         missing = missing_keys(answer, schema)
-        if not missing:
+        if not missing and result.code == 0:
+            if stream:
+                render_answer(step, call.label, answer)
             return answer
         reset = claude_rejected(result.output)
         if reset is not None or (result.code != 0 and hit_quota(agent, result.output)):
             raise QuotaHit(name, reset or "")
         if DENIED.search(result.output):
             raise Stop(f"{name} negou uma permissão e não respondeu. Ajuste os args em ariad.toml. Log: {log}")
+        if result.code != 0:
+            lines = [line.strip() for line in result.output.splitlines() if line.strip()]
+            decisive = next((line for line in lines if re.search(r"error|failed|invalid", line, re.I)),
+                            lines[-1] if lines else "sem detalhes")
+            raise Stop(f"{name} falhou (código {result.code}): {decisive[:600]}. Log: {log}")
     raise Stop(f"{name} não devolveu JSON válido (faltando: {', '.join(missing)}). Log: {log}")
 
 
@@ -957,6 +1022,52 @@ def usage_text(av: Availability) -> str:
     return " · ".join(f"{label} {left}%" for label, left in av.windows) or "?"
 
 
+VERSION_SOURCES = {
+    "claude": "https://registry.npmjs.org/@anthropic-ai/claude-code/latest",
+    "codex": "https://registry.npmjs.org/@openai/codex/latest",
+    "copilot": "https://api.github.com/repos/github/copilot-cli/releases/latest",
+    "agy": "https://api.github.com/repos/google-antigravity/antigravity-cli/releases/latest",
+}
+
+
+def cli_version(name: str, agent: dict) -> tuple[str, str, str]:
+    exe = resolve_exe(agent)
+    if not exe:
+        return name, "—", "não instalado"
+    local = "?"
+    try:
+        run = run_quiet([exe, "--version"], 15)
+        match = re.search(r"\b\d+\.\d+\.\d+(?:-[\w.]+)?", run.stdout)
+        if run.returncode or not match:
+            return name, local, "versão local não identificada"
+        local = match.group()
+        if os.environ.get("ARIAD_OFFLINE") == "1":
+            return name, local, "atualização não verificada (modo offline)"
+        url = agent.get("version_url") or VERSION_SOURCES.get(agent.get("usage", name))
+        if not url:
+            return name, local, "atualização não verificada; configure version_url"
+        request = urllib.request.Request(url, headers={"User-Agent": "ariad-sidecar"})
+        with urllib.request.urlopen(request, timeout=10) as response:
+            data = json.load(response)
+        latest = str(data.get("version") or data.get("tag_name") or "").removeprefix("v")
+        if not re.fullmatch(r"\d+\.\d+\.\d+(?:-[\w.]+)?", latest):
+            return name, local, "fonte sem versão reconhecida"
+        def numbers(v):
+            return tuple(int(n) for n in v.split("-")[0].split("."))
+        status = f"atualização disponível: {latest}" if numbers(local) < numbers(latest) else "atualizado"
+        return name, local, status
+    except (OSError, ValueError, subprocess.SubprocessError) as exc:
+        return name, local, f"atualização não verificada ({type(exc).__name__})"
+
+
+def check_cli_versions(cfg: dict) -> None:
+    banner("Inicialização · versões dos CLIs")
+    with ThreadPoolExecutor(max_workers=max(1, len(cfg["agents"]))) as pool:
+        rows = list(pool.map(lambda pair: cli_version(*pair), cfg["agents"].items()))
+    for name, version, status in rows:
+        print(f"  {name:<12} {version:<18} {status}")
+
+
 def agents_table(avail: dict, min_available: int) -> str:
     yes_no = {True: "sim", False: "não", None: "?"}
     rows = [("agente", "instalado", "logado", "uso livre", "reset", "estado")]
@@ -1022,13 +1133,18 @@ def choose_roster(cfg: dict, avail: dict, previous: dict | None, brain_only: boo
         print(f"  Agente desconhecido: {', '.join(unknown)}. Opções: {', '.join(cfg['agents'])}")
 
 
-def replace_agent(ctx: Ctx, role: str, failed: str, reset: str) -> str | None:
+def replace_agent(ctx: Ctx, role: str, failed: str, reset: str, exclude=()) -> str | None:
     """After a usage limit: shows availability and asks for a substitute. None skips a reviewer."""
     ctx.exhausted[failed] = reset or "?"
-    others = [n for n in ctx.cfg["agents"] if n not in ctx.exhausted]
+    others = [n for n in ctx.cfg["agents"] if n not in ctx.exhausted and n not in exclude]
     avail = check_agents(ctx.cfg, others) if others else {}
     ctx.usage.update(avail)
     min_available = ctx.cfg["project"]["min_available"]
+    if ctx.automode:
+        candidates = [n for n in others if usable(avail, n, 0)]
+        if not candidates:
+            raise Stop("Cota disponível esgotada. Estado salvo para retomar.", STOPPED)
+        return candidates[0]
     if avail:
         print(agents_table(avail, min_available))
     label = {"writer": "escritor", "brain": "cérebro"}.get(role, "revisor")
@@ -1054,6 +1170,7 @@ def replace_agent(ctx: Ctx, role: str, failed: str, reset: str) -> str | None:
 def cmd_agents(args) -> int:
     root = project_root()
     cfg = load_config(root / ".ariad" / "ariad.toml")
+    check_cli_versions(cfg)
     print(agents_table(check_agents(cfg), cfg["project"]["min_available"]))
     return OK
 
@@ -1144,6 +1261,8 @@ def cmd_export(args) -> int:
 
 def cmd_init(args) -> int:
     root = project_root()
+    if not args.dry_run:
+        check_cli_versions(load_config(root / ".ariad" / "ariad.toml"))
     src = templates_dir()
     created, kept = [], []
     for rel in template_files(src):
@@ -1375,7 +1494,7 @@ class Runner:
         self.state.update(story=item.code, path=item.path.as_posix(), title=item.title, level=item.level,
                           phase="plan", base=head(self.root), effort=effort, original_effort=effort,
                           writer=writer, round=0, feedback="", resume=False, rerun=[], plan={}, result={},
-                          verify=None, reviews={}, agents=[])
+                          verify=None, reviews={}, agents=[], human_pending=False)
         self.update_story(fm={"status": "Active", "status_reason": "pulled by ariad run"})
         self.save()
         banner(f"{item.code} {item.title} · esforço {effort} · escritor {writer}")
@@ -1411,6 +1530,10 @@ class Runner:
 
     def do_plan_checkpoint(self) -> None:
         s = self.state
+        if self.ctx.automode:
+            self.update_story(fm={"execution_mode": "automode", "human_validation": "pending"})
+            self.save(phase="implement", plan_authorization="automode; human review pending")
+            return
         note = f" (escritor sugere {s['effort']}; era {s['original_effort']})" if s["effort"] != s["original_effort"] else ""
         banner(f"PLANO · {s['story']} {s['title']} · esforço {s['effort']}{note}")
         for line in plan_lines(s["plan"]):
@@ -1460,15 +1583,16 @@ class Runner:
     def do_review(self) -> None:
         s = self.state
         selected = pick_reviewers(s["roster"]["reviewers"], s["writer"], reviewer_count(self.cfg, s["effort"]))
-        pending = [n for n in (s.get("rerun") or selected) if n in s["roster"]["reviewers"]]
+        pending = [n for n in selected if n in s["roster"]["reviewers"]]
         if not pending:
             self.save(rerun=[], phase="acceptance")
             return
         diff, _ = staged_diff(self.root, s["base"], self.cfg["project"]["diff_limit_kb"])
         results = self.run_reviewers(pending, prompt_review(s, self.cfg, diff))
-        reviews = {**s.get("reviews", {}), **results}
+        reviews = results
         blocking = [n for n, r in results.items()
-                    if any(f.get("severity") == "blocking" for f in r.get("findings") or [])]
+                    if r.get("verdict") == "changes" or
+                    any(f.get("severity") == "blocking" for f in r.get("findings") or [])]
         if blocking and s["round"] < self.cfg["project"]["max_fix_rounds"]:
             fixes = [f"- [{n}] {f.get('file')}:{f.get('line')} {f.get('issue')} -> {f.get('fix')}"
                      for n in blocking for f in results[n]["findings"] if f.get("severity") == "blocking"]
@@ -1492,7 +1616,8 @@ class Runner:
                     results[name] = future.result()
                     self.note_agent("reviewer", name)
                 except QuotaHit as hit:
-                    new = replace_agent(self.ctx, "reviewer", hit.agent, hit.reset)
+                    new = replace_agent(self.ctx, "reviewer", hit.agent, hit.reset,
+                                        exclude=(self.state["writer"], *names, *results.keys(), *queue))
                     reviewers = [r for r in self.state["roster"]["reviewers"] if r != hit.agent]
                     if new and new != self.state["writer"] and new not in reviewers:
                         reviewers.append(new)
@@ -1506,6 +1631,18 @@ class Runner:
 
     def do_acceptance(self) -> None:
         s = self.state
+        if self.ctx.automode:
+            wanted = reviewer_count(self.cfg, s["effort"])
+            reviews = s.get("reviews") or {}
+            failed = s.get("verify") and not s["verify"].get("ok")
+            failed = failed or any(t.get("passed") is False for t in s.get("result", {}).get("tests", []))
+            blocked = any(r.get("verdict") != "approve" or
+                          any(f.get("severity") == "blocking" for f in r.get("findings") or [])
+                          for r in reviews.values())
+            if failed or blocked or len(reviews) < wanted:
+                raise Stop("Automode pausado: verificação/revisão pendente ou impeditiva. Estado preservado.", STOPPED)
+            self.save(phase="commit", human_pending=True)
+            return
         stat = staged_diff(self.root, s["base"], 1)[1]
         banner(f"ACEITE · {s['story']} {s['title']} · esforço {s['effort']}")
         show_plan = not needs_plan_stop(self.cfg, s["original_effort"], s["effort"])
@@ -1517,7 +1654,7 @@ class Runner:
         print("  [a]ceitar+commit  [f]alhou (feedback)  [e]ditar mensagem  [s]air")
         choice = menu("afes")
         if choice == "a":
-            self.save(phase="commit")
+            self.save(phase="commit", human_pending=False)
         elif choice == "f":
             feedback = ask_text("O que falhou na validação?")
             if feedback:
@@ -1533,13 +1670,22 @@ class Runner:
     def do_commit(self) -> None:
         s = self.state
         result = s.get("result") or {}
+        pending = self.ctx.automode or s.get("human_pending", False)
         route = result.get("validation_route") or s["plan"].get("validation_route") or {}
-        self.update_story(fm={"status": "Done", "status_reason": ""}, sections={
+        self.update_story(fm={"status": "Validated" if pending else "Done",
+                              "status_reason": "automode; awaiting human validation" if pending else "",
+                              "execution_mode": "automode" if pending else "interactive",
+                              "human_validation": "pending" if pending else "accepted"}, sections={
             "Validation Route": render_route(route, s.get("verify")),
             "Review": render_review(s),
-            "History": f"Accepted by the Navigator on {today()}. Agents: {', '.join(s['agents']) or 'none'}."})
+            "History": (f"Implemented in automode on {today()}; NOT tested or accepted by the human. "
+                        if pending else f"Accepted by the Navigator on {today()}. ")
+                       + f"Agents: {', '.join(s['agents']) or 'none'}."})
         message = (result.get("commit_message") or f"Complete {s['story']} {s['title']}").strip()
         trailers = f"Ariad-Story: {s['story']}\nAriad-Agents: {' '.join(s['agents'])}"
+        if pending:
+            message = "[automode; human validation pending] " + message
+            trailers += "\nAriad-Human-Validation: pending"
         try:
             commit(self.root, f"{message}\n\n{trailers}\n")
         except Stop as e:
@@ -1548,11 +1694,59 @@ class Runner:
             raise Stop(f"Commit falhou: {e}. Ajuste e rode `run` de novo (volta ao aceite).", STOPPED)
         print(f"  ✔ commit: {message.splitlines()[0]}")
         code = s["story"]
+        batch = s.setdefault("validation_batch", [])
+        if not batch:
+            s["batch_base"] = s["base"]
+        batch.append({"code": code, "path": s["path"], "commit": head(self.root)})
         self.finish()
-        parent_cadence(self.root, code)
+        self.strong_validation()
+        if not pending:
+            parent_cadence(self.root, code)
+
+    def strong_validation(self) -> None:
+        batch = self.state.get("validation_batch", [])
+        if len(batch) < 5:
+            return
+        if changed_paths(self.root):
+            raise Stop("Revisão acumulada exige árvore limpa; preserve suas alterações em commit antes de retomar.", STOPPED)
+        role = self.cfg.get("strong_review", {})
+        name = role.get("agent", "claude")
+        if name not in self.cfg["agents"]:
+            raise Stop(f"Revisão de 5 histórias exige o agente {name}; configure [strong_review].")
+        agent = {**self.cfg["agents"][name], "bands": [{"from": 1, "to": 10,
+                 "model": role.get("model", "opus"),
+                 "args": role.get("args", ["--model", "opus", "--effort", "high"])}]}
+        cfg = {**self.cfg, "agents": {**self.cfg["agents"], name: agent}}
+        ctx = Ctx(self.root, cfg, automode=self.ctx.automode)
+        banner(f"Validação acumulada · {len(batch)} histórias · {name} / {agent['bands'][0]['model']}")
+        prompt = ("ARIAD ORCHESTRATED | role=reviewer step=strong-validation\n"
+                  "Read the development guide and every story listed below. Inspect the FULL cumulative git diff "
+                  "and relevant code between the base commit and HEAD. Review integration, regressions, architecture, "
+                  "tests and Ariad coherence across all five stories. Do not edit, commit or push. "
+                  "Human acceptance remains separate. Return blocking findings for any unresolved failure.\n"
+                  f"Base commit: {self.state['batch_base']}\nStories: {json.dumps(batch)}")
+        try:
+            review = call_agent(ctx, name, "read", 10, "batch", "strong-review", prompt, REVIEW_SCHEMA, stream=True)
+        except QuotaHit:
+            raise Stop("Cota do modelo forte esgotada; revisão acumulada pendente. Retome com `run`.", STOPPED)
+        stamp = dt.datetime.now(dt.timezone.utc)
+        report = self.root / "docs/process/worklog/entries" / f"{stamp:%Y-%m-%dT%H%M%SZ}-ariad-strong-review.md"
+        related = "\n".join(f"  - {b['code']}" for b in batch)
+        findings = "\n".join(f"- [{f.get('severity')}] {f.get('file')}:{f.get('line')} "
+                             f"{f.get('issue')} → {f.get('fix')}" for f in review.get("findings") or []) or "- None."
+        write(report, f"---\ndate: {stamp:%Y-%m-%dT%H:%M:%SZ}\nauthor: ariad/{name}\nrelated:\n{related}\n"
+              "verification:\n  - cumulative strong-model review\n---\n\n# Five-story validation\n\n"
+              f"## What changed\n\nReviewed {len(batch)} stories with {agent['bands'][0]['model']}.\n\n"
+              "## Why it matters\n\nChecks integration and Ariad coherence; human acceptance remains separate.\n\n"
+              f"## Verification\n\nBase: `{self.state['batch_base']}`. Head: `{head(self.root)}`.\n"
+              f"Verdict: {review.get('verdict')}.\n\n{findings}\n")
+        commit(self.root, "Record strong validation of " + ", ".join(b["code"] for b in batch))
+        if review.get("verdict") != "approve" or any(f.get("severity") == "blocking" for f in review.get("findings") or []):
+            raise Stop(f"Revisão forte encontrou impedimentos. Corrija antes de continuar. Relatório: {report}", STOPPED)
+        self.save(validation_batch=[], batch_base="")
 
     def finish(self) -> None:
-        keep = {k: self.state[k] for k in ("roster", "exhausted") if k in self.state}
+        keep = {k: self.state[k] for k in ("roster", "exhausted", "validation_batch", "batch_base") if k in self.state}
         self.state.clear()
         self.state.update(keep)
         save_state(self.root, self.state)
@@ -1615,14 +1809,21 @@ def dry_run(ctx: Ctx, state: dict, only: str | None) -> int:
 def cmd_run(args) -> int:
     root = project_root()
     ctx = Ctx(root, load_config(root / ".ariad" / "ariad.toml"))
+    ctx.automode = getattr(args, "automode", False)
+    if ctx.automode:
+        ctx.cfg["project"]["min_available"] = 0
     if not is_repo(root):
         raise Stop("Projeto sem git próprio. Rode `init` (oferece git init) e faça o commit inicial.")
     state = load_state(root)
     if args.dry_run:
         return dry_run(ctx, state, args.story)
     with Lock(root):
+        check_cli_versions(ctx.cfg)
         ctx.usage = check_agents(ctx.cfg)
-        roster = choose_roster(ctx.cfg, ctx.usage, state.get("roster"))
+        roster = (default_roster(ctx.cfg, ctx.usage, state.get("roster")) if ctx.automode
+                  else choose_roster(ctx.cfg, ctx.usage, state.get("roster")))
+        if not roster["writer"]:
+            raise Stop("Nenhum escritor disponível. Estado preservado.", STOPPED)
         state.update(roster=roster, exhausted={})
         if state.get("story") and state.get("writer") not in (roster["writer"], *roster["reviewers"]):
             state["writer"] = roster["writer"]
@@ -1630,6 +1831,7 @@ def cmd_run(args) -> int:
             state["resume"] = True
         save_state(root, state)
         runner, done = Runner(ctx, state), 0
+        runner.strong_validation()
         while True:
             if not state.get("story"):
                 if (args.max and done >= args.max) or (args.story and done):
@@ -1638,10 +1840,65 @@ def cmd_run(args) -> int:
                 if item is None:
                     print("Nenhuma história Planned/Active" + (f" com código {args.story}." if args.story else "."))
                     return OK
+                if done and not ctx.automode:
+                    if not ask(f"  Quer iniciar outra história agora ({item.code})? [s/N] ").lower().startswith("s"):
+                        return OK
                 runner.pull(item)
             runner.advance()
             done += 1
 
+
+# ==== Human validation ====
+
+def cmd_validate(args) -> int:
+    """Accept or return one automode story, without implying acceptance of the others."""
+    root = project_root()
+    with Lock(root):
+        state = load_state(root)
+        pending = [i for i in load_roadmap(root) if i.is_story and i.status == "Validated" and
+                   parse_frontmatter(read(root / i.path)).get("human_validation") == "pending"]
+        if args.story:
+            pending = [i for i in pending if i.code == args.story]
+        if not pending:
+            print("Nenhuma história pendente de validação humana.")
+            return OK
+        for item in sorted(pending, key=lambda i: code_key(i.code)):
+            path = root / item.path
+            text = read(path)
+            original = text
+            if item.path.as_posix() in changed_paths(root):
+                raise Stop(f"{item.code} tem alterações locais; preserve-as antes de validar esta história.", STOPPED)
+            banner(f"Validação humana · {item.code} · {item.title}")
+            print(text)
+            print("  [a]ceitar  [f]alhou  [p]ular  [s]air")
+            choice = menu("afps")
+            if choice == "s":
+                return OK
+            if choice == "p":
+                continue
+            if choice == "f":
+                feedback = ask_text("O que falhou?")
+                if not feedback:
+                    continue
+                text = set_section(text, "Human Validation", f"Failed on {today()}:\n\n{feedback}")
+                updates = {"status": "Planned", "human_validation": "failed", "status_reason": "human validation failed"}
+            else:
+                text = set_section(text, "Human Validation", f"Tested and accepted by the Navigator on {today()}.")
+                updates = {"status": "Done", "human_validation": "accepted", "status_reason": ""}
+            write(path, set_frontmatter(text, {**updates, "updated": today()}))
+            try:
+                git(root, "commit", "--only", "-q", "-F", "-", "--", item.path.as_posix(),
+                    input=f"Human validation {updates['human_validation']}: {item.code}\n")
+            except Stop:
+                write(path, original)
+                raise
+            if choice == "a" and not state.get("story") and not changed_paths(root):
+                parent_cadence(root, item.code)
+            if args.story:
+                return OK
+            if not ask("  Quer validar outra história agora? [s/N] ").lower().startswith("s"):
+                return OK
+    return OK
 
 # ==== Setup ====
 
@@ -1887,6 +2144,7 @@ def cmd_setup(args) -> int:
         state = load_state(root)
         if state.get("story"):
             raise Stop(f"História {state['story']} ativa; termine-a com `run` antes do setup.", STOPPED)
+        check_cli_versions(ctx.cfg)
         ctx.usage = check_agents(ctx.cfg)
         roster = choose_roster(ctx.cfg, ctx.usage, state.get("roster"), brain_only=True)
         existing = existing_docs(root, templates)
@@ -1970,6 +2228,7 @@ def check_one(name: str, agent: dict, role_args: str, band: dict, timeout: float
 
 def cmd_check(args) -> int:
     cfg = load_config(SCRIPT_DIR / "ariad.toml")
+    check_cli_versions(cfg)
     names = args.agents or list(cfg["agents"])
     unknown = [n for n in names if n not in cfg["agents"]]
     if unknown:
@@ -2000,9 +2259,12 @@ def main(argv: list[str] | None = None) -> int:
     sub.add_parser("setup", help="entrevista, roadmap e esforço por história")
     p = sub.add_parser("run", help="executa histórias com escritor, revisores e checkpoints humanos")
     p.add_argument("--story", metavar="CODIGO")
+    p.add_argument("--automode", action="store_true", help="continua com validação humana pendente")
     p.add_argument("--max", type=int, default=0, metavar="N")
     p.add_argument("--dry-run", action="store_true")
     sub.add_parser("status", help="roadmap e fase atual")
+    p = sub.add_parser("validate", help="valida histórias feitas em automode, uma a uma")
+    p.add_argument("--story", metavar="CODIGO")
     sub.add_parser("agents", help="disponibilidade dos agentes")
     p = sub.add_parser("check", help="testa as CLIs dos agentes em cada faixa de esforço")
     p.add_argument("agents", nargs="*")
