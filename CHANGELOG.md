@@ -4,13 +4,32 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV4.DS3.TS1 — Regressão, acessibilidade e consolidação
+Nenhum trabalho ativo em `master`. Branch aberta com Checkpoint 1 aprovado: `feature/cv3-ds1-us4-offline-reconciliacao` (CV3.DS1.TS1 e CV3.DS1.US4; entrada registrada na branch).
 
-- **Branch:** `feature/cv4-ds3-ts1-regressao` (criada de `master` `446282c`)
-- **Passo Ariad:** Passo 6 - Documentação concluído; Checkpoint 4 (merge como 0.18.1, fecha CV4.DS3 e CV4) aguardando Navigator. Checkpoints 1–3 aprovados; dívida de contraste paga.
-- **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
-- **Handoff / Próximos Passos:** suíte `npm run test:e2e` (Playwright 1.56.1 + axe 4.13.0, 24 testes) implementada; removido o Google Fonts do `index.html`. Falta a matriz física (Fold, tablet) e decidir sobre CI para a dívida de contraste.
 
+## 0.18.1 - 2026-09-26
+
+Boundary: patch (regressão, acessibilidade e CI; conclui `CV4.DS3.TS1`, `CV4.DS3` e o CV4)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66
+
+Git source: `feature/cv4-ds3-ts1-regressao`, integrada em `master` pelo merge `535fbc3` após o Checkpoint 4.
+
+### Fixed
+
+- A aplicação não carrega mais o Google Fonts: Inter e Teko já eram locais e o link externo sobrava no `index.html`.
+
+### Development
+
+- Suíte de navegador `npm run test:e2e` (Playwright 1.56.1 e axe 4.13.0, só desenvolvimento): 24 testes cobrindo espectador, operador, superfícies, axe nos dois temas e ausência de requisições externas.
+- CI no GitHub Actions a cada push e pull request: pytest, ruff, `npm test`, `svelte-check`, build e navegador.
+- Dívida de contraste do Modo Sol paga; nova dívida `testes-estaticos-dependem-do-build`.
+
+### Verification
+
+- Backend: 191 testes; frontend: 66 testes unitários e 24 de navegador; Svelte sem avisos.
+- CI verde (run #3, `a9b2354`).
+- Rota V6 e matriz física aprovadas pelo Navigator em 2026-09-26.
 
 ## 0.18.0 - 2026-09-26
 

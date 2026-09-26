@@ -2,6 +2,12 @@
 
 ## Estado em 2026-09-26
 
+### Atualização mais recente — CV4 concluído
+
+- `CV4.DS3.TS1` integrada em `master` pelo merge `535fbc3` como `0.18.1`; CV4.DS3 e CV4 em `Done`.
+- Verificação completa: `README.md` → Desenvolvimento; CI em `.github/workflows/ci.yml`.
+- Próximo trabalho fora do CV4: `CV3.DS1.TS1` (fila offline do relógio) na branch `feature/cv3-ds1-us4-offline-reconciliacao`.
+
 ### Atualização mais recente — CV4.DS3.US2
 
 - Branch `feature/cv4-ds3-us2-superficies` (master 0.17.0 mesclada). Claude Code (Driver), sessão `session_01SeCZMypfz5yGenXJ6UNy66`.
