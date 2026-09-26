@@ -73,10 +73,10 @@ test('desfazer fica fora de menu e sem confirmação', () => {
 
 test('ações secundárias aparecem uma vez só, no menu', () => {
   for (const rotulo of ['Compartilhar e QR', 'Duplas e regras', 'Linha do tempo', 'Relógio']) {
-    assert.equal(salaFonte.split(`<span>${rotulo}</span>`).length - 1, 1, rotulo);
+    assert.equal(salaFonte.split(`rotulo: '${rotulo}'`).length - 1, 1, rotulo);
   }
   assert.doesNotMatch(placar, /Duplas & Regras|Linha do Tempo/);
-  assert.match(salaFonte, /\{#if !podeControlar && !modoImersivo\}\s*<div class="presentes-sobrepostos/);
+  assert.match(salaFonte, /<MenuSala acoes=\{acoesDoMenu\}/);
 });
 
 test('papel aparece em selo neutro, separado da posse', () => {
@@ -87,4 +87,30 @@ test('papel aparece em selo neutro, separado da posse', () => {
 test('operação reusa a representação clássica pura, sem grade própria', () => {
   assert.match(placar, /<PlacarClassico/);
   assert.doesNotMatch(placar, /CartaoDobravel|placar-grid/);
+});
+
+const menu = ler('MenuSala.svelte');
+const dialogo = ler('Dialogo.svelte');
+const presentes = ler('ListaPresentes.svelte');
+const css = readFileSync(new URL('../src/app.css', import.meta.url), 'utf8');
+
+test('menu da sala compila e é o único lugar de presentes, tema e compartilhar para o espectador', () => {
+  assert.equal(compile(menu, { filename: 'MenuSala.svelte' }).warnings.length, 0);
+  assert.doesNotMatch(salaFonte, /presentes-sobrepostos|btn-tema-header|btn-compartilhar-header|btn-girar/);
+  assert.equal((salaFonte.match(/<ListaPresentes/g) ?? []).length, 1);
+});
+
+test('diálogo devolve o foco a quem o abriu e mostra o campo acima do teclado', () => {
+  assert.equal(compile(dialogo, { filename: 'Dialogo.svelte' }).warnings.length, 0);
+  assert.match(dialogo, /const acionador = typeof document === 'undefined' \? null : document\.activeElement;/);
+  assert.match(dialogo, /acionador\.focus/);
+  assert.match(dialogo, /onfocusin=\{aoFocar\}/);
+  const index = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+  assert.match(index, /interactive-widget=resizes-content/);
+});
+
+test('papéis não usam as cores das equipes', () => {
+  assert.doesNotMatch(css, /--papel-admin-texto: #fb923c/);
+  assert.doesNotMatch(css, /--papel-controlador-texto: #38bdf8/);
+  assert.doesNotMatch(presentes, /accent-orange/);
 });

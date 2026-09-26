@@ -242,17 +242,17 @@
 
   /* ---------------------------------------------------------------------------
      PAPÉIS DE PARTICIPANTE (badges)
-     Valores atuais preservados nesta onda para não alterar a aparência.
-     A migração de `--papel-admin` para `--marca` está registrada no plan.md
-     como ajuste da onda seguinte.
+     Neutros desde a CV4.DS3.US2: laranja e ciano são as cores das equipes e
+     não podem significar papel. O texto do selo diferencia os papéis; o admin
+     só ganha borda mais forte.
      --------------------------------------------------------------------------- */
-  --papel-admin-fundo: rgba(249, 115, 22, 0.15);
-  --papel-admin-texto: #fb923c;
-  --papel-admin-borda: rgba(249, 115, 22, 0.3);
+  --papel-admin-fundo: rgba(148, 163, 184, 0.12);
+  --papel-admin-texto: #e2e8f0;
+  --papel-admin-borda: rgba(226, 232, 240, 0.55);
 
-  --papel-controlador-fundo: rgba(56, 189, 248, 0.15);
-  --papel-controlador-texto: #38bdf8;
-  --papel-controlador-borda: rgba(56, 189, 248, 0.3);
+  --papel-controlador-fundo: rgba(148, 163, 184, 0.12);
+  --papel-controlador-texto: #e2e8f0;
+  --papel-controlador-borda: rgba(148, 163, 184, 0.35);
 
   --papel-espectador-fundo: rgba(148, 163, 184, 0.12);
   --papel-espectador-texto: #cbd5e1;
@@ -401,13 +401,13 @@
   --ilhos-borda: #475569;
   --ilhos-sombra: inset 0 1px 2px rgba(15, 23, 42, 0.35);
 
-  --papel-admin-fundo: rgba(180, 83, 9, 0.12);
-  --papel-admin-texto: #92400e;
-  --papel-admin-borda: rgba(180, 83, 9, 0.4);
+  --papel-admin-fundo: rgba(51, 65, 85, 0.1);
+  --papel-admin-texto: #1e293b;
+  --papel-admin-borda: rgba(30, 41, 59, 0.7);
 
-  --papel-controlador-fundo: rgba(3, 105, 161, 0.12);
-  --papel-controlador-texto: #075985;
-  --papel-controlador-borda: rgba(3, 105, 161, 0.4);
+  --papel-controlador-fundo: rgba(51, 65, 85, 0.1);
+  --papel-controlador-texto: #1e293b;
+  --papel-controlador-borda: rgba(51, 65, 85, 0.45);
 
   --papel-espectador-fundo: rgba(51, 65, 85, 0.1);
   --papel-espectador-texto: #334155;

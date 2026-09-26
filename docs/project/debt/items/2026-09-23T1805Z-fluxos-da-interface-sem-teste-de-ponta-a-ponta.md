@@ -33,6 +33,8 @@ Na CV4.DS2.US2, a estabilidade do placar ao revelar controles, o descarte do toq
 
 Na CV4.DS3.US1, operação sem rolagem (390 e 1066 px), inversão dos +1, posse com dois clientes, `Assumir` e chamada forjada sem controle (403) foram verificados com scripts Playwright temporários. Entram na suíte da `CV4.DS3.TS1`.
 
+Na CV4.DS3.US2, retorno de foco após diálogos, menu ⋯ por papel, campo visível em tela baixa (teclado) e vitória em dois clientes foram verificados da mesma forma. Entram na suíte da `CV4.DS3.TS1`.
+
 ## Revisit Trigger
 
 Ver frontmatter.

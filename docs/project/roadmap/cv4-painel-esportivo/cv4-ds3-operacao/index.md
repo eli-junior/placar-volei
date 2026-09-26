@@ -2,7 +2,7 @@
 code: CV4.DS3
 level: Delivery Story
 status: Active
-status_reason: US1 concluída (0.17.0); US2 e TS1 planejadas
+status_reason: US1 concluída (0.17.0); US2 validada, aguardando merge; TS1 planejada
 updated: 2026-09-26
 ---
 

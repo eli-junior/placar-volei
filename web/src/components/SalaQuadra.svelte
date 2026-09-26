@@ -11,7 +11,7 @@
   import ModalCelebracaoVitoria from './ModalCelebracaoVitoria.svelte';
   import { ehDonoDoRelogio } from '../lib/relogio.js';
   import { ultimoPontoDesfazivel, descreverPosse } from '../lib/controle.js';
-  import Dialogo from './Dialogo.svelte';
+  import MenuSala from './MenuSala.svelte';
   import {
     suportaTelaCheia,
     estaEmTelaCheia,
@@ -213,26 +213,23 @@
   );
   const ultimoPonto = $derived(ultimoPontoDesfazivel(linhaDoTempo));
   let menuAberto = $state(false);
-  let origemDoMenu = null;
 
-  function abrirMenu() {
-    origemDoMenu = typeof document === 'undefined' ? null : document.activeElement;
-    menuAberto = true;
-  }
-
-  // Fechar sem escolher nada devolve o foco ao ⋯ (o diálogo sai do DOM).
-  function fecharMenu() {
-    menuAberto = false;
-    const origem = origemDoMenu;
-    setTimeout(() => origem?.focus?.(), 0);
-  }
-
-  // Cada item do menu fecha o menu antes de abrir o seu diálogo: um só
-  // diálogo aberto por vez, e o foco volta ao ⋯ quando o menu fecha.
-  function doMenu(acao) {
-    menuAberto = false;
-    acao();
-  }
+  // Local único das ações secundárias (CV4.DS3.US1/US2). Cada papel vê só o
+  // que pode fazer; o que já tem lugar próprio na tela não se repete aqui.
+  const acoesDoMenu = $derived([
+    { rotulo: 'Compartilhar e QR', icone: 'compartilhar', acao: () => { modalCompartilharAberto = true; } },
+    ...(podeControlar
+      ? [
+          { rotulo: 'Duplas e regras', icone: 'engrenagem', acao: () => { modalConfigAberto = true; isReinicioConfig = false; } },
+          { rotulo: 'Linha do tempo', icone: 'linhaDoTempo', acao: handleAbrirLinhaDoTempo },
+          { rotulo: 'Relógio', icone: 'relogio', acao: abrirRelogio },
+        ]
+      : []),
+    ...(!podeControlar && !paisagemNativa
+      ? [{ rotulo: girado ? 'Placar em retrato' : 'Girar para paisagem', icone: 'atualizar', acao: alternarGiro, pressionado: girado, fechaMenu: false }]
+      : []),
+    { rotulo: temaSol ? 'Modo escuro' : 'Modo sol', icone: temaSol ? 'lua' : 'sol', acao: alternarTema, pressionado: temaSol, fechaMenu: false },
+  ]);
 
   const operador = $derived(participantes.find(p => p.id === quadra?.controle_id)?.apelido || (temControle ? eu?.apelido : 'aguardando atualização'));
   // O relógio é pessoal do eli nesta fase; para os demais, só um aviso.
@@ -364,7 +361,8 @@
       modalLinhaDoTempoAberto ||
       modalCompartilharAberto ||
       modalConfigAberto ||
-      modalCelebracaoAberto
+      modalCelebracaoAberto ||
+      menuAberto
     );
   }
 
@@ -503,40 +501,6 @@
       </button>
 
       <div class="header-acoes">
-        <button
-          type="button"
-          class="btn-tema-header"
-          onclick={alternarTema}
-          aria-label={temaSol ? 'Ativar modo escuro' : 'Ativar modo sol de alto contraste'}
-          title={temaSol ? 'Modo Escuro' : 'Modo Sol (Alto Contraste)'}
-        >
-          <Icone nome={temaSol ? 'lua' : 'sol'} tamanho="1.15em" />
-        </button>
-
-        <button
-          type="button"
-          class="btn-compartilhar-header"
-          onclick={() => { modalCompartilharAberto = true; }}
-          aria-label="Compartilhar sala"
-          title="Compartilhar sala e QR Code"
-        >
-          <Icone nome="compartilhar" tamanho="1.1em" />
-        </button>
-
-
-        <button
-          type="button"
-          class="btn-inverter-lados-header"
-          class:ativo={ladosInvertidos}
-          onclick={alternarLados}
-          aria-pressed={ladosInvertidos}
-          title="Inverter lados das equipes na sua tela"
-          aria-label="Inverter lados das equipes"
-        >
-          <span class="inverter-icone">⇄</span>
-          <span class="inverter-texto">{ladosInvertidos ? 'Lados Invertidos' : 'Inverter Lados'}</span>
-        </button>
-
         {#if !podeControlar && telaCheiaDisponivel}
           <button
             type="button"
@@ -551,21 +515,16 @@
           </button>
         {/if}
 
-        {#if !podeControlar && !paisagemNativa}
-          <button
-            type="button"
-            class="btn-girar"
-            class:ativo={girado}
-            onclick={alternarGiro}
-            aria-pressed={girado}
-            aria-label={girado
-              ? 'Voltar o placar para retrato'
-              : 'Girar o placar para paisagem'}
-          >
-            <span class="girar-icone">⟳</span>
-            <span class="girar-texto">{girado ? 'Retrato' : 'Paisagem'}</span>
-          </button>
-        {/if}
+        <button
+          type="button"
+          class="btn-tela-cheia"
+          onclick={() => { menuAberto = true; }}
+          aria-haspopup="dialog"
+          aria-label="Mais ações: compartilhar, girar, tema e presentes"
+          title="Mais ações"
+        >
+          <span aria-hidden="true">⋯</span>
+        </button>
 
         <div class="ws-status">
           <span
@@ -622,7 +581,7 @@
         isReinicioConfig = true;
       }}
       {ultimoPonto}
-      onAbrirMenu={abrirMenu}
+      onAbrirMenu={() => { menuAberto = true; }}
       onAbrirCompartilhar={() => { modalCompartilharAberto = true; }}
     />
   {:else}
@@ -710,48 +669,7 @@
   {/if}
 
   {#if menuAberto}
-    <Dialogo rotulo="Mais ações" variante="folha" largura="520px" movimentoReduzido={prefersReducedMotion} onFechar={fecharMenu}>
-      <div class="menu-operador">
-        <div class="menu-acoes">
-          <button type="button" onclick={() => doMenu(() => { modalCompartilharAberto = true; })}>
-            <Icone nome="compartilhar" tamanho="1.1em" /><span>Compartilhar e QR</span>
-          </button>
-          <button type="button" onclick={() => doMenu(() => { modalConfigAberto = true; isReinicioConfig = false; })}>
-            <Icone nome="engrenagem" tamanho="1.1em" /><span>Duplas e regras</span>
-          </button>
-          <button type="button" onclick={() => doMenu(handleAbrirLinhaDoTempo)}>
-            <Icone nome="linhaDoTempo" tamanho="1.1em" /><span>Linha do tempo</span>
-          </button>
-          <button type="button" onclick={() => doMenu(abrirRelogio)}>
-            <Icone nome="relogio" tamanho="1.1em" /><span>Relógio</span>
-          </button>
-          <button type="button" onclick={alternarTema} aria-pressed={temaSol}>
-            <Icone nome={temaSol ? 'lua' : 'sol'} tamanho="1.1em" /><span>{temaSol ? 'Modo escuro' : 'Modo sol'}</span>
-          </button>
-          <button type="button" onclick={fecharMenu}>
-            <Icone nome="fechar" tamanho="1.1em" /><span>Fechar</span>
-          </button>
-        </div>
-        <ListaPresentes
-          {prefersReducedMotion}
-          {participantes}
-          euId={eu?.id}
-          podeAutorizar={ehAdmin}
-          controleId={quadra?.controle_id}
-          {onPassarControle}
-          desabilitado={!wsConectado || operando}
-          {onPromoverControlador}
-          {onRevogarControlador}
-          {onAutorizarAdmin}
-        />
-      </div>
-    </Dialogo>
-  {/if}
-
-  <!-- Lista de Participantes em Tempo Real (oculta em modo imersivo). Para o
-       espectador ela sobrepõe o placar em vez de empurrá-lo. -->
-  {#if !podeControlar && !modoImersivo}
-    <div class="presentes-sobrepostos sobreposto" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
+    <MenuSala acoes={acoesDoMenu} movimentoReduzido={prefersReducedMotion} onFechar={() => { menuAberto = false; }}>
       <ListaPresentes
         {prefersReducedMotion}
         {participantes}
@@ -764,7 +682,7 @@
         {onRevogarControlador}
         {onAutorizarAdmin}
       />
-    </div>
+    </MenuSala>
   {/if}
 </div>
 
@@ -824,24 +742,6 @@
     letter-spacing: .06em;
   }
   .faixa-posse .btn-assumir { min-height: 44px; padding: 0 14px; }
-
-  .menu-operador { display: flex; flex-direction: column; gap: 14px; padding: 16px; max-height: 80dvh; overflow-y: auto; }
-  .menu-acoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; }
-  .menu-acoes button {
-    text-align: left;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    min-height: 52px;
-    padding: 0 14px;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    background: var(--bg-surface);
-    color: var(--text-primary);
-    font: inherit;
-    font-weight: 650;
-    cursor: pointer;
-  }
 
   .controle-painel { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 10px; color: var(--text-primary); }
   .controle-painel p { color: var(--estado-erro-suave); width: 100%; text-align: center; }
@@ -954,17 +854,6 @@
     min-width: 0;
   }
 
-  .presentes-sobrepostos.sobreposto {
-    position: absolute;
-    z-index: 6;
-    left: max(6px, env(safe-area-inset-left));
-    right: max(6px, env(safe-area-inset-right));
-    bottom: calc(max(8px, env(safe-area-inset-bottom)) + 52px);
-    max-height: 32%;
-    overflow-y: auto;
-    border-radius: 12px;
-  }
-
   .em-modo-imersivo .placar-espectador-wrapper {
     flex: 1 1 auto;
     height: 100%;
@@ -1004,9 +893,7 @@
     font-size: 1.1rem;
   }
 
-  .btn-tema-header,
-  .btn-tela-cheia,
-  .btn-compartilhar-header {
+  .btn-tela-cheia {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -1024,9 +911,7 @@
     transition: all 0.15s ease;
   }
 
-  .btn-tema-header:hover,
-  .btn-tela-cheia:hover,
-  .btn-compartilhar-header:hover {
+  .btn-tela-cheia:hover {
     color: var(--text-primary);
     border-color: rgba(var(--veu), 0.25);
     background: var(--bg-card);
@@ -1037,44 +922,6 @@
     border-color: var(--acento-info-ativo);
   }
 
-  /* Alternador de inversão de lados e orientação */
-  .btn-inverter-lados-header,
-  .btn-girar {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
-    padding: 6px 14px;
-    min-height: 44px;
-    box-sizing: border-box;
-    border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    touch-action: manipulation;
-    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  }
-
-  .btn-inverter-lados-header:hover,
-  .btn-girar:hover {
-    color: var(--text-primary);
-    border-color: rgba(var(--veu), 0.2);
-  }
-
-  .btn-inverter-lados-header.ativo,
-  .btn-girar.ativo {
-    color: var(--accent-orange);
-    border-color: var(--border-active);
-    background: rgba(249, 115, 22, 0.12);
-  }
-
-  .inverter-icone,
-  .girar-icone {
-    font-size: 0.95rem;
-    line-height: 1;
-  }
 
   .ws-status {
     box-sizing: border-box;
@@ -1104,7 +951,6 @@
       gap: 12px;
       padding: 10px 16px 20px 16px;
     }
-
 
   }
 </style>

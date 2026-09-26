@@ -4,7 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo em `master`. Branches abertas com Checkpoint 1 apresentado: `feature/cv4-ds3-us2-superficies`, `feature/cv4-ds3-ts1-regressao`, `feature/cv3-ds1-us4-offline-reconciliacao` (entradas registradas em cada branch).
+### CV4.DS3.US2 — Superfícies auxiliares e estados coerentes
+
+- **Branch:** `feature/cv4-ds3-us2-superficies` (criada de `master` `446282c`)
+- **Passo Ariad:** Passo 6 - Documentação concluído; Checkpoint 4 (merge como 0.18.0) aguardando Navigator. Checkpoints 1–3 aprovados.
+- **Assinatura:** Agente: Claude Code (Driver) | Sessão: session_01SeCZMypfz5yGenXJ6UNy66 | Data: 2026-09-26 18:00
+- **Handoff / Próximos Passos:** implementado: `MenuSala.svelte` único para operador e espectador (presentes dentro), cabeçalho do espectador só com ←, Tela cheia, ⋯ e Ao vivo; papéis neutros; `Dialogo` devolve o foco e mantém campo acima do teclado. Web 66 testes, backend 191. Falta validação V5.
 
 
 ## 0.17.0 - 2026-09-26
