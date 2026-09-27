@@ -451,7 +451,8 @@
   aria-label="Quadra de Vôlei"
 >
   <!-- Cabeçalho em uma linha (CV6.DS1.US1): voltar, quadra, status, ajustes,
-       inverter lados e menu. Espectador imersivo esconde a linha. -->
+       inverter lados e menu; a posse ocupa o meio e desce para a segunda
+       linha só em tela estreita. Espectador imersivo esconde a linha. -->
   {#if podeControlar || !modoImersivo}
     <header class="barra-sala" in:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }}>
       <button type="button" class="btn-topo" onclick={onVoltar} aria-label="Voltar para a lista de quadras" title="Voltar">
@@ -461,13 +462,23 @@
         <strong>#{quadra.id}</strong>
         <span>{copiado === 'ok' ? 'Copiado!' : copiado === 'falhou' ? `Código ${quadra.id}` : quadra.nome}</span>
       </button>
-      <span
-        class="status-dot status-topo {conexaoVisivel.chave === 'conectado' ? 'status-online' : conexaoVisivel.chave === 'offline' ? 'status-sem-rede' : 'status-reconectando'}"
-        role="img"
-        aria-label={conexaoVisivel.rotulo}
-        title={conexaoVisivel.rotulo}
-      ></span>
       {#if podeControlar}
+        <div class="faixa-posse" class:minha={temControle}>
+          <span class="pino" aria-hidden="true"></span>
+          <!-- Anúncio da posse fora do {#key}: a região viva não pode nascer a
+               cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
+          <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
+          {#key quadra?.controle_id}
+            <div class="posse-texto" aria-hidden="true" in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>
+              <strong>{posse.titulo}</strong>
+              <small>{posse.detalhe}</small>
+            </div>
+          {/key}
+          <span class="selo-papel">{nomeDoPapel(eu?.papel)}</span>
+          {#if posse.podeAssumir}
+            <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
+          {/if}
+        </div>
         <button type="button" class="btn-topo" onclick={() => { modalConfigAberto = true; isReinicioConfig = false; }} aria-label="Duplas e regras da partida" title="Duplas e regras">
           <Icone nome="engrenagem" tamanho="1.15em" />
         </button>
@@ -502,26 +513,14 @@
         aria-label="Mais ações"
         title="Mais ações"
       ><span aria-hidden="true">⋯</span></button>
+      <span class="caixa-status" title={conexaoVisivel.rotulo}>
+        <span
+          class="status-dot status-topo {conexaoVisivel.chave === 'conectado' ? 'status-online' : conexaoVisivel.chave === 'offline' ? 'status-sem-rede' : 'status-reconectando'}"
+          role="img"
+          aria-label={conexaoVisivel.rotulo}
+        ></span>
+      </span>
     </header>
-  {/if}
-
-  {#if podeControlar}
-    <div class="faixa-posse" class:minha={temControle}>
-      <span class="pino" aria-hidden="true"></span>
-      <!-- Anúncio da posse fora do {#key}: a região viva não pode nascer a
-           cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
-      <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
-      {#key quadra?.controle_id}
-        <div class="posse-texto" aria-hidden="true" in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>
-          <strong>{posse.titulo}</strong>
-          <small>{posse.detalhe}</small>
-        </div>
-      {/key}
-      <span class="selo-papel">{nomeDoPapel(eu?.papel)}</span>
-      {#if posse.podeAssumir}
-        <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
-      {/if}
-    </div>
   {/if}
 
   <!-- Sempre montado (CV5.DS4.US2): região viva que nasce já preenchida
@@ -684,7 +683,7 @@
     overflow: hidden;
   }
 
-  .barra-sala { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 0 auto; }
+  .barra-sala { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; min-width: 0; flex: 0 0 auto; }
   .btn-topo,
   .chip-codigo {
     min-height: 44px;
@@ -708,8 +707,25 @@
   }
   .btn-topo:hover { color: var(--text-primary); background: var(--bg-card); }
   .btn-topo.ativo { color: var(--text-primary); border-color: var(--acento-info-ativo); }
-  .status-topo { flex: 0 0 12px; width: 12px; height: 12px; margin-inline: 4px 2px; }
-  .chip-codigo { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; padding: 0 12px; }
+  .caixa-status {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-surface);
+  }
+  .status-topo { width: 12px; height: 12px; }
+  /* Pulso só quando ao vivo; movimento reduzido global o desliga. */
+  .status-topo.status-online { animation: pulso-status 2s ease-in-out infinite; }
+  @keyframes pulso-status {
+    0%, 100% { box-shadow: 0 0 0 0 var(--estado-sucesso-brilho); }
+    50% { box-shadow: 0 0 0 6px transparent; }
+  }
+  .chip-codigo { display: flex; align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; max-width: 40%; padding: 0 12px; }
   .chip-codigo strong { font-family: var(--fonte-numeros); font-size: 1.35rem; letter-spacing: .04em; color: var(--text-primary); }
   .chip-codigo span { overflow: hidden; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -717,17 +733,27 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    min-height: 52px;
-    padding: 6px 8px 6px 12px;
+    min-height: 44px;
+    box-sizing: border-box;
+    padding: 0 6px 0 12px;
     border: 1px solid var(--border-color);
     border-radius: 12px;
     background: var(--bg-surface);
-    flex: 0 0 auto;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+  /* Tela estreita: a posse vira a segunda linha inteira, os botões ficam em cima. */
+  @media (max-width: 599px) {
+    .barra-sala { gap: 6px; }
+    .barra-sala .chip-codigo { flex: 1 1 0; max-width: none; justify-content: center; padding: 0 6px; overflow: hidden; }
+    .barra-sala .chip-codigo strong { font-size: 1.1rem; }
+    .barra-sala .chip-codigo span { display: none; }
+    .barra-sala .faixa-posse { order: 1; flex-basis: 100%; }
   }
   .faixa-posse .pino { width: 10px; height: 10px; flex: 0 0 10px; border-radius: 50%; background: var(--text-secondary); }
   .faixa-posse.minha .pino { background: var(--estado-sucesso, #34d399); }
   .posse-texto { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; color: var(--text-primary); }
-  .posse-texto small { color: var(--text-secondary); font-size: .75rem; }
+  .posse-texto small { overflow: hidden; color: var(--text-secondary); font-size: .75rem; text-overflow: ellipsis; white-space: nowrap; }
   .selo-papel {
     margin-left: auto;
     padding: 3px 8px;
