@@ -2,7 +2,7 @@
 code: CV6.DS2.US2
 level: User Story
 status: Active
-status_reason: CV6.DS2.US2 puxada para planejamento; aguardando Checkpoint 1
+status_reason: plano aprovado; implementação aguarda fechamento e integração da US1
 updated: 2026-09-27
 ---
 
@@ -43,4 +43,4 @@ Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, 
 
 ## Planejamento atual
 
-Ver [plano](plan.md). Branch `feature/cv6-ds2-us2-aro-de-conexao`, a partir de `origin/master` `290a36c`. Implementação aguarda Checkpoint 1 e integração da US1 pelos checkpoints próprios.
+Ver [plano](plan.md). Branch `feature/cv6-ds2-us2-aro-de-conexao`, a partir de `origin/master` `290a36c`. Checkpoint 1 aprovado. Implementação aguarda integração da US1 pelos checkpoints próprios.

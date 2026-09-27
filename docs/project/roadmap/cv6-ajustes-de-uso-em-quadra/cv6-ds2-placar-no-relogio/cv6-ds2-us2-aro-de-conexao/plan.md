@@ -1,6 +1,6 @@
 # Plano — CV6.DS2.US2
 
-## Checkpoint 1 — aguardando aceite
+## Checkpoint 1 — aprovado pelo Navigator
 
 - Nível: User Story (HU), dentro de CV6.DS2.
 - Branch: `feature/cv6-ds2-us2-aro-de-conexao`, criada de `origin/master` `290a36c`.
@@ -48,9 +48,9 @@ Substituir a bolinha do placar por um aro fino completo na borda da tela. Preser
 
 ## Dependência e estado da HU anterior
 
-A US1 está em `feature/cv6-ds2-us1-leitura-no-pulso`, último commit `90fc088`, instalada no relógio e sincronizada. Ainda aguarda validação manual no Checkpoint 2, revisão no Checkpoint 3 e fechamento no Checkpoint 4. O pedido de próxima HU não será usado como aceite implícito desses checkpoints.
+A US1 está em `feature/cv6-ds2-us1-leitura-no-pulso`, último commit `90fc088`, instalada no relógio e sincronizada. Checkpoint 2 da US1 aceito pelo Navigator junto da aprovação deste plano. A US1 está em revisão no Checkpoint 3; ainda depende do fechamento no Checkpoint 4.
 
-Esta branch nasce da master conforme o contrato. Antes de implementar sobre o novo layout, concluir os checkpoints da US1 e atualizar esta branch com a master que a integrar. Não copiar silenciosamente a implementação anterior nem fazer merge da US1 em master sem aceite. Planejamento da US2 pode ser aprovado enquanto essa dependência permanece pendente.
+Esta branch nasce da master conforme o contrato. Antes de implementar sobre o novo layout, concluir os checkpoints da US1 e atualizar esta branch com a master que a integrar. Não copiar silenciosamente a implementação anterior nem fazer merge da US1 em master sem aceite. Planejamento da US2 aprovado; implementação aguarda essa integração.
 
 ## Fora do escopo
 
