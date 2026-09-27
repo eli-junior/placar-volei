@@ -11,6 +11,7 @@ from app.eventos import (
     TipoEvento,
     append_evento_sync,
     carregar_eventos_sync,
+    descartar_quadra_locks,
     get_quadra_lock,
 )
 from app.identidade import hash_sessao
@@ -95,7 +96,7 @@ def gerar_codigo_mestre_sync() -> str:
     return f"{secrets.randbelow(10000):04d}"
 
 
-def limpar_quadras_expiradas_sync(db_path: str) -> int:
+def expirar_quadras_sync(db_path: str) -> list[str]:
     """Remove quadras sem atualização há mais de 1 hora (TTL configurável)."""
     limite = (
         datetime.now(UTC) - timedelta(seconds=settings.quadra_ttl_seconds)
@@ -106,7 +107,7 @@ def limpar_quadras_expiradas_sync(db_path: str) -> int:
         cursor.execute("PRAGMA table_info(quadras);")
         colunas = [row["name"] for row in cursor.fetchall()]
         if "atualizado_em" not in colunas:
-            return 0
+            return []
 
         cursor.execute("SELECT id FROM quadras WHERE atualizado_em < ?", (limite,))
         expiradas = [r["id"] for r in cursor.fetchall()]
@@ -114,6 +115,12 @@ def limpar_quadras_expiradas_sync(db_path: str) -> int:
             placeholders = ",".join("?" for _ in expiradas)
             cursor.execute(
                 f"DELETE FROM eventos WHERE quadra_id IN ({placeholders})", expiradas
+            )
+            # Recibos do relógio não têm FK para a sala: sem isto, cresciam
+            # para sempre no Mini PC.
+            cursor.execute(
+                f"DELETE FROM watch_recibos WHERE quadra_id IN ({placeholders})",
+                expiradas,
             )
             cursor.execute(
                 f"DELETE FROM participantes WHERE quadra_id IN ({placeholders})",
@@ -126,7 +133,13 @@ def limpar_quadras_expiradas_sync(db_path: str) -> int:
                 f"DELETE FROM quadras WHERE id IN ({placeholders})", expiradas
             )
             conn.commit()
-        return len(expiradas)
+        return expiradas
+
+
+def limpar_quadras_expiradas_sync(db_path: str) -> int:
+    expiradas = expirar_quadras_sync(db_path)
+    descartar_quadra_locks(expiradas)
+    return len(expiradas)
 
 
 async def limpar_quadras_expiradas(db_path: str) -> int:
@@ -332,43 +345,63 @@ async def obter_quadra(db_path: str, quadra_id: str) -> dict[str, Any] | None:
     return await asyncio.to_thread(obter_quadra_sync, db_path, quadra_id)
 
 
+# Placar projetado por (partida, último seq): a Home consulta a lista a cada
+# poucos segundos e o log só muda quando alguém marca (CV5.DS1.TS3).
+_placar_cache: dict[tuple[str, int], dict[str, Any]] = {}
+
+
+def _placar_da_partida(conn, db_path: str, partida_id: str, seq: int) -> dict:
+    chave = (partida_id, seq)
+    if chave not in _placar_cache:
+        if len(_placar_cache) > 200:
+            _placar_cache.clear()
+        est = projetar_estado(
+            carregar_eventos_sync(db_path, partida_id, connection=conn)
+        )
+        _placar_cache[chave] = {
+            "partida_id": partida_id,
+            "pontos_a": est.pontos_a,
+            "pontos_b": est.pontos_b,
+            "equipe_a": est.equipe_a,
+            "equipe_b": est.equipe_b,
+            "alvo": est.alvo,
+            "vantagem": est.vantagem,
+            "teto": est.teto,
+            "encerrada": est.encerrada,
+            "vencedor": est.vencedor,
+        }
+    return dict(_placar_cache[chave])
+
+
 def listar_quadras_sync(db_path: str) -> list[dict[str, Any]]:
-    limpar_quadras_expiradas_sync(db_path)
+    # Sem limpeza aqui: a rotina periódica apaga; a lista só esconde as vencidas,
+    # e a leitura não disputa o lock de escrita com quem está marcando ponto.
+    limite = (
+        datetime.now(UTC) - timedelta(seconds=settings.quadra_ttl_seconds)
+    ).isoformat()
     with get_db(db_path) as conn:
-        cursor = conn.cursor()
-        query = """
+        rows = conn.execute(
+            """
             SELECT q.id, q.nome, q.criado_em, q.atualizado_em,
-                   COUNT(p.id) as participantes_count
+                   (SELECT COUNT(*) FROM participantes p WHERE p.quadra_id = q.id)
+                       AS participantes_count,
+                   (SELECT pa.id FROM partidas pa WHERE pa.quadra_id = q.id
+                    ORDER BY pa.criado_em DESC LIMIT 1) AS partida_id
             FROM quadras q
-            LEFT JOIN participantes p ON p.quadra_id = q.id
-            GROUP BY q.id
+            WHERE q.atualizado_em >= ?
             ORDER BY q.atualizado_em DESC
-        """
-        cursor.execute(query)
-        rows = cursor.fetchall()
+            """,
+            (limite,),
+        ).fetchall()
         resultado = []
         for r in rows:
-            quadra_id = r["id"]
-            partida_row = conn.execute(
-                "SELECT id FROM partidas WHERE quadra_id = ? ORDER BY criado_em DESC LIMIT 1",
-                (quadra_id,),
-            ).fetchone()
             dados_partida = None
-            if partida_row:
-                evs = carregar_eventos_sync(db_path, partida_row["id"], connection=conn)
-                est = projetar_estado(evs)
-                dados_partida = {
-                    "partida_id": partida_row["id"],
-                    "pontos_a": est.pontos_a,
-                    "pontos_b": est.pontos_b,
-                    "equipe_a": est.equipe_a,
-                    "equipe_b": est.equipe_b,
-                    "alvo": est.alvo,
-                    "vantagem": est.vantagem,
-                    "teto": est.teto,
-                    "encerrada": est.encerrada,
-                    "vencedor": est.vencedor,
-                }
+            if r["partida_id"]:
+                (seq,) = conn.execute(
+                    "SELECT COALESCE(MAX(seq), 0) FROM eventos WHERE partida_id = ?",
+                    (r["partida_id"],),
+                ).fetchone()
+                dados_partida = _placar_da_partida(conn, db_path, r["partida_id"], seq)
             resultado.append(
                 {
                     "id": r["id"],

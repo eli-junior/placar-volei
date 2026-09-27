@@ -47,3 +47,7 @@ No entanto, a tabela `arenas` no SQLite, rotas `/api/arenas/*` e principalmente 
 - Ao atualizar a versão da aplicação, todas as salas anteriores são descartadas e o banco nasce sem nenhuma quadra ativa.
 - Rotas antigas `/api/arenas` deixam de existir e retornam 404.
 - O débito técnico `debt-arenas-legadas` é encerrado e marcado como pago.
+
+## Atualização 2026-09-27 (CV5.DS1.TS3)
+
+O banco deixa de ser apagado a cada versão do app. `app_meta` passa a guardar `schema`, um hash do DDL (`SCHEMA_VERSAO` em `app/db.py`): o banco só é recriado quando as tabelas mudam. Releases só de código preservam salas e os recibos de idempotência do relógio. Motivo: com o relógio, cada deploy obrigava a parear de novo e quebrava a garantia de reenvio da fila offline.
