@@ -1,7 +1,8 @@
 ---
 code: CV5.DS1.TS2
 level: Technical Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 related:
   - docs/project/debt/items/2026-09-23T1310Z-banco-de-producao-sem-volume-persistente.md
@@ -20,3 +21,7 @@ related:
 
 ## Notes
 Paga `debt-banco-de-producao-sem-volume-persistente`.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds1-ts2-deploy-seguro`.
