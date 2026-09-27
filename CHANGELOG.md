@@ -8,7 +8,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
 - **Branch**: `feature/cv6-ds2-us2-aro-de-conexao`, de `origin/master` `290a36c`.
-- **Passo Ariad**: Passo 4 - Teste e Validação; aro implementado, 53 testes JVM, APKs e lint ok; aguardando validação no relógio (Checkpoint 2).
+- **Passo Ariad**: Passo 5 - Revisão; Checkpoint 2 validado pelo Navigator no relógio.
 - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Assumido de Codex a partir do Passo 3 | Data: 2026-09-27.
 - **Handoff / Próximos Passos**: plano aprovado em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; branch atualizada com master; implementar aro em `ScoreScreen.kt`. Worktree: `/tmp/placar-cv6-ds2-us2`.
 
