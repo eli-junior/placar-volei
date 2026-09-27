@@ -10,8 +10,8 @@ android {
         applicationId = "br.com.placarvolei.watch"
         minSdk = 30
         targetSdk = 36
-        versionCode = 8
-        versionName = "0.19.0"
+        versionCode = 9
+        versionName = "0.20.0"
         val serverUrl = providers.gradleProperty("serverUrl").getOrElse("https://placar.elijunior.click")
         require(!serverUrl.contains('"') && !serverUrl.contains('\\') && !serverUrl.contains('\n'))
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")

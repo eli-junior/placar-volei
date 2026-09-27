@@ -4,11 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: CV5.DS5.TS1 — Tipagem, módulos e testes do web.
-  - **Branch**: `feature/cv5-ds5-ts1-tipagem-e-modulos`
-  - **Passo Ariad**: Passo 6 concluído — Validated, `human_validation: pending` (automode; merge só após o teste do Navigator)
+- **História / Escopo**: CV5 — Robustez, segurança e acessibilidade (13 histórias, versão alvo 0.20.0).
+  - **Branch**: `integracao/cv5` (merge de todas as `feature/cv5-*`; cada história também segue na própria branch).
+  - **Passo Ariad**: Passo 6 concluído em todas — Validated, `human_validation: pending`. Automode autorizado pelo Navigator em 2026-09-27.
   - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 51cc5422-0716-48a4-a737-c2ae18bfcf4d | Data: 2026-09-27
-  - **Handoff / Próximos Passos**: pronto para o teste conjunto na branch de integração do CV5; depois, Checkpoint 4 e merge.
+  - **Handoff / Próximos Passos**: o Navigator testa a `integracao/cv5` pelo roteiro `docs/project/roadmap/cv5-robustez-seguranca-e-acessibilidade/test-guide.md`. Com o aceite (Checkpoint 4): merge da `integracao/cv5` em `master`, fechar a 0.20.0 aqui e marcar as histórias como `Done`. Precisa do Navigator: `OWNER_SECRET` próprio no `.env` do Mini PC e a keystore de release do relógio.
 
 ## 0.19.0 - 2026-09-26
 

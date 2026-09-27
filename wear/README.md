@@ -1,6 +1,6 @@
 # Placar Vôlei — Wear OS
 
-APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca e desfaz pontos quando o admin passa o controle para ele (`CV3.DS1.US2`–`US3`) e, sem rede, segue marcando e sincroniza depois, mesmo após reabrir o app (`CV3.DS1.TS1`, versão `0.19.0`). O servidor deve executar a mesma versão do APK: a devolução do controle com fila pendente precisa da `0.19.0` no servidor.
+APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca e desfaz pontos quando o admin passa o controle para ele (`CV3.DS1.US2`–`US3`) e, sem rede, segue marcando e sincroniza depois, mesmo após reabrir o app (`CV3.DS1.TS1`). Na `0.20.0` (CV5), o relógio se recupera de vínculo ou fila ilegíveis, não trava a fila em recusas passageiras, desliga sensor e polling quando não precisa, pede dois toques para "Nova" e tem build de release com R8. O servidor deve executar a mesma versão do APK.
 
 ## WSL / Android Studio
 
