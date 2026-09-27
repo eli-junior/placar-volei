@@ -36,3 +36,7 @@ Salas privadas fora do lobby; limite persistido entre reinícios (continua em me
 
 ## Validation
 `uv run pytest -q`, testes novos em `tests/test_rate_limit_ip.py`; `curl` com headers forjados contra o container.
+
+## Ajustes na implementação
+- Sessão: em vez de exigir UUID (quebraria os clientes e testes que usam ids próprios), o valor precisa casar `[A-Za-z0-9_-]{1,64}`; fora disso vira sessão UUID nova. Resolve o risco real (valor arbitrário e sem limite).
+- A aprovação do relógio só aceita o participante habilitado (na prática, o "Eli" admin da sala), então a chave `ip:quadra` é defesa extra, não o bloqueio principal.

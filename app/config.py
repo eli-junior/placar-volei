@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     # Apelidos (separados por vírgula, qualquer caixa) que habilitam o vínculo
     # de relógio ao criar ou entrar na sala; são gravados em Title ("eli" -> "Eli").
     watch_auto_grant: str = "eli"
+    # Atrás do Cloudflare Tunnel: o IP do cliente vem de `CF-Connecting-IP`.
+    # Desligado, vale o IP da conexão (acesso direto, testes).
+    trust_cloudflare: bool = False
 
     # Limites de capacidade e ciclo de vida
     max_quadras: int = 20
