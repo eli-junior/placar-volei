@@ -14,7 +14,7 @@ from starlette.websockets import WebSocketDisconnect
 from app.api import ErroDeCampo, normalizar_erros_validacao
 from app.api import router as api_router
 from app.comandos import snapshot_sync
-from app.config import settings
+from app.config import settings, validar_producao
 from app.db import init_db
 from app.eventos import get_quadra_lock
 from app.hub import hub
@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    validar_producao(settings)
     # Inicializa o schema e WAL do SQLite na inicialização
     await init_db(settings.db_path)
 
@@ -137,7 +138,6 @@ async def health_check():
     return {
         "status": "ok",
         "version": settings.version,
-        "db": settings.db_path,
     }
 
 
