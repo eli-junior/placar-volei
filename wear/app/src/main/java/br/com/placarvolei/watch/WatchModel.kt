@@ -98,8 +98,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     /** Desfazer segue valendo com a vitória prevista ou a partida encerrada. */
     val canUndo get() = rev.let { sync.canUndo }
 
-    /** Rótulo e descrição do desfazer com a equipe do ponto do topo. */
-    val undoText get() = undoLabel(rev.let { sync.undoTeam }, labels)
+    /** Descrição acessível do desfazer com a equipe do ponto do topo. */
     val undoSpoken get() = score.let { s ->
         undoDescription(rev.let { sync.undoTeam }, s?.equipeA.orEmpty(), s?.equipeB.orEmpty())
     }
