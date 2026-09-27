@@ -2,7 +2,7 @@
 code: CV6.DS2.US1
 level: User Story
 status: Active
-status_reason: puxada para planejamento; aguardando Checkpoint 1
+status_reason: implementação e testes concluídos; aguardando validação manual no Checkpoint 2
 updated: 2026-09-27
 ---
 
@@ -18,6 +18,7 @@ Como jogador, quero números maiores e informações bem posicionadas no relógi
 - Subir os rótulos Nós / Eles e ampliar os números.
 - Ampliar um pouco o indicador de batimentos e centralizá-lo no topo.
 - Avaliar uso da mesma fonte do placar principal.
+- Botão Nova verde quando disponível, conforme pedido do Navigator durante a implementação; manter dois toques.
 
 ## Acceptance / Done Condition
 
@@ -44,4 +45,4 @@ Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, 
 
 ## Planejamento atual
 
-Branch: `feature/cv6-ds2-us1-leitura-no-pulso`. Ver [plano](plan.md). Implementação depende do aceite no Checkpoint 1.
+Branch: `feature/cv6-ds2-us1-leitura-no-pulso`. Ver [plano](plan.md). Checkpoint 1 aprovado; implementação concluída. Ver [roteiro de validação](test-guide.md).

@@ -1,6 +1,6 @@
 # Plano — CV6.DS2.US1
 
-## Checkpoint 1 — aguardando aceite
+## Checkpoint 1 — aprovado pelo Navigator
 
 - Nível: User Story (HU), dentro de CV6.DS2.
 - Branch: `feature/cv6-ds2-us1-leitura-no-pulso`, criada de `master` `c02285b`, sincronizada com `origin/master`.
@@ -47,3 +47,7 @@ Aro de conexão (US2), novo retorno sonoro/háptico (US3), repouso/retomada (US4
 ## Documentação prevista
 
 Atualizar HU/DS/CV, changelog, roteiro de validação e documentação pertinente do relógio na mesma entrega. Avaliar README/briefing no check de coerência. Nenhuma implementação foi alterada no planejamento.
+
+## Ajuste solicitado durante implementação
+
+Navigator pediu o botão Nova verde. Usar fundo verde escuro com texto branco quando disponível; preservar estado desabilitado e confirmação em dois toques (âmbar ao armar).
