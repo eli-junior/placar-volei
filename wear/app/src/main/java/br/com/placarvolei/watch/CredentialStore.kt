@@ -4,6 +4,7 @@ import android.content.Context
 import android.security.keystore.KeyGenParameterSpec
 import android.security.keystore.KeyProperties
 import android.util.Base64
+import androidx.core.content.edit
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -43,7 +44,7 @@ class CredentialStore(context: Context) {
                 String(doFinal(Base64.decode(encrypted, Base64.NO_WRAP)), Charsets.UTF_8)
             }
         }.getOrElse {
-            prefs.edit().remove(slot).remove(ivSlot).commit()
+            prefs.edit { remove(slot); remove(ivSlot) }
             lostLink = true
             null
         }
