@@ -4,14 +4,6 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### feature/cv6-ds1-us6-atalhos-no-placar
-
-- **História / Escopo**: CV6.DS1.US6 — tocar nas regras do topo abre o ajuste de pontuação; tocar no nome da equipe abre os jogadores daquela equipe.
-- **Branch**: `feature/cv6-ds1-us6-atalhos-no-placar`, de `master` `df3068c`.
-- **Passo Ariad**: Passo 4 - Teste e Validação; Checkpoint 1 aprovado (atalhos seguem a regra do ⚙); aguardando validação do Navigator (Checkpoint 2).
-- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: session_0116vQyfn2t4ewHrNfdCCTkk | Data: 2026-09-27.
-- **Handoff / Próximos Passos**: implementado e testado (e2e `atalhos.spec.js`); validar em aparelho. Arquivos: em `ModalConfigurarPartida` (prop `secao`), `SalaQuadra`, `Placar`, `PlacarResultado`, `PlacarClassico`.
-
 ### feature/cv6-ds2-us2-aro-de-conexao
 
 - **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
@@ -19,6 +11,26 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 - **Passo Ariad**: Passo 2 - Planejamento; Checkpoint 1 aprovado; aguardando integração da US1.
 - **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us2-20260927 | Data: 2026-09-27 14:53 -03.
 - **Handoff / Próximos Passos**: plano aprovado em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; implementar após a integração da US1.
+
+## 0.22.0 - 2026-09-27
+
+Boundary: minor (CV6.DS1.US6 — atalhos de ajuste no placar)
+
+Authors: Eli (Navigator); Claude Code (Driver, Passos 1–7) | Sessão: session_0116vQyfn2t4ewHrNfdCCTkk
+
+Git source: merge `--no-ff` de `feature/cv6-ds1-us6-atalhos-no-placar` em `master`.
+
+### Added
+
+- Tocar no resumo de regras do topo abre só Pontuação e Vantagem; tocar no nome da equipe (esportivo e clássico) abre só os jogadores dela. Tocar fora fecha sem salvar. Mesma permissão do ⚙; o espectador não tem atalho.
+
+### Fixed
+
+- No esportivo, o número gigante cobria o nome da equipe e engolia o toque.
+
+### Verification
+
+- 93 testes unitários web, svelte-check, build e 31 testes de navegador (novo `e2e/atalhos.spec.js`) aprovados. Navigator validou.
 
 ## 0.21.1 - 2026-09-27
 
