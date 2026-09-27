@@ -8,9 +8,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: CV6.DS2.US1 — placar e batimentos mais legíveis no relógio.
 - **Branch**: `feature/cv6-ds2-us1-leitura-no-pulso`, criada de `master` `c02285b`.
-- **Passo Ariad**: Passo 4 - Teste e Validação; aguardando validação manual no Checkpoint 2.
+- **Passo Ariad**: Passo 5 - Revisão; Checkpoint 2 aceito pelo Navigator; aguardando Checkpoint 3.
 - **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us1-20260927 | Data: 2026-09-27 14:21 -03.
-- **Handoff / Próximos Passos**: layout e mensagem implementados; Teko local com licença; Nova verde e rótulo Voltar Ponto solicitados pelo Navigator; 52 testes JVM e 221 backend aprovados, builds debug/release, lint Android e Svelte Check concluídos; release instalado no relógio preservando dados, prévia temporária removida. Plano em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us1-leitura-no-pulso/plan.md`. Roteiro em `test-guide.md` na pasta da HU. Validar no relógio e telefone antes do Passo 5. CV3.DS1.US4 continua pendente. Versão proposta: 0.20.1.
+- **Handoff / Próximos Passos**: layout e mensagem implementados; Teko local com licença; Nova verde e rótulo Voltar Ponto solicitados pelo Navigator; 52 testes JVM e 221 backend aprovados, builds debug/release, lint Android e Svelte Check concluídos; release instalado no relógio preservando dados, prévia temporária removida. Plano em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us1-leitura-no-pulso/plan.md`. Roteiro em `test-guide.md` na pasta da HU. Revisão sem bloqueios funcionais: FittedText e UNDO_LABEL concentram apresentação; sem nova dívida estrutural. Manter dívida existente de testes de tela; atualizar seu registro na documentação. Pendentes após CP3: README, wear/README, briefing, HU/DS/CV, roteiro, changelog, decisão da fonte/rótulo, dívida de testes e versão coordenada com web. Remover espaço final na licença Teko. US2 tem plano aprovado na branch própria; implementar após integração autorizada da US1. CV3.DS1.US4 continua pendente. Versão proposta: 0.20.1.
 
 ## 0.20.0 - 2026-09-27
 
