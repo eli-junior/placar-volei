@@ -95,6 +95,30 @@ class ScoreSyncTest {
     }
 
     @Test
+    fun transientRefusalsKeepTheCommandQueuedAndUnheld() = runBlocking {
+        val server = FakeServer()
+        val sync = linked(server)
+        assertTrue(sync.tap("A"))
+        for (status in listOf(408, 425, 429)) {
+            val (result, _) = sync.sendNext { status to JSONObject().put("detail", "espere") }
+            assertEquals(SendResult.ADIADO, result)
+            assertNull(sync.held)
+            assertEquals(1, sync.pending.size)
+        }
+        sync.drain(server)
+        assertEquals(0, sync.pending.size)
+        assertEquals(1, server.efeitos)
+    }
+
+    @Test
+    fun definitiveRefusalWithoutReceiptStillHolds() = runBlocking {
+        val sync = linked(FakeServer())
+        assertTrue(sync.tap("B"))
+        sync.sendNext { 422 to JSONObject().put("detail", "Lance inválido.") }
+        assertEquals("Lance inválido.", sync.held)
+    }
+
+    @Test
     fun offlineTapsAndUndoSurviveRestartAndSyncOnce() {
         val server = FakeServer()
         val sync = linked(server)
