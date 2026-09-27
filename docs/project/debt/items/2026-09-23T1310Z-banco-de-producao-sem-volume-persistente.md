@@ -1,6 +1,6 @@
 ---
 id: debt-banco-de-producao-sem-volume-persistente
-status: Paid
+status: Dropped
 kind: operation
 severity: medium
 source: CV3.DS1.US1
@@ -29,3 +29,7 @@ Volume nomeado para `/data`, com a atualização validada preservando uma sala a
 ## Fechamento 2026-09-27
 
 Pago pela `CV5.DS1.TS2`: volume nomeado `placar-data:/data` no compose e procedimento de atualização no `development-guide.md`.
+
+## Revisão 2026-09-27 (Navigator)
+
+O Navigator decidiu que o banco deve ser apagado a cada start do contêiner (`RESET_DB_ON_STARTUP=true`), e o volume saiu do compose. A perda de dados no deploy deixa de ser débito e passa a ser o comportamento escolhido. Ver a decisão `2026-09-15T1730Z-remocao-de-arenas-e-banco-limpo-no-versionamento`.

@@ -51,12 +51,9 @@ docker compose up -d --build
 
 O `.env` é obrigatório para subir a aplicação. Ele guarda o segredo de owner e o caminho do arquivo SQLite. Existe um `.env.example` versionado; o `.env` real nunca é commitado.
 
-Desde a `CV5.DS1.TS2`, o `docker compose` recusa subir sem `OWNER_SECRET`, e o app (com `PRODUCAO=true`) recusa o valor de exemplo. O banco vive no volume nomeado `placar-volei_placar-data`:
+Desde a `CV5.DS1.TS2`, o `docker compose` recusa subir sem `OWNER_SECRET`, e o app (com `PRODUCAO=true`) recusa o valor de exemplo. Para gerar um segredo: `openssl rand -base64 32`.
 
-- `docker compose up -d --build` preserva salas e vínculos do relógio. O banco só é recriado quando a versão gravada muda (ver `CV5.DS1.TS3`).
-- Backup: `docker run --rm -v placar-volei_placar-data:/data -v "$PWD":/bkp alpine cp /data/placar.db /bkp/placar-$(date +%F).db`.
-- Apagar tudo de propósito: `docker compose down -v`.
-- `COOKIE_SECURE=true` (padrão no compose) exige HTTPS: acesse pelo túnel. Para testar por `http://IP-da-LAN`, defina `COOKIE_SECURE=false` no `.env`.
+O banco é efêmero por decisão do Navigator: com `RESET_DB_ON_STARTUP=true` no compose, **todo start do contêiner** (deploy, `restart` ou reinício após falha) apaga salas, participantes e vínculos do relógio. Depois de cada start, é preciso recriar a quadra e parear o relógio de novo. `COOKIE_SECURE=true` (padrão no compose) exige HTTPS; o acesso é pelo túnel.
 
 ## Verification
 

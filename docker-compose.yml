@@ -21,6 +21,9 @@ services:
       - TRUST_CLOUDFLARE=${TRUST_CLOUDFLARE:-true}
       - OWNER_SECRET=${OWNER_SECRET:?defina OWNER_SECRET no .env}
       - PRODUCAO=true
+      # Banco efêmero por decisão do Navigator (2026-09-27): cada start do
+      # contêiner começa limpo; em falha, a quadra é recriada remotamente.
+      - RESET_DB_ON_STARTUP=true
       - COOKIE_SECURE=${COOKIE_SECURE:-true}
       - ADMIN_TIMEOUT_SECONDS=${ADMIN_TIMEOUT_SECONDS:-120}
       - MAX_ARENAS=${MAX_ARENAS:-50}
@@ -28,13 +31,8 @@ services:
       - MAX_PARTICIPANTES_POR_QUADRA=${MAX_PARTICIPANTES_POR_QUADRA:-20}
     volumes:
       - ./fixtures:/srv/fixtures
-      # Banco fora do contêiner: `up -d --build` preserva salas e vínculos.
-      - placar-data:/data
     logging:
       driver: json-file
       options:
         max-size: "10m"
         max-file: "3"
-
-volumes:
-  placar-data:

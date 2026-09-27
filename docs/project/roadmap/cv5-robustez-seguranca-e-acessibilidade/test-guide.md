@@ -4,12 +4,12 @@ Tudo sai da branch `integracao/cv5`. Cada bloco diz o que observar e quando o te
 
 ## 0. Preparar (uma vez)
 
-1. No `.env` do Mini PC, defina um `OWNER_SECRET` próprio. Sem ele, o compose recusa subir; com o valor de exemplo, o app recusa.
+1. No `.env` do Mini PC, defina um `OWNER_SECRET` próprio (`openssl rand -base64 32`). Sem ele, o compose recusa subir; com o valor de exemplo, o app recusa.
 2. Suba a integração:
    ```bash
    git fetch && git switch integracao/cv5 && docker compose up -d --build
    ```
-3. **O primeiro deploy começa com o banco vazio** (volume novo e schema novo). Pareie o relógio de novo uma vez.
+3. **Todo start do contêiner começa com o banco vazio** (decisão do Navigator). Depois de cada deploy ou restart, recrie a quadra e pareie o relógio de novo.
 4. Relógio: `./wear/gradlew -p wear assembleDebug`, e instale. Para o APK de release, crie antes a keystore (veja `wear/README.md`).
 
 ## 1. Segurança e deploy (DS1)
@@ -18,7 +18,7 @@ Tudo sai da branch `integracao/cv5`. Cada bloco diz o que observar e quando o te
 |---|---|---|
 | `curl` no owner 6 vezes, trocando `X-Forwarded-For` | 5×404 e depois 429 | seis 404 |
 | 21 códigos de sala errados pelo `curl` | 20×404 e depois 429 | nunca 429 |
-| Criar uma sala, depois `docker compose up -d --build` (mesma versão) | a sala continua | a sala sumiu |
+| Criar uma sala, depois `docker compose restart` | a sala sumiu (banco limpo a cada start) | a sala continua |
 | `curl -sI` no `/api/quadras` depois de entrar numa sala | `Set-Cookie` com `Secure` | sem `Secure` |
 | `curl https://…/health` | sem o campo `db` | aparece o caminho do banco |
 
