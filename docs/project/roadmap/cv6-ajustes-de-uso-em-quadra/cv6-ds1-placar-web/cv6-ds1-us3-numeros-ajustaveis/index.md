@@ -48,3 +48,7 @@ Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, 
 - Limites medidos pelos dígitos reais (dois ≈ .62em, três ≈ .95em de largura) impedem corte e invasão do nome, inclusive com 100 pontos em G.
 - Clássico já ocupa a coluna: P/M/G não o altera.
 - Follow-up não feito: no tablet deitado o glifo fica acima do centro; centralizar liberaria altura para o G.
+
+## Ajuste pós-entrega (0.21.1, 2026-09-27)
+
+A escala P/M/G passou a valer também no placar clássico (cartões). O número segue o contêiner, multiplica por `--escala-numeros` e é limitado ao cartão, com variação para três dígitos e tela em pé. No clássico, P deixa de ser o antigo tamanho fixo de 7.2rem. Validado pelo Navigator.

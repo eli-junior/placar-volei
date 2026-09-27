@@ -16,12 +16,12 @@
   class:invertido={ladosInvertidos}
   aria-label="Placar clássico: {equipeA} {pontosA}, {equipeB} {pontosB}"
 >
-  <section class="time time-a">
+  <section class="time time-a" class:tres-digitos={String(pontosA).length > 2}>
     <span class="nome" title={equipeA}>{equipeA}</span>
     <CartaoDobravel valor={pontosA} equipe={equipeA} tema="a" tamanho="fluido" prefersReducedMotion={movimentoReduzido} />
   </section>
   <span class="divisor" aria-hidden="true">×</span>
-  <section class="time time-b">
+  <section class="time time-b" class:tres-digitos={String(pontosB).length > 2}>
     <span class="nome" title={equipeB}>{equipeB}</span>
     <CartaoDobravel valor={pontosB} equipe={equipeB} tema="b" tamanho="fluido" prefersReducedMotion={movimentoReduzido} />
   </section>
@@ -87,6 +87,11 @@
     min-height: 0;
   }
 
+  /* Escala P/M/G (CV6.DS1.US3) também no clássico: tamanho automático pelo
+     contêiner, multiplicado pela escala e limitado ao que cabe no cartão. */
+  .time { --cartao-num: clamp(3.5rem, min(calc(min(22cqw, 48cqh) * var(--escala-numeros, 1)), 34cqw, 62cqh), 40rem); }
+  .time.tres-digitos { --cartao-num: clamp(3rem, min(calc(min(15cqw, 40cqh) * var(--escala-numeros, 1)), 23cqw, 62cqh), 28rem); }
+
   .divisor {
     grid-area: divisor;
     display: grid;
@@ -105,5 +110,7 @@
       grid-template-areas: 'a' 'divisor' 'b';
     }
     .classico.invertido { grid-template-areas: 'b' 'divisor' 'a'; }
+    .time { --cartao-num: clamp(3.5rem, min(calc(min(42cqw, 22cqh) * var(--escala-numeros, 1)), 70cqw, 30cqh), 40rem); }
+    .time.tres-digitos { --cartao-num: clamp(3rem, min(calc(min(30cqw, 20cqh) * var(--escala-numeros, 1)), 48cqw, 30cqh), 28rem); }
   }
 </style>
