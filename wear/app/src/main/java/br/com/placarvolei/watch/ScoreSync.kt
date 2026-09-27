@@ -43,7 +43,7 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
             val s = score ?: return "Carregando placar…"
             held?.let { return it }
             if (s.controleId == null || s.controleId != participantId) {
-                return "Controle no telefone. Peça ao admin para passar o controle."
+                return "Controle no telefone."
             }
             return null
         }

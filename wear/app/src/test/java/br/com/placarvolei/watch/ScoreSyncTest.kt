@@ -84,6 +84,37 @@ class ScoreSyncTest {
     private fun ScoreSync.shown() = predicted(score!!, pending)
 
     @Test
+    fun phoneControlShowsShortMessageAndBlocksCommandsUntilReturned() {
+        val server = FakeServer()
+        val sync = linked(server)
+        val snapshot = server.snapshot()
+        snapshot.getJSONObject("quadra").put("controle_id", "phone")
+        sync.applySnapshot(snapshot)
+        assertEquals("Controle no telefone.", sync.blockReason)
+        assertFalse(sync.controlled)
+        assertFalse(sync.tap("A"))
+        assertFalse(sync.undo())
+        assertTrue(sync.pending.isEmpty())
+        sync.applySnapshot(server.snapshot())
+        assertNull(sync.blockReason)
+        assertTrue(sync.tap("A"))
+    }
+
+    @Test
+    fun heldCommandKeepsItsReasonEvenWhenControlIsOnPhone() = runBlocking {
+        val server = FakeServer()
+        val sync = linked(server)
+        sync.tap("A")
+        sync.sendNext { 422 to JSONObject().put("detail", "Lance inválido.") }
+        val snapshot = server.snapshot()
+        snapshot.getJSONObject("quadra").put("controle_id", "phone")
+        sync.applySnapshot(snapshot)
+        assertEquals("Lance inválido.", sync.blockReason)
+        assertFalse(sync.tap("B"))
+        assertEquals(1, sync.pending.size)
+    }
+
+    @Test
     fun corruptQueueFlagsLostUntilDismissedAndKeepsScoring() {
         file.writeText("{corrompido")
         val server = FakeServer()

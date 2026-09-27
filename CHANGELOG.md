@@ -24,6 +24,36 @@ Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a
 
 - Teste de axe media contraste durante fades e falhava de forma intermitente; agora espera as animações finitas.
 
+### feature/cv6-ds2-us2-aro-de-conexao
+
+- **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
+- **Branch**: `feature/cv6-ds2-us2-aro-de-conexao`, de `origin/master` `290a36c`.
+- **Passo Ariad**: Passo 2 - Planejamento; Checkpoint 1 aprovado; aguardando integração da US1.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us2-20260927 | Data: 2026-09-27 14:53 -03.
+- **Handoff / Próximos Passos**: plano aprovado em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; implementar após a integração da US1.
+
+## 0.20.1 - 2026-09-27
+
+Boundary: patch (CV6.DS2.US1 — leitura e operação mais claras no relógio)
+
+Authors: Eli (Navigator); Codex (Driver, Passos 1–7)
+
+Git source: `feature/cv6-ds2-us1-leitura-no-pulso`, commit final a registrar no merge em `master`.
+
+### Changed
+
+- Números do placar no relógio usam Teko local e se ajustam para caber de 0 a três dígitos no mostrador circular.
+- Batimentos ficam centralizados no topo, com `♥ --` sem leitura e indicador oculto sem permissão.
+- Controle no telefone usa a mensagem curta **Controle no telefone.**.
+- Correção usa **Voltar Ponto**, mantendo a equipe na descrição acessível; **Nova** fica verde e continua protegida por dois toques.
+- README, briefing, documentação Wear OS, decisão, worklog e roteiro de validação foram alinhados ao comportamento entregue.
+
+### Verification
+
+- 52 testes JVM do relógio, 221 testes backend, build debug/release, lint Android e Svelte Check aprovados.
+- Navigator validou a leitura e os fluxos no Galaxy Watch SM-L330; release instalado sem apagar o vínculo.
+- Permanece Carried a dívida de testes automatizados da tela do relógio.
+
 ## 0.20.0 - 2026-09-27
 
 ### Documentação posterior à entrega — 2026-09-27

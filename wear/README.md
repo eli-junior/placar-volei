@@ -111,13 +111,13 @@ python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA
 
 1. Com o app aberto no relógio, na lista de presentes do telefone: **Tornar controlador** em Eli (Relógio) e depois **Passar controle**.
 2. O site deixa de mostrar +1/Desfazer, e o relógio libera as duas metades: **Nós** (equipe A, à esquerda) e **Eles** (equipe B, à direita). Com jogadores cadastrados, aparecem as iniciais (ex.: EC × RM).
-3. Cada toque é gravado no relógio antes de vibrar. Enquanto o servidor não confirma, o número fica apagado, com um traço embaixo. A bolinha no alto mostra quantos lances estão pendentes e muda de cor: verde conectado, amarela enviando ou reconectando, vermelha sem conexão.
+3. Cada toque é gravado no relógio antes de vibrar. Enquanto o servidor não confirma, o número fica apagado, com um traço embaixo. O status da tela indica o estado: verde conectado, amarelo enviando ou reconectando, vermelho sem conexão. O status acessível informa quantos lances estão pendentes.
 4. Sem rede, os toques ficam na fila e são enviados em ordem quando a rede volta, com o app aberto. O envio em segundo plano é da US4.
 5. Se o servidor recusar um lance (partida nova, controle retomado, partida encerrada), a fila pausa e o relógio pede **Descartar**, com confirmação.
 
 ## Desfazer pelo relógio
 
-1. A faixa **↶ Desfazer**, na parte de baixo da tela, desfaz o último ponto que o relógio mostra. É um toque, sem confirmação. A vibração é diferente da do ponto, e o número desce.
+1. A faixa **Voltar Ponto**, na parte de baixo da tela, desfaz o último ponto que o relógio mostra. É um toque, sem confirmação. A vibração é diferente da do ponto, e o número desce.
 2. Funciona também com o lance ainda pendente, sem rede. Ao reconectar, o ponto e o desfazer são enviados em ordem e aparecem os dois na linha do tempo.
 3. A faixa fica apagada quando não há ponto para desfazer, some quando o controle não está no relógio e continua ativa com a partida encerrada. Desfazer o ponto da vitória reabre a partida.
 4. Se o placar mudou no servidor antes do envio, o desfazer é recusado ("O placar mudou; este desfazer não foi aplicado."), nenhum outro ponto é tocado, e a fila pede **Descartar**.
@@ -127,6 +127,12 @@ python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA
 Enquanto o placar está visível, a tela não apaga sozinha (`CV3.DS2.US1`, `0.10.1`): o toque já marca, sem acordar o relógio. Cobrir com a palma ainda apaga. As telas de vínculo e de escolha seguem o tempo normal de tela.
 
 O controle nas mãos do relógio não volta sozinho quando a tela apaga. Para retomar pelo telefone, use **Assumir o controle**.
+
+## Leitura do placar (CV6.DS2.US1)
+
+Os números usam uma cópia local da fonte Teko, ajustada para caber no mostrador circular inclusive com três dígitos. A fonte acompanha o APK sob a SIL Open Font License; o relógio não baixa fontes durante o uso. O indicador de batimentos fica centralizado no topo quando a permissão está disponível. Sem leitura aparece `♥ --`; sem permissão, o indicador fica oculto.
+
+Na faixa inferior, a correção aparece como **Voltar Ponto**. A descrição acessível ainda informa a equipe do último ponto. Ao fim da partida, **Nova** fica verde e exige dois toques dentro de três segundos.
 
 Revogar: no telefone, **ícone de relógio → Revogar acesso**. O Eli (Relógio) sai da sala, e o controle volta para o Eli. Vincular outro relógio revoga o anterior e mantém o papel e o controle já dados ao relógio.
 

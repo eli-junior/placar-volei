@@ -11,6 +11,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -33,10 +34,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontVariation
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,6 +57,9 @@ import kotlinx.coroutines.delay
 
 private val CorNos = Color(0xFFFFB020)
 private val CorEles = Color(0xFF4FC3F7)
+@OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
+private val ScoreFont = FontFamily(Font(R.font.teko, weight = FontWeight.Bold,
+    variationSettings = FontVariation.Settings(FontVariation.weight(700))))
 
 /**
  * Placar no pulso (CV3.DS1.US2): metade esquerda = Nós (equipe A), direita =
@@ -84,36 +96,42 @@ fun ScoreScreen(model: WatchModel) {
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
-        Row(Modifier.fillMaxSize()) {
-            TeamHalf(rotuloA, pontosA, CorNos, reason == null, pending > 0, Modifier.weight(1f)) { tap("A") }
-            Box(Modifier.fillMaxHeight().width(2.dp).background(Color(0xFF333333)))
-            TeamHalf(rotuloB, pontosB, CorEles, reason == null, pending > 0, Modifier.weight(1f)) { tap("B") }
-        }
-        Row(
-            Modifier.align(Alignment.TopCenter).padding(top = 10.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            StatusDot(model.connection, pending, Modifier)
-            if (heart.granted) HeartText(heart.bpm)
-        }
-        if (model.controlled) {
-            // Com o controle, a faixa de baixo é o desfazer; o motivo (fim de
-            // partida) sobe para baixo da bolinha, longe dos números.
-            if (model.showNewMatch) {
-                UndoAndNewBar(
-                    model.canUndo, model.canStartNewMatch, model.undoSpoken, Modifier.align(Alignment.BottomCenter),
-                    ::undo, ::newMatch, onArm = { view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) },
-                )
+        // Cabeçalho, aviso e ações têm espaço próprio: o placar ocupa só o que sobra.
+        Column(Modifier.fillMaxSize()) {
+            Row(
+                Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp, bottom = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                if (heart.granted) {
+                    Spacer(Modifier.size(22.dp))
+                    HeartText(heart.bpm)
+                }
+                StatusDot(model.connection, pending, Modifier)
+            }
+            if (model.controlled && reason != null && model.held == null) {
+                ReasonText(reason, Modifier.fillMaxWidth())
+            }
+            Row(Modifier.fillMaxWidth().weight(1f)) {
+                TeamHalf(rotuloA, pontosA, CorNos, reason == null, pending > 0, Modifier.weight(1f)) { tap("A") }
+                Box(Modifier.fillMaxHeight().width(2.dp).background(Color(0xFF333333)))
+                TeamHalf(rotuloB, pontosB, CorEles, reason == null, pending > 0, Modifier.weight(1f)) { tap("B") }
+            }
+            if (model.controlled) {
+                if (model.showNewMatch) {
+                    UndoAndNewBar(
+                        model.canUndo, model.canStartNewMatch, model.undoSpoken, Modifier.fillMaxWidth(),
+                        ::undo, ::newMatch, onArm = { view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) },
+                    )
+                } else {
+                    UndoBar(model.canUndo, UNDO_LABEL, model.undoSpoken, Modifier.fillMaxWidth(), ::undo)
+                }
+            } else if (reason != null && model.held == null) {
+                // Mede também a quebra de linha com fonte ampliada antes de distribuir o placar.
+                ReasonText(reason, Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 22.dp))
             } else {
-                UndoBar(model.canUndo, model.undoText, model.undoSpoken, Modifier.align(Alignment.BottomCenter), ::undo)
+                Spacer(Modifier.height(52.dp))
             }
-            if (reason != null && model.held == null) {
-                ReasonText(reason, Modifier.align(Alignment.TopCenter).padding(top = 34.dp))
-            }
-        } else if (reason != null && model.held == null) {
-            // Sem o controle não há o que desfazer: a faixa some e o aviso fica embaixo.
-            ReasonText(reason, Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp))
         }
         model.held?.let { HeldOverlay(it, pending, model::discardHeld) }
         if (model.lostQueue && model.held == null) LostQueueOverlay(model::dismissLostQueue)
@@ -165,10 +183,11 @@ private fun TeamHalf(
             .semantics { contentDescription = "$label, $points pontos${if (predicted) " (enviando)" else ""}. Tocar marca ponto." },
         contentAlignment = Alignment.Center,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-            Text(label, fontSize = 22.sp, fontWeight = FontWeight.Bold, color = color)
+        Column(Modifier.fillMaxSize().padding(horizontal = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            FittedText(label, 22.sp, color, Modifier.fillMaxWidth().height(28.dp))
             AnimatedContent(
                 targetState = points,
+                modifier = Modifier.fillMaxWidth().weight(1f),
                 // Ponto sobe; ponto desfeito desce, para ser visivelmente desfeito.
                 transitionSpec = {
                     val up = if (targetState >= initialState) 1 else -1
@@ -177,11 +196,10 @@ private fun TeamHalf(
                 label = "Pontos $label",
             ) { value ->
                 // Número previsto (ainda não confirmado) fica mais apagado e sublinhado por um traço.
-                Text(
-                    value.toString(),
-                    fontSize = 58.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (predicted) Color.White.copy(alpha = 0.7f) else Color.White,
+                FittedText(
+                    value.toString(), 96.sp,
+                    if (predicted) Color.White.copy(alpha = 0.7f) else Color.White,
+                    Modifier.fillMaxSize(), ScoreFont,
                 )
             }
             Spacer(
@@ -189,6 +207,33 @@ private fun TeamHalf(
                     .background(if (predicted) color.copy(alpha = 0.8f) else Color.Transparent)
             )
         }
+    }
+}
+
+/** Mede o texto antes de desenhar: três dígitos e fonte ampliada cabem na área reservada. */
+@Composable
+private fun FittedText(
+    text: String, preferredSize: TextUnit, color: Color, modifier: Modifier,
+    family: FontFamily = FontFamily.Default,
+) {
+    val measurer = rememberTextMeasurer()
+    val density = LocalDensity.current
+    BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
+        val bounds = with(density) { Constraints(maxWidth = maxWidth.roundToPx(), maxHeight = maxHeight.roundToPx()) }
+        val style = remember(text, preferredSize, family, bounds, density) {
+            var low = 1f
+            var high = preferredSize.value
+            repeat(10) {
+                val size = (low + high) / 2
+                val candidate = TextStyle(fontFamily = family, fontWeight = FontWeight.Bold,
+                    fontSize = size.sp, lineHeight = size.sp, textAlign = TextAlign.Center)
+                val measured = measurer.measure(text, candidate, maxLines = 1, softWrap = false, constraints = bounds)
+                if (measured.hasVisualOverflow) high = size else low = size
+            }
+            TextStyle(fontFamily = family, fontWeight = FontWeight.Bold,
+                fontSize = low.sp, lineHeight = low.sp, textAlign = TextAlign.Center)
+        }
+        Text(text, style = style, color = color, maxLines = 1, softWrap = false)
     }
 }
 
@@ -212,7 +257,7 @@ private fun StatusDot(connection: Connection, pending: Int, modifier: Modifier) 
     }
 }
 
-/** Batimento ao lado da bolinha; fica só no relógio (CV3.DS2.US2). */
+/** Batimento centralizado entre espaços simétricos; fica só no relógio. */
 @Composable
 private fun HeartText(bpm: Int?) {
     val label = heartLabel(bpm)
@@ -220,8 +265,9 @@ private fun HeartText(bpm: Int?) {
     Text(
         label,
         Modifier.semantics { contentDescription = description },
-        fontSize = 13.sp,
+        fontSize = 17.sp,
         fontWeight = FontWeight.Bold,
+        maxLines = 1,
         color = Color(0xFFFF6B81),
     )
 }
@@ -264,12 +310,12 @@ private fun UndoAndNewBar(
         if (armed) { delay(NEW_MATCH_CONFIRM_MS); armed = false }
     }
     Row(modifier.fillMaxWidth().height(52.dp)) {
-        SplitHalf("↶ Desfazer", canUndo, undoSpoken, Alignment.TopEnd, Modifier.weight(1f)) { armed = false; onUndo() }
+        SplitHalf(UNDO_LABEL, canUndo, undoSpoken, Alignment.TopEnd, Modifier.weight(1f)) { armed = false; onUndo() }
         Box(Modifier.fillMaxHeight().width(2.dp).background(Color.Black))
         SplitHalf(
             if (armed) "Tocar de novo" else "▶ Nova", canStart,
             if (armed) "Tocar de novo para começar a partida nova" else "Nova partida com os mesmos times e regras. Dois toques.",
-            Alignment.TopStart, Modifier.weight(1f), highlight = armed,
+            Alignment.TopStart, Modifier.weight(1f), highlight = armed, actionColor = Color(0xFF166534),
         ) {
             if (armed) { armed = false; onStart() } else { armed = true; onArm() }
         }
@@ -279,12 +325,12 @@ private fun UndoAndNewBar(
 @Composable
 private fun SplitHalf(
     label: String, enabled: Boolean, description: String, align: Alignment, modifier: Modifier,
-    highlight: Boolean = false, onTap: () -> Unit,
+    highlight: Boolean = false, actionColor: Color = Color(0xFF3A3A3A), onTap: () -> Unit,
 ) {
     Box(
         modifier
             .fillMaxHeight()
-            .background(if (highlight) Color(0xFF8A5A00) else if (enabled) Color(0xFF3A3A3A) else Color(0xFF1A1A1A))
+            .background(if (highlight) Color(0xFF8A5A00) else if (enabled) actionColor else Color(0xFF1A1A1A))
             .clickable(enabled = enabled, onClick = onTap)
             .semantics { contentDescription = description },
         contentAlignment = align,
