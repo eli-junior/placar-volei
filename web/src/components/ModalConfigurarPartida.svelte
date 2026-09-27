@@ -10,7 +10,21 @@
     onFechar = () => {},
     movimentoReduzido = false,
     submetendo = false,
+    /** `tudo` (⚙), `regras` ou `equipe-a`/`equipe-b` — atalhos do placar (CV6.DS1.US6).
+        A seção curta só mostra uma parte, mas salva todos os campos atuais. */
+    secao = 'tudo',
   } = $props();
+
+  const mostraRegras = $derived(secao === 'tudo' || secao === 'regras');
+  const mostraA = $derived(secao === 'tudo' || secao === 'equipe-a');
+  const mostraB = $derived(secao === 'tudo' || secao === 'equipe-b');
+  const titulo = $derived(
+    isReinicio ? 'Próxima Partida: Duplas & Regras'
+    : secao === 'regras' ? 'Pontuação e Vantagem'
+    : secao === 'equipe-a' ? 'Jogadores da Equipe A'
+    : secao === 'equipe-b' ? 'Jogadores da Equipe B'
+    : 'Configurações da Partida'
+  );
 
   let timeAJogador1 = $state('');
   let timeAJogador2 = $state('');
@@ -68,7 +82,7 @@
 <Dialogo
   rotuladoPor="titulo-config-partida"
   variante="centro"
-  largura="680px"
+  largura={secao === 'tudo' ? '680px' : '440px'}
   {movimentoReduzido}
   {onFechar}
 >
@@ -77,7 +91,7 @@
       <div class="header-titulo-grupo">
         <Icone nome="regras" tamanho="1.2em" />
         <h3 id="titulo-config-partida">
-          {isReinicio ? 'Próxima Partida: Duplas & Regras' : 'Configurações da Partida'}
+          {titulo}
         </h3>
       </div>
       <button
@@ -92,8 +106,9 @@
 
     <form onsubmit={handleSubmit} class="form-config">
       <!-- Pontuação primeiro: é a regra que mais muda entre rodadas (CV6.DS1.US5). -->
+      {#if mostraRegras}
       <div class="secao-bloco">
-        <span class="secao-rotulo">Pontuação e Vantagem</span>
+        {#if secao === 'tudo'}<span class="secao-rotulo">Pontuação e Vantagem</span>{/if}
         <div class="pills-alvo">
           {#each [12, 15, 21, 25] as preset}
             <button
@@ -164,11 +179,15 @@
         {/if}
       </div>
 
+      {/if}
+
       <!-- Seção Duplas / Equipes -->
+      {#if mostraA || mostraB}
       <div class="secao-bloco">
-        <span class="secao-rotulo">Equipes e Duplas da Rodada</span>
-        <div class="grid-equipes">
+        {#if secao === 'tudo'}<span class="secao-rotulo">Equipes e Duplas da Rodada</span>{/if}
+        <div class="grid-equipes" class:uma-equipe={secao !== 'tudo'}>
           <!-- Time A -->
+          {#if mostraA}
           <div class="equipe-card time-a-card">
             <span class="badge-time time-a-badge">Time A</span>
             <div class="campo">
@@ -194,8 +213,10 @@
               />
             </div>
           </div>
+          {/if}
 
           <!-- Time B -->
+          {#if mostraB}
           <div class="equipe-card time-b-card">
             <span class="badge-time time-b-badge">Time B</span>
             <div class="campo">
@@ -221,9 +242,12 @@
               />
             </div>
           </div>
+          {/if}
         </div>
       </div>
+      {/if}
 
+      {#if secao === 'tudo'}
       <div class="secao-bloco">
         <span class="secao-rotulo">Visual do placar</span>
         <div class="seletor-tema" role="radiogroup" aria-label="Tema do placar para todos na quadra">
@@ -253,6 +277,7 @@
           </button>
         </div>
       </div>
+      {/if}
 
       <div class="modal-acoes">
         <button
@@ -348,6 +373,8 @@
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
+
+  .grid-equipes.uma-equipe { grid-template-columns: 1fr; }
 
   .seletor-tema {
     display: grid;
