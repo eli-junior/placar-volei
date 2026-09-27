@@ -1,7 +1,8 @@
 ---
 code: CV5.DS4.US3
 level: User Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 ---
 
@@ -16,3 +17,7 @@ updated: 2026-09-27
 
 ## Acceptance
 Em nenhuma tela aparecem dois estados de conexão diferentes ao mesmo tempo; o apelido digitado na Home aparece pré-preenchido ao entrar por link.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds4-us3-linguagem-consistente`.
