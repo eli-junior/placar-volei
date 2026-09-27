@@ -4,13 +4,35 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### feature/cv6-ds2-us1-leitura-no-pulso
+### feature/cv6-ds2-us2-aro-de-conexao
 
-- **História / Escopo**: CV6.DS2.US1 — placar e batimentos mais legíveis no relógio.
-- **Branch**: `feature/cv6-ds2-us1-leitura-no-pulso`, criada de `master` `c02285b`.
-- **Passo Ariad**: Passo 5 - Revisão; Checkpoint 2 aceito pelo Navigator; aguardando Checkpoint 3.
-- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us1-20260927 | Data: 2026-09-27 14:21 -03.
-- **Handoff / Próximos Passos**: layout e mensagem implementados; Teko local com licença; Nova verde e rótulo Voltar Ponto solicitados pelo Navigator; 52 testes JVM e 221 backend aprovados, builds debug/release, lint Android e Svelte Check concluídos; release instalado no relógio preservando dados, prévia temporária removida. Plano em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us1-leitura-no-pulso/plan.md`. Roteiro em `test-guide.md` na pasta da HU. Revisão sem bloqueios funcionais: FittedText e UNDO_LABEL concentram apresentação; sem nova dívida estrutural. Manter dívida existente de testes de tela; atualizar seu registro na documentação. Pendentes após CP3: README, wear/README, briefing, HU/DS/CV, roteiro, changelog, decisão da fonte/rótulo, dívida de testes e versão coordenada com web. Remover espaço final na licença Teko. US2 tem plano aprovado na branch própria; implementar após integração autorizada da US1. CV3.DS1.US4 continua pendente. Versão proposta: 0.20.1.
+- **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
+- **Branch**: `feature/cv6-ds2-us2-aro-de-conexao`, de `origin/master` `290a36c`.
+- **Passo Ariad**: Passo 2 - Planejamento; Checkpoint 1 aprovado; aguardando integração da US1.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us2-20260927 | Data: 2026-09-27 14:53 -03.
+- **Handoff / Próximos Passos**: plano aprovado em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; implementar após a integração da US1.
+
+## 0.20.1 - 2026-09-27
+
+Boundary: patch (CV6.DS2.US1 — leitura e operação mais claras no relógio)
+
+Authors: Eli (Navigator); Codex (Driver, Passos 1–7)
+
+Git source: `feature/cv6-ds2-us1-leitura-no-pulso`, commit final a registrar no merge em `master`.
+
+### Changed
+
+- Números do placar no relógio usam Teko local e se ajustam para caber de 0 a três dígitos no mostrador circular.
+- Batimentos ficam centralizados no topo, com `♥ --` sem leitura e indicador oculto sem permissão.
+- Controle no telefone usa a mensagem curta **Controle no telefone.**.
+- Correção usa **Voltar Ponto**, mantendo a equipe na descrição acessível; **Nova** fica verde e continua protegida por dois toques.
+- README, briefing, documentação Wear OS, decisão, worklog e roteiro de validação foram alinhados ao comportamento entregue.
+
+### Verification
+
+- 52 testes JVM do relógio, 221 testes backend, build debug/release, lint Android e Svelte Check aprovados.
+- Navigator validou a leitura e os fluxos no Galaxy Watch SM-L330; release instalado sem apagar o vínculo.
+- Permanece Carried a dívida de testes automatizados da tela do relógio.
 
 ## 0.20.0 - 2026-09-27
 
