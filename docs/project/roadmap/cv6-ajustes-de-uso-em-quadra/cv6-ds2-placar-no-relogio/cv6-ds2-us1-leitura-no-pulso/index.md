@@ -1,8 +1,8 @@
 ---
 code: CV6.DS2.US1
 level: User Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status: Active
+status_reason: puxada para planejamento; aguardando Checkpoint 1
 updated: 2026-09-27
 ---
 
@@ -41,3 +41,7 @@ Investigar compatibilidade, licença e legibilidade da fonte antes de prometer p
 
 Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, desenho final e versão serão definidos no checkpoint de planejamento da implementação.
 
+
+## Planejamento atual
+
+Branch: `feature/cv6-ds2-us1-leitura-no-pulso`. Ver [plano](plan.md). Implementação depende do aceite no Checkpoint 1.

@@ -1,8 +1,8 @@
 ---
 code: CV6
 level: Value
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status: Active
+status_reason: CV6.DS2.US1 em planejamento; demais HUs permanecem planejadas
 updated: 2026-09-27
 ---
 

@@ -4,7 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo em `master`. Próximo: `CV3.DS1.US4` (revisão de conflito pelo telefone), a planejar em branch nova.
+### feature/cv6-ds2-us1-leitura-no-pulso
+
+- **História / Escopo**: CV6.DS2.US1 — placar e batimentos mais legíveis no relógio.
+- **Branch**: `feature/cv6-ds2-us1-leitura-no-pulso`, criada de `master` `c02285b`.
+- **Passo Ariad**: Passo 2 - Planejamento; aguardando Checkpoint 1.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us1-20260927 | Data: 2026-09-27 14:21 -03.
+- **Handoff / Próximos Passos**: contexto e código inspecionados; plano em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us1-leitura-no-pulso/plan.md`. Aguardar aceite antes de implementar. CV3.DS1.US4 continua pendente. Versão proposta: 0.20.1.
 
 ## 0.20.0 - 2026-09-27
 
