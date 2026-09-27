@@ -1,9 +1,9 @@
 ---
 code: CV2.DS3.TS1
 level: Technical Story
-status: Active
-status_reason: tokens implementados e verificados; aguarda validação do Navigator
-updated: 2026-09-15
+status: Done
+status_reason: aceite do Navigator em 2026-09-27; tokens em uso e dívida de cores acopladas já quitada
+updated: 2026-09-27
 related:
   - CV2.DS2.US4
   - CV2.DS3.US1
