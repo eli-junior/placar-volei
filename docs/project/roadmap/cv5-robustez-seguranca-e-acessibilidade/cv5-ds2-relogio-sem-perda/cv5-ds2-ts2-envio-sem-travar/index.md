@@ -1,7 +1,8 @@
 ---
 code: CV5.DS2.TS2
 level: Technical Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 ---
 
@@ -14,3 +15,7 @@ updated: 2026-09-27
 
 ## Acceptance
 Um 429 do servidor não trava a fila; toques rápidos não travam a tela.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds2-ts2-envio-sem-travar`.
