@@ -58,7 +58,7 @@
   </section>
 
   <div class="divisor" aria-hidden="true">
-    <span>×</span>
+    <svg viewBox="0 0 100 100"><path d="M8 8L92 92M92 8L8 92" /></svg>
   </div>
 
   <section class="time time-b" class:vencedor={vencedor === 'B'}>
@@ -73,7 +73,7 @@
   .resultado {
     container-type: size;
     display: grid;
-    grid-template-columns: minmax(0, 1fr) clamp(32px, 6cqw, 72px) minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) clamp(44px, 9cqw, 110px) minmax(0, 1fr);
     grid-template-areas: 'a divisor b';
     width: 100%;
     height: 100%;
@@ -149,23 +149,36 @@
     background: linear-gradient(180deg, color-mix(in srgb, var(--cor-time) 24%, transparent), transparent 72%);
   }
 
+  /* Linha e X cheios no centro, sumindo nas pontas. */
   .divisor {
     grid-area: divisor;
+    position: relative;
     display: grid;
     place-items: center;
-    color: var(--texto-apagado);
+    color: var(--texto-medio);
   }
 
-  .divisor span {
-    display: grid;
-    place-items: center;
-    width: clamp(30px, 5cqw, 58px);
+  .divisor::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto;
+    left: 50%;
+    width: 2px;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, transparent, currentColor 50%, transparent);
+  }
+
+  .divisor svg {
+    position: relative;
+    width: clamp(44px, 9cqw, 110px);
     aspect-ratio: 1;
-    border: 1px solid var(--acao-secundaria);
-    border-radius: 50%;
-    background: var(--fundo-base);
-    font-size: clamp(1.15rem, 3cqw, 2rem);
-    font-weight: 800;
+    padding: 6px;
+    background: var(--fundo-superficie);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 18;
+    stroke-linecap: round;
+    mask-image: radial-gradient(circle, #000 20%, transparent 72%);
   }
 
   .somente-leitor {
