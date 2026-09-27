@@ -1,9 +1,9 @@
 ---
 code: CV5.DS2.TS1
 level: Technical Story
-status: Validated
-status_reason: automode aprovado pelo Navigator em 2026-09-27; testes automatizados verdes
-human_validation: pending
+status: Done
+status_reason: aceito pelo Navigator em 2026-09-27 (teste conjunto da integracao/cv5)
+human_validation: accepted
 updated: 2026-09-27
 ---
 

@@ -1,7 +1,8 @@
 ---
 code: CV5.DS5
 level: Delivery Story
-status: Planned
+status: Done
+status_reason: aceito pelo Navigator em 2026-09-27 (teste conjunto da integracao/cv5)
 updated: 2026-09-27
 ---
 

@@ -1,8 +1,8 @@
 ---
 code: CV5
 level: Value
-status: Planned
-status_reason: criado a partir da revisão por especialistas (backend, Svelte, Wear OS, UX) de 2026-09-27
+status: Done
+status_reason: aceito pelo Navigator em 2026-09-27 (teste conjunto da integracao/cv5)
 updated: 2026-09-27
 ---
 

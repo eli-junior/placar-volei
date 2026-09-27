@@ -1,9 +1,9 @@
 ---
 code: CV5.DS1.TS2
 level: Technical Story
-status: Validated
-status_reason: automode aprovado pelo Navigator em 2026-09-27; testes automatizados verdes
-human_validation: pending
+status: Done
+status_reason: aceito pelo Navigator em 2026-09-27 (teste conjunto da integracao/cv5)
+human_validation: accepted
 updated: 2026-09-27
 related:
   - docs/project/debt/items/2026-09-23T1310Z-banco-de-producao-sem-volume-persistente.md

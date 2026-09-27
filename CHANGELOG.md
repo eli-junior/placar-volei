@@ -4,11 +4,44 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: CV5 — Robustez, segurança e acessibilidade (13 histórias, versão alvo 0.20.0).
-  - **Branch**: `integracao/cv5` (merge de todas as `feature/cv5-*`; cada história também segue na própria branch).
-  - **Passo Ariad**: Passo 6 concluído em todas — Validated, `human_validation: pending`. Automode autorizado pelo Navigator em 2026-09-27.
-  - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 51cc5422-0716-48a4-a737-c2ae18bfcf4d | Data: 2026-09-27
-  - **Handoff / Próximos Passos**: o Navigator testa a `integracao/cv5` pelo roteiro `docs/project/roadmap/cv5-robustez-seguranca-e-acessibilidade/test-guide.md`. Com o aceite (Checkpoint 4): merge da `integracao/cv5` em `master`, fechar a 0.20.0 aqui e marcar as histórias como `Done`. Precisa do Navigator: `OWNER_SECRET` próprio no `.env` do Mini PC e a keystore de release do relógio.
+Nenhum trabalho ativo em `master`. Próximo: `CV3.DS1.US4` (revisão de conflito pelo telefone), a planejar em branch nova.
+
+## 0.20.0 - 2026-09-27
+
+Boundary: minor (CV5 — robustez, segurança e acessibilidade; 13 histórias)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7, automode autorizado pelo Navigator) | Sessão: 51cc5422-0716-48a4-a737-c2ae18bfcf4d
+
+Git source: `integracao/cv5` (merge das branches `feature/cv5-*`), integrada em `master` após o Checkpoint 4.
+
+### Added
+
+- Servidor manda `PING` pelo WebSocket a cada 20 s; o navegador reconecta após 45 s de silêncio e na hora ao voltar para a aba ou para a rede (`CV5.DS3.US1`).
+- Relógio: "▶ Nova" em dois toques, desfazer que mostra a equipe (`+1 Nós`), aviso de fila ilegível e build de release com R8 e assinatura (`CV5.DS4.US1`, `CV5.DS2.TS1`, `CV5.DS2.TS4`).
+
+### Changed
+
+- Limites de tentativa pelo IP real (`CF-Connecting-IP` com `TRUST_CLOUDFLARE`), limite de códigos de sala errados em `/entrar`, PIN com `secrets`. O lobby continua público: o PIN identifica a sala e não a protege (`CV5.DS1.TS1`).
+- `OWNER_SECRET` obrigatório e recusado com o valor de exemplo em produção; cookie `Secure`; `/health` sem o caminho do banco; banco apagado a cada start do contêiner (decisão do Navigator) (`CV5.DS1.TS2`).
+- Broadcast paralelo com prazo de 2 s por socket (`CV5.DS3.TS1`); limpeza de salas apaga os recibos do relógio e os locks; a listagem não disputa o lock de escrita (`CV5.DS1.TS3`).
+- Relógio: gravação da fila fora da thread da tela, 408/425/429 sem travar a fila, sensor e polling desligados quando não precisam, tela liberada após 10 min parado, `targetSdk` 36 com a permissão granular de batimento (`CV5.DS2.TS2`, `CV5.DS2.TS3`, `CV5.DS2.TS4`).
+- Web: Linha do Tempo no `Dialogo` nativo, regiões vivas estáveis, movimento reduzido global, "Reconectando…" como único estado de conexão, "{nome} venceu!", selo de papel legível e apelido numa chave só (`CV5.DS4.US2`, `CV5.DS4.US3`).
+
+### Fixed
+
+- QR do "Compartilhar" nunca aparecia (assinatura errada de `gerarQrCode`).
+- Backoff de reconexão do web zerava a cada tentativa.
+- "Copiado!" aparecia mesmo quando a cópia falhava; um 502 do túnel virava "Unexpected token <".
+
+### Development
+
+- `lib/conexao.js` e `lib/tema.js` extraídos e testados; `@ts-check` nos módulos de lógica (`CV5.DS5.TS1`).
+- Débitos: `debt-banco-de-producao-sem-volume-persistente` virou Dropped; `debt-limite-de-vinculo-do-relogio-por-ip-e-em-memoria` pago em parte; novo `debt-sala-quadra-grande-e-props-sem-tipo`.
+
+### Verification
+
+- Backend: 221 testes; ruff limpo. Web: svelte-check sem erros nem avisos, `node --test` e build. Relógio: testes JVM, lint, APK de debug e de release. Imagem Docker compilada.
+- Produção (0.20.0): owner com `X-Forwarded-For` trocado → 429; 21 códigos errados → 429; cookie `Secure`; `/ws/abc` recusado; `PING` aos 20 s. O Navigator validou o restart com banco limpo e a mensagem legível num 502.
 
 ## 0.19.0 - 2026-09-26
 
