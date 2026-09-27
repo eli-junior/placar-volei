@@ -41,3 +41,23 @@ export function mensagemDeErro(dados, alternativa = 'Não foi possível concluir
   const texto = extrairTexto(dados?.detail ?? dados?.detalhe ?? dados);
   return texto || alternativa;
 }
+
+/**
+ * Corpo JSON da resposta, ou null quando não é JSON (CV5.DS3.US1). Um 502 do
+ * túnel chega como HTML e, lido direto, vira "Unexpected token <" na tela.
+ */
+export async function lerJson(res) {
+  try {
+    return await res.json();
+  } catch {
+    return null;
+  }
+}
+
+/** Sem mensagem do servidor por mais que isto, a conexão é tida como morta. */
+export const SILENCIO_MAXIMO_MS = 45000;
+
+/** O servidor manda PING a cada 20 s: silêncio longo é conexão meio aberta. */
+export function conexaoSilenciosa(ultimaMensagem, agora = Date.now(), limite = SILENCIO_MAXIMO_MS) {
+  return agora - ultimaMensagem > limite;
+}

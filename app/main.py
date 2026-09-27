@@ -3,6 +3,7 @@ import logging
 import os
 import re
 import sqlite3
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -34,6 +35,8 @@ from app.watch import router as watch_router
 logger = logging.getLogger(__name__)
 
 CODIGO_QUADRA = re.compile(r"\d{5}")
+# Intervalo do PING do /ws; o navegador desiste após 45 s de silêncio.
+PING_INTERVALO = 20.0
 
 
 @asynccontextmanager
@@ -198,12 +201,18 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
                 },
             )
 
+        ultimo_ping = time.monotonic()
         while True:
             # Verifica expiração mesmo se o cliente não enviar mensagens.
             try:
                 await asyncio.wait_for(websocket.receive_text(), timeout=5)
             except TimeoutError:
                 pass
+            # Batimento (CV5.DS3.US1): com ele, o navegador percebe uma conexão
+            # meio aberta pelo silêncio. O relógio ignora tipos que não conhece.
+            if time.monotonic() - ultimo_ping >= PING_INTERVALO:
+                await websocket.send_json({"tipo": "PING", "payload": {}})
+                ultimo_ping = time.monotonic()
             if watch_device_id and not await asyncio.to_thread(
                 device_active, watch_device_id
             ):
