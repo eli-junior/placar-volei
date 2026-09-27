@@ -40,7 +40,7 @@ test('espectador deixa os cartões dobráveis fora da nova composição', () => 
   assert.match(espectador, /PlacarResultado/);
   assert.doesNotMatch(espectador, /CartaoDobravel/);
   assert.match(espectador, /Linha do tempo/);
-  assert.match(espectador, /Inverter lados/);
+  assert.doesNotMatch(espectador, /Inverter lados/);
 });
 
 test('metadados operacionais não antecedem o placar do espectador', () => {

@@ -105,3 +105,11 @@ test('desconectar para tudo, inclusive a reconexão agendada', () => {
   avancar(60000);
   assert.equal(sockets.length, 1);
 });
+
+test('estadoConexao mapeia os três estados da bolinha', async () => {
+  const { estadoConexao } = await import('../src/lib/conexao.js');
+  assert.equal(estadoConexao(true, true).chave, 'conectado');
+  assert.equal(estadoConexao(true, false).chave, 'offline');
+  assert.equal(estadoConexao(false, true).chave, 'reconectando');
+  assert.equal(estadoConexao(false, false).chave, 'offline');
+});

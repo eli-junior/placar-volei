@@ -612,3 +612,12 @@ html, body {
     scroll-behavior: auto !important;
   }
 }
+
+/* Bolinha de conexão do cabeçalho (CV6.DS1.US1) */
+.status-reconectando {
+  background-color: #f59e0b;
+}
+
+.status-sem-rede {
+  background-color: var(--estado-erro);
+}

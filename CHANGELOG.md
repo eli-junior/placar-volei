@@ -4,7 +4,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo em `master`. Próximo: `CV3.DS1.US4` (revisão de conflito pelo telefone), a planejar em branch nova.
+- **História / Escopo**: `CV6.DS1.US2` — pontuar e desfazer na parte inferior (ordem do DS1: US1 ✓, US4 parcial, US2, US5, US3).
+- **Branch**: `feature/cv6-ds1-us2-controles-inferiores` (a criar de `master` após o merge da US1)
+- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a5-4f3d-ad4e-e8e690004f76 | Data: 2026-09-27
+- **Handoff / Próximos Passos**: plano apresentado no chat junto do fechamento da US1.
+
+## [Não lançado] — CV6.DS1 (alvo 0.21.0, minor ao fechar o DS1)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a5-4f3d-ad4e-e8e690004f76
+
+### Changed
+
+- Topo da quadra em uma linha para operador e espectador: voltar, código, regras da partida, ajustes (⚙), inverter lados (⇄), menu e status. Status vira bolinha em caixa no canto direito: verde pulsante, amarela (reconectando) ou vermelha (aparelho sem rede), com nome acessível. "Duplas e regras" sai do menu para o ⚙; ⇄ e ⋯ saem de dentro do placar. "Você está no controle" dá lugar ao resumo "12 pontos · Vantagem" (`CV6.DS1.US1`, merge de `feature/cv6-ds1-us1-cabecalho-compacto`).
+
+### Fixed
+
+- Teste de axe media contraste durante fades e falhava de forma intermitente; agora espera as animações finitas.
 
 ## 0.20.0 - 2026-09-27
 

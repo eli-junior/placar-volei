@@ -99,6 +99,6 @@ test('revelar controles não muda o layout do palco do espectador', () => {
   const manual = readFileSync(new URL('../src/components/PlacarManual.svelte', import.meta.url), 'utf8');
   assert.match(sala, /class:em-modo-imersivo=\{!podeControlar\}/);
   assert.match(sala, /modoImersivo=\{true\}\s*controlesOcultos=\{modoImersivo\}/);
-  assert.match(sala, /\.em-modo-imersivo > \.sala-header \{\s*position: absolute;/);
+  assert.match(sala, /\.em-modo-imersivo > \.barra-sala \{\s*position: absolute;/);
   assert.match(manual, /\{#if controlesOcultos\}/);
 });

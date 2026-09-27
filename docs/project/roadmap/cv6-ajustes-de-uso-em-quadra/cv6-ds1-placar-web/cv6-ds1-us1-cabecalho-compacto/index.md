@@ -1,8 +1,8 @@
 ---
 code: CV6.DS1.US1
 level: User Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status: Done
+status_reason: validado e aceito pelo Navigator em 2026-09-27
 updated: 2026-09-27
 ---
 
@@ -40,3 +40,12 @@ Definir no planejamento a correspondência exata das três cores com os estados 
 
 Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, desenho final e versão serão definidos no checkpoint de planejamento da implementação.
 
+
+## Entrega (2026-09-27)
+
+- Topo em uma linha: ← · #código e nome · regras da partida · selo do papel · ⚙ (quem opera) · ⇄ · ⛶ (espectador) · ⋯ · status.
+- Status em caixa de 44px no canto direito: verde pulsante (ao vivo), amarelo (reconectando), vermelho (aparelho sem rede, prevalece sobre o socket). Nome acessível "Conexão: …".
+- Ajustes do Navigator na validação: status no canto e pulsante; "Você está no controle" substituído pelo resumo das regras (`resumirRegras`), antecipando a parte do operador da US4. A posse segue anunciada ao leitor de tela e o "Assumir" continua visível quando cabe.
+- Abaixo de 600px a faixa de regras desce para a segunda linha e o nome da quadra some; os botões nunca encolhem.
+- "Duplas e regras" saiu do menu ⋯ para o ⚙; ⇄ e ⋯ saíram de dentro do placar.
+- Teste de axe passou a esperar animações finitas antes de medir contraste (falso positivo intermitente, também presente em `master`).

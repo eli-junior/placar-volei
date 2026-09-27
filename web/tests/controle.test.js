@@ -72,11 +72,14 @@ test('desfazer fica fora de menu e sem confirmação', () => {
 });
 
 test('ações secundárias aparecem uma vez só, no menu', () => {
-  for (const rotulo of ['Compartilhar e QR', 'Duplas e regras', 'Linha do tempo', 'Relógio']) {
+  for (const rotulo of ['Compartilhar e QR', 'Linha do tempo', 'Relógio']) {
     assert.equal(salaFonte.split(`rotulo: '${rotulo}'`).length - 1, 1, rotulo);
   }
   assert.doesNotMatch(placar, /Duplas & Regras|Linha do Tempo/);
   assert.match(salaFonte, /<MenuSala acoes=\{acoesDoMenu\}/);
+  // Duplas e regras e inverter lados moram no cabeçalho (CV6.DS1.US1).
+  assert.doesNotMatch(salaFonte, /rotulo: 'Duplas e regras'/);
+  assert.doesNotMatch(placar, /onAlternarLados/);
 });
 
 test('papel aparece em selo neutro, separado da posse', () => {
@@ -113,4 +116,12 @@ test('papéis não usam as cores das equipes', () => {
   assert.doesNotMatch(css, /--papel-admin-texto: #fb923c/);
   assert.doesNotMatch(css, /--papel-controlador-texto: #38bdf8/);
   assert.doesNotMatch(presentes, /accent-orange/);
+});
+
+test('resumo das regras mostra alvo, vantagem e teto', async () => {
+  const { resumirRegras } = await import('../src/lib/controle.js');
+  assert.equal(resumirRegras({ alvo: 12, vantagem: true, teto: null }), '12 pontos · Vantagem');
+  assert.equal(resumirRegras({ alvo: 15, vantagem: false }), '15 pontos · Sem vantagem');
+  assert.equal(resumirRegras({ alvo: 21, vantagem: true, teto: 25 }), '21 pontos · Vantagem · Teto 25');
+  assert.equal(resumirRegras(null), '12 pontos · Vantagem');
 });

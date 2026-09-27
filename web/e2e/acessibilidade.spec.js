@@ -11,6 +11,8 @@ function comTema(abrir, tema, viewport = { width: 390, height: 844 }) {
 }
 
 async function analisar(pagina) {
+  // Contraste medido no meio de um fade dá falso positivo: espera as animações.
+  await pagina.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished)));
   const { violations } = await new AxeBuilder({ page: pagina }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
   return violations.map((v) => `${v.id} (${v.impact}): ${v.nodes.length} × ${v.nodes[0]?.target.join(' ')}`);
 }
