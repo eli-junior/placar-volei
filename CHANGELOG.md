@@ -4,6 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### feature/cv6-ds1-us6-atalhos-no-placar
+
+- **História / Escopo**: CV6.DS1.US6 — tocar nas regras do topo abre o ajuste de pontuação; tocar no nome da equipe abre os jogadores daquela equipe.
+- **Branch**: `feature/cv6-ds1-us6-atalhos-no-placar`, de `master` `df3068c`.
+- **Passo Ariad**: Passo 2 - Planejamento; aguardando Checkpoint 1.
+- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: session_0116vQyfn2t4ewHrNfdCCTkk | Data: 2026-09-27.
+- **Handoff / Próximos Passos**: aguardando aprovação do plano; implementação em `ModalConfigurarPartida` (prop `secao`), `SalaQuadra`, `Placar`, `PlacarResultado`, `PlacarClassico`.
+
 ### feature/cv6-ds2-us2-aro-de-conexao
 
 - **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
