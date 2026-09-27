@@ -72,11 +72,14 @@ test('desfazer fica fora de menu e sem confirmação', () => {
 });
 
 test('ações secundárias aparecem uma vez só, no menu', () => {
-  for (const rotulo of ['Compartilhar e QR', 'Duplas e regras', 'Linha do tempo', 'Relógio']) {
+  for (const rotulo of ['Compartilhar e QR', 'Linha do tempo', 'Relógio']) {
     assert.equal(salaFonte.split(`rotulo: '${rotulo}'`).length - 1, 1, rotulo);
   }
   assert.doesNotMatch(placar, /Duplas & Regras|Linha do Tempo/);
   assert.match(salaFonte, /<MenuSala acoes=\{acoesDoMenu\}/);
+  // Duplas e regras e inverter lados moram no cabeçalho (CV6.DS1.US1).
+  assert.doesNotMatch(salaFonte, /rotulo: 'Duplas e regras'/);
+  assert.doesNotMatch(placar, /onAlternarLados/);
 });
 
 test('papel aparece em selo neutro, separado da posse', () => {

@@ -42,6 +42,8 @@ test('tema da sala não usa armazenamento local', () => {
   assert.doesNotMatch(sala, /localStorage\.setItem\([^)]*tema_placar/);
 });
 
-test('indicador Ao vivo tem a altura dos controles do cabeçalho', () => {
-  assert.match(sala, /\.ws-status \{\s*box-sizing: border-box;\s*min-height: 44px;/);
+test('cabeçalho em uma linha com alvos de 44px e status em bolinha', () => {
+  assert.match(sala, /\.btn-topo,\s*\.chip-codigo \{\s*min-height: 44px;/);
+  assert.match(sala, /role="img"\s*aria-label=\{conexaoVisivel\.rotulo\}/);
+  assert.doesNotMatch(sala, /Ao vivo/);
 });

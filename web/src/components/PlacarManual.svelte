@@ -14,7 +14,6 @@
     controlesOcultos = true,
     paisagem = false,
     ladosInvertidos = false,
-    onAlternarLados = () => {},
     onAbrirLinhaDoTempo = () => {},
   } = $props();
 
@@ -86,10 +85,6 @@
       <p class="dica" in:fade={{ duration: prefersReducedMotion ? 0 : 160 }}>Toque na tela para ver opções</p>
     {:else}
       <div class="acoes" in:fade={{ duration: prefersReducedMotion ? 0 : 160 }}>
-        <button type="button" class:ativo={ladosInvertidos} onclick={onAlternarLados} aria-pressed={ladosInvertidos}>
-          <span aria-hidden="true">⇄</span>
-          <span>{ladosInvertidos ? 'Lados invertidos' : 'Inverter lados'}</span>
-        </button>
         <button type="button" onclick={onAbrirLinhaDoTempo}>
           <Icone nome="linhaDoTempo" tamanho="1.05em" />
           <span>Linha do tempo</span>
@@ -226,11 +221,6 @@
     font: inherit;
     font-size: .82rem;
     font-weight: 750;
-  }
-
-  .acoes button.ativo {
-    border-color: var(--marca);
-    color: var(--marca);
   }
 
   @media (max-width: 560px) {

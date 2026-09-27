@@ -6,11 +6,15 @@ test('menu por papel e foco de volta ao ⋯', async ({ abrir }) => {
   const sala = await criarSala(admin);
   const mais = admin.getByLabel(/Mais ações/);
   await mais.click();
-  await expect(admin.locator('.menu-acoes button')).toHaveText(['Compartilhar e QR', 'Duplas e regras', 'Linha do tempo', 'Relógio', 'Modo sol', 'Fechar']);
-  await admin.getByRole('button', { name: 'Duplas e regras' }).click();
-  await expect(admin.locator('dialog[open]')).toHaveCount(1);
+  await expect(admin.locator('.menu-acoes button')).toHaveText(['Compartilhar e QR', 'Linha do tempo', 'Relógio', 'Modo sol', 'Fechar']);
   await admin.keyboard.press('Escape');
   await expect(mais).toBeFocused();
+  // Duplas e regras mora no cabeçalho (CV6.DS1.US1).
+  const ajustes = admin.getByLabel('Duplas e regras da partida');
+  await ajustes.click();
+  await expect(admin.locator('dialog[open]')).toHaveCount(1);
+  await admin.keyboard.press('Escape');
+  await expect(ajustes).toBeFocused();
 
   const esp = await abrir({ viewport: { width: 360, height: 640 } });
   await entrarNaSala(esp, sala.id);
@@ -25,8 +29,7 @@ test('menu por papel e foco de volta ao ⋯', async ({ abrir }) => {
 test('campo do formulário continua visível com o teclado aberto', async ({ abrir }) => {
   const p = await abrir({ viewport: { width: 390, height: 844 } });
   await criarSala(p);
-  await p.getByLabel(/Mais ações/).click();
-  await p.getByRole('button', { name: 'Duplas e regras' }).click();
+  await p.getByLabel('Duplas e regras da partida').click();
   await p.setViewportSize({ width: 390, height: 380 });
   const campo = p.locator('dialog[open] input').first();
   await campo.focus();

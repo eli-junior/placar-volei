@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: `CV6.DS1.US1` — cabeçalho compacto e navegação visível (ordem do DS1 aceita: US1, US4, US2, US5, US3).
 - **Branch**: `feature/cv6-ds1-us1-cabecalho-compacto`
-- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Passo Ariad**: Passo 4 - Teste e Validação (aguardando Checkpoint 2)
 - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a5-4f3d-ad4e-e8e690004f76 | Data: 2026-09-27
-- **Handoff / Próximos Passos**: decisões do Navigator: status verde = conectado, amarelo = reconectando, vermelho = offline; tamanho dos números (US3) local com presets. Plano apresentado no chat; implementar após aceite.
+- **Handoff / Próximos Passos**: decisões do Navigator: status verde = conectado, amarelo = reconectando, vermelho = offline; tamanho dos números (US3) local com presets. Plano aceito; implementação feita. Aguardando validação manual do Navigator. Achado: axe de contraste intermitente (também em `master`), por medir durante transições; registrar como follow-up.
 
 ## 0.20.0 - 2026-09-27
 

@@ -19,11 +19,9 @@
     onIniciarNovaPartida = () => {},
     onAbrirCompartilhar = () => {},
     // Ações secundárias ficam num único menu (CV4.DS3.US1).
-    onAbrirMenu = () => {},
     // Equipe do ponto que o Desfazer vai anular, quando conhecida.
     ultimoPonto = null,
     ladosInvertidos = false,
-    onAlternarLados = () => {},
   } = $props();
 
   let feedbackEquipe = $state(null);
@@ -254,23 +252,6 @@
       <span class="desfazer-texto"><span aria-hidden="true">↺</span> Desfazer</span>
       {#if ultimoNome && podeDesfazer}<small>último: +1 {ultimoNome}</small>{/if}
     </button>
-    <button
-      type="button"
-      class="btn-base"
-      class:ativo={ladosInvertidos}
-      onclick={onAlternarLados}
-      aria-pressed={ladosInvertidos}
-      aria-label="Inverter lados das equipes"
-      title="Inverter lados nesta tela"
-    ><span aria-hidden="true">⇄</span></button>
-    <button
-      type="button"
-      class="btn-base"
-      onclick={onAbrirMenu}
-      aria-haspopup="dialog"
-      aria-label="Mais ações: compartilhar, relógio, regras, presentes e tema"
-      title="Mais ações"
-    ><span aria-hidden="true">⋯</span></button>
   </div>
 </section>
 
@@ -318,27 +299,8 @@
 
   .base {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 56px 56px;
+    grid-template-columns: minmax(0, 1fr);
     gap: 8px;
-  }
-
-  .btn-base {
-    display: grid;
-    place-items: center;
-    min-height: 56px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background: var(--bg-surface);
-    color: var(--text-secondary);
-    font-size: 1.3rem;
-    font-weight: 800;
-    cursor: pointer;
-    touch-action: manipulation;
-  }
-
-  .btn-base.ativo {
-    color: var(--marca);
-    border-color: var(--marca);
   }
 
   /* Banner de Vitória */

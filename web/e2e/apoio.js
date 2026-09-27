@@ -46,7 +46,7 @@ export async function entrarNaSala(pagina, id, nome = apelido('Esp')) {
   return corpo.participante ?? corpo;
 }
 
-export async function semRolagem(pagina, seletor = '.btn-marcar, .btn-desfazer, .btn-base, .sala-header button, .ws-status') {
+export async function semRolagem(pagina, seletor = '.btn-marcar, .btn-desfazer, .btn-topo, .chip-codigo, .status-topo') {
   return pagina.evaluate((sel) => ({
     rolaVertical: document.documentElement.scrollHeight > innerHeight + 1,
     rolaHorizontal: document.documentElement.scrollWidth > innerWidth + 1,

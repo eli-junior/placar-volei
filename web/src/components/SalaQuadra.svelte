@@ -15,6 +15,7 @@
   import { ehDonoDoRelogio } from '../lib/relogio.js';
   import { ultimoPontoDesfazivel, descreverPosse } from '../lib/controle.js';
   import MenuSala from './MenuSala.svelte';
+  import { estadoConexao } from '../lib/conexao.js';
   import {
     suportaTelaCheia,
     estaEmTelaCheia,
@@ -197,7 +198,6 @@
     { rotulo: 'Compartilhar e QR', icone: 'compartilhar', acao: () => { modalCompartilharAberto = true; } },
     ...(podeControlar
       ? [
-          { rotulo: 'Duplas e regras', icone: 'engrenagem', acao: () => { modalConfigAberto = true; isReinicioConfig = false; } },
           { rotulo: 'Linha do tempo', icone: 'linhaDoTempo', acao: handleAbrirLinhaDoTempo },
           { rotulo: 'Relógio', icone: 'relogio', acao: abrirRelogio },
         ]
@@ -308,6 +308,19 @@
   let telaCheia = $state(estaEmTelaCheia());
   let avisoTelaCheia = $state(null);
   let avisoTelaCheiaTimer = null;
+
+  // Rede do aparelho: separa "sem internet" (vermelho) de "reconectando" (amarelo).
+  let online = $state(typeof navigator === 'undefined' ? true : navigator.onLine);
+  $effect(() => {
+    const atualizar = () => { online = navigator.onLine; };
+    window.addEventListener('online', atualizar);
+    window.addEventListener('offline', atualizar);
+    return () => {
+      window.removeEventListener('online', atualizar);
+      window.removeEventListener('offline', atualizar);
+    };
+  });
+  const conexaoVisivel = $derived(estadoConexao(wsConectado, online));
 
   $effect(() => observarTelaCheia((ativa) => { telaCheia = ativa; }));
 
@@ -437,22 +450,62 @@
   role="region"
   aria-label="Quadra de Vôlei"
 >
-  <!-- Top Bar com Botão Voltar e Status de Conexão -->
-  {#if podeControlar}
-    <!-- Operação (CV4.DS3.US1): barra compacta e faixa de posse; o resto das
-         ações fica no menu ⋯ para o placar caber sem rolagem. -->
-    <header class="barra-operador">
-      <button type="button" class="btn-voltar-compacto" onclick={onVoltar} aria-label="Voltar para a lista de quadras">←</button>
+  <!-- Cabeçalho em uma linha (CV6.DS1.US1): voltar, quadra, status, ajustes,
+       inverter lados e menu. Espectador imersivo esconde a linha. -->
+  {#if podeControlar || !modoImersivo}
+    <header class="barra-sala" in:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }}>
+      <button type="button" class="btn-topo" onclick={onVoltar} aria-label="Voltar para a lista de quadras" title="Voltar">
+        <span aria-hidden="true">←</span>
+      </button>
       <button type="button" class="chip-codigo" onclick={copiarCodigo} title="Copiar código da sala" aria-label="Copiar código da sala {quadra.id}">
         <strong>#{quadra.id}</strong>
         <span>{copiado === 'ok' ? 'Copiado!' : copiado === 'falhou' ? `Código ${quadra.id}` : quadra.nome}</span>
       </button>
-      <div class="ws-status">
-        <span class="status-dot {wsConectado ? 'status-online' : 'status-offline'}" aria-hidden="true"></span>
-        <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Reconectando…'}</span>
-      </div>
+      <span
+        class="status-dot status-topo {conexaoVisivel.chave === 'conectado' ? 'status-online' : conexaoVisivel.chave === 'offline' ? 'status-sem-rede' : 'status-reconectando'}"
+        role="img"
+        aria-label={conexaoVisivel.rotulo}
+        title={conexaoVisivel.rotulo}
+      ></span>
+      {#if podeControlar}
+        <button type="button" class="btn-topo" onclick={() => { modalConfigAberto = true; isReinicioConfig = false; }} aria-label="Duplas e regras da partida" title="Duplas e regras">
+          <Icone nome="engrenagem" tamanho="1.15em" />
+        </button>
+      {/if}
+      <button
+        type="button"
+        class="btn-topo"
+        class:ativo={ladosInvertidos}
+        onclick={alternarLados}
+        aria-pressed={ladosInvertidos}
+        aria-label="Inverter lados das equipes"
+        title="Inverter lados nesta tela"
+      ><span aria-hidden="true">⇄</span></button>
+      {#if !podeControlar && telaCheiaDisponivel}
+        <button
+          type="button"
+          class="btn-topo"
+          class:ativo={telaCheia}
+          onclick={alternarTelaCheia}
+          aria-pressed={telaCheia}
+          aria-label={telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
+          title={telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
+        >
+          <Icone nome={telaCheia ? 'recolher' : 'expandir'} tamanho="1.15em" />
+        </button>
+      {/if}
+      <button
+        type="button"
+        class="btn-topo"
+        onclick={() => { menuAberto = true; }}
+        aria-haspopup="dialog"
+        aria-label="Mais ações"
+        title="Mais ações"
+      ><span aria-hidden="true">⋯</span></button>
     </header>
+  {/if}
 
+  {#if podeControlar}
     <div class="faixa-posse" class:minha={temControle}>
       <span class="pino" aria-hidden="true"></span>
       <!-- Anúncio da posse fora do {#key}: a região viva não pode nascer a
@@ -469,54 +522,6 @@
         <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
       {/if}
     </div>
-  {:else if !modoImersivo}
-    <header class="sala-header" in:slide={{ duration: prefersReducedMotion ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion ? 0 : 200 }}>
-      <button
-        type="button"
-        class="btn-voltar"
-        onclick={onVoltar}
-        aria-label="Voltar para a lista de quadras"
-      >
-        <span class="seta">←</span>
-        <span>Quadras</span>
-      </button>
-
-      <div class="header-acoes">
-        {#if !podeControlar && telaCheiaDisponivel}
-          <button
-            type="button"
-            class="btn-tela-cheia"
-            class:ativo={telaCheia}
-            onclick={alternarTelaCheia}
-            aria-pressed={telaCheia}
-            aria-label={telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
-            title={telaCheia ? 'Sair da tela cheia' : 'Tela cheia'}
-          >
-            <Icone nome={telaCheia ? 'recolher' : 'expandir'} tamanho="1.15em" />
-          </button>
-        {/if}
-
-        <button
-          type="button"
-          class="btn-tela-cheia"
-          onclick={() => { menuAberto = true; }}
-          aria-haspopup="dialog"
-          aria-label="Mais ações: compartilhar, girar, tema e presentes"
-          title="Mais ações"
-        >
-          <span aria-hidden="true">⋯</span>
-        </button>
-
-        <div class="ws-status">
-          <span
-            class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"
-            aria-hidden="true"
-          ></span>
-          <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Reconectando…'}</span>
-        </div>
-      </div>
-    </header>
-
   {/if}
 
   <!-- Sempre montado (CV5.DS4.US2): região viva que nasce já preenchida
@@ -555,7 +560,6 @@
       enviando={operando}
       {pendentes}
       {ladosInvertidos}
-      onAlternarLados={alternarLados}
       {onMarcarPonto}
       {onDesfazerPonto}
       onIniciarNovaPartida={() => {
@@ -563,7 +567,6 @@
         isReinicioConfig = true;
       }}
       {ultimoPonto}
-      onAbrirMenu={() => { menuAberto = true; }}
       onAbrirCompartilhar={() => { modalCompartilharAberto = true; }}
     />
   {:else}
@@ -578,7 +581,6 @@
       controlesOcultos={modoImersivo}
       {paisagem}
       {ladosInvertidos}
-      onAlternarLados={alternarLados}
       onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
     />
     </div>
@@ -682,21 +684,34 @@
     overflow: hidden;
   }
 
-  .barra-operador { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 0 auto; }
-  .btn-voltar-compacto,
+  .barra-sala { display: flex; align-items: center; gap: 8px; min-width: 0; flex: 0 0 auto; }
+  .btn-topo,
   .chip-codigo {
     min-height: 44px;
+    box-sizing: border-box;
     border: 1px solid var(--border-color);
     border-radius: 12px;
     background: var(--bg-surface);
     color: var(--text-secondary);
     cursor: pointer;
+    touch-action: manipulation;
   }
-  .btn-voltar-compacto { width: 44px; flex: 0 0 44px; font-size: 1.1rem; }
-  .chip-codigo { display: flex; align-items: baseline; gap: 8px; min-width: 0; padding: 0 12px; }
+  /* Alvo de toque fixo: o nome da quadra encolhe, os botões nunca. */
+  .btn-topo {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    flex: 0 0 44px;
+    padding: 0;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+  .btn-topo:hover { color: var(--text-primary); background: var(--bg-card); }
+  .btn-topo.ativo { color: var(--text-primary); border-color: var(--acento-info-ativo); }
+  .status-topo { flex: 0 0 12px; width: 12px; height: 12px; margin-inline: 4px 2px; }
+  .chip-codigo { display: flex; align-items: center; gap: 8px; flex: 1 1 auto; min-width: 0; padding: 0 12px; }
   .chip-codigo strong { font-family: var(--fonte-numeros); font-size: 1.35rem; letter-spacing: .04em; color: var(--text-primary); }
   .chip-codigo span { overflow: hidden; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
-  .barra-operador .ws-status { margin-left: auto; }
 
   .faixa-posse {
     display: flex;
@@ -818,7 +833,7 @@
     cursor: auto;
   }
 
-  .em-modo-imersivo > .sala-header {
+  .em-modo-imersivo > .barra-sala {
     position: absolute;
     z-index: 6;
     top: max(8px, env(safe-area-inset-top));
@@ -831,97 +846,9 @@
     backdrop-filter: blur(6px);
   }
 
-  .em-modo-imersivo > .sala-header .header-acoes {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    min-width: 0;
-  }
-
   .em-modo-imersivo .placar-espectador-wrapper {
     flex: 1 1 auto;
     height: 100%;
-  }
-
-  .sala-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
-    flex: 0 0 auto;
-  }
-
-  .header-acoes {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  .btn-voltar {
-    background: transparent;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.95rem;
-    padding: 8px 10px;
-    border-radius: var(--radius-sm);
-  }
-
-  .btn-voltar:hover {
-    color: var(--text-primary);
-    background: var(--bg-surface);
-  }
-
-  .seta {
-    font-size: 1.1rem;
-  }
-
-  .btn-tela-cheia {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 44px;
-    height: 44px;
-    min-width: 44px;
-    min-height: 44px;
-    box-sizing: border-box;
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
-    border-radius: var(--radius-circular);
-    cursor: pointer;
-    touch-action: manipulation;
-    transition: all 0.15s ease;
-  }
-
-  .btn-tela-cheia:hover {
-    color: var(--text-primary);
-    border-color: rgba(var(--veu), 0.25);
-    background: var(--bg-card);
-  }
-
-  .btn-tela-cheia.ativo {
-    color: var(--text-primary);
-    border-color: var(--acento-info-ativo);
-  }
-
-
-  .ws-status {
-    box-sizing: border-box;
-    min-height: 44px;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    background: var(--bg-surface);
-    padding: 6px 12px;
-    border-radius: 999px;
-    border: 1px solid var(--border-color);
-  }
-
-  .ws-text {
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-secondary);
   }
 
   .tela-girada:not(.em-modo-imersivo) {

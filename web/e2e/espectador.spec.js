@@ -12,7 +12,7 @@ for (const [largura, altura] of [[360, 640], [390, 844], [1066, 600]]) {
     await esp.touchscreen.tap(largura / 2, altura / 2);
     await expect(esp.getByLabel('Tela cheia')).toBeVisible();
     expect(await esp.locator('.area-resultado').boundingBox()).toEqual(antes);
-    const fora = await esp.evaluate(() => [...document.querySelectorAll('.sala-header button, .ws-status')]
+    const fora = await esp.evaluate(() => [...document.querySelectorAll('.barra-sala button, .status-topo')]
       .filter((e) => e.getBoundingClientRect().right > innerWidth + 1).length);
     expect(fora).toBe(0);
   });

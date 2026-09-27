@@ -133,3 +133,17 @@ export function criarConexao({
     },
   };
 }
+
+/**
+ * Estado mostrado pela bolinha do cabeçalho (CV6.DS1.US1): sem rede no
+ * aparelho é offline mesmo antes de o socket notar a queda; com rede e sem
+ * sala confirmada, reconectando.
+ * @param {boolean} conectado
+ * @param {boolean} online
+ * @returns {{ chave: 'conectado' | 'reconectando' | 'offline', rotulo: string }}
+ */
+export function estadoConexao(conectado, online) {
+  if (!online) return { chave: 'offline', rotulo: 'Conexão: sem internet' };
+  if (conectado) return { chave: 'conectado', rotulo: 'Conexão: ao vivo' };
+  return { chave: 'reconectando', rotulo: 'Conexão: reconectando' };
+}
