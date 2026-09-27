@@ -1,8 +1,8 @@
 ---
 code: CV6.DS1.US2
 level: User Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status: Done
+status_reason: validado e aceito pelo Navigator em 2026-09-27
 updated: 2026-09-27
 ---
 
@@ -40,3 +40,9 @@ Preservar estados desabilitados e proteções existentes; não alterar regras de
 
 Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, desenho final e versão serão definidos no checkpoint de planejamento da implementação.
 
+
+## Entrega (2026-09-27)
+
+- Desfazer entrou na grade do palco em `Placar.svelte`: a partir de 600px de container, +1 / Desfazer / +1 sob o placar (altura de 86 a 120px); abaixo disso, Desfazer na linha de baixo em largura total.
+- A inversão troca só os +1; o Desfazer fica no meio. Os +1 deixaram de ficar nas laterais em paisagem.
+- e2e cobre posição no tablet, inversão e tela estreita.

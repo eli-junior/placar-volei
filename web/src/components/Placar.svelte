@@ -137,8 +137,8 @@
 
 <!--
   Operação (CV4.DS3.US1): tudo que marca o placar cabe numa tela, sem rolar.
-  +1 fica sob cada equipe (nas laterais em paisagem) e segue a inversão de
-  lados; Desfazer está sempre a um toque. Ações secundárias vão para o menu ⋯.
+  +1 fica sob cada equipe e segue a inversão de lados; Desfazer fica entre
+  eles no tablet e embaixo deles em tela estreita (CV6.DS1.US2). Ações secundárias vão para o menu ⋯.
 -->
 <section
   class="placar-card"
@@ -238,9 +238,7 @@
       onclick={() => handleToquePonto('B')}
       aria-label="Marcar ponto para {equipeB}"
     ><span class="btn-plus">+1</span><span class="btn-sub">{equipeB}</span></button>
-  </div>
 
-  <div class="base">
     <button
       type="button"
       class="btn-desfazer"
@@ -277,30 +275,29 @@
     grid-template-rows: minmax(0, 1fr) auto;
     grid-template-areas:
       'resultado resultado'
-      'a b';
+      'a b'
+      'desfazer desfazer';
     gap: 10px;
   }
 
-  .lados-invertidos .palco { grid-template-areas: 'resultado resultado' 'b a'; }
+  .lados-invertidos .palco { grid-template-areas: 'resultado resultado' 'b a' 'desfazer desfazer'; }
   .palco .resultado { grid-area: resultado; min-height: 0; display: flex; }
   .palco .resultado > :global(*) { flex: 1 1 auto; min-width: 0; }
   .palco .btn-marcar-a { grid-area: a; }
   .palco .btn-marcar-b { grid-area: b; }
+  .palco .btn-desfazer { grid-area: desfazer; }
 
-  @container (min-width: 720px) {
+  /* Tablet e Fold aberto (CV6.DS1.US2): +1 / Desfazer / +1 numa linha sob o
+     placar; o Desfazer fica no meio mesmo com os lados invertidos. */
+  @container (min-width: 600px) {
     .palco {
-      grid-template-columns: minmax(120px, 17%) minmax(0, 1fr) minmax(120px, 17%);
-      grid-template-rows: minmax(0, 1fr);
-      grid-template-areas: 'a resultado b';
+      grid-template-columns: minmax(0, 1fr) minmax(140px, 20%) minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) auto;
+      grid-template-areas: 'resultado resultado resultado' 'a desfazer b';
     }
-    .lados-invertidos .palco { grid-template-areas: 'b resultado a'; }
-    .palco .btn-marcar { height: auto; min-height: 120px; }
-  }
-
-  .base {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 8px;
+    .lados-invertidos .palco { grid-template-areas: 'resultado resultado resultado' 'b desfazer a'; }
+    .palco .btn-marcar,
+    .palco .btn-desfazer { height: clamp(86px, 14vh, 120px); min-height: 0; }
   }
 
   /* Banner de Vitória */

@@ -9,16 +9,30 @@ for (const [largura, altura] of [[360, 640], [390, 844], [1066, 600]]) {
   });
 }
 
-test('+1 seguem a inversão e ficam nas laterais em paisagem', async ({ abrir }) => {
+// CV6.DS1.US2: no tablet, +1 / Desfazer / +1 sob o placar; o Desfazer não troca de lugar.
+test('+1 e desfazer ficam sob o placar e seguem a inversão', async ({ abrir }) => {
   const p = await abrir({ viewport: { width: 1066, height: 600 } });
   await criarSala(p);
   const a = p.getByLabel('Marcar ponto para Equipe A');
   const b = p.getByLabel('Marcar ponto para Equipe B');
+  const d = p.locator('.btn-desfazer');
   const placar = await p.locator('.palco > .resultado').boundingBox();
-  expect((await a.boundingBox()).x).toBeLessThan(placar.x);
-  expect((await b.boundingBox()).x).toBeGreaterThan(placar.x + placar.width - 1);
+  const [ca, cb, cd] = [await a.boundingBox(), await b.boundingBox(), await d.boundingBox()];
+  for (const caixa of [ca, cb, cd]) expect(caixa.y).toBeGreaterThanOrEqual(placar.y + placar.height - 1);
+  expect(ca.x).toBeLessThan(cd.x);
+  expect(cb.x).toBeGreaterThan(cd.x);
   await p.getByLabel('Inverter lados das equipes').click();
-  await expect.poll(async () => (await a.boundingBox()).x).toBeGreaterThan(placar.x + placar.width - 1);
+  await expect.poll(async () => (await a.boundingBox()).x).toBeGreaterThan(cd.x);
+  expect((await d.boundingBox()).x).toBeCloseTo(cd.x, 0);
+});
+
+test('tela estreita: desfazer visível embaixo dos +1', async ({ abrir }) => {
+  const p = await abrir({ viewport: { width: 344, height: 882 } });
+  await criarSala(p);
+  const a = await p.getByLabel('Marcar ponto para Equipe A').boundingBox();
+  const d = await p.locator('.btn-desfazer').boundingBox();
+  expect(d.y).toBeGreaterThanOrEqual(a.y + a.height - 1);
+  expect(d.y + d.height).toBeLessThanOrEqual(882);
 });
 
 test('desfazer indica e anula o último ponto', async ({ abrir }) => {
