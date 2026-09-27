@@ -1,8 +1,9 @@
 ---
 code: CV5.DS2.TS2
 level: Technical Story
-status: Active
-status_reason: Checkpoint 1 (plano) aguardando o Navigator
+status: Validated
+status_reason: automode aprovado pelo Navigator em 2026-09-27; testes automatizados verdes
+human_validation: pending
 updated: 2026-09-27
 ---
 
@@ -19,3 +20,11 @@ Um 429 do servidor não trava a fila; toques rápidos não travam a tela.
 ## Plano
 
 [plan.md](plan.md) — branch `feature/cv5-ds2-ts2-envio-sem-travar`.
+
+## Revisão (Passo 5)
+
+- **Feito:** `SendResult.ADIADO` para 408/425/429 com backoff até 30 s (sem marcar "sem conexão"); todas as mutações da `ScoreSync` no dispatcher `Dispatchers.IO.limitedParallelism(1)`; `state`/`score` `@Volatile`; `tap`/`undo` com callback e trava `writing`.
+- **Ajuste ao plano:** `ScoreSync` continuou síncrona (o `WatchModel` decide a thread), então os 44 testes antigos não mudaram; `Retry-After` não é lido (o `/api/watch/comandos` não devolve 429 hoje; o backoff cobre o caso do Cloudflare).
+- **Testes:** 46 testes JVM (2 novos), build e lint (12 avisos, iguais à `master`).
+- **Risco residual:** interleaving entre envio e toque é o mesmo de antes (o dispatcher serial se comporta como a thread principal); nenhum lock novo.
+- **Validação humana pendente:** 10 toques rápidos no relógio e a contagem igual no telefone; vibração em cada toque aceito.
