@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import re
 import sqlite3
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -31,6 +32,8 @@ from app.watch import authenticate_device, bearer, device_active
 from app.watch import router as watch_router
 
 logger = logging.getLogger(__name__)
+
+CODIGO_QUADRA = re.compile(r"\d{5}")
 
 
 @asynccontextmanager
@@ -143,6 +146,10 @@ async def health_check():
 
 @app.websocket("/ws/{quadra_id}")
 async def websocket_quadra(websocket: WebSocket, quadra_id: str):
+    # Id fora do formato nem chega a criar lock ou consultar o banco.
+    if not CODIGO_QUADRA.fullmatch(quadra_id):
+        await websocket.close(code=4404)
+        return
     session_id = websocket.cookies.get(SESSION_COOKIE)
     conectado = False
     watch_device_id = None

@@ -41,6 +41,14 @@ class Evento:
 _quadra_locks: dict[str, asyncio.Lock] = {}
 
 
+def descartar_quadra_locks(quadra_ids: list[str]) -> None:
+    """Sala removida não precisa mais de lock (CV5.DS1.TS3)."""
+    for quadra_id in quadra_ids:
+        lock = _quadra_locks.get(quadra_id)
+        if lock is not None and not lock.locked():
+            del _quadra_locks[quadra_id]
+
+
 def get_quadra_lock(quadra_id: str) -> asyncio.Lock:
     if quadra_id not in _quadra_locks:
         _quadra_locks[quadra_id] = asyncio.Lock()
