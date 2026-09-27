@@ -10,7 +10,21 @@
     onFechar = () => {},
     movimentoReduzido = false,
     submetendo = false,
+    /** `tudo` (⚙), `regras` ou `equipe-a`/`equipe-b` — atalhos do placar (CV6.DS1.US6).
+        A seção curta só mostra uma parte, mas salva todos os campos atuais. */
+    secao = 'tudo',
   } = $props();
+
+  const mostraRegras = $derived(secao === 'tudo' || secao === 'regras');
+  const mostraA = $derived(secao === 'tudo' || secao === 'equipe-a');
+  const mostraB = $derived(secao === 'tudo' || secao === 'equipe-b');
+  const titulo = $derived(
+    isReinicio ? 'Próxima Partida: Duplas & Regras'
+    : secao === 'regras' ? 'Pontuação e Vantagem'
+    : secao === 'equipe-a' ? 'Jogadores da Equipe A'
+    : secao === 'equipe-b' ? 'Jogadores da Equipe B'
+    : 'Configurações da Partida'
+  );
 
   let timeAJogador1 = $state('');
   let timeAJogador2 = $state('');
@@ -68,7 +82,7 @@
 <Dialogo
   rotuladoPor="titulo-config-partida"
   variante="centro"
-  largura="480px"
+  largura={secao === 'tudo' ? '680px' : '440px'}
   {movimentoReduzido}
   {onFechar}
 >
@@ -77,7 +91,7 @@
       <div class="header-titulo-grupo">
         <Icone nome="regras" tamanho="1.2em" />
         <h3 id="titulo-config-partida">
-          {isReinicio ? 'Próxima Partida: Duplas & Regras' : 'Configurações da Partida'}
+          {titulo}
         </h3>
       </div>
       <button
@@ -91,99 +105,10 @@
     </header>
 
     <form onsubmit={handleSubmit} class="form-config">
+      <!-- Pontuação primeiro: é a regra que mais muda entre rodadas (CV6.DS1.US5). -->
+      {#if mostraRegras}
       <div class="secao-bloco">
-        <span class="secao-rotulo">Visual do placar</span>
-        <div class="seletor-tema" role="radiogroup" aria-label="Tema do placar para todos na quadra">
-          <button
-            type="button"
-            class="tema-opcao"
-            class:selecionado={temaVisual === 'esportivo'}
-            role="radio"
-            aria-checked={temaVisual === 'esportivo'}
-            onclick={() => { temaVisual = 'esportivo'; }}
-            disabled={submetendo}
-          >
-            <strong>Esportivo</strong>
-            <span>Números grandes e leitura à distância</span>
-          </button>
-          <button
-            type="button"
-            class="tema-opcao"
-            class:selecionado={temaVisual === 'classico'}
-            role="radio"
-            aria-checked={temaVisual === 'classico'}
-            onclick={() => { temaVisual = 'classico'; }}
-            disabled={submetendo}
-          >
-            <strong>Clássico</strong>
-            <span>Cartões mecânicos com efeito de virada</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Seção Duplas / Equipes -->
-      <div class="secao-bloco">
-        <span class="secao-rotulo">Equipes e Duplas da Rodada</span>
-        <div class="grid-equipes">
-          <!-- Time A -->
-          <div class="equipe-card time-a-card">
-            <span class="badge-time time-a-badge">Time A</span>
-            <div class="campo">
-              <label for="cfg-time-a-j1">Jogador 1</label>
-              <input
-                id="cfg-time-a-j1"
-                type="text"
-                bind:value={timeAJogador1}
-                placeholder="Ex: Carlos"
-                maxlength="30"
-                disabled={submetendo}
-              />
-            </div>
-            <div class="campo">
-              <label for="cfg-time-a-j2">Jogador 2</label>
-              <input
-                id="cfg-time-a-j2"
-                type="text"
-                bind:value={timeAJogador2}
-                placeholder="Ex: Daniel"
-                maxlength="30"
-                disabled={submetendo}
-              />
-            </div>
-          </div>
-
-          <!-- Time B -->
-          <div class="equipe-card time-b-card">
-            <span class="badge-time time-b-badge">Time B</span>
-            <div class="campo">
-              <label for="cfg-time-b-j1">Jogador 1</label>
-              <input
-                id="cfg-time-b-j1"
-                type="text"
-                bind:value={timeBJogador1}
-                placeholder="Ex: Roberto"
-                maxlength="30"
-                disabled={submetendo}
-              />
-            </div>
-            <div class="campo">
-              <label for="cfg-time-b-j2">Jogador 2</label>
-              <input
-                id="cfg-time-b-j2"
-                type="text"
-                bind:value={timeBJogador2}
-                placeholder="Ex: Eduardo"
-                maxlength="30"
-                disabled={submetendo}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Seção Regras de Pontuação -->
-      <div class="secao-bloco">
-        <span class="secao-rotulo">Pontuação e Vantagem</span>
+        {#if secao === 'tudo'}<span class="secao-rotulo">Pontuação e Vantagem</span>{/if}
         <div class="pills-alvo">
           {#each [12, 15, 21, 25] as preset}
             <button
@@ -254,6 +179,106 @@
         {/if}
       </div>
 
+      {/if}
+
+      <!-- Seção Duplas / Equipes -->
+      {#if mostraA || mostraB}
+      <div class="secao-bloco">
+        {#if secao === 'tudo'}<span class="secao-rotulo">Equipes e Duplas da Rodada</span>{/if}
+        <div class="grid-equipes" class:uma-equipe={secao !== 'tudo'}>
+          <!-- Time A -->
+          {#if mostraA}
+          <div class="equipe-card time-a-card">
+            <span class="badge-time time-a-badge">Time A</span>
+            <div class="campo">
+              <label for="cfg-time-a-j1">Jogador 1</label>
+              <input
+                id="cfg-time-a-j1"
+                type="text"
+                bind:value={timeAJogador1}
+                placeholder="Ex: Carlos"
+                maxlength="30"
+                disabled={submetendo}
+              />
+            </div>
+            <div class="campo">
+              <label for="cfg-time-a-j2">Jogador 2</label>
+              <input
+                id="cfg-time-a-j2"
+                type="text"
+                bind:value={timeAJogador2}
+                placeholder="Ex: Daniel"
+                maxlength="30"
+                disabled={submetendo}
+              />
+            </div>
+          </div>
+          {/if}
+
+          <!-- Time B -->
+          {#if mostraB}
+          <div class="equipe-card time-b-card">
+            <span class="badge-time time-b-badge">Time B</span>
+            <div class="campo">
+              <label for="cfg-time-b-j1">Jogador 1</label>
+              <input
+                id="cfg-time-b-j1"
+                type="text"
+                bind:value={timeBJogador1}
+                placeholder="Ex: Roberto"
+                maxlength="30"
+                disabled={submetendo}
+              />
+            </div>
+            <div class="campo">
+              <label for="cfg-time-b-j2">Jogador 2</label>
+              <input
+                id="cfg-time-b-j2"
+                type="text"
+                bind:value={timeBJogador2}
+                placeholder="Ex: Eduardo"
+                maxlength="30"
+                disabled={submetendo}
+              />
+            </div>
+          </div>
+          {/if}
+        </div>
+      </div>
+      {/if}
+
+      {#if secao === 'tudo'}
+      <div class="secao-bloco">
+        <span class="secao-rotulo">Visual do placar</span>
+        <div class="seletor-tema" role="radiogroup" aria-label="Tema do placar para todos na quadra">
+          <button
+            type="button"
+            class="tema-opcao"
+            class:selecionado={temaVisual === 'esportivo'}
+            role="radio"
+            aria-checked={temaVisual === 'esportivo'}
+            onclick={() => { temaVisual = 'esportivo'; }}
+            disabled={submetendo}
+          >
+            <strong>Esportivo</strong>
+            <span>Números grandes e leitura à distância</span>
+          </button>
+          <button
+            type="button"
+            class="tema-opcao"
+            class:selecionado={temaVisual === 'classico'}
+            role="radio"
+            aria-checked={temaVisual === 'classico'}
+            onclick={() => { temaVisual = 'classico'; }}
+            disabled={submetendo}
+          >
+            <strong>Clássico</strong>
+            <span>Cartões mecânicos com efeito de virada</span>
+          </button>
+        </div>
+      </div>
+      {/if}
+
       <div class="modal-acoes">
         <button
           type="button"
@@ -276,10 +301,13 @@
 </Dialogo>
 
 <style>
+  /* Margem interna própria (CV6.DS1.US5): a caixa do Dialogo não tem padding.
+     Cabeçalho e ações ficam presos às bordas enquanto só o conteúdo rola. */
   .modal-config {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 20px;
+    padding: 0 24px;
   }
 
   .modal-header {
@@ -287,7 +315,12 @@
     align-items: center;
     justify-content: space-between;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 12px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    margin: 0 -24px;
+    padding: 18px 24px 14px;
+    background: var(--fundo-superficie);
   }
 
   .header-titulo-grupo {
@@ -318,7 +351,7 @@
   .form-config {
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 24px;
   }
 
   .secao-bloco {
@@ -340,6 +373,8 @@
     grid-template-columns: 1fr 1fr;
     gap: 12px;
   }
+
+  .grid-equipes.uma-equipe { grid-template-columns: 1fr; }
 
   .seletor-tema {
     display: grid;
@@ -476,7 +511,20 @@
     display: flex;
     justify-content: flex-end;
     gap: 10px;
-    margin-top: 8px;
+    position: sticky;
+    bottom: 0;
+    margin: 0 -24px;
+    padding: 14px 24px max(16px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border-color);
+    background: var(--fundo-superficie);
+  }
+
+  @media (max-width: 480px) {
+    .modal-config { gap: 16px; padding: 0 16px; }
+    .modal-header { margin: 0 -16px; padding: 14px 16px 12px; }
+    .modal-acoes { margin: 0 -16px; padding-inline: 16px; }
+    .modal-acoes .btn-salvar { flex: 1 1 auto; white-space: nowrap; }
+    .header-titulo-grupo h3 { font-size: 1.05rem; }
   }
 
   .btn-cancelar {

@@ -1,0 +1,7 @@
+Teko — fonte dos números do placar no relógio
+Arquivo original, sem modificações: fonts/variable/Teko[wght].ttf
+Origem: https://github.com/googlefonts/teko
+Commit: 6715caf853f342eef57ea367b6c2991cd3928398
+SHA-256: d1321889f262bbbff632e7976349853399cd097b6f382d4b19790c915c13c1ae
+Licença: SIL Open Font License 1.1, em teko-OFL.txt, distribuída neste APK.
+Peso usado: 700. Fonte incorporada; não há download durante o uso.

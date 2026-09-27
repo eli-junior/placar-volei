@@ -2,7 +2,7 @@
 code: CV6.DS2
 level: Delivery Story
 status: Active
-status_reason: CV6.DS2.US2 puxada para planejamento; aguardando Checkpoint 1
+status_reason: CV6.DS2.US1 validada; CV6.DS2.US2 planejada em branch própria
 updated: 2026-09-27
 ---
 
@@ -22,4 +22,3 @@ Melhorar leitura e retorno das ações no pulso, investigando repouso com contin
 ## Acceptance / Done Condition
 
 Histórias filhas verificadas e aceitas pelo Navigator, conforme seus critérios e a [matriz comum](../index.md). A ordem de desenvolvimento será acordada ao puxar trabalho.
-

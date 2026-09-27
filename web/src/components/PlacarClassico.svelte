@@ -8,6 +8,7 @@
     equipeB = 'Equipe B',
     ladosInvertidos = false,
     movimentoReduzido = false,
+    onEditarEquipe = null,
   } = $props();
 </script>
 
@@ -16,13 +17,13 @@
   class:invertido={ladosInvertidos}
   aria-label="Placar clássico: {equipeA} {pontosA}, {equipeB} {pontosB}"
 >
-  <section class="time time-a">
-    <span class="nome" title={equipeA}>{equipeA}</span>
+  <section class="time time-a" class:tres-digitos={String(pontosA).length > 2}>
+    {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeA}" onclick={() => onEditarEquipe('A')}>{equipeA}</button>{:else}<span class="nome" title={equipeA}>{equipeA}</span>{/if}
     <CartaoDobravel valor={pontosA} equipe={equipeA} tema="a" tamanho="fluido" prefersReducedMotion={movimentoReduzido} />
   </section>
   <span class="divisor" aria-hidden="true">×</span>
-  <section class="time time-b">
-    <span class="nome" title={equipeB}>{equipeB}</span>
+  <section class="time time-b" class:tres-digitos={String(pontosB).length > 2}>
+    {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeB}" onclick={() => onEditarEquipe('B')}>{equipeB}</button>{:else}<span class="nome" title={equipeB}>{equipeB}</span>{/if}
     <CartaoDobravel valor={pontosB} equipe={equipeB} tema="b" tamanho="fluido" prefersReducedMotion={movimentoReduzido} />
   </section>
 </div>
@@ -61,6 +62,8 @@
     place-items: stretch center;
   }
 
+  /* Nome como botão para quem controla (CV6.DS1.US6). */
+  button.nome.editavel { display: block; width: 100%; border: 0; font-family: inherit; cursor: pointer; text-decoration: underline dotted color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 4px; }
   .nome {
     width: 100%;
     overflow: hidden;
@@ -87,6 +90,11 @@
     min-height: 0;
   }
 
+  /* Escala P/M/G (CV6.DS1.US3) também no clássico: tamanho automático pelo
+     contêiner, multiplicado pela escala e limitado ao que cabe no cartão. */
+  .time { --cartao-num: clamp(3.5rem, min(calc(min(22cqw, 48cqh) * var(--escala-numeros, 1)), 34cqw, 62cqh), 40rem); }
+  .time.tres-digitos { --cartao-num: clamp(3rem, min(calc(min(15cqw, 40cqh) * var(--escala-numeros, 1)), 23cqw, 62cqh), 28rem); }
+
   .divisor {
     grid-area: divisor;
     display: grid;
@@ -96,7 +104,16 @@
     font-weight: 850;
   }
 
+  /* Tela em pé: uma equipe sobre a outra (CV6.DS1.US3). */
   @media (max-aspect-ratio: 3 / 4) {
-    .classico { padding-inline: .35rem; }
+    .classico {
+      padding-inline: .35rem;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+      grid-template-areas: 'a' 'divisor' 'b';
+    }
+    .classico.invertido { grid-template-areas: 'b' 'divisor' 'a'; }
+    .time { --cartao-num: clamp(3.5rem, min(calc(min(42cqw, 22cqh) * var(--escala-numeros, 1)), 70cqw, 30cqh), 40rem); }
+    .time.tres-digitos { --cartao-num: clamp(3rem, min(calc(min(30cqw, 20cqh) * var(--escala-numeros, 1)), 48cqw, 30cqh), 28rem); }
   }
 </style>

@@ -8,37 +8,88 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
 - **Branch**: `feature/cv6-ds2-us2-aro-de-conexao`, de `origin/master` `290a36c`.
-- **Passo Ariad**: Passo 2 - Planejamento; Checkpoint 1 aprovado; aguardando integração da US1.
-- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us2-20260927 | Data: 2026-09-27 14:53 -03.
-- **Handoff / Próximos Passos**: plano em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; sem implementação. Dependência: concluir checkpoints da US1 e integrar seu layout antes de implementar. Worktree: `/tmp/placar-cv6-ds2-us2`.
+- **Passo Ariad**: Passo 3 - Implementação; Checkpoint 1 aprovado; US1 integrada (master `3d6e2dd`).
+- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Assumido de Codex a partir do Passo 3 | Data: 2026-09-27.
+- **Handoff / Próximos Passos**: plano aprovado em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; branch atualizada com master; implementar aro em `ScoreScreen.kt`. Worktree: `/tmp/placar-cv6-ds2-us2`.
 
-### feature/cv6-ds2-us1-leitura-no-pulso
+## 0.22.0 - 2026-09-27
 
-- **História / Escopo**: CV6.DS2.US1 — leitura no pulso, Nova verde e Voltar Ponto.
-- **Branch**: `feature/cv6-ds2-us1-leitura-no-pulso`; último commit `90fc088`, salvo no remoto.
-- **Passo Ariad**: Passo 5 - Revisão; Checkpoint 2 aceito pelo Navigator; aguardando Checkpoint 3.
-- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us1-20260927 | Data: 2026-09-27.
-- **Handoff / Próximos Passos**: release instalado no relógio; 52 testes JVM aprovados após último ajuste. Revisão realizada na branch da US1; concluir Checkpoints 3 e 4 antes da integração.
+Boundary: minor (CV6.DS1.US6 — atalhos de ajuste no placar)
 
-### feature/cv6-ds1-us2-controles-inferiores
+Authors: Eli (Navigator); Claude Code (Driver, Passos 1–7) | Sessão: session_0116vQyfn2t4ewHrNfdCCTkk
 
-- **História / Escopo**: `CV6.DS1.US2` — pontuar e desfazer na parte inferior (ordem do DS1: US1 ✓, US4 parcial, US2, US5, US3).
-- **Branch**: `feature/cv6-ds1-us2-controles-inferiores` (a criar de `master` após o merge da US1)
-- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
-- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a5-4f3d-ad4e-e8e690004f76 | Data: 2026-09-27
-- **Handoff / Próximos Passos**: plano apresentado no chat junto do fechamento da US1.
+Git source: merge `--no-ff` de `feature/cv6-ds1-us6-atalhos-no-placar` em `master`.
 
-## [Não lançado] — CV6.DS1 (alvo 0.21.0, minor ao fechar o DS1)
+### Added
 
-Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a5-4f3d-ad4e-e8e690004f76
+- Tocar no resumo de regras do topo abre só Pontuação e Vantagem; tocar no nome da equipe (esportivo e clássico) abre só os jogadores dela. Tocar fora fecha sem salvar. Mesma permissão do ⚙; o espectador não tem atalho.
+
+### Fixed
+
+- No esportivo, o número gigante cobria o nome da equipe e engolia o toque.
+
+### Verification
+
+- 93 testes unitários web, svelte-check, build e 31 testes de navegador (novo `e2e/atalhos.spec.js`) aprovados. Navigator validou.
+
+## 0.21.1 - 2026-09-27
+
+Boundary: patch (ajuste da CV6.DS1.US3 no placar clássico; fechamento documental da CV2.DS3.TS1)
+
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: session_0116vQyfn2t4ewHrNfdCCTkk
+
+Git source: merges `--no-ff` em `master` de `claude/hus-fora-relogio-pgvzgt` e `feature/cv6-ds1-us3-escala-no-classico`.
+
+### Changed
+
+- Tamanho dos números P/M/G (menu ⋯) também no placar clássico: o número do cartão acompanha a tela, cresce com a escolha e fica sempre dentro do cartão, inclusive com três dígitos e em tela em pé. No clássico, P deixa de ser o antigo tamanho fixo.
+- CV2.DS3.TS1 (tokens e cores semânticas) registrada como `Done` com aceite do Navigator.
+
+### Verification
+
+- Testes unitários web, svelte-check e build aprovados; novo e2e mede P/M/G do clássico no tablet e no Fold fechado. Navigator validou.
+
+## 0.21.0 - 2026-09-27
+
+Boundary: minor (CV6.DS1 — placar web mais legível e fácil de operar; 5 histórias)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7 de cada história) | Sessão: 8fcca862-38a5-4f3d-ad4e-e8e690004f76
+
+Git source: merges `--no-ff` em `master` das branches `feature/cv6-ds1-us1-cabecalho-compacto`, `feature/cv6-ds1-us2-controles-inferiores`, `feature/cv6-ds1-us5-ajustes-espacosos` e `feature/cv6-ds1-us3-numeros-ajustaveis`. A US4 foi coberta pela US1.
 
 ### Changed
 
 - Topo da quadra em uma linha para operador e espectador: voltar, código, regras da partida, ajustes (⚙), inverter lados (⇄), menu e status. Status vira bolinha em caixa no canto direito: verde pulsante, amarela (reconectando) ou vermelha (aparelho sem rede), com nome acessível. "Duplas e regras" sai do menu para o ⚙; ⇄ e ⋯ saem de dentro do placar. "Você está no controle" dá lugar ao resumo "12 pontos · Vantagem" (`CV6.DS1.US1`, merge de `feature/cv6-ds1-us1-cabecalho-compacto`).
+- Pontuar e desfazer embaixo do placar: +1 / Desfazer / +1 no tablet e no Fold aberto; Desfazer na linha de baixo em tela estreita. Os +1 deixam as laterais em paisagem (`CV6.DS1.US2`, merge de `feature/cv6-ds1-us2-controles-inferiores`).
+- Configurações da partida com Pontuação primeiro, margem interna, modal mais largo no tablet e Salvar/Cancelar sempre visíveis, inclusive no Fold fechado com teclado aberto (`CV6.DS1.US5`, merge de `feature/cv6-ds1-us5-ajustes-espacosos`).
+- Tela em pé empilha as equipes, uma sobre a outra, com números bem maiores no Fold fechado. Tamanho dos números P/M/G só no aparelho, pelo menu ⋯: P é o tamanho anterior, M (padrão) +25%, G +50%, sempre dentro da coluna (`CV6.DS1.US3`, merge de `feature/cv6-ds1-us3-numeros-ajustaveis`).
+- Regras da partida visíveis no topo para quem opera; o espectador já as via no placar (`CV6.DS1.US4`, coberta pela US1).
 
 ### Fixed
 
 - Teste de axe media contraste durante fades e falhava de forma intermitente; agora espera as animações finitas.
+
+## 0.20.1 - 2026-09-27
+
+Boundary: patch (CV6.DS2.US1 — leitura e operação mais claras no relógio)
+
+Authors: Eli (Navigator); Codex (Driver, Passos 1–7)
+
+Git source: merge commit `ed4502d` de `feature/cv6-ds2-us1-leitura-no-pulso` em `master`.
+
+### Changed
+
+- Números do placar no relógio usam Teko local e se ajustam para caber de 0 a três dígitos no mostrador circular.
+- Batimentos ficam centralizados no topo, com `♥ --` sem leitura e indicador oculto sem permissão.
+- Controle no telefone usa a mensagem curta **Controle no telefone.**.
+- Correção usa **Voltar Ponto**, mantendo a equipe na descrição acessível; **Nova** fica verde e continua protegida por dois toques.
+- README, briefing, documentação Wear OS, decisão, worklog e roteiro de validação foram alinhados ao comportamento entregue.
+
+### Verification
+
+- 52 testes JVM do relógio, 221 testes backend, build debug/release, lint Android e Svelte Check aprovados.
+- Navigator validou a leitura e os fluxos no Galaxy Watch SM-L330; release instalado sem apagar o vínculo.
+- Permanece Carried a dívida de testes automatizados da tela do relógio.
 
 ## 0.20.0 - 2026-09-27
 

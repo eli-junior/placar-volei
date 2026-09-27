@@ -61,9 +61,9 @@ test('operação compila sem avisos', () => {
   assert.equal(compile(salaFonte, { filename: 'SalaQuadra.svelte' }).warnings.length, 0);
 });
 
-test('+1 acompanham a inversão de lados, inclusive em paisagem', () => {
-  assert.match(placar, /\.lados-invertidos \.palco \{ grid-template-areas: 'resultado resultado' 'b a'; \}/);
-  assert.match(placar, /\.lados-invertidos \.palco \{ grid-template-areas: 'b resultado a'; \}/);
+test('+1 acompanham a inversão de lados e o desfazer fica no meio (CV6.DS1.US2)', () => {
+  assert.match(placar, /\.lados-invertidos \.palco \{ grid-template-areas: 'resultado resultado' 'b a' 'desfazer desfazer'; \}/);
+  assert.match(placar, /\.lados-invertidos \.palco \{ grid-template-areas: 'resultado resultado resultado' 'b desfazer a'; \}/);
 });
 
 test('desfazer fica fora de menu e sem confirmação', () => {

@@ -2,7 +2,7 @@
 code: CV6
 level: Value
 status: Active
-status_reason: CV6.DS2.US2 puxada para planejamento; aguardando Checkpoint 1
+status_reason: CV6.DS1 entregue na 0.21.0; CV6.DS2.US1 validada; CV6.DS2.US2 em planejamento
 updated: 2026-09-27
 ---
 
@@ -14,7 +14,7 @@ Consolidar a rodada de feedback de 27/09/2026 em nove HUs para desenvolvimento p
 
 ## Entregas
 
-- [CV6.DS1 — Placar web](cv6-ds1-placar-web/index.md): cinco HUs.
+- [CV6.DS1 — Placar web](cv6-ds1-placar-web/index.md): seis HUs (US6 acrescentada após a 0.21.0).
 - [CV6.DS2 — Placar no relógio](cv6-ds2-placar-no-relogio/index.md): quatro HUs.
 
 ## Acceptance / Done Condition
@@ -45,4 +45,3 @@ Web: tablet, Fold aberto e fechado/celular; temas claro/escuro; estilos esportiv
 - README e briefing têm indicações de foco/versão divergentes; esta rodada não redefine o foco nem atualiza histórico alheio ao escopo.
 - O guia menciona restaurar estado após restart, mas também documenta reset intencional do banco em produção. Os testes destas HUs devem distinguir repouso/reconexão do relógio de reinício destrutivo do servidor.
 - Não inclui novas regras esportivas, redesenho de permissões ou infraestrutura. Pendências de produto estão nas respectivas HUs.
-

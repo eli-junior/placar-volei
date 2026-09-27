@@ -1,8 +1,8 @@
 ---
 code: CV6.DS2.US1
 level: User Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status: Done
+status_reason: Navigator aceitou no Checkpoint 4; integrado em master na versão 0.20.1
 updated: 2026-09-27
 ---
 
@@ -18,6 +18,7 @@ Como jogador, quero números maiores e informações bem posicionadas no relógi
 - Subir os rótulos Nós / Eles e ampliar os números.
 - Ampliar um pouco o indicador de batimentos e centralizá-lo no topo.
 - Avaliar uso da mesma fonte do placar principal.
+- Botão Nova verde quando disponível, conforme pedido do Navigator durante a implementação; manter dois toques.
 
 ## Acceptance / Done Condition
 
@@ -29,7 +30,7 @@ Como jogador, quero números maiores e informações bem posicionadas no relógi
 
 Em relógio real com telefone conectado, comparar 0, 12 e 100, com e sem batimento e nos diferentes estados de controle. Aprova se a leitura melhora sem ocultar desfazer e nova partida; falha se cortar conteúdo ou apresentar medição falsa.
 
-Aplicar também a [matriz comum](../../index.md#validação-comum). Este roteiro é para a futura implementação; não representa testes já executados.
+Aplicar também a [matriz comum](../../../index.md#validação-comum). O roteiro executado está em [test-guide.md](test-guide.md).
 
 ## Out of Scope
 
@@ -41,3 +42,7 @@ Investigar compatibilidade, licença e legibilidade da fonte antes de prometer p
 
 Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, desenho final e versão serão definidos no checkpoint de planejamento da implementação.
 
+
+## Planejamento atual
+
+Branch: `feature/cv6-ds2-us1-leitura-no-pulso`. Ver [plano](plan.md). Checkpoints 1–3 concluídos; Checkpoint 2 validado pelo Navigator. Ver [roteiro de validação](test-guide.md).

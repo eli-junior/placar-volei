@@ -54,3 +54,4 @@ Atualizado na US5 (2026-09-23): o `WatchModel` tem 517 linhas; separar vínculo 
 ## Progresso
 
 - 2026-09-26 (CV3.DS1.TS1, 0.19.0): fila, placar confirmado e envio do relógio saíram para a `ScoreSync`, testada com servidor falso (`ScoreSyncTest`). Continuam sem teste: abertura, troca de quadra e cancelamento no `WatchModel`.
+- 2026-09-27 (CV6.DS2.US1): a leitura foi conferida no Galaxy Watch real com APK release, incluindo 0, 12 e 100, batimento, controle no telefone, fim de partida e Nova. A dívida continua Carried porque essa validação manual não substitui testes Compose ou do `WatchModel` para os fluxos de tela.

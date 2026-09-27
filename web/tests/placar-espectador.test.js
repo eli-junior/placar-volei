@@ -33,7 +33,9 @@ test('pontos escalam pela largura e altura e preservam números tabulares', () =
   assert.match(resultado, /min\(50cqw, 74cqh\)/);
   assert.match(resultado, /font-variant-numeric: tabular-nums/);
   assert.match(resultado, /tresDigitosA/);
-  assert.match(resultado, /strong\.tres-digitos \{ font-size: clamp\(5rem, min\(27cqw, 54cqh\), 18rem\); \}/);
+  assert.match(resultado, /strong\.tres-digitos \{ font-size: clamp\(4rem, min\(calc\(min\(27cqw, 54cqh\) \* var\(--escala-numeros, 1\)\), 48cqw, 92cqh\), 40rem\); \}/);
+  // Tela em pé empilha as equipes (CV6.DS1.US3).
+  assert.match(resultado, /grid-template-areas: 'a' 'divisor' 'b';/);
 });
 
 test('espectador deixa os cartões dobráveis fora da nova composição', () => {
