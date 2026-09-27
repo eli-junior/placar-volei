@@ -74,6 +74,14 @@ class RateLimiter:
             self._registros.clear()
 
 
+# Códigos de sala errados por IP (CV5.DS1.TS1). Folgado para quem erra um
+# dígito na quadra; apertado para quem varre os 90 mil códigos.
+entrada_rate_limiter = RateLimiter(
+    max_tentativas=20,
+    janela_segundos=600.0,
+    bloqueio_segundos=600.0,
+)
+
 owner_rate_limiter = RateLimiter(
     max_tentativas=5,
     janela_segundos=600.0,

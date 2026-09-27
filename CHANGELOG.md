@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo em `master`. Próximo: CV5.DS1 (segurança e deploy), a planejar em branch nova. O roadmap do CV5 (docs, sem versão) entrou em 2026-09-27; a CV3.DS1.US4 retoma após a CV5.DS2.
+- **História / Escopo**: CV5.DS1.TS1 — Sigilo do PIN e limite por cliente real.
+  - **Branch**: `feature/cv5-ds1-ts1-sigilo-do-pin`
+  - **Passo Ariad**: Passo 6 concluído — Validated, `human_validation: pending` (automode; merge só após o teste do Navigator)
+  - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 51cc5422-0716-48a4-a737-c2ae18bfcf4d | Data: 2026-09-27
+  - **Handoff / Próximos Passos**: pronto para o teste conjunto na branch de integração do CV5; depois, Checkpoint 4 e merge.
 
 ## 0.19.0 - 2026-09-26
 

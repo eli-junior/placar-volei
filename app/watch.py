@@ -27,6 +27,7 @@ from app.hub import hub
 from app.identidade import SESSION_COOKIE, hash_sessao
 from app.quadras import apelido_ja_usado
 from app.rate_limit import RateLimiter
+from app.rede import ip_do_cliente
 
 router = APIRouter(prefix="/api", tags=["relogio"])
 creation_limit = RateLimiter(5, 600, 600)
@@ -234,8 +235,7 @@ def start_pairing(
     request: Request, response: Response, body: PairingBody | None = None
 ):
     token = bearer(request.headers)
-    # Não confiar em X-Forwarded-For vindo diretamente do cliente.
-    key = request.client.host if request.client else "unknown"
+    key = ip_do_cliente(request)
     check_limit(creation_limit, key)
     creation_limit.registrar_falha(key)
     response.headers["Cache-Control"] = "no-store"
@@ -388,6 +388,10 @@ class ApprovalBody(BaseModel):
 
 @router.post("/quadras/{court}/watch/approve")
 async def approve_device(court: str, body: ApprovalBody, request: Request):
+    # Duas chaves: o participante e o IP na quadra. Sessão nova zera a primeira,
+    # não a segunda.
+    ip_key = f"{ip_do_cliente(request)}:{court}"
+
     def approve():
         with get_db() as conn:
             conn.execute("BEGIN IMMEDIATE")
@@ -397,6 +401,7 @@ async def approve_device(court: str, body: ApprovalBody, request: Request):
                     403, "Vínculo de relógio não habilitado para este participante."
                 )
             check_limit(approval_limit, p["id"])
+            check_limit(approval_limit, ip_key)
             d = conn.execute(
                 "SELECT * FROM watch_devices WHERE code_hash = ?",
                 (hash_sessao(body.code),),
@@ -407,6 +412,7 @@ async def approve_device(court: str, body: ApprovalBody, request: Request):
                 or d["expires_at"] < now().isoformat()
             ):
                 approval_limit.registrar_falha(p["id"])
+                approval_limit.registrar_falha(ip_key)
                 raise HTTPException(
                     400, "Código inválido, usado ou expirado. Confira o relógio."
                 )
@@ -469,6 +475,7 @@ async def approve_device(court: str, body: ApprovalBody, request: Request):
                 (watch_id, p["id"], current, d["id"]),
             )
             approval_limit.registrar_sucesso(p["id"])
+            approval_limit.registrar_sucesso(ip_key)
             return watch_id, name, replaced and dict(replaced)
 
     # Só o lock desta quadra: a quadra antiga é alterada na mesma transação,

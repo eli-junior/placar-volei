@@ -1,5 +1,4 @@
 import asyncio
-import random
 import secrets
 import uuid
 from dataclasses import asdict
@@ -84,7 +83,7 @@ def apelido_ja_usado(
 def gerar_codigo_quadra_sync(conn) -> str:
     """Gera um código numérico de 5 dígitos (10000 a 99999) único entre as quadras ativas."""
     for _ in range(100):
-        codigo = str(random.randint(10000, 99999))
+        codigo = str(10000 + secrets.randbelow(90000))
         cursor = conn.execute("SELECT 1 FROM quadras WHERE id = ?", (codigo,))
         if not cursor.fetchone():
             return codigo
