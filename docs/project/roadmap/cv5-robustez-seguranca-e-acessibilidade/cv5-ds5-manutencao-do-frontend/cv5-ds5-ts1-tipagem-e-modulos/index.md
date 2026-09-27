@@ -1,7 +1,8 @@
 ---
 code: CV5.DS5.TS1
 level: Technical Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 ---
 
@@ -16,3 +17,7 @@ updated: 2026-09-27
 
 ## Acceptance
 `svelte-check` com `checkJs` limpo; reconexão e fila cobertas por `node --test`; nenhuma mudança visível.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds5-ts1-tipagem-e-modulos`.
