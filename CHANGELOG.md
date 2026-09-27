@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: CV5.DS1.TS2 — Deploy seguro.
   - **Branch**: `feature/cv5-ds1-ts2-deploy-seguro`
-  - **Passo Ariad**: Passo 3 - Implementação (automode)
+  - **Passo Ariad**: Passo 6 concluído — Validated, `human_validation: pending` (automode; merge só após o teste do Navigator)
   - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 51cc5422-0716-48a4-a737-c2ae18bfcf4d | Data: 2026-09-27
-  - **Handoff / Próximos Passos**: plano em `docs/project/roadmap/cv5-robustez-seguranca-e-acessibilidade/cv5-ds1-seguranca-e-deploy/cv5-ds1-ts2-deploy-seguro/plan.md`; após o aceite, Passo 3 nesta branch.
+  - **Handoff / Próximos Passos**: pronto para o teste conjunto na branch de integração do CV5; depois, Checkpoint 4 e merge.
 
 ## 0.19.0 - 2026-09-26
 
