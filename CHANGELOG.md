@@ -18,6 +18,7 @@ Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a
 
 - Topo da quadra em uma linha para operador e espectador: voltar, código, regras da partida, ajustes (⚙), inverter lados (⇄), menu e status. Status vira bolinha em caixa no canto direito: verde pulsante, amarela (reconectando) ou vermelha (aparelho sem rede), com nome acessível. "Duplas e regras" sai do menu para o ⚙; ⇄ e ⋯ saem de dentro do placar. "Você está no controle" dá lugar ao resumo "12 pontos · Vantagem" (`CV6.DS1.US1`, merge de `feature/cv6-ds1-us1-cabecalho-compacto`).
 - Pontuar e desfazer embaixo do placar: +1 / Desfazer / +1 no tablet e no Fold aberto; Desfazer na linha de baixo em tela estreita. Os +1 deixam as laterais em paisagem (`CV6.DS1.US2`, merge de `feature/cv6-ds1-us2-controles-inferiores`).
+- Configurações da partida com Pontuação primeiro, margem interna, modal mais largo no tablet e Salvar/Cancelar sempre visíveis, inclusive no Fold fechado com teclado aberto (`CV6.DS1.US5`, merge de `feature/cv6-ds1-us5-ajustes-espacosos`).
 
 ### Fixed
 
