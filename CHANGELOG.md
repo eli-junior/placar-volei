@@ -4,14 +4,6 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### feature/cv6-ds1-us3-escala-no-classico
-
-- **História / Escopo**: ajuste da CV6.DS1.US3 — tamanho dos números P/M/G também no placar clássico (cartões), pedido do Navigator.
-- **Branch**: `feature/cv6-ds1-us3-escala-no-classico`, de `master` `e824106`.
-- **Passo Ariad**: Passo 4 - Teste e Validação; aguardando validação do Navigator (Checkpoint 2).
-- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: session_0116vQyfn2t4ewHrNfdCCTkk | Data: 2026-09-27.
-- **Handoff / Próximos Passos**: validar no tablet e no Fold; depois revisão, docs e merge como patch.
-
 ### feature/cv6-ds2-us2-aro-de-conexao
 
 - **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
@@ -19,6 +11,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 - **Passo Ariad**: Passo 2 - Planejamento; Checkpoint 1 aprovado; aguardando integração da US1.
 - **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us2-20260927 | Data: 2026-09-27 14:53 -03.
 - **Handoff / Próximos Passos**: plano aprovado em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; implementar após a integração da US1.
+
+## 0.21.1 - 2026-09-27
+
+Boundary: patch (ajuste da CV6.DS1.US3 no placar clássico; fechamento documental da CV2.DS3.TS1)
+
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: session_0116vQyfn2t4ewHrNfdCCTkk
+
+Git source: merges `--no-ff` em `master` de `claude/hus-fora-relogio-pgvzgt` e `feature/cv6-ds1-us3-escala-no-classico`.
+
+### Changed
+
+- Tamanho dos números P/M/G (menu ⋯) também no placar clássico: o número do cartão acompanha a tela, cresce com a escolha e fica sempre dentro do cartão, inclusive com três dígitos e em tela em pé. No clássico, P deixa de ser o antigo tamanho fixo.
+- CV2.DS3.TS1 (tokens e cores semânticas) registrada como `Done` com aceite do Navigator.
+
+### Verification
+
+- Testes unitários web, svelte-check e build aprovados; novo e2e mede P/M/G do clássico no tablet e no Fold fechado. Navigator validou.
 
 ## 0.21.0 - 2026-09-27
 
