@@ -1,7 +1,8 @@
 ---
 code: CV5.DS1.TS1
 level: Technical Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 related:
   - docs/project/debt/items/2026-09-23T1305Z-limite-de-vinculo-do-relogio-por-ip-e-em-memoria.md
@@ -22,3 +23,7 @@ related:
 
 ## Notes
 Paga `debt-limite-de-vinculo-do-relogio-por-ip-e-em-memoria` (parte do IP real).
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds1-ts1-sigilo-do-pin`.
