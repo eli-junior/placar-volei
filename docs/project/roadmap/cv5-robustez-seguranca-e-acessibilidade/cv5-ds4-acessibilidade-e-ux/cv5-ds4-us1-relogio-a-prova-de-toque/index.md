@@ -1,7 +1,8 @@
 ---
 code: CV5.DS4.US1
 level: User Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 ---
 
@@ -16,3 +17,7 @@ updated: 2026-09-27
 ## Acceptance
 - Dado o fim da partida, quando toco "Nova" uma vez, então nada reinicia sem a confirmação.
 - Então o Desfazer diz qual equipe perde o ponto.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds4-us1-relogio-a-prova-de-toque`.
