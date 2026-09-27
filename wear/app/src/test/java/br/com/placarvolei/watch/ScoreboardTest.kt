@@ -134,10 +134,18 @@ class ScoreboardTest {
     fun statusShowsPendingCount() {
         assertEquals("Conectado", statusLine(Connection.CONECTADO, 0))
         assertEquals("Sem conexão · 3 pendentes", statusLine(Connection.SEM_CONEXAO, 3))
+        assertEquals("Reconectando… · 1 pendente", statusLine(Connection.RECONECTANDO, 1))
+        assertEquals("Conectado · 12 pendentes", statusLine(Connection.CONECTADO, 12))
     }
 
     @Test
-    fun dotColorFollowsConnectionAndPending() {
+    fun ringHasOneDistinctColorPerSignal() {
+        val colors = Signal.values().map(::signalColor)
+        assertEquals(colors.size, colors.toSet().size)
+    }
+
+    @Test
+    fun ringSignalFollowsConnectionAndPending() {
         assertEquals(Signal.CONECTADO, signal(Connection.CONECTADO, 0))
         assertEquals(Signal.PROCESSANDO, signal(Connection.CONECTADO, 2))
         assertEquals(Signal.PROCESSANDO, signal(Connection.RECONECTANDO, 0))
