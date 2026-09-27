@@ -45,3 +45,18 @@ test('vitória chega aos dois clientes', async ({ abrir }) => {
   await expect(admin.locator('dialog[open]')).toContainText('FIM DE JOGO');
   await expect(esp.getByText(/Equipe A venceu/)).toBeVisible();
 });
+
+// CV6.DS1.US5: pontuação primeiro e ações sempre alcançáveis, mesmo em tela baixa.
+test('configurações: pontuação primeiro e salvar sempre visível', async ({ abrir }) => {
+  const p = await abrir({ viewport: { width: 344, height: 882 } });
+  await criarSala(p);
+  await p.getByLabel('Duplas e regras da partida').click();
+  await expect(p.locator('dialog[open] .secao-rotulo').first()).toHaveText(/Pontuação/i);
+  await p.setViewportSize({ width: 344, height: 420 });
+  const salvar = p.getByRole('button', { name: 'Salvar Alterações' });
+  await expect(salvar).toBeInViewport();
+  await p.getByLabel('Jogador 1').first().fill('Ana');
+  await expect(salvar).toBeInViewport();
+  await salvar.click();
+  await expect(p.locator('dialog[open]')).toHaveCount(0);
+});
