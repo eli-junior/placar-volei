@@ -1,8 +1,8 @@
 ---
 code: CV6.DS2.US2
 level: User Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status: Active
+status_reason: aro de conexão validado pelo Navigator no relógio; entregue na 0.22.1
 updated: 2026-09-27
 ---
 
@@ -40,3 +40,7 @@ Conciliar com os batimentos centralizados da US1. Mapear estados e cores no plan
 
 Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, desenho final e versão serão definidos no checkpoint de planejamento da implementação.
 
+
+## Planejamento atual
+
+Ver [plano](plan.md). Branch `feature/cv6-ds2-us2-aro-de-conexao`, a partir de `origin/master` `290a36c`. Checkpoint 1 aprovado. Implementação aguarda integração da US1 pelos checkpoints próprios.

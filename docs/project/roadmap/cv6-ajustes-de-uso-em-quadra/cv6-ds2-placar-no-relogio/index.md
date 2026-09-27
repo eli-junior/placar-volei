@@ -2,7 +2,7 @@
 code: CV6.DS2
 level: Delivery Story
 status: Active
-status_reason: CV6.DS2.US1 validada; CV6.DS2.US2 planejada em branch própria
+status_reason: US1 e US2 entregues (aro de conexão na 0.22.1); US3 e US4 planejadas
 updated: 2026-09-27
 ---
 
