@@ -1,7 +1,8 @@
 ---
 code: CV5.DS2.TS3
 level: Technical Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 ---
 
@@ -15,3 +16,7 @@ updated: 2026-09-27
 
 ## Acceptance
 Com a tela apagada o sensor para; uma partida de 1 h gasta menos bateria que hoje (medir antes e depois).
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds2-ts3-bateria-e-batimento`.
