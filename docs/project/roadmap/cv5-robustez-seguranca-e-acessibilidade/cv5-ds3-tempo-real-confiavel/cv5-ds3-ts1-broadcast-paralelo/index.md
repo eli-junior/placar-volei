@@ -1,7 +1,8 @@
 ---
 code: CV5.DS3.TS1
 level: Technical Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 ---
 
@@ -13,3 +14,7 @@ updated: 2026-09-27
 
 ## Acceptance
 Com um cliente que não lê o socket, os demais recebem o ponto em menos de 1 s.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds3-ts1-broadcast-paralelo`.
