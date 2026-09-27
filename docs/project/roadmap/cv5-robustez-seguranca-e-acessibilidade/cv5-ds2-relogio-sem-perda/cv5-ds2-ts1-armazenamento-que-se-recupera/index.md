@@ -26,7 +26,7 @@ updated: 2026-09-27
 ## Revisão (Passo 5)
 
 - **Feito:** `CredentialStore.read` com recuperação e `lostLink`; token em cache; `connectPresence` sem `Bearer null`; `CommandQueue.load` guarda `.corrupt-*` e marca `corrupted`; aviso "Lances antigos ilegíveis" no placar.
-- **Testes:** 46 testes JVM (2 novos), build de debug e lint verdes (14 avisos de lint, os mesmos de antes).
+- **Testes:** 46 testes JVM (2 novos), build de debug e lint verdes (12 avisos, os mesmos da `master`).
 - **Considerado e não feito:** teste JVM do `CredentialStore` (depende do AndroidKeyStore; ficaria só com mock). Coberto pelo roteiro físico.
 - **Débito novo:** nenhum.
 - **Validação humana pendente:** `adb shell run-as br.com.placarvolei.watch sh -c 'echo "{x" > files/fila-lances.json'` e abrir o app → aviso e placar seguem; `adb shell pm clear` não serve (apaga tudo) — para o Keystore, basta confirmar que o app abre normalmente após atualizar o APK.
