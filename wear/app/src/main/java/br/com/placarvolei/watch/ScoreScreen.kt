@@ -106,6 +106,7 @@ fun ScoreScreen(model: WatchModel) {
             ReasonText(reason, Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp))
         }
         model.held?.let { HeldOverlay(it, pending, model::discardHeld) }
+        if (model.lostQueue && model.held == null) LostQueueOverlay(model::dismissLostQueue)
     }
 }
 
@@ -288,6 +289,24 @@ private fun HeldOverlay(reason: String, count: Int, onDiscard: () -> Unit) {
                 Chip(onClick = { confirming = false }, label = { Text("Voltar") },
                     colors = ChipDefaults.secondaryChipColors())
             }
+        }
+    }
+}
+
+/** A fila gravada não pôde ser lida (CV5.DS2.TS1): lances antigos podem faltar. */
+@Composable
+private fun LostQueueOverlay(onDismiss: () -> Unit) {
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.94f)), contentAlignment = Alignment.Center) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                "Lances antigos ilegíveis no relógio. Confira o placar no telefone.",
+                fontSize = 13.sp, textAlign = TextAlign.Center, color = Color(0xFFFFD27A),
+            )
+            Chip(onClick = onDismiss, label = { Text("Entendi") }, colors = ChipDefaults.secondaryChipColors())
         }
     }
 }

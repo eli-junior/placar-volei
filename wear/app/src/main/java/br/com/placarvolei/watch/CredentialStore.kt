@@ -29,14 +29,33 @@ class CredentialStore(context: Context) {
         }.generateKey()
     }
 
+    /**
+     * Token decifrado, ou null. Chave do Keystore invalidada, IV ausente ou
+     * texto adulterado apagam o slot (CV5.DS2.TS1): o relógio volta a pedir
+     * vínculo em vez de fechar a cada abertura.
+     */
     private fun read(slot: String, ivSlot: String): String? {
         val encrypted = prefs.getString(slot, null) ?: return null
-        val iv = Base64.decode(prefs.getString(ivSlot, null), Base64.NO_WRAP)
-        return Cipher.getInstance("AES/GCM/NoPadding").run {
-            init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, iv))
-            String(doFinal(Base64.decode(encrypted, Base64.NO_WRAP)), Charsets.UTF_8)
+        return runCatching {
+            val iv = Base64.decode(prefs.getString(ivSlot, null) ?: error("IV ausente"), Base64.NO_WRAP)
+            Cipher.getInstance("AES/GCM/NoPadding").run {
+                init(Cipher.DECRYPT_MODE, key(), GCMParameterSpec(128, iv))
+                String(doFinal(Base64.decode(encrypted, Base64.NO_WRAP)), Charsets.UTF_8)
+            }
+        }.getOrElse {
+            prefs.edit().remove(slot).remove(ivSlot).commit()
+            lostLink = true
+            null
         }
     }
+
+    /** Um vínculo ilegível foi apagado nesta execução. */
+    var lostLink = false
+        private set
+
+    // Token ativo em memória: o AES-GCM roda uma vez, não a cada requisição.
+    private var cached: String? = null
+    private var cacheLoaded = false
 
     private fun encrypt(token: String): Pair<String, String> {
         val cipher = Cipher.getInstance("AES/GCM/NoPadding").apply { init(Cipher.ENCRYPT_MODE, key()) }
@@ -45,12 +64,17 @@ class CredentialStore(context: Context) {
     }
 
     // "token"/"iv" mantêm os nomes da 0.7.0: o vínculo instalado continua valendo.
-    fun token(): String? = read("token", "iv")
+    fun token(): String? {
+        if (!cacheLoaded) { cached = read("token", "iv"); cacheLoaded = true }
+        return cached
+    }
 
     fun saveToken(token: String, server: String) {
         val (encrypted, iv) = encrypt(token)
         check(prefs.edit().putString("token", encrypted).putString("iv", iv)
             .putString("server", server).remove("code").remove("court").commit()) { "Não foi possível guardar o vínculo." }
+        cached = token
+        cacheLoaded = true
     }
     fun server() = prefs.getString("server", BuildConfig.SERVER_URL).orEmpty()
     fun code() = prefs.getString("code", "").orEmpty()
@@ -78,11 +102,14 @@ class CredentialStore(context: Context) {
 
     /** Código novo aprovado: ele passa a ser o vínculo ativo, de uma vez. */
     fun promotePending(courtName: String) {
+        val plain = pendingToken()
         val encrypted = prefs.getString("pending", null) ?: return
         val iv = prefs.getString("pending-iv", null)
         check(prefs.edit().putString("token", encrypted).putString("iv", iv).putString("court", courtName)
             .remove("pending").remove("pending-iv").remove("pending-cancel").remove("code").commit()) {
             "Não foi possível guardar o vínculo."
         }
+        cached = plain
+        cacheLoaded = true
     }
 }

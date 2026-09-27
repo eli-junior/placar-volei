@@ -36,6 +36,8 @@ data class QueueState(
     val held: String? = null,
     val snapshot: String? = null,
     val participantId: String? = null,
+    /** Arquivo ilegível na abertura (CV5.DS2.TS1); não é gravado. */
+    val corrupted: Boolean = false,
 )
 
 /**
@@ -64,7 +66,12 @@ class CommandQueue(private val file: File) {
             snapshot = json.optJSONObject("placar")?.toString(),
             participantId = json.nullableString("participante"),
         )
-    }.getOrElse { QueueState() }
+    }.getOrElse {
+        // Fila ilegível não vira fila vazia calada: o arquivo fica guardado
+        // ao lado para perícia e a tela avisa que houve lances perdidos.
+        runCatching { file.renameTo(File(file.parentFile, "${file.name}.corrupt-${System.currentTimeMillis()}")) }
+        QueueState(corrupted = true)
+    }
 
     fun save(state: QueueState) {
         val json = JSONObject()

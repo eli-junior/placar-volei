@@ -28,10 +28,19 @@ class CommandQueueTest {
     }
 
     @Test
-    fun missingOrCorruptFileStartsEmpty() {
+    fun missingFileStartsEmpty() {
         val file = folder.root.resolve("fila.json")
         assertEquals(QueueState(), CommandQueue(file).load())
+    }
+
+    @Test
+    fun corruptFileIsKeptAsideAndFlagged() {
+        val file = folder.root.resolve("fila.json")
         file.writeText("{corrompido")
+        assertEquals(QueueState(corrupted = true), CommandQueue(file).load())
+        // O original sai do caminho (guardado como .corrupt-*) e a próxima abertura é limpa.
+        assertEquals(false, file.exists())
+        assertEquals(1, folder.root.listFiles { f -> f.name.startsWith("fila.json.corrupt-") }!!.size)
         assertEquals(QueueState(), CommandQueue(file).load())
     }
 
