@@ -1,8 +1,9 @@
 ---
 code: CV5.DS1.TS1
 level: Technical Story
-status: Active
-status_reason: Checkpoint 1 (plano) aguardando o Navigator
+status: Validated
+status_reason: automode aprovado pelo Navigator em 2026-09-27; testes automatizados verdes
+human_validation: pending
 updated: 2026-09-27
 related:
   - docs/project/debt/items/2026-09-23T1305Z-limite-de-vinculo-do-relogio-por-ip-e-em-memoria.md
@@ -27,3 +28,12 @@ Paga `debt-limite-de-vinculo-do-relogio-por-ip-e-em-memoria` (parte do IP real).
 ## Plano
 
 [plan.md](plan.md) — branch `feature/cv5-ds1-ts1-sigilo-do-pin`.
+
+## Revisão (Passo 5)
+
+- **Refatoração feita:** `extrair_chave_rate_limit` substituída por `app/rede.py`, usada por owner, pareamento, aprovação e entrada.
+- **Considerado e não feito:** limite persistido entre reinícios (continua em memória).
+- **Débito pago em parte:** `debt-limite-de-vinculo-do-relogio-por-ip-e-em-memoria` (o IP agora é o real; a persistência continua pendente).
+- **Débito novo:** nenhum.
+- **Docs:** decisão `2026-09-27T1500Z-lobby-publico-e-pin-como-identificador`; `.env.example`.
+- **Validação humana pendente:** roteiro do Checkpoint 2 (curl com `X-Forwarded-For` trocado, 21 códigos errados, uso normal com relógio).
