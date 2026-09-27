@@ -1,7 +1,8 @@
 ---
 code: CV5.DS3.US1
 level: User Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 ---
 
@@ -16,3 +17,7 @@ updated: 2026-09-27
 ## Acceptance
 - Dado um espectador com o celular bloqueado por 5 min, quando desbloqueia, então o placar se atualiza sozinho ou mostra que está reconectando.
 - Dado um 502 do túnel, então a mensagem é legível, não "Unexpected token <".
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds3-us1-placar-que-nao-congela`.
