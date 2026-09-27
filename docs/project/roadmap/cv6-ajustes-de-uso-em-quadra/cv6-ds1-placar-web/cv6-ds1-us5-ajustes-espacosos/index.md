@@ -1,8 +1,8 @@
 ---
 code: CV6.DS1.US5
 level: User Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status: Done
+status_reason: validado e aceito pelo Navigator em 2026-09-27
 updated: 2026-09-27
 ---
 
@@ -41,3 +41,10 @@ O ajuste do tamanho dos números integra esta superfície pela US3. A prioridade
 
 Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, desenho final e versão serão definidos no checkpoint de planejamento da implementação.
 
+
+## Entrega (2026-09-27)
+
+- Ordem: Pontuação e vantagem, Equipes e duplas, Visual do placar.
+- Margem interna de 24px (16px até 480px), modal até 680px no tablet; cabeçalho e Salvar/Cancelar fixos (`position: sticky`) enquanto só o conteúdo rola.
+- `Dialogo` compartilhado inalterado; a margem externa de 20px no Fold fechado vem dele.
+- e2e cobre pontuação primeiro e Salvar visível em 344×420 com salvamento real.

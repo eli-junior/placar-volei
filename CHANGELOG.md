@@ -4,11 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: `CV6.DS1.US2` — pontuar e desfazer na parte inferior (ordem do DS1: US1 ✓, US4 parcial, US2, US5, US3).
-- **Branch**: `feature/cv6-ds1-us2-controles-inferiores` (criada de `master` após o merge da US1)
+- **História / Escopo**: `CV6.DS1.US5` — configurações legíveis com pontuação primeiro (DS1: US1 ✓, US2 ✓, US4 parcial, US5, US3).
+- **Branch**: `feature/cv6-ds1-us5-ajustes-espacosos`
 - **Passo Ariad**: Passo 4 - Teste e Validação (aguardando Checkpoint 2)
 - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a5-4f3d-ad4e-e8e690004f76 | Data: 2026-09-27
-- **Handoff / Próximos Passos**: plano aceito pelo Navigator; +1 / Desfazer / +1 na grade do palco.
+- **Handoff / Próximos Passos**: plano no chat; modal hoje sem margem interna, estreito no tablet e com Salvar fora da tela no Fold fechado.
 
 ## [Não lançado] — CV6.DS1 (alvo 0.21.0, minor ao fechar o DS1)
 
@@ -18,6 +18,7 @@ Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a
 
 - Topo da quadra em uma linha para operador e espectador: voltar, código, regras da partida, ajustes (⚙), inverter lados (⇄), menu e status. Status vira bolinha em caixa no canto direito: verde pulsante, amarela (reconectando) ou vermelha (aparelho sem rede), com nome acessível. "Duplas e regras" sai do menu para o ⚙; ⇄ e ⋯ saem de dentro do placar. "Você está no controle" dá lugar ao resumo "12 pontos · Vantagem" (`CV6.DS1.US1`, merge de `feature/cv6-ds1-us1-cabecalho-compacto`).
 - Pontuar e desfazer embaixo do placar: +1 / Desfazer / +1 no tablet e no Fold aberto; Desfazer na linha de baixo em tela estreita. Os +1 deixam as laterais em paisagem (`CV6.DS1.US2`, merge de `feature/cv6-ds1-us2-controles-inferiores`).
+- Configurações da partida com Pontuação primeiro, margem interna, modal mais largo no tablet e Salvar/Cancelar sempre visíveis, inclusive no Fold fechado com teclado aberto (`CV6.DS1.US5`, merge de `feature/cv6-ds1-us5-ajustes-espacosos`).
 
 ### Fixed
 
