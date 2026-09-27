@@ -123,7 +123,7 @@
     }
 
     if (enc && venc) {
-      anuncioAcessivel = `Fim de jogo! Vitória de ${venc}. Placar final: ${equipeA} ${pA}, ${equipeB} ${pB}.`;
+      anuncioAcessivel = `Fim de jogo! ${venc} venceu. Placar final: ${equipeA} ${pA}, ${equipeB} ${pB}.`;
     } else if (pA !== pontosAnteriores.a || pB !== pontosAnteriores.b) {
       if (pA > pontosAnteriores.a) {
         anuncioAcessivel = `Ponto para ${equipeA}! Placar: ${equipeA} ${pA}, ${equipeB} ${pB}.`;
@@ -158,7 +158,7 @@
         <span class="trofeu">🏆</span>
         <div class="vitoria-texto">
           <span class="vitoria-titulo">Fim de Jogo!</span>
-          <span class="vitoria-vencedor">Vitória da {vencedorNome}</span>
+          <span class="vitoria-vencedor">{vencedorNome} venceu!</span>
         </div>
       </div>
 
@@ -476,7 +476,8 @@
   }
 
   .aviso-envio {
-    color: #a5f3fc;
+    /* Token do tema: no Modo Sol o cartão é branco e o ciano claro sumia. */
+    color: var(--acento-info);
     background: rgba(6, 182, 212, 0.12);
     border: 1px solid rgba(6, 182, 212, 0.35);
   }

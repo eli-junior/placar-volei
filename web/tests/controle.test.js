@@ -80,7 +80,7 @@ test('ações secundárias aparecem uma vez só, no menu', () => {
 });
 
 test('papel aparece em selo neutro, separado da posse', () => {
-  assert.match(salaFonte, /<span class="selo-papel">\{eu\?\.papel\}<\/span>/);
+  assert.match(salaFonte, /<span class="selo-papel">\{nomeDoPapel\(eu\?\.papel\)\}<\/span>/);
   assert.doesNotMatch(salaFonte, /badge-admin/);
 });
 
