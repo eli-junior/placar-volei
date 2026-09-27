@@ -6,7 +6,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: CV5.DS3.US1 — Placar que não congela.
   - **Branch**: `feature/cv5-ds3-us1-placar-que-nao-congela`
-  - **Passo Ariad**: Passo 2 - Planejamento (Checkpoint 1 aguardando o Navigator)
+  - **Passo Ariad**: Passo 3 - Implementação (automode)
   - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 51cc5422-0716-48a4-a737-c2ae18bfcf4d | Data: 2026-09-27
   - **Handoff / Próximos Passos**: plano em `docs/project/roadmap/cv5-robustez-seguranca-e-acessibilidade/cv5-ds3-tempo-real-confiavel/cv5-ds3-us1-placar-que-nao-congela/plan.md`; após o aceite, Passo 3 nesta branch.
 

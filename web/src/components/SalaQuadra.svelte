@@ -1,4 +1,5 @@
 <script>
+  import { copiarTexto } from '../lib/areaDeTransferencia.js';
   import { fade, slide } from 'svelte/transition';
   import ModalRelogio from './ModalRelogio.svelte';
   import ListaPresentes from './ListaPresentes.svelte';
@@ -129,7 +130,8 @@
   let modalCelebracaoAberto = $state(false);
   let celebracaoExibidaPartidaId = $state(null);
   let prefersReducedMotion = $state(false);
-  let copiado = $state(false);
+  // '' | 'ok' | 'falhou': só diz "copiado" quando a cópia deu certo.
+  let copiado = $state('');
 
   // Celebração de Vitória Automática (CV2.DS4.US1)
   $effect(() => {
@@ -184,12 +186,10 @@
     };
   });
 
-  function copiarCodigo() {
-    if (typeof navigator !== 'undefined' && navigator.clipboard && quadra?.id) {
-      navigator.clipboard.writeText(quadra.id);
-      copiado = true;
-      setTimeout(() => { copiado = false; }, 2000);
-    }
+  async function copiarCodigo() {
+    if (!quadra?.id) return;
+    copiado = (await copiarTexto(quadra.id)) ? 'ok' : 'falhou';
+    setTimeout(() => { copiado = ''; }, 2000);
   }
 
   // Dimensões da janela física
@@ -467,7 +467,7 @@
       <button type="button" class="btn-voltar-compacto" onclick={onVoltar} aria-label="Voltar para a lista de quadras">←</button>
       <button type="button" class="chip-codigo" onclick={copiarCodigo} title="Copiar código da sala" aria-label="Copiar código da sala {quadra.id}">
         <strong>#{quadra.id}</strong>
-        <span>{copiado ? 'Copiado!' : quadra.nome}</span>
+        <span>{copiado === 'ok' ? 'Copiado!' : copiado === 'falhou' ? `Código ${quadra.id}` : quadra.nome}</span>
       </button>
       <div class="ws-status">
         <span class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"></span>
