@@ -45,7 +45,9 @@ test('espectador deixa os cartões dobráveis fora da nova composição', () => 
 
 test('metadados operacionais não antecedem o placar do espectador', () => {
   assert.doesNotMatch(sala, /class="quadra-hero"/);
-  assert.match(sala, /\{#if avisoRelogio \|\| avisoTelaCheia \|\| !wsConectado \|\| erro\}/);
+  // O painel fica sempre montado (região viva, CV5.DS4.US2), mas vazio e sem
+  // espaço quando não há aviso.
+  assert.match(sala, /class:vazio=\{!\(avisoRelogio \|\| avisoTelaCheia \|\| !wsConectado \|\| erro\)\}/);
   assert.match(espectador, /class="contexto"/);
 });
 

@@ -65,11 +65,13 @@
           maxlength="30"
           required
           disabled={submetendo}
+          aria-invalid={erro ? 'true' : undefined}
+          aria-describedby={erro ? 'apelido-erro' : undefined}
         />
       </div>
 
       {#if erro}
-        <p class="erro-msg">{erro}</p>
+        <p class="erro-msg" id="apelido-erro" role="alert">{erro}</p>
       {/if}
 
       <div class="modal-actions">
