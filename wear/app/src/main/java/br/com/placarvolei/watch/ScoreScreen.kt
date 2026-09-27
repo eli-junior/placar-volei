@@ -66,14 +66,14 @@ fun ScoreScreen(model: WatchModel) {
     }
     val heart = rememberHeartRate()
     fun tap(equipe: String) {
-        if (model.tap(equipe)) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        model.tap(equipe) { ok -> if (ok) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM) }
     }
     fun newMatch() {
         if (model.startNewMatch()) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }
     fun undo() {
         // Vibração diferente da do ponto: o pulso sente que foi uma correção.
-        if (model.undo()) view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        model.undo { ok -> if (ok) view.performHapticFeedback(HapticFeedbackConstants.REJECT) }
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {

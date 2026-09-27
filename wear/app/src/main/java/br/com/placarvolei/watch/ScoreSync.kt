@@ -4,7 +4,10 @@ import org.json.JSONObject
 import java.util.UUID
 
 /** Resultado de uma tentativa de envio do lance mais antigo da fila. */
-enum class SendResult { OCIOSO, SEM_REDE, ENVIADO, NAO_AUTORIZADO }
+enum class SendResult { OCIOSO, SEM_REDE, ADIADO, ENVIADO, NAO_AUTORIZADO }
+
+/** Recusas HTTP que não dizem nada sobre o lance: tentar de novo mais tarde. */
+private val TRANSIENT = setOf(408, 425, 429)
 
 /**
  * Placar e fila do relógio sem Android (CV3.DS1.TS1): placar confirmado
@@ -12,9 +15,10 @@ enum class SendResult { OCIOSO, SEM_REDE, ENVIADO, NAO_AUTORIZADO }
  * `WatchModel` cuida de tela, rede e vínculo; esta classe decide o que muda.
  */
 class ScoreSync(private val queue: CommandQueue, private val newId: () -> String = { UUID.randomUUID().toString() }) {
-    var state: QueueState = queue.load()
+    // Escritos no dispatcher de disco, lidos pela tela.
+    @Volatile var state: QueueState = queue.load()
         private set
-    var score: Confirmed? = parse(state.snapshot)
+    @Volatile var score: Confirmed? = parse(state.snapshot)
         private set
     /** Motivo da última falha ao gravar; o lance não foi aceito. */
     var saveError: String? = null
@@ -104,6 +108,9 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
         if (next == null || state.held != null) return SendResult.OCIOSO to null
         val result = send(next.toJson())
         if (result == null || result.first >= 500) return SendResult.SEM_REDE to null
+        // Tempo esgotado, cedo demais ou excesso de pedidos: passageiros. O
+        // lance fica na fila e sai depois, sem descarte manual (CV5.DS2.TS2).
+        if (result.first in TRANSIENT) return SendResult.ADIADO to null
         val (status, data) = result
         if (status == 401) return SendResult.NAO_AUTORIZADO to data
         // O snapshot pelo WebSocket pode ter tirado o lance da fila antes da resposta.
