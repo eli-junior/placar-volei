@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Text
+import kotlinx.coroutines.delay
 
 private val CorNos = Color(0xFFFFB020)
 private val CorEles = Color(0xFF4FC3F7)
@@ -60,10 +62,14 @@ fun ScoreScreen(model: WatchModel) {
     val view = LocalView.current
     // Tela acesa só no placar (CV3.DS2.US1): no jogo, o toque tem de estar
     // pronto sem acordar o relógio. Vínculo e escolha seguem o tempo normal.
-    DisposableEffect(view) {
+    // Liberada depois de 10 min sem toque nem mudança no placar (CV5.DS2.TS3):
+    // placar esquecido aberto não segura a tela até a bateria acabar.
+    LaunchedEffect(view, pontosA, pontosB, pending) {
         view.keepScreenOn = true
-        onDispose { view.keepScreenOn = false }
+        delay(SCREEN_IDLE_MS)
+        view.keepScreenOn = false
     }
+    DisposableEffect(view) { onDispose { view.keepScreenOn = false } }
     val heart = rememberHeartRate()
     fun tap(equipe: String) {
         model.tap(equipe) { ok -> if (ok) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM) }
@@ -109,6 +115,9 @@ fun ScoreScreen(model: WatchModel) {
         if (model.lostQueue && model.held == null) LostQueueOverlay(model::dismissLostQueue)
     }
 }
+
+/** Tela do placar acesa sem atividade por no máximo 10 min. */
+internal const val SCREEN_IDLE_MS = 10 * 60 * 1000L
 
 enum class Signal { CONECTADO, PROCESSANDO, DESCONECTADO }
 

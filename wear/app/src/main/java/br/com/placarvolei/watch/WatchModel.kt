@@ -72,6 +72,8 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     )
         private set
     private val poke = Channel<Unit>(Channel.CONFLATED)
+    /** Espera antes de reabrir o socket caído; volta a 2 s quando ele abre. */
+    private var reconnectDelay = 2_000L
 
     // Placar (CV3.DS1.US2, TS1): confirmado pelo servidor + fila durável de
     // lances, persistidos juntos na `ScoreSync`. `rev` avisa a tela a cada mudança.
@@ -450,7 +452,9 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         connection = Connection.RECONECTANDO
         socket = http.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                viewModelScope.launch { if (socket === webSocket) connection = Connection.CONECTADO }
+                viewModelScope.launch {
+                    if (socket === webSocket) { connection = Connection.CONECTADO; reconnectDelay = 2_000L }
+                }
             }
             override fun onMessage(webSocket: WebSocket, text: String) {
                 // Snapshot interpretado fora da thread principal; aplicado nela.
@@ -471,6 +475,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 viewModelScope.launch {
                     if (socket === webSocket) {
                         socket = null
+                        poke.trySend(Unit)
                         if (code == 4401 || code == 4404) {
                             linked = false
                             invalid = true
@@ -486,6 +491,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 viewModelScope.launch {
                     if (socket === webSocket) {
                         socket = null
+                        poke.trySend(Unit)
                         connection = Connection.SEM_CONEXAO
                         message = "Sem conexão. Tentando novamente."
                     }
@@ -505,7 +511,9 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                     settlePending()
                     when (stage) {
                         Stage.ABERTURA -> checkOpening()
-                        Stage.PLACAR -> if (hasLink()) refresh()
+                        // Com o socket aberto, o servidor avisa tudo por ele
+                        // (placar, controle, revogação 4401): sem polling.
+                        Stage.PLACAR -> if (hasLink() && !(linked && socket != null)) refresh()
                         else -> Unit
                     }
                 } catch (e: CancellationException) {
@@ -526,8 +534,8 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
             val wait = when {
                 stage == Stage.CODIGO_NOVO -> 3_000L
                 stage != Stage.PLACAR -> 5_000L
-                linked && socket != null -> 15_000L
-                linked -> 5_000L
+                linked && socket != null -> Long.MAX_VALUE
+                linked -> reconnectDelay.also { reconnectDelay = (it * 2).coerceAtMost(30_000L) }
                 else -> 3_000L
             }
             withTimeoutOrNull(wait) { poke.receive() }
