@@ -1,8 +1,8 @@
 ---
 code: CV6
 level: Value
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status: Active
+status_reason: CV6.DS2.US2 puxada para planejamento; aguardando Checkpoint 1
 updated: 2026-09-27
 ---
 

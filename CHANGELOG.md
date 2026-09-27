@@ -4,6 +4,24 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### feature/cv6-ds2-us2-aro-de-conexao
+
+- **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
+- **Branch**: `feature/cv6-ds2-us2-aro-de-conexao`, de `origin/master` `290a36c`.
+- **Passo Ariad**: Passo 2 - Planejamento; aguardando Checkpoint 1.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us2-20260927 | Data: 2026-09-27 14:53 -03.
+- **Handoff / Próximos Passos**: plano em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; sem implementação. Dependência: concluir checkpoints da US1 e integrar seu layout antes de implementar. Worktree: `/tmp/placar-cv6-ds2-us2`.
+
+### feature/cv6-ds2-us1-leitura-no-pulso
+
+- **História / Escopo**: CV6.DS2.US1 — leitura no pulso, Nova verde e Voltar Ponto.
+- **Branch**: `feature/cv6-ds2-us1-leitura-no-pulso`; último commit `90fc088`, salvo no remoto.
+- **Passo Ariad**: Passo 4 - Teste e Validação; aguardando validação manual no Checkpoint 2.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us1-20260927 | Data: 2026-09-27.
+- **Handoff / Próximos Passos**: release instalado no relógio; 52 testes JVM aprovados após último ajuste. Retomar roteiro na branch da US1, depois revisão e fechamento. Pedido de próxima HU não fecha seus checkpoints.
+
+### feature/cv6-ds1-us2-controles-inferiores
+
 - **História / Escopo**: `CV6.DS1.US2` — pontuar e desfazer na parte inferior (ordem do DS1: US1 ✓, US4 parcial, US2, US5, US3).
 - **Branch**: `feature/cv6-ds1-us2-controles-inferiores` (a criar de `master` após o merge da US1)
 - **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
