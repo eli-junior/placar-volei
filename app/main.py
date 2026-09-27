@@ -52,16 +52,15 @@ async def lifespan(app: FastAPI):
         online = await hub.participantes_online(quadra_id)
         for p in snapshot["participantes"]:
             p["online"] = p["id"] in online
-        await hub.broadcast(
+        await hub.broadcast_many(
             quadra_id,
-            {"tipo": "PLACAR_ATUALIZADO", "payload": snapshot},
-        )
-        await hub.broadcast(
-            quadra_id,
-            {
-                "tipo": "PRESENCA_ATUALIZADA",
-                "payload": {"participantes": snapshot["participantes"]},
-            },
+            [
+                {"tipo": "PLACAR_ATUALIZADO", "payload": snapshot},
+                {
+                    "tipo": "PRESENCA_ATUALIZADA",
+                    "payload": {"participantes": snapshot["participantes"]},
+                },
+            ],
         )
 
     async def rotina_sucessao():
