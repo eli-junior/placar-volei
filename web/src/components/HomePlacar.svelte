@@ -1,11 +1,11 @@
 <script>
+  import { guardarApelido, lerApelido } from '../lib/preferencias.js';
   import { onMount } from 'svelte';
   import { fade } from 'svelte/transition';
   import Icone from './Icone.svelte';
 
   let { onCriarQuadra = () => {}, onEntrarQuadra = () => {}, submetendo = false, erro = null } = $props();
 
-  const CHAVE_APELIDO = 'placar:apelido';
   const CHAVE_TEMA = 'placar:tema';
 
   let abaAtiva = $state('acompanhar');
@@ -31,7 +31,7 @@
   onMount(() => {
     document.body.classList.add('tela-home');
     try {
-      const apelidoSalvo = localStorage.getItem(CHAVE_APELIDO);
+      const apelidoSalvo = lerApelido();
       if (apelidoSalvo) {
         apelidoCriador = apelidoSalvo;
         apelidoEspectador = apelidoSalvo;
@@ -62,10 +62,6 @@
     } finally {
       carregandoQuadras = false;
     }
-  }
-
-  function guardarApelido(apelido) {
-    try { localStorage.setItem(CHAVE_APELIDO, apelido); } catch {}
   }
 
   function handleSubmeterCriar(evento) {

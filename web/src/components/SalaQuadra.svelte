@@ -1,4 +1,5 @@
 <script>
+  import { nomeDoPapel } from '../lib/preferencias.js';
   import { fade, slide } from 'svelte/transition';
   import ModalRelogio from './ModalRelogio.svelte';
   import ListaPresentes from './ListaPresentes.svelte';
@@ -471,7 +472,7 @@
       </button>
       <div class="ws-status">
         <span class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"></span>
-        <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Conectando...'}</span>
+        <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Reconectando…'}</span>
       </div>
     </header>
 
@@ -483,7 +484,7 @@
           <small>{posse.detalhe}</small>
         </div>
       {/key}
-      <span class="selo-papel">{eu?.papel}</span>
+      <span class="selo-papel">{nomeDoPapel(eu?.papel)}</span>
       {#if posse.podeAssumir}
         <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
       {/if}
@@ -530,7 +531,7 @@
           <span
             class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"
           ></span>
-          <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Conectando...'}</span>
+          <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Reconectando…'}</span>
         </div>
       </div>
     </header>
@@ -548,7 +549,7 @@
     {#if !wsConectado}
       <span class="chip-reconectando" role="status">
         <span class="chip-girando" aria-hidden="true">⟳</span>
-        Sem conexão — reconectando. Os controles do placar voltam sozinhos.
+        Reconectando… Os controles do placar voltam sozinhos.
       </span>
     {/if}
     {#if erro}<p role="alert">{erro}</p>{/if}
@@ -737,9 +738,9 @@
     border: 1px solid var(--border-color);
     border-radius: 999px;
     color: var(--text-secondary);
-    font-size: .68rem;
+    font-size: .8rem;
     font-weight: 800;
-    letter-spacing: .06em;
+    letter-spacing: .02em;
   }
   .faixa-posse .btn-assumir { min-height: 44px; padding: 0 14px; }
 
