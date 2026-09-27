@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Apelido lembrado entre a Home e a entrada por link (CV5.DS4.US3). Antes,
  * cada tela usava uma chave e uma não enxergava o que a outra guardou.

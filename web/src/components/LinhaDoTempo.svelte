@@ -32,11 +32,13 @@
   // Rola automaticamente para o fim da lista quando novos itens chegam
   $effect(() => {
     if (listaEl && itens.length > 0) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (listaEl) {
           listaEl.scrollTo({ top: listaEl.scrollHeight, behavior: prefersReducedMotion ? 'instant' : 'smooth' });
         }
       }, 50);
+      // Lista nova ou diálogo fechado antes dos 50 ms: o timer não sobrevive.
+      return () => clearTimeout(timer);
     }
   });
 

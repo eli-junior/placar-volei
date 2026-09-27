@@ -1,4 +1,12 @@
+// @ts-check
+/** @typedef {import('./lib/tipos.js').Snapshot} Snapshot */
+
 // Uma resposta HTTP atrasada nunca pode substituir um snapshot mais novo.
+/**
+ * @param {Snapshot | null} atual
+ * @param {Snapshot | null | undefined} recebido
+ * @param {string | null | undefined} partidaId
+ */
 export function aceitarSnapshot(atual, recebido, partidaId) {
   if (!recebido) return false;
   // Se for uma nova partida na mesma quadra/sala, aceita a transição

@@ -3,7 +3,8 @@
   import HomePlacar from './components/HomePlacar.svelte';
   import ModalEntrar from './components/ModalEntrar.svelte';
   import SalaQuadra from './components/SalaQuadra.svelte';
-  import { aceitarSnapshot, conexaoSilenciosa, lerJson, mensagemDeErro, SILENCIO_MAXIMO_MS } from './sync.js';
+  import { aceitarSnapshot, lerJson, mensagemDeErro } from './sync.js';
+  import { criarConexao } from './lib/conexao.js';
 
   let quadraAtual = $state(null);
   let eu = $state(null);
@@ -21,12 +22,24 @@
   let modalEntrarAberto = $state(false);
   let quadraSelecionadaParaEntrar = $state(null);
   let wsConectado = $state(false);
-  let wsSocket = null;
-  let wsReconnectTimer = null;
-  let wsTentativasReconexao = 0;
-  // Vigia da conexão (CV5.DS3.US1): o servidor fala ao menos a cada 20 s.
-  let wsUltimaMensagem = 0;
-  let wsVigia = null;
+  const conexao = criarConexao({
+    criarSocket: quadraId => {
+      const protocolo = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      return new WebSocket(`${protocolo}//${window.location.host}/ws/${quadraId}`);
+    },
+    aoMensagem: tratarMensagem,
+    aoCair: () => { wsConectado = false; },
+    aoFechar: codigo => {
+      if (codigo === 4404) { salaExpirada(); return false; }
+      if (codigo === 4401) {
+        handleVoltarParaHome(false);
+        window.history.replaceState({}, '', '/');
+        erro = 'Sua sessão não é mais válida. Entre novamente com seu apelido.';
+        return false;
+      }
+      return true;
+    },
+  });
 
   function aplicarSnapshot(data) {
     if (!aceitarSnapshot(ultimoSnapshot, data, quadraAtual?.partida_id)) return;
@@ -39,13 +52,8 @@
   }
 
   function desconectar() {
-    clearTimeout(wsReconnectTimer);
-    clearTimeout(wsVigia);
-    wsTentativasReconexao = 0;
-    const anterior = wsSocket;
-    wsSocket = null;
+    conexao.desconectar();
     wsConectado = false;
-    anterior?.close();
   }
 
   function handleVoltarParaHome(navegar = true) {
@@ -68,97 +76,35 @@
     erro = 'Esta sala expirou ou foi encerrada pelo servidor. Crie um novo placar ou entre em outra sala.';
   }
 
-  function agendarReconexao(quadraId) {
-    if (quadraAtual?.id !== quadraId) return;
-    // Backoff exponencial com jitter (CV2.DS2.TS1)
-    const base = Math.min(1000 * Math.pow(1.5, wsTentativasReconexao), 15000);
-    const jitter = Math.random() * 800;
-    wsTentativasReconexao += 1;
-    clearTimeout(wsReconnectTimer);
-    wsReconnectTimer = setTimeout(() => conectarWebSocket(quadraId), Math.round(base + jitter));
-  }
-
-  // Conexão meio aberta (Wi-Fi do ginásio, celular que voltou do bolso) não
-  // dispara onclose: sem notícia do servidor, larga o socket e reconecta.
-  function vigiar(socket, quadraId) {
-    wsUltimaMensagem = Date.now();
-    clearTimeout(wsVigia);
-    wsVigia = setTimeout(() => derrubar(socket, quadraId), SILENCIO_MAXIMO_MS);
-  }
-
-  function derrubar(socket, quadraId) {
-    if (wsSocket !== socket) return;
-    wsSocket = null;
-    wsConectado = false;
-    clearTimeout(wsVigia);
-    try { socket.close(); } catch { /* já fechado */ }
-    agendarReconexao(quadraId);
-  }
-
   // Volta do segundo plano ou da rede: reconecta já, sem esperar o backoff.
   function retomarConexao() {
-    if (!quadraAtual || document.visibilityState === 'hidden') return;
-    const socket = wsSocket;
-    if (socket && socket.readyState === WebSocket.OPEN && !conexaoSilenciosa(wsUltimaMensagem)) return;
-    if (socket) derrubar(socket, quadraAtual.id);
-    clearTimeout(wsReconnectTimer);
-    wsTentativasReconexao = 0;
-    conectarWebSocket(quadraAtual.id);
+    if (document.visibilityState === 'hidden') return;
+    conexao.retomar();
   }
 
-  function conectarWebSocket(quadraId) {
-    // Fecha o socket anterior sem zerar as tentativas: com `desconectar()`
-    // aqui, o backoff voltava a 1 s a cada reconexão e nunca crescia.
-    const tentativas = wsTentativasReconexao;
-    desconectar();
-    wsTentativasReconexao = tentativas;
-    const protocolo = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const socket = new WebSocket(`${protocolo}//${window.location.host}/ws/${quadraId}`);
-    wsSocket = socket;
-    vigiar(socket, quadraId);
-    socket.onmessage = event => {
-      if (wsSocket !== socket) return;
-      vigiar(socket, quadraId);
-      try {
-        const msg = JSON.parse(event.data);
-        if (msg.tipo === 'PING') return;
-        if (msg.tipo === 'SALA_EXPIRADA') return salaExpirada();
-        if (msg.tipo === 'ESTADO_INICIAL') {
-          if (!msg.payload.quadra || msg.payload.quadra.id !== quadraAtual?.id) return salaExpirada();
-          // Estado inicial é a verdade da conexão nova: substitui o anterior
-          // mesmo que o seq tenha voltado (servidor reiniciado).
-          ultimoSnapshot = null;
-          aplicarSnapshot(msg.payload);
-          wsConectado = true;
-          wsTentativasReconexao = 0;
-        } else if (msg.tipo === 'PLACAR_ATUALIZADO') {
-          aplicarSnapshot(msg.payload);
-        } else if (msg.tipo === 'PRESENCA_ATUALIZADA') {
-          // Presença não pode reverter uma promoção já recebida pelo log.
-          participantes = (msg.payload.participantes || []).map(p => {
-            const atual = participantes.find(a => a.id === p.id);
-            return atual ? { ...p, papel: atual.papel } : p;
-          });
-        }
-      } catch (e) {
-        console.error('Erro ao processar atualização:', e);
+  function tratarMensagem(msg) {
+    try {
+      if (msg.tipo === 'SALA_EXPIRADA') return salaExpirada();
+      if (msg.tipo === 'ESTADO_INICIAL') {
+        if (!msg.payload.quadra || msg.payload.quadra.id !== quadraAtual?.id) return salaExpirada();
+        // Estado inicial é a verdade da conexão nova: substitui o anterior
+        // mesmo que o seq tenha voltado (servidor reiniciado).
+        ultimoSnapshot = null;
+        aplicarSnapshot(msg.payload);
+        wsConectado = true;
+        conexao.confirmar();
+      } else if (msg.tipo === 'PLACAR_ATUALIZADO') {
+        aplicarSnapshot(msg.payload);
+      } else if (msg.tipo === 'PRESENCA_ATUALIZADA') {
+        // Presença não pode reverter uma promoção já recebida pelo log.
+        participantes = (msg.payload.participantes || []).map(p => {
+          const atual = participantes.find(a => a.id === p.id);
+          return atual ? { ...p, papel: atual.papel } : p;
+        });
       }
-    };
-    socket.onclose = event => {
-      if (wsSocket !== socket) return;
-      wsSocket = null;
-      wsConectado = false;
-      clearTimeout(wsVigia);
-      if (event.code === 4404) return salaExpirada();
-      if (event.code === 4401) {
-        handleVoltarParaHome(false);
-        window.history.replaceState({}, '', '/');
-        erro = 'Sua sessão não é mais válida. Entre novamente com seu apelido.';
-        return;
-      }
-      agendarReconexao(quadraId);
-    };
-    socket.onerror = () => socket.close();
+    } catch (e) {
+      console.error('Erro ao processar atualização:', e);
+    }
   }
 
   function abrirSala(quadra, participante) {
@@ -170,7 +116,7 @@
     quadraAtual = quadra;
     eu = participante;
     erro = null;
-    conectarWebSocket(quadra.id);
+    conexao.conectar(quadra.id);
   }
 
   async function handleCriarQuadraHome(dados) {

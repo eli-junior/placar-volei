@@ -23,10 +23,10 @@
 
   const dadosQr = $derived.by(() => {
     try {
-      const matriz = gerarQrCode(urlCompleta, 'M');
-      const tamanho = ladoComMargem(matriz.length);
-      const d = caminhoSvg(matriz);
-      return { matriz, tamanho, d };
+      // Assinatura certa (achada pelo checkJs na CV5.DS5.TS1): opções em objeto,
+      // e o retorno traz a matriz em `modulos`. Antes o QR nunca aparecia.
+      const { modulos, tamanho: lado } = gerarQrCode(urlCompleta, { nivel: 'M' });
+      return { tamanho: ladoComMargem(lado), d: caminhoSvg(modulos) };
     } catch (e) {
       console.warn('Erro ao gerar QR Code:', e);
       return null;
@@ -51,15 +51,21 @@
   }
 
   // '' | 'ok' | 'falhou' (CV5.DS3.US1): "copiado" só quando a cópia deu certo.
+  let timerPin;
+  let timerLink;
+  $effect(() => () => { clearTimeout(timerPin); clearTimeout(timerLink); });
+
   async function handleCopiarPin() {
     if (!quadra?.id) return;
     copiadoPin = (await copiarTexto(quadra.id)) ? 'ok' : 'falhou';
-    setTimeout(() => { copiadoPin = ''; }, 2000);
+    clearTimeout(timerPin);
+    timerPin = setTimeout(() => { copiadoPin = ''; }, 2000);
   }
 
   async function handleCopiarLink() {
     copiadoLink = (await copiarTexto(urlCompleta)) ? 'ok' : 'falhou';
-    setTimeout(() => { copiadoLink = ''; }, 2000);
+    clearTimeout(timerLink);
+    timerLink = setTimeout(() => { copiadoLink = ''; }, 2000);
   }
 </script>
 

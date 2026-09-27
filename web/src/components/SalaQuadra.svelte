@@ -1,4 +1,5 @@
 <script>
+  import { aplicarTema, guardarTema, lerTemaSol } from '../lib/tema.js';
   import { copiarTexto } from '../lib/areaDeTransferencia.js';
   import { nomeDoPapel } from '../lib/preferencias.js';
   import { fade, slide } from 'svelte/transition';
@@ -48,44 +49,13 @@
 
   const CHAVE_GIRO = 'placar:girado';
   const CHAVE_INVERSAO_BASE = 'placar:lados_invertidos:';
-  const CHAVE_TEMA = 'placar:tema';
-
-  function lerTemaSalvo() {
-    if (typeof localStorage === 'undefined') return false;
-    try {
-      return localStorage.getItem(CHAVE_TEMA) === 'sol';
-    } catch {
-      return false;
-    }
-  }
-
-  let temaSol = $state(false);
-
-  $effect(() => {
-    temaSol = lerTemaSalvo();
-    if (typeof document !== 'undefined') {
-      if (temaSol) {
-        document.documentElement.setAttribute('data-tema', 'sol');
-      } else {
-        document.documentElement.removeAttribute('data-tema');
-      }
-    }
-  });
+  // Já aplicado em `main.js` antes do mount; aqui só o estado do botão.
+  let temaSol = $state(lerTemaSol());
 
   function alternarTema() {
     temaSol = !temaSol;
-    if (typeof document !== 'undefined') {
-      if (temaSol) {
-        document.documentElement.setAttribute('data-tema', 'sol');
-      } else {
-        document.documentElement.removeAttribute('data-tema');
-      }
-    }
-    if (typeof localStorage !== 'undefined') {
-      try {
-        localStorage.setItem(CHAVE_TEMA, temaSol ? 'sol' : 'padrao');
-      } catch {}
-    }
+    aplicarTema(temaSol);
+    guardarTema(temaSol);
   }
 
   function lerGiroSalvo() {
@@ -187,10 +157,16 @@
     };
   });
 
+  let timerCopiado;
+  let timerClique;
+  // Timers de aviso não sobrevivem à saída da sala.
+  $effect(() => () => { clearTimeout(timerCopiado); clearTimeout(timerClique); });
+
   async function copiarCodigo() {
     if (!quadra?.id) return;
     copiado = (await copiarTexto(quadra.id)) ? 'ok' : 'falhou';
-    setTimeout(() => { copiado = ''; }, 2000);
+    clearTimeout(timerCopiado);
+    timerCopiado = setTimeout(() => { copiado = ''; }, 2000);
   }
 
   // Dimensões da janela física
@@ -410,7 +386,8 @@
       modoImersivo = false;
       if (event?.type === 'pointerdown') {
         engolirClique = true;
-        setTimeout(() => { engolirClique = false; }, 500);
+        clearTimeout(timerClique);
+        timerClique = setTimeout(() => { engolirClique = false; }, 500);
       }
     }
 

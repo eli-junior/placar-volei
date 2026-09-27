@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Copia o texto e diz se deu certo (CV5.DS3.US1). Sem contexto seguro, sem
  * permissão ou sem a API, a promessa é rejeitada: a tela não pode dizer

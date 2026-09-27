@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Ícones vetoriais do produto — CV2.DS4.US3.
  *

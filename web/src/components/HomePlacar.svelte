@@ -1,4 +1,5 @@
 <script>
+  import { aplicarTema, guardarTema, lerTemaSol } from '../lib/tema.js';
   import { guardarApelido, lerApelido } from '../lib/preferencias.js';
   import { onMount } from 'svelte';
   import { fade } from 'svelte/transition';
@@ -6,22 +7,16 @@
 
   let { onCriarQuadra = () => {}, onEntrarQuadra = () => {}, submetendo = false, erro = null } = $props();
 
-  const CHAVE_TEMA = 'placar:tema';
 
   let abaAtiva = $state('acompanhar');
   let apelidoCriador = $state('');
   let nomeQuadra = $state('');
   let codigoQuadra = $state('');
   let apelidoEspectador = $state('');
-  let temaSol = $state(false);
+  let temaSol = $state(lerTemaSol());
   let quadrasAtivas = $state([]);
   let carregandoQuadras = $state(false);
   let erroQuadras = $state(false);
-
-  function aplicarTema() {
-    if (temaSol) document.documentElement.setAttribute('data-tema', 'sol');
-    else document.documentElement.removeAttribute('data-tema');
-  }
 
   $effect(() => {
     if (!erro || abaAtiva !== 'acompanhar' || !codigoQuadra) return;
@@ -36,8 +31,6 @@
         apelidoCriador = apelidoSalvo;
         apelidoEspectador = apelidoSalvo;
       }
-      temaSol = localStorage.getItem(CHAVE_TEMA) === 'sol';
-      aplicarTema();
     } catch {}
     carregarQuadrasAtivas();
     return () => document.body.classList.remove('tela-home');
@@ -45,8 +38,8 @@
 
   function alternarTema() {
     temaSol = !temaSol;
-    aplicarTema();
-    try { localStorage.setItem(CHAVE_TEMA, temaSol ? 'sol' : 'padrao'); } catch {}
+    aplicarTema(temaSol);
+    guardarTema(temaSol);
   }
 
   async function carregarQuadrasAtivas() {
