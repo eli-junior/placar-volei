@@ -259,6 +259,7 @@ async def post_quadras(
                 value=session_id,
                 httponly=True,
                 samesite="lax",
+                secure=settings.cookie_secure,
                 path="/",
                 max_age=86400 * 30,
             )
@@ -345,6 +346,7 @@ async def post_entrar_quadra(
             value=session_id,
             httponly=True,
             samesite="lax",
+            secure=settings.cookie_secure,
             path="/",
             max_age=86400 * 30,
         )
