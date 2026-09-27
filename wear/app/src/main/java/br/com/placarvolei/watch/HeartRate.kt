@@ -3,10 +3,10 @@ package br.com.placarvolei.watch
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -16,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.health.services.client.HealthServices
+import androidx.lifecycle.compose.LifecycleStartEffect
 import androidx.health.services.client.MeasureCallback
 import androidx.health.services.client.data.Availability
 import androidx.health.services.client.data.DataPointContainer
@@ -47,12 +48,14 @@ fun rememberHeartRate(): HeartState {
         val prefs = context.getSharedPreferences("heart-rate", Context.MODE_PRIVATE)
         if (!granted && !prefs.getBoolean("asked", false)) {
             prefs.edit { putBoolean("asked", true) }
-            launcher.launch(Manifest.permission.BODY_SENSORS)
+            launcher.launch(heartPermission())
         }
     }
 
-    DisposableEffect(granted) {
-        if (!granted) return@DisposableEffect onDispose {}
+    // Sensor só com o app em primeiro plano (CV5.DS2.TS3): sair pelo botão
+    // lateral para a Activity e desliga a medição, em vez de deixá-la rodando.
+    LifecycleStartEffect(granted) {
+        if (!granted) return@LifecycleStartEffect onStopOrDispose {}
         val client = HealthServices.getClient(context).measureClient
         val callback = object : MeasureCallback {
             override fun onAvailabilityChanged(dataType: DeltaDataType<*, *>, availability: Availability) {
@@ -64,7 +67,7 @@ fun rememberHeartRate(): HeartState {
             }
         }
         runCatching { client.registerMeasureCallback(DataType.HEART_RATE_BPM, callback) }
-        onDispose {
+        onStopOrDispose {
             bpm = null
             runCatching { client.unregisterMeasureCallbackAsync(DataType.HEART_RATE_BPM, callback) }
         }
@@ -72,5 +75,12 @@ fun rememberHeartRate(): HeartState {
     return HeartState(granted, bpm)
 }
 
+/**
+ * Wear OS 6 (API 36) trocou `BODY_SENSORS` pela permissão granular de
+ * frequência cardíaca; antes dele, vale a antiga (CV5.DS2.TS4).
+ */
+internal fun heartPermission(sdk: Int = Build.VERSION.SDK_INT) =
+    if (sdk >= 36) "android.permission.health.READ_HEART_RATE" else Manifest.permission.BODY_SENSORS
+
 private fun hasSensorPermission(context: Context) =
-    ContextCompat.checkSelfPermission(context, Manifest.permission.BODY_SENSORS) == PackageManager.PERMISSION_GRANTED
+    ContextCompat.checkSelfPermission(context, heartPermission()) == PackageManager.PERMISSION_GRANTED

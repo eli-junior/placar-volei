@@ -15,4 +15,10 @@ class HeartRateTest {
         assertEquals("♥ --", heartLabel(0))
         assertEquals("♥ --", heartLabel(300))
     }
+
+    @Test
+    fun wearOs6AsksForTheGranularHeartRatePermission() {
+        assertEquals("android.permission.health.READ_HEART_RATE", heartPermission(36))
+        assertEquals("android.permission.BODY_SENSORS", heartPermission(35))
+    }
 }

@@ -1,4 +1,5 @@
 import asyncio
+import re
 import secrets
 import uuid
 from dataclasses import asdict
@@ -12,6 +13,8 @@ from app.config import settings
 from app.eventos import carregar_eventos, get_quadra_lock
 from app.hub import hub
 from app.identidade import SESSION_COOKIE
+
+SESSION_ID_VALIDO = re.compile(r"[A-Za-z0-9_-]{1,64}")
 from app.projecao import projetar_estado, projetar_linha_do_tempo
 from app.quadras import (
     ApelidoEmUso,
@@ -23,7 +26,8 @@ from app.quadras import (
     obter_quadra,
     registrar_participante,
 )
-from app.rate_limit import owner_rate_limiter
+from app.rate_limit import entrada_rate_limiter, owner_rate_limiter
+from app.rede import ip_do_cliente
 
 router = APIRouter(prefix="/api", tags=["quadras"])
 
@@ -216,7 +220,9 @@ def extrair_ou_gerar_session_id(request: Request) -> tuple[str, bool]:
     session_id = request.headers.get("x-session-id") or request.cookies.get(
         SESSION_COOKIE
     )
-    if session_id:
+    # A sessão vira a identidade da pessoa: valor fora do formato é ignorado
+    # e dá lugar a uma sessão nova, em vez de ser gravado como veio.
+    if session_id and SESSION_ID_VALIDO.fullmatch(session_id):
         return session_id, False
     return str(uuid.uuid4()), True
 
@@ -253,6 +259,7 @@ async def post_quadras(
                 value=session_id,
                 httponly=True,
                 samesite="lax",
+                secure=settings.cookie_secure,
                 path="/",
                 max_age=86400 * 30,
             )
@@ -308,8 +315,18 @@ async def post_entrar_quadra(
     request: Request,
     response: Response,
 ):
+    ip = ip_do_cliente(request)
+    bloqueado, restante = entrada_rate_limiter.esta_bloqueado(ip)
+    if bloqueado:
+        raise HTTPException(
+            status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+            detail="Muitos códigos errados. Aguarde para tentar novamente.",
+            headers={"Retry-After": str(restante)},
+        )
     quadra = await obter_quadra(settings.db_path, quadra_id)
     if not quadra:
+        # Só código errado conta: quem acerta a sala não gasta tentativa.
+        entrada_rate_limiter.registrar_falha(ip)
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Quadra não encontrada.",
@@ -329,6 +346,7 @@ async def post_entrar_quadra(
             value=session_id,
             httponly=True,
             samesite="lax",
+            secure=settings.cookie_secure,
             path="/",
             max_age=86400 * 30,
         )
@@ -628,17 +646,8 @@ async def get_linha_do_tempo(quadra_id: str):
     return {"itens": itens}
 
 
-def extrair_chave_rate_limit(request: Request) -> str:
-    forwarded = request.headers.get("x-forwarded-for")
-    if forwarded:
-        return forwarded.split(",")[0].strip()
-    if request.client and request.client.host:
-        return request.client.host
-    return "127.0.0.1"
-
-
 def autenticar_owner(request: Request) -> None:
-    chave = extrair_chave_rate_limit(request)
+    chave = ip_do_cliente(request)
 
     # 1. Verifica se está bloqueado por rate limit
     bloqueado, restante = owner_rate_limiter.esta_bloqueado(chave)

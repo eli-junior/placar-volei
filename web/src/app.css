@@ -597,3 +597,18 @@ html, body {
   overflow-x: hidden;
   max-width: 100vw;
 }
+
+/*
+ * Movimento reduzido (CV5.DS4.US2): rede de segurança global. Os componentes
+ * já tratam as próprias animações; este bloco garante que nenhuma animação
+ * infinita (pulso, giro, troféu) escape quando a pessoa pediu menos movimento.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-iteration-count: 1 !important;
+    animation-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

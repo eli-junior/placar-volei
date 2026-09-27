@@ -25,3 +25,7 @@ Uso por mais pessoas, ou 429 inesperado no vínculo.
 ## Closure Condition
 
 IP real vindo de proxy confiável e contador que sobrevive a reinícios, com teste.
+
+## Atualização 2026-09-27
+
+`CV5.DS1.TS1` passou a usar o IP real (`CF-Connecting-IP` com `TRUST_CLOUDFLARE`). Falta só a persistência entre reinícios.

@@ -1,6 +1,6 @@
 ---
 id: debt-banco-de-producao-sem-volume-persistente
-status: Carried
+status: Paid
 kind: operation
 severity: medium
 source: CV3.DS1.US1
@@ -25,3 +25,7 @@ Qualquer mudança de deploy, ou quando o custo de revincular aparecer no uso.
 ## Closure Condition
 
 Volume nomeado para `/data`, com a atualização validada preservando uma sala ativa.
+
+## Fechamento 2026-09-27
+
+Pago pela `CV5.DS1.TS2`: volume nomeado `placar-data:/data` no compose e procedimento de atualização no `development-guide.md`.

@@ -40,5 +40,5 @@ test('vitória chega aos dois clientes', async ({ abrir }) => {
   await entrarNaSala(esp, sala.id);
   for (let i = 0; i < 3; i++) await admin.getByLabel('Marcar ponto para Equipe A').click();
   await expect(admin.locator('dialog[open]')).toContainText('FIM DE JOGO');
-  await expect(esp.getByText(/Vitória de Equipe A/)).toBeVisible();
+  await expect(esp.getByText(/Equipe A venceu/)).toBeVisible();
 });

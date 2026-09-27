@@ -1,4 +1,6 @@
 <script>
+  import { copiarTexto } from '../lib/areaDeTransferencia.js';
+  import { nomeDoPapel } from '../lib/preferencias.js';
   import { fade, slide } from 'svelte/transition';
   import ModalRelogio from './ModalRelogio.svelte';
   import ListaPresentes from './ListaPresentes.svelte';
@@ -129,7 +131,8 @@
   let modalCelebracaoAberto = $state(false);
   let celebracaoExibidaPartidaId = $state(null);
   let prefersReducedMotion = $state(false);
-  let copiado = $state(false);
+  // '' | 'ok' | 'falhou': só diz "copiado" quando a cópia deu certo.
+  let copiado = $state('');
 
   // Celebração de Vitória Automática (CV2.DS4.US1)
   $effect(() => {
@@ -184,12 +187,10 @@
     };
   });
 
-  function copiarCodigo() {
-    if (typeof navigator !== 'undefined' && navigator.clipboard && quadra?.id) {
-      navigator.clipboard.writeText(quadra.id);
-      copiado = true;
-      setTimeout(() => { copiado = false; }, 2000);
-    }
+  async function copiarCodigo() {
+    if (!quadra?.id) return;
+    copiado = (await copiarTexto(quadra.id)) ? 'ok' : 'falhou';
+    setTimeout(() => { copiado = ''; }, 2000);
   }
 
   // Dimensões da janela física
@@ -467,23 +468,26 @@
       <button type="button" class="btn-voltar-compacto" onclick={onVoltar} aria-label="Voltar para a lista de quadras">←</button>
       <button type="button" class="chip-codigo" onclick={copiarCodigo} title="Copiar código da sala" aria-label="Copiar código da sala {quadra.id}">
         <strong>#{quadra.id}</strong>
-        <span>{copiado ? 'Copiado!' : quadra.nome}</span>
+        <span>{copiado === 'ok' ? 'Copiado!' : copiado === 'falhou' ? `Código ${quadra.id}` : quadra.nome}</span>
       </button>
       <div class="ws-status">
-        <span class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"></span>
-        <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Conectando...'}</span>
+        <span class="status-dot {wsConectado ? 'status-online' : 'status-offline'}" aria-hidden="true"></span>
+        <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Reconectando…'}</span>
       </div>
     </header>
 
-    <div class="faixa-posse" class:minha={temControle} aria-live="polite">
+    <div class="faixa-posse" class:minha={temControle}>
       <span class="pino" aria-hidden="true"></span>
+      <!-- Anúncio da posse fora do {#key}: a região viva não pode nascer a
+           cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
+      <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
       {#key quadra?.controle_id}
-        <div class="posse-texto" in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>
+        <div class="posse-texto" aria-hidden="true" in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>
           <strong>{posse.titulo}</strong>
           <small>{posse.detalhe}</small>
         </div>
       {/key}
-      <span class="selo-papel">{eu?.papel}</span>
+      <span class="selo-papel">{nomeDoPapel(eu?.papel)}</span>
       {#if posse.podeAssumir}
         <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
       {/if}
@@ -529,16 +533,18 @@
         <div class="ws-status">
           <span
             class="status-dot {wsConectado ? 'status-online' : 'status-offline'}"
+            aria-hidden="true"
           ></span>
-          <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Conectando...'}</span>
+          <span class="ws-text">{wsConectado ? 'Ao vivo' : 'Reconectando…'}</span>
         </div>
       </div>
     </header>
 
   {/if}
 
-  {#if avisoRelogio || avisoTelaCheia || !wsConectado || erro}
-  <div class="controle-painel" aria-live="polite">
+  <!-- Sempre montado (CV5.DS4.US2): região viva que nasce já preenchida
+       costuma não ser anunciada pelo leitor de tela. -->
+  <div class="controle-painel" class:vazio={!(avisoRelogio || avisoTelaCheia || !wsConectado || erro)} aria-live="polite">
     {#if avisoTelaCheia}
       <span class="aviso-em-breve" role="status" transition:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>{avisoTelaCheia}</span>
     {/if}
@@ -548,12 +554,11 @@
     {#if !wsConectado}
       <span class="chip-reconectando" role="status">
         <span class="chip-girando" aria-hidden="true">⟳</span>
-        Sem conexão — reconectando. Os controles do placar voltam sozinhos.
+        Reconectando… Os controles do placar voltam sozinhos.
       </span>
     {/if}
     {#if erro}<p role="alert">{erro}</p>{/if}
   </div>
-  {/if}
 
   <!-- Exibição do Placar -->
   {#if !estadoPartida}
@@ -737,13 +742,14 @@
     border: 1px solid var(--border-color);
     border-radius: 999px;
     color: var(--text-secondary);
-    font-size: .68rem;
+    font-size: .8rem;
     font-weight: 800;
-    letter-spacing: .06em;
+    letter-spacing: .02em;
   }
   .faixa-posse .btn-assumir { min-height: 44px; padding: 0 14px; }
 
   .controle-painel { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 12px; padding: 10px; color: var(--text-primary); }
+  .controle-painel.vazio { padding: 0; }
   .controle-painel p { color: var(--estado-erro-suave); width: 100%; text-align: center; }
   .aviso-em-breve {
     padding: 4px 10px;

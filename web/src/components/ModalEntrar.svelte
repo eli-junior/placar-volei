@@ -1,4 +1,5 @@
 <script>
+  import { guardarApelido, lerApelido } from '../lib/preferencias.js';
   import Dialogo from './Dialogo.svelte';
   import Icone from './Icone.svelte';
 
@@ -7,8 +8,8 @@
   let erro = $state('');
 
   $effect(() => {
-    if (typeof localStorage !== 'undefined' && !apelido) {
-      const salvo = localStorage.getItem('placar_ultimo_apelido');
+    if (!apelido) {
+      const salvo = lerApelido();
       if (salvo) apelido = salvo;
     }
   });
@@ -20,11 +21,7 @@
       erro = 'Informe seu apelido para entrar na quadra.';
       return;
     }
-    if (typeof localStorage !== 'undefined') {
-      try {
-        localStorage.setItem('placar_ultimo_apelido', apelidoLimpo);
-      } catch {}
-    }
+    guardarApelido(apelidoLimpo);
     erro = '';
     onEntrar(apelidoLimpo);
   }
@@ -65,11 +62,13 @@
           maxlength="30"
           required
           disabled={submetendo}
+          aria-invalid={erro ? 'true' : undefined}
+          aria-describedby={erro ? 'apelido-erro' : undefined}
         />
       </div>
 
       {#if erro}
-        <p class="erro-msg">{erro}</p>
+        <p class="erro-msg" id="apelido-erro" role="alert">{erro}</p>
       {/if}
 
       <div class="modal-actions">

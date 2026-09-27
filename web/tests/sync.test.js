@@ -45,3 +45,23 @@ test('corpo sem descrição cai na mensagem alternativa', () => {
   assert.equal(mensagemDeErro(null, 'Falhou.'), 'Falhou.');
   assert.equal(mensagemDeErro({ detail: {} }, 'Falhou.'), 'Falhou.');
 });
+
+test('lerJson devolve null para corpo que não é JSON (502 do túnel)', async () => {
+  const { lerJson } = await import('../src/sync.js');
+  const html = { json: async () => { throw new SyntaxError('Unexpected token <'); } };
+  assert.equal(await lerJson(html), null);
+  assert.deepEqual(await lerJson({ json: async () => ({ ok: 1 }) }), { ok: 1 });
+});
+
+test('conexão é tida como morta após 45 s de silêncio', async () => {
+  const { conexaoSilenciosa } = await import('../src/sync.js');
+  assert.equal(conexaoSilenciosa(0, 44000), false);
+  assert.equal(conexaoSilenciosa(0, 46000), true);
+});
+
+test('copiarTexto só confirma quando a área de transferência aceita', async () => {
+  const { copiarTexto } = await import('../src/lib/areaDeTransferencia.js');
+  assert.equal(await copiarTexto('48291', { writeText: async () => {} }), true);
+  assert.equal(await copiarTexto('48291', { writeText: async () => { throw new Error('negado'); } }), false);
+  assert.equal(await copiarTexto('48291', undefined), false);
+});

@@ -67,9 +67,13 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     var connecting by mutableStateOf(false)
         private set
     /** Aviso na tela de abertura (código expirado, falha ao gerar). */
-    var notice by mutableStateOf<String?>(null)
+    var notice by mutableStateOf<String?>(
+        if (store.lostLink) "Vínculo perdido no relógio. Pareie de novo." else null
+    )
         private set
     private val poke = Channel<Unit>(Channel.CONFLATED)
+    /** Espera antes de reabrir o socket caído; volta a 2 s quando ele abre. */
+    private var reconnectDelay = 2_000L
 
     // Placar (CV3.DS1.US2, TS1): confirmado pelo servidor + fila durável de
     // lances, persistidos juntos na `ScoreSync`. `rev` avisa a tela a cada mudança.
@@ -94,11 +98,33 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     /** Desfazer segue valendo com a vitória prevista ou a partida encerrada. */
     val canUndo get() = rev.let { sync.canUndo }
 
-    /** Grava o lance antes de qualquer retorno visual. Devolve se foi aceito. */
-    fun tap(equipe: String) = changed(sync.tap(equipe))
+    /** Rótulo e descrição do desfazer com a equipe do ponto do topo. */
+    val undoText get() = undoLabel(rev.let { sync.undoTeam }, labels)
+    val undoSpoken get() = score.let { s ->
+        undoDescription(rev.let { sync.undoTeam }, s?.equipeA.orEmpty(), s?.equipeB.orEmpty())
+    }
+
+    // Toda gravação da fila (com fsync) roda aqui, uma de cada vez e fora da
+    // thread da tela (CV5.DS2.TS2). A ordem dos lances é a ordem dos toques.
+    private val disk = Dispatchers.IO.limitedParallelism(1)
+
+    /** Um toque ainda gravando: o próximo é ignorado até o disco confirmar. */
+    private var writing = false
+
+    /** Grava o lance antes de qualquer retorno visual; `done` recebe se foi aceito. */
+    fun tap(equipe: String, done: (Boolean) -> Unit) = write({ sync.tap(equipe) }, done)
 
     /** Grava na fila o desfazer do ponto visto no topo, antes do retorno visual. */
-    fun undo() = changed(sync.undo())
+    fun undo(done: (Boolean) -> Unit) = write({ sync.undo() }, done)
+
+    private fun write(action: () -> Boolean, done: (Boolean) -> Unit) {
+        if (writing) return
+        writing = true
+        viewModelScope.launch {
+            val accepted = try { withContext(disk) { action() } } finally { writing = false }
+            done(changed(accepted))
+        }
+    }
 
     /** Depois de mexer na `ScoreSync`: atualiza a tela e acorda o envio. */
     private fun changed(accepted: Boolean = true): Boolean {
@@ -138,7 +164,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 when {
                     status == 401 -> unlink(data)
                     data.has("recibo") -> {
-                        data.optJSONObject("estado")?.let { sync.applySnapshot(it); changed(false) }
+                        data.optJSONObject("estado")?.let { withContext(disk) { sync.applySnapshot(it) }; changed(false) }
                         val recibo = data.getJSONObject("recibo")
                         if (recibo.optString("status") != "APLICADO") message = recibo.optString("detalhe")
                     }
@@ -154,9 +180,19 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Descarte explícito, confirmado no relógio, dos lances retidos por recusa. */
+    /** Fila ilegível na abertura (CV5.DS2.TS1): aviso até a pessoa dispensar. */
+    val lostQueue get() = rev.let { sync.lostQueue }
+
+    fun dismissLostQueue() {
+        sync.dismissLostQueue()
+        changed(false)
+    }
+
     fun discardHeld() {
-        sync.discardHeld()
-        changed()
+        viewModelScope.launch {
+            withContext(disk) { sync.discardHeld() }
+            changed()
+        }
     }
 
     private suspend fun sendLoop() {
@@ -167,7 +203,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 continue
             }
             val (result, data) = try {
-                sync.sendNext { body ->
+                withContext(disk) { sync.sendNext { body ->
                     try {
                         request("/api/watch/comandos", body = body.toString())
                     } catch (e: CancellationException) {
@@ -175,7 +211,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                     } catch (e: Exception) {
                         null
                     }
-                }
+                } }
             } finally { changed(false) }
             when (result) {
                 SendResult.OCIOSO -> wake.receive()
@@ -184,6 +220,11 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                     connection = Connection.SEM_CONEXAO
                     withTimeoutOrNull(backoff) { wake.receive() }
                     backoff = (backoff * 2).coerceAtMost(15_000L)
+                }
+                SendResult.ADIADO -> {
+                    // O servidor respondeu: a conexão está de pé, só precisa esperar.
+                    withTimeoutOrNull(backoff) { wake.receive() }
+                    backoff = (backoff * 2).coerceAtMost(30_000L)
                 }
                 SendResult.NAO_AUTORIZADO -> unlink(data ?: JSONObject())
                 SendResult.ENVIADO -> {
@@ -341,7 +382,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         store.promotePending(courtLabel(data.optString("court_name"), data.getString("court_id")).orEmpty())
         court = store.courtName()
         // Lances da quadra anterior: o abandono foi confirmado ao gerar o código.
-        sync.reset()
+        withContext(disk) { sync.reset() }
         changed(false)
         socket?.let { old -> socket = null; old.close(1000, null) }
         linked = false
@@ -385,14 +426,14 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 invalid = false
                 code = ""
                 store.saveCode("")
-                sync.setParticipant(data.optString("participant_id").ifBlank { null })
+                withContext(disk) { sync.setParticipant(data.optString("participant_id").ifBlank { null }) }
                 changed(false)
                 ownerAdmin = data.optBoolean("pode_nova_partida", false)
                 court = saveCourt(data)
                 message = "Vinculado como ${data.getString("display_name")}\nSala ${data.getString("court_id")}"
                 connectPresence(data.getString("court_id"))
                 val (stateStatus, snapshot) = request("/api/watch/state")
-                if (stateStatus == 200) { sync.applySnapshot(snapshot); changed(false) }
+                if (stateStatus == 200) { withContext(disk) { sync.applySnapshot(snapshot) }; changed(false) }
                 wake.trySend(Unit)
             }
             status == 200 -> { connecting = false; linked = false; message = "Aguardando autorização no telefone." }
@@ -409,13 +450,17 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
 
     private fun connectPresence(court: String) {
         if (!visible || socket != null) return
+        // Sem token não há socket: nunca mandar "Bearer null".
+        val token = store.token() ?: return
         val url = address.replaceFirst("https://", "wss://").replaceFirst("http://", "ws://")
         val request = Request.Builder().url("$url/ws/$court")
-            .header("Authorization", "Bearer ${store.token()}").build()
+            .header("Authorization", "Bearer $token").build()
         connection = Connection.RECONECTANDO
         socket = http.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
-                viewModelScope.launch { if (socket === webSocket) connection = Connection.CONECTADO }
+                viewModelScope.launch {
+                    if (socket === webSocket) { connection = Connection.CONECTADO; reconnectDelay = 2_000L }
+                }
             }
             override fun onMessage(webSocket: WebSocket, text: String) {
                 // Snapshot interpretado fora da thread principal; aplicado nela.
@@ -428,7 +473,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 viewModelScope.launch {
                     if (socket !== webSocket) return@launch
                     // Lance já confirmado: sai da fila junto com o snapshot, sem contar duas vezes.
-                    sync.applySnapshot(payload, payload.optString("comando_id").ifBlank { null })
+                    withContext(disk) { sync.applySnapshot(payload, payload.optString("comando_id").ifBlank { null }) }
                     changed(false)
                 }
             }
@@ -436,6 +481,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 viewModelScope.launch {
                     if (socket === webSocket) {
                         socket = null
+                        poke.trySend(Unit)
                         if (code == 4401 || code == 4404) {
                             linked = false
                             invalid = true
@@ -451,6 +497,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 viewModelScope.launch {
                     if (socket === webSocket) {
                         socket = null
+                        poke.trySend(Unit)
                         connection = Connection.SEM_CONEXAO
                         message = "Sem conexão. Tentando novamente."
                     }
@@ -470,7 +517,9 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                     settlePending()
                     when (stage) {
                         Stage.ABERTURA -> checkOpening()
-                        Stage.PLACAR -> if (hasLink()) refresh()
+                        // Com o socket aberto, o servidor avisa tudo por ele
+                        // (placar, controle, revogação 4401): sem polling.
+                        Stage.PLACAR -> if (hasLink() && !(linked && socket != null)) refresh()
                         else -> Unit
                     }
                 } catch (e: CancellationException) {
@@ -491,8 +540,8 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
             val wait = when {
                 stage == Stage.CODIGO_NOVO -> 3_000L
                 stage != Stage.PLACAR -> 5_000L
-                linked && socket != null -> 15_000L
-                linked -> 5_000L
+                linked && socket != null -> Long.MAX_VALUE
+                linked -> reconnectDelay.also { reconnectDelay = (it * 2).coerceAtMost(30_000L) }
                 else -> 3_000L
             }
             withTimeoutOrNull(wait) { poke.receive() }

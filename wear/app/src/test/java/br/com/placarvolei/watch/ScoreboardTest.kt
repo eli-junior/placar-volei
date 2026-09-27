@@ -143,4 +143,14 @@ class ScoreboardTest {
         assertEquals(Signal.PROCESSANDO, signal(Connection.RECONECTANDO, 0))
         assertEquals(Signal.DESCONECTADO, signal(Connection.SEM_CONEXAO, 3))
     }
+
+    @Test
+    fun undoSaysWhichTeamLosesThePoint() {
+        val labels = "Nós" to "Eles"
+        assertEquals("↶ Desfazer +1 Nós", undoLabel("A", labels))
+        assertEquals("↶ Desfazer +1 Eles", undoLabel("B", labels))
+        assertEquals("↶ Desfazer", undoLabel(null, labels))
+        assertEquals("Desfazer o último ponto de Time Azul", undoDescription("A", "Time Azul", "Time Rosa"))
+        assertEquals("Desfazer o último ponto", undoDescription(null, "A", "B"))
+    }
 }

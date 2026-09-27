@@ -54,7 +54,7 @@
   {#if encerrada && vencedorNome}
     <div class="vitoria" in:slide={{ duration: prefersReducedMotion ? 0 : 220 }}>
       <Icone nome="trofeu" tamanho="1.35em" />
-      <span><small>FIM DE JOGO</small> Vitória de <strong>{vencedorNome}</strong></span>
+      <span><small>FIM DE JOGO</small> <strong>{vencedorNome}</strong> venceu!</span>
     </div>
   {/if}
 
