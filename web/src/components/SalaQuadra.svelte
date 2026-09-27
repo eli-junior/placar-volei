@@ -1,7 +1,7 @@
 <script>
   import { aplicarTema, guardarTema, lerTemaSol } from '../lib/tema.js';
   import { copiarTexto } from '../lib/areaDeTransferencia.js';
-  import { nomeDoPapel } from '../lib/preferencias.js';
+  import { nomeDoPapel, lerTamanhoNumeros, guardarTamanhoNumeros, proximoTamanhoNumeros, TAMANHOS_NUMEROS } from '../lib/preferencias.js';
   import { fade, slide } from 'svelte/transition';
   import ModalRelogio from './ModalRelogio.svelte';
   import ListaPresentes from './ListaPresentes.svelte';
@@ -192,6 +192,13 @@
   const ultimoPonto = $derived(ultimoPontoDesfazivel(linhaDoTempo));
   let menuAberto = $state(false);
 
+  // Tamanho dos números, só neste aparelho (CV6.DS1.US3).
+  let tamanhoNumeros = $state(lerTamanhoNumeros());
+  function alternarTamanhoNumeros() {
+    tamanhoNumeros = proximoTamanhoNumeros(tamanhoNumeros);
+    guardarTamanhoNumeros(tamanhoNumeros);
+  }
+
   // Local único das ações secundárias (CV4.DS3.US1/US2). Cada papel vê só o
   // que pode fazer; o que já tem lugar próprio na tela não se repete aqui.
   const acoesDoMenu = $derived([
@@ -205,6 +212,7 @@
     ...(!podeControlar && !paisagemNativa
       ? [{ rotulo: girado ? 'Placar em retrato' : 'Girar para paisagem', icone: 'atualizar', acao: alternarGiro, pressionado: girado, fechaMenu: false }]
       : []),
+    { rotulo: `Números: ${tamanhoNumeros}`, icone: 'expandir', acao: alternarTamanhoNumeros, fechaMenu: false },
     { rotulo: temaSol ? 'Modo escuro' : 'Modo sol', icone: temaSol ? 'lua' : 'sol', acao: alternarTema, pressionado: temaSol, fechaMenu: false },
   ]);
 
@@ -436,7 +444,7 @@
   class:operador={podeControlar}
   class:controles-ocultos={modoImersivo && !podeControlar}
   class:tela-girada={telaGirada}
-  style="--tela-w: {telaW}px; --tela-h: {telaH}px;"
+  style="--tela-w: {telaW}px; --tela-h: {telaH}px; --escala-numeros: {TAMANHOS_NUMEROS[tamanhoNumeros]};"
   in:fade={{ duration: prefersReducedMotion ? 0 : 200 }}
   onclickcapture={engolirCliqueDeRevelacao}
   onclick={tratarInteracaoUsuario}

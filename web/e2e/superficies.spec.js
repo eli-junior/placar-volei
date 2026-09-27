@@ -6,7 +6,7 @@ test('menu por papel e foco de volta ao ⋯', async ({ abrir }) => {
   const sala = await criarSala(admin);
   const mais = admin.getByLabel(/Mais ações/);
   await mais.click();
-  await expect(admin.locator('.menu-acoes button')).toHaveText(['Compartilhar e QR', 'Linha do tempo', 'Relógio', 'Modo sol', 'Fechar']);
+  await expect(admin.locator('.menu-acoes button')).toHaveText(['Compartilhar e QR', 'Linha do tempo', 'Relógio', 'Números: M', 'Modo sol', 'Fechar']);
   await admin.keyboard.press('Escape');
   await expect(mais).toBeFocused();
   // Duplas e regras mora no cabeçalho (CV6.DS1.US1).
@@ -20,7 +20,7 @@ test('menu por papel e foco de volta ao ⋯', async ({ abrir }) => {
   await entrarNaSala(esp, sala.id);
   await esp.mouse.click(180, 320);
   await esp.getByLabel(/Mais ações/).click();
-  await expect(esp.locator('.menu-acoes button')).toHaveText(['Compartilhar e QR', 'Girar para paisagem', 'Modo sol', 'Fechar']);
+  await expect(esp.locator('.menu-acoes button')).toHaveText(['Compartilhar e QR', 'Girar para paisagem', 'Números: M', 'Modo sol', 'Fechar']);
   await expect(esp.locator('dialog[open] .badge')).toHaveCount(2);
   await esp.keyboard.press('Escape');
   await expect(esp.getByLabel(/Mais ações/)).toBeFocused();

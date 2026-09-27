@@ -1,8 +1,8 @@
 ---
 code: CV6.DS1.US4
 level: User Story
-status: Planned
-status_reason: parte do operador entregue na US1 (resumo no topo); espectador já exibia as regras; falta confirmar atualização ao vivo e fechar
+status: Done
+status_reason: validado e aceito pelo Navigator em 2026-09-27
 updated: 2026-09-27
 ---
 
@@ -40,3 +40,7 @@ Relacionada à configuração já existente em CV1.DS3.US1. Posicionamento deve 
 
 Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, desenho final e versão serão definidos no checkpoint de planejamento da implementação.
 
+
+## Entrega (2026-09-27)
+
+Coberta sem branch própria: a US1 pôs "12 pontos · Vantagem · Teto N" no topo de quem opera (`resumirRegras`), e o placar do espectador já exibia alvo, vantagem e teto. O resumo vem do estado da partida e atualiza nos clientes conectados; o Navigator conferiu "15 pontos · Sem vantagem" ao validar a US5.

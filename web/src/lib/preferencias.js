@@ -35,3 +35,32 @@ const PAPEIS = { ADMIN: 'Admin', CONTROLADOR: 'Controlador', ESPECTADOR: 'Espect
 export function nomeDoPapel(papel) {
   return PAPEIS[papel] || '';
 }
+
+/**
+ * Tamanho dos números do placar, só neste aparelho (CV6.DS1.US3).
+ */
+export const CHAVE_TAMANHO_NUMEROS = 'placar:tamanho_numeros';
+// P é o tamanho de antes da US3; M e G crescem até o limite da coluna.
+export const TAMANHOS_NUMEROS = { P: 1, M: 1.25, G: 1.5 };
+
+export function lerTamanhoNumeros(armazenamento = globalThis.localStorage) {
+  try {
+    const valor = armazenamento?.getItem(CHAVE_TAMANHO_NUMEROS);
+    return valor && valor in TAMANHOS_NUMEROS ? valor : 'M';
+  } catch {
+    return 'M';
+  }
+}
+
+export function guardarTamanhoNumeros(tamanho, armazenamento = globalThis.localStorage) {
+  try {
+    armazenamento?.setItem(CHAVE_TAMANHO_NUMEROS, tamanho);
+  } catch {
+    /* navegação privada: vale só até recarregar */
+  }
+}
+
+/** Próximo da sequência P → M → G → P, para o item do menu. */
+export function proximoTamanhoNumeros(atual) {
+  return { P: 'M', M: 'G', G: 'P' }[atual] || 'M';
+}

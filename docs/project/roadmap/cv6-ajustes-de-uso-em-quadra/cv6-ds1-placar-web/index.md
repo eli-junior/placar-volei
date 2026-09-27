@@ -1,8 +1,8 @@
 ---
 code: CV6.DS1
 level: Delivery Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status: Done
+status_reason: cinco histórias validadas e aceitas pelo Navigator em 2026-09-27; entregue na 0.21.0
 updated: 2026-09-27
 ---
 
@@ -24,3 +24,7 @@ Melhorar organização, leitura, configuração e operação no tablet e telefon
 
 Histórias filhas verificadas e aceitas pelo Navigator, conforme seus critérios e a [matriz comum](../index.md). A ordem de desenvolvimento será acordada ao puxar trabalho.
 
+
+## Entrega
+
+Fechado na 0.21.0 (2026-09-27). Ordem executada: US1 (com a parte do operador da US4), US2, US5, US3.

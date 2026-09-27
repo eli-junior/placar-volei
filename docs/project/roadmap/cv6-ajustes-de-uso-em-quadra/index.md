@@ -1,8 +1,8 @@
 ---
 code: CV6
 level: Value
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status: Active
+status_reason: DS1 entregue na 0.21.0; DS2 (relógio) planejado
 updated: 2026-09-27
 ---
 

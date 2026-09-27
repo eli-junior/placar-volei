@@ -46,3 +46,15 @@ test('conexão tem um só vocabulário e vitória um só texto', () => {
   for (const f of ['Placar.svelte', 'PlacarManual.svelte']) assert.doesNotMatch(ler(f), /Vitória d[ae] /);
   assert.doesNotMatch(ler('Placar.svelte'), /#a5f3fc/);
 });
+
+test('tamanho dos números: padrão M, guarda escolha válida e ignora lixo', async () => {
+  const { lerTamanhoNumeros, guardarTamanhoNumeros, proximoTamanhoNumeros, CHAVE_TAMANHO_NUMEROS } = await import('../src/lib/preferencias.js');
+  const m = memoria();
+  assert.equal(lerTamanhoNumeros(m), 'M');
+  guardarTamanhoNumeros('G', m);
+  assert.equal(lerTamanhoNumeros(m), 'G');
+  m.setItem(CHAVE_TAMANHO_NUMEROS, 'XL');
+  assert.equal(lerTamanhoNumeros(m), 'M');
+  assert.equal(lerTamanhoNumeros({ getItem() { throw new Error('bloqueado'); } }), 'M');
+  assert.deepEqual(['P', 'M', 'G'].map(proximoTamanhoNumeros), ['M', 'G', 'P']);
+});
