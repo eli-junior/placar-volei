@@ -4,11 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: `CV6.DS1.US5` — configurações legíveis com pontuação primeiro (DS1: US1 ✓, US2 ✓, US4 parcial, US5, US3).
-- **Branch**: `feature/cv6-ds1-us5-ajustes-espacosos`
-- **Passo Ariad**: Passo 4 - Teste e Validação (aguardando Checkpoint 2)
+- **História / Escopo**: `CV6.DS1.US3` — números proporcionais e tamanho configurável (DS1: US1 ✓, US2 ✓, US5 ✓, US4 parcial, US3).
+- **Branch**: `feature/cv6-ds1-us3-numeros-ajustaveis`
+- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
 - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a5-4f3d-ad4e-e8e690004f76 | Data: 2026-09-27
-- **Handoff / Próximos Passos**: plano no chat; modal hoje sem margem interna, estreito no tablet e com Salvar fora da tela no Fold fechado.
+- **Handoff / Próximos Passos**: plano no chat; decisão do Navigator: tamanho local ao aparelho, com presets.
 
 ## [Não lançado] — CV6.DS1 (alvo 0.21.0, minor ao fechar o DS1)
 
