@@ -4,11 +4,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: `CV6.DS1.US1` — cabeçalho compacto e navegação visível (ordem do DS1 aceita: US1, US4, US2, US5, US3).
-- **Branch**: `feature/cv6-ds1-us1-cabecalho-compacto`
-- **Passo Ariad**: Passo 4 - Teste e Validação (aguardando Checkpoint 2)
+- **História / Escopo**:  — pontuar e desfazer na parte inferior (ordem do DS1: US1 ✓, US4 parcial, US2, US5, US3).
+- **Branch**:  (a criar de  após o merge da US1)
+- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
 - **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a5-4f3d-ad4e-e8e690004f76 | Data: 2026-09-27
-- **Handoff / Próximos Passos**: decisões do Navigator: status verde = conectado, amarelo = reconectando, vermelho = offline; tamanho dos números (US3) local com presets. Plano aceito; implementação feita. Aguardando validação manual do Navigator. Feedback do Navigator aplicado: status pulsante no canto, posse trocada pelo resumo das regras no topo (antecipa parte da US4). Axe intermitente corrigido: o teste espera as animações antes de medir.
+- **Handoff / Próximos Passos**: plano apresentado no chat junto do fechamento da US1.
+
+## [Não lançado] — CV6.DS1 (alvo 0.21.0, minor ao fechar o DS1)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver) | Sessão: 8fcca862-38a5-4f3d-ad4e-e8e690004f76
+
+### Changed
+
+- Topo da quadra em uma linha para operador e espectador: voltar, código, regras da partida, ajustes (⚙), inverter lados (⇄), menu e status. Status vira bolinha em caixa no canto direito: verde pulsante, amarela (reconectando) ou vermelha (aparelho sem rede), com nome acessível. "Duplas e regras" sai do menu para o ⚙; ⇄ e ⋯ saem de dentro do placar. "Você está no controle" dá lugar ao resumo "12 pontos · Vantagem" (, merge de ).
+
+### Fixed
+
+- Teste de axe media contraste durante fades e falhava de forma intermitente; agora espera as animações finitas.
 
 ## 0.20.0 - 2026-09-27
 

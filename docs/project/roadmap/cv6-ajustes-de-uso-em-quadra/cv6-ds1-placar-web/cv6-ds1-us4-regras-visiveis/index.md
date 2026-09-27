@@ -2,7 +2,7 @@
 code: CV6.DS1.US4
 level: User Story
 status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
+status_reason: parte do operador entregue na US1 (resumo no topo); espectador já exibia as regras; falta confirmar atualização ao vivo e fechar
 updated: 2026-09-27
 ---
 
