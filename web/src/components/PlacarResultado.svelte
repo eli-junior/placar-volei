@@ -7,6 +7,7 @@
     ladosInvertidos = false,
     vencedor = null,
     movimentoReduzido = false,
+    onEditarEquipe = null,
   } = $props();
 
   let iniciou = false;
@@ -53,7 +54,7 @@
   aria-label="Placar: {equipeA} {pontosA}, {equipeB} {pontosB}"
 >
   <section class="time time-a" class:vencedor={vencedor === 'A'}>
-    <span class="nome" title={equipeA}>{equipeA}</span>
+    {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeA}" onclick={() => onEditarEquipe('A')}>{equipeA}</button>{:else}<span class="nome" title={equipeA}>{equipeA}</span>{/if}
     <strong class:tres-digitos={tresDigitosA} class:destaque={destaque === 'a' || destaque === 'ambos'}>{pontosA}</strong>
   </section>
 
@@ -62,7 +63,7 @@
   </div>
 
   <section class="time time-b" class:vencedor={vencedor === 'B'}>
-    <span class="nome" title={equipeB}>{equipeB}</span>
+    {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeB}" onclick={() => onEditarEquipe('B')}>{equipeB}</button>{:else}<span class="nome" title={equipeB}>{equipeB}</span>{/if}
     <strong class:tres-digitos={tresDigitosB} class:destaque={destaque === 'b' || destaque === 'ambos'}>{pontosB}</strong>
   </section>
 </div>
@@ -108,6 +109,8 @@
     background: var(--cor-time);
   }
 
+  /* Nome como botão para quem controla (CV6.DS1.US6). */
+  button.nome.editavel { display: block; width: 100%; border: 0; background: none; padding-inline: 0; font-family: inherit; cursor: pointer; position: relative; z-index: 1; text-decoration: underline dotted color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 4px; }
   .nome {
     box-sizing: border-box;
     max-width: 100%;

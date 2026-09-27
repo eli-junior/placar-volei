@@ -98,6 +98,13 @@
   let modalLinhaDoTempoAberto = $state(false);
   let modalCompartilharAberto = $state(false);
   let modalConfigAberto = $state(false);
+  // Parte do modal de configurações aberta pelo atalho (CV6.DS1.US6); `tudo` no ⚙.
+  let secaoConfig = $state('tudo');
+  function abrirConfig(secao = 'tudo') {
+    secaoConfig = secao;
+    isReinicioConfig = false;
+    modalConfigAberto = true;
+  }
   let isReinicioConfig = $state(false);
   let modalCelebracaoAberto = $state(false);
   let celebracaoExibidaPartidaId = $state(null);
@@ -476,13 +483,13 @@
                cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
           <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
           <!-- Na tela, as regras da partida valem mais que a posse (Navigator, CV6.DS1.US1). -->
-          <span class="regras-topo"><span class="sr-only">Regras: </span>{resumirRegras(estadoPartida)}</span>
+          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem"><span class="sr-only">Ajustar regras: </span>{resumirRegras(estadoPartida)}</button>
           <span class="selo-papel">{nomeDoPapel(eu?.papel)}</span>
           {#if posse.podeAssumir}
             <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
           {/if}
         </div>
-        <button type="button" class="btn-topo" onclick={() => { modalConfigAberto = true; isReinicioConfig = false; }} aria-label="Duplas e regras da partida" title="Duplas e regras">
+        <button type="button" class="btn-topo" onclick={() => abrirConfig()} aria-label="Duplas e regras da partida" title="Duplas e regras">
           <Icone nome="engrenagem" tamanho="1.15em" />
         </button>
       {/if}
@@ -565,9 +572,11 @@
       {onMarcarPonto}
       {onDesfazerPonto}
       onIniciarNovaPartida={() => {
+        secaoConfig = 'tudo';
         modalConfigAberto = true;
         isReinicioConfig = true;
       }}
+      onEditarEquipe={(equipe) => abrirConfig(equipe === 'A' ? 'equipe-a' : 'equipe-b')}
       {ultimoPonto}
       onAbrirCompartilhar={() => { modalCompartilharAberto = true; }}
     />
@@ -620,6 +629,7 @@
       {estadoPartida}
       temaPlacar={quadra?.tema_placar || 'esportivo'}
       isReinicio={isReinicioConfig}
+      secao={isReinicioConfig ? 'tudo' : secaoConfig}
       movimentoReduzido={prefersReducedMotion}
       submetendo={operando}
       onFechar={() => { modalConfigAberto = false; }}
@@ -753,6 +763,8 @@
     .barra-sala .chip-codigo span { display: none; }
     .barra-sala .faixa-posse { order: 1; flex-basis: 100%; }
   }
+  .regras-topo { min-height: 36px; padding: 0 4px; border: 0; border-radius: 8px; background: none; cursor: pointer; font-family: inherit; text-align: left; text-decoration: underline dotted color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 4px; }
+  .regras-topo:hover { background: rgba(var(--veu), .06); }
   .regras-topo { overflow: hidden; min-width: 0; color: var(--text-primary); font-weight: 700; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
   .selo-papel {
     margin-left: auto;

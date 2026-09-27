@@ -22,6 +22,8 @@
     // Equipe do ponto que o Desfazer vai anular, quando conhecida.
     ultimoPonto = null,
     ladosInvertidos = false,
+    // Tocar no nome da equipe abre os jogadores dela (CV6.DS1.US6).
+    onEditarEquipe = null,
   } = $props();
 
   let feedbackEquipe = $state(null);
@@ -206,6 +208,7 @@
           {equipeB}
           {ladosInvertidos}
           {vencedor}
+          {onEditarEquipe}
           movimentoReduzido={prefersReducedMotion}
         />
       {:else}
@@ -215,6 +218,7 @@
           {equipeA}
           {equipeB}
           {ladosInvertidos}
+          {onEditarEquipe}
           movimentoReduzido={prefersReducedMotion}
         />
       {/if}
