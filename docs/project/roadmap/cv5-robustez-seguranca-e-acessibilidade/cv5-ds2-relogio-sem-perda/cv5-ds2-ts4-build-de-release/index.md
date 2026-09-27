@@ -1,7 +1,8 @@
 ---
 code: CV5.DS2.TS4
 level: Technical Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 ---
 
@@ -12,3 +13,7 @@ updated: 2026-09-27
 
 ## Acceptance
 APK de release assinado, menor que o atual, com as mesmas funções.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds2-ts4-build-de-release`.
