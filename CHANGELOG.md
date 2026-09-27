@@ -4,7 +4,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo em `master`. Próximo: CV3.DS1.US4 (revisão de conflito pelo telefone), a planejar em branch nova.
+Nenhum trabalho ativo em `master`. Próximo: CV5.DS1 (segurança e deploy), a planejar em branch nova. O roadmap do CV5 (docs, sem versão) entrou em 2026-09-27; a CV3.DS1.US4 retoma após a CV5.DS2.
 
 ## 0.19.0 - 2026-09-26
 
