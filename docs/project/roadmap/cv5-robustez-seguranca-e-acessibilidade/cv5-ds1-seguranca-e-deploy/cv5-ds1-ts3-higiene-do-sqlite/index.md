@@ -1,7 +1,8 @@
 ---
 code: CV5.DS1.TS3
 level: Technical Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 ---
 
@@ -16,3 +17,7 @@ updated: 2026-09-27
 
 ## Acceptance
 Conexões em `/ws/<id inválido>` não criam estado; depois da expiração não sobra linha da sala em nenhuma tabela.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds1-ts3-higiene-do-sqlite`.
