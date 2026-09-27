@@ -1,7 +1,9 @@
 ---
 code: CV5.DS1.TS2
 level: Technical Story
-status: Planned
+status: Done
+status_reason: aceito pelo Navigator em 2026-09-27 (teste conjunto da integracao/cv5)
+human_validation: accepted
 updated: 2026-09-27
 related:
   - docs/project/debt/items/2026-09-23T1310Z-banco-de-producao-sem-volume-persistente.md
@@ -20,3 +22,16 @@ related:
 
 ## Notes
 Paga `debt-banco-de-producao-sem-volume-persistente`.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds1-ts2-deploy-seguro`.
+
+## Revisão (Passo 5)
+
+- **Feito:** volume nomeado `placar-data`; `OWNER_SECRET` obrigatório no compose e recusado em produção se for o de exemplo; `/health` sem `db`; `COOKIE_SECURE`.
+- **Considerado e não feito:** bind `./data` (exigiria `chown 1001` no host).
+- **Débito pago:** `debt-banco-de-producao-sem-volume-persistente`.
+- **Débito novo:** nenhum.
+- **Docs:** `development-guide.md` (atualização, backup, `COOKIE_SECURE`), `.env.example`.
+- **Validação humana pendente:** conferir que o `.env` do Mini PC tem `OWNER_SECRET` próprio antes do deploy; criar sala, `docker compose up -d --build`, conferir a sala; `curl -sI` mostrando `Secure` no `Set-Cookie`; primeiro deploy começa com banco vazio (parear o relógio de novo).

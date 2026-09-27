@@ -1,4 +1,5 @@
 <script>
+  import { copiarTexto } from '../lib/areaDeTransferencia.js';
   import Dialogo from './Dialogo.svelte';
   import Icone from './Icone.svelte';
   import { gerarQrCode, caminhoSvg, ladoComMargem } from '../lib/qrcode.js';
@@ -9,8 +10,10 @@
     movimentoReduzido = false,
   } = $props();
 
-  let copiadoPin = $state(false);
-  let copiadoLink = $state(false);
+  let copiadoPin = $state('');
+  let copiadoLink = $state('');
+  const pinCopiado = $derived(copiadoPin === 'ok');
+  const linkCopiado = $derived(copiadoLink === 'ok');
 
   const urlCompleta = $derived(
     typeof window !== 'undefined'
@@ -20,10 +23,10 @@
 
   const dadosQr = $derived.by(() => {
     try {
-      const matriz = gerarQrCode(urlCompleta, 'M');
-      const tamanho = ladoComMargem(matriz.length);
-      const d = caminhoSvg(matriz);
-      return { matriz, tamanho, d };
+      // Assinatura certa (achada pelo checkJs na CV5.DS5.TS1): opções em objeto,
+      // e o retorno traz a matriz em `modulos`. Antes o QR nunca aparecia.
+      const { modulos, tamanho: lado } = gerarQrCode(urlCompleta, { nivel: 'M' });
+      return { tamanho: ladoComMargem(lado), d: caminhoSvg(modulos) };
     } catch (e) {
       console.warn('Erro ao gerar QR Code:', e);
       return null;
@@ -47,20 +50,22 @@
     }
   }
 
-  function handleCopiarPin() {
-    if (typeof navigator !== 'undefined' && navigator.clipboard && quadra?.id) {
-      navigator.clipboard.writeText(quadra.id);
-      copiadoPin = true;
-      setTimeout(() => { copiadoPin = false; }, 2000);
-    }
+  // '' | 'ok' | 'falhou' (CV5.DS3.US1): "copiado" só quando a cópia deu certo.
+  let timerPin;
+  let timerLink;
+  $effect(() => () => { clearTimeout(timerPin); clearTimeout(timerLink); });
+
+  async function handleCopiarPin() {
+    if (!quadra?.id) return;
+    copiadoPin = (await copiarTexto(quadra.id)) ? 'ok' : 'falhou';
+    clearTimeout(timerPin);
+    timerPin = setTimeout(() => { copiadoPin = ''; }, 2000);
   }
 
-  function handleCopiarLink() {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      navigator.clipboard.writeText(urlCompleta);
-      copiadoLink = true;
-      setTimeout(() => { copiadoLink = false; }, 2000);
-    }
+  async function handleCopiarLink() {
+    copiadoLink = (await copiarTexto(urlCompleta)) ? 'ok' : 'falhou';
+    clearTimeout(timerLink);
+    timerLink = setTimeout(() => { copiadoLink = ''; }, 2000);
   }
 </script>
 
@@ -119,8 +124,8 @@
           onclick={handleCopiarPin}
           aria-label="Copiar código numérico da sala"
         >
-          <Icone nome={copiadoPin ? 'confirmado' : 'copiar'} tamanho="1.1em" />
-          <span>{copiadoPin ? 'Copiado!' : 'Copiar'}</span>
+          <Icone nome={pinCopiado ? 'confirmado' : 'copiar'} tamanho="1.1em" />
+          <span>{copiadoPin === 'ok' ? 'Copiado!' : copiadoPin === 'falhou' ? 'Não copiou' : 'Copiar'}</span>
         </button>
       </div>
 
@@ -142,8 +147,8 @@
           class="btn-acao-link"
           onclick={handleCopiarLink}
         >
-          <Icone nome={copiadoLink ? 'confirmado' : 'elo'} tamanho="1.1em" />
-          <span>{copiadoLink ? 'Link Copiado!' : 'Copiar Link Completo'}</span>
+          <Icone nome={linkCopiado ? 'confirmado' : 'elo'} tamanho="1.1em" />
+          <span>{copiadoLink === 'ok' ? 'Link Copiado!' : copiadoLink === 'falhou' ? 'Não copiou: selecione o link' : 'Copiar Link Completo'}</span>
         </button>
       </div>
     </div>

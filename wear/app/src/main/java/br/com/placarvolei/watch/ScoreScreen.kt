@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -42,6 +43,8 @@ import androidx.compose.ui.unit.sp
 import androidx.wear.compose.material.Chip
 import androidx.wear.compose.material.ChipDefaults
 import androidx.wear.compose.material.Text
+import androidx.compose.ui.platform.LocalConfiguration
+import kotlinx.coroutines.delay
 
 private val CorNos = Color(0xFFFFB020)
 private val CorEles = Color(0xFF4FC3F7)
@@ -60,20 +63,24 @@ fun ScoreScreen(model: WatchModel) {
     val view = LocalView.current
     // Tela acesa só no placar (CV3.DS2.US1): no jogo, o toque tem de estar
     // pronto sem acordar o relógio. Vínculo e escolha seguem o tempo normal.
-    DisposableEffect(view) {
+    // Liberada depois de 10 min sem toque nem mudança no placar (CV5.DS2.TS3):
+    // placar esquecido aberto não segura a tela até a bateria acabar.
+    LaunchedEffect(view, pontosA, pontosB, pending) {
         view.keepScreenOn = true
-        onDispose { view.keepScreenOn = false }
+        delay(SCREEN_IDLE_MS)
+        view.keepScreenOn = false
     }
+    DisposableEffect(view) { onDispose { view.keepScreenOn = false } }
     val heart = rememberHeartRate()
     fun tap(equipe: String) {
-        if (model.tap(equipe)) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+        model.tap(equipe) { ok -> if (ok) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM) }
     }
     fun newMatch() {
         if (model.startNewMatch()) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }
     fun undo() {
         // Vibração diferente da do ponto: o pulso sente que foi uma correção.
-        if (model.undo()) view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        model.undo { ok -> if (ok) view.performHapticFeedback(HapticFeedbackConstants.REJECT) }
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
@@ -94,9 +101,12 @@ fun ScoreScreen(model: WatchModel) {
             // Com o controle, a faixa de baixo é o desfazer; o motivo (fim de
             // partida) sobe para baixo da bolinha, longe dos números.
             if (model.showNewMatch) {
-                UndoAndNewBar(model.canUndo, model.canStartNewMatch, Modifier.align(Alignment.BottomCenter), ::undo, ::newMatch)
+                UndoAndNewBar(
+                    model.canUndo, model.canStartNewMatch, model.undoSpoken, Modifier.align(Alignment.BottomCenter),
+                    ::undo, ::newMatch, onArm = { view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) },
+                )
             } else {
-                UndoBar(model.canUndo, Modifier.align(Alignment.BottomCenter), ::undo)
+                UndoBar(model.canUndo, model.undoText, model.undoSpoken, Modifier.align(Alignment.BottomCenter), ::undo)
             }
             if (reason != null && model.held == null) {
                 ReasonText(reason, Modifier.align(Alignment.TopCenter).padding(top = 34.dp))
@@ -106,8 +116,12 @@ fun ScoreScreen(model: WatchModel) {
             ReasonText(reason, Modifier.align(Alignment.BottomCenter).padding(bottom = 22.dp))
         }
         model.held?.let { HeldOverlay(it, pending, model::discardHeld) }
+        if (model.lostQueue && model.held == null) LostQueueOverlay(model::dismissLostQueue)
     }
 }
+
+/** Tela do placar acesa sem atividade por no máximo 10 min. */
+internal const val SCREEN_IDLE_MS = 10 * 60 * 1000L
 
 enum class Signal { CONECTADO, PROCESSANDO, DESCONECTADO }
 
@@ -147,7 +161,8 @@ private fun TeamHalf(
             .fillMaxHeight()
             .background(color.copy(alpha = if (enabled) 0.16f else 0.06f))
             .clickable(enabled = enabled, onClick = onTap)
-            .semantics { contentDescription = "$label, $points pontos. Tocar marca ponto." },
+            // Número previsto ainda não confirmado: o leitor de tela diz (CV5.DS4.US1).
+            .semantics { contentDescription = "$label, $points pontos${if (predicted) " (enviando)" else ""}. Tocar marca ponto." },
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
@@ -187,12 +202,12 @@ private fun StatusDot(connection: Connection, pending: Int, modifier: Modifier) 
     }
     val description = statusLine(connection, pending)
     Box(
-        modifier.size(18.dp).clip(CircleShape).background(color)
+        modifier.size(22.dp).clip(CircleShape).background(color)
             .semantics { contentDescription = description },
         contentAlignment = Alignment.Center,
     ) {
         if (pending > 0) {
-            Text(if (pending > 9) "9+" else pending.toString(), fontSize = 10.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(if (pending > 9) "9+" else pending.toString(), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Black)
         }
     }
 }
@@ -215,17 +230,23 @@ private fun HeartText(bpm: Int?) {
 private fun ReasonText(reason: String, modifier: Modifier) {
     Text(
         reason,
-        modifier.padding(horizontal = 36.dp),
-        fontSize = 11.sp,
+        modifier.padding(horizontal = if (LocalConfiguration.current.isScreenRound) 36.dp else 16.dp),
+        fontSize = 13.sp,
         textAlign = TextAlign.Center,
         color = Color.White,
     )
 }
 
-/** Desfazer o ponto do topo: a faixa inferior inteira, um toque, sem confirmação, como no site. */
+/**
+ * Desfazer o ponto do topo: a faixa inferior inteira, um toque, sem confirmação,
+ * como no site. Diz de qual equipe é o ponto (CV5.DS4.US1).
+ */
 @Composable
-private fun UndoBar(enabled: Boolean, modifier: Modifier, onTap: () -> Unit) =
-    BottomBar("↶ Desfazer", enabled, modifier, "Desfazer o último ponto", onTap = onTap)
+private fun UndoBar(enabled: Boolean, label: String, spoken: String, modifier: Modifier, onTap: () -> Unit) =
+    BottomBar(label, enabled, modifier, spoken, onTap = onTap)
+
+/** Tempo para o segundo toque confirmar "Nova" (CV5.DS4.US1). */
+internal const val NEW_MATCH_CONFIRM_MS = 3_000L
 
 /**
  * Partida encerrada (CV3.DS2.US3): a faixa se divide em desfazer e nova partida.
@@ -233,23 +254,37 @@ private fun UndoBar(enabled: Boolean, modifier: Modifier, onTap: () -> Unit) =
  */
 @Composable
 private fun UndoAndNewBar(
-    canUndo: Boolean, canStart: Boolean, modifier: Modifier, onUndo: () -> Unit, onStart: () -> Unit,
+    canUndo: Boolean, canStart: Boolean, undoSpoken: String, modifier: Modifier,
+    onUndo: () -> Unit, onStart: () -> Unit, onArm: () -> Unit,
 ) {
+    // "Nova" em dois toques (CV5.DS4.US1): colada ao desfazer, um toque só
+    // zerava a partida de quem queria corrigir um ponto com a mão suada.
+    var armed by remember { mutableStateOf(false) }
+    LaunchedEffect(armed) {
+        if (armed) { delay(NEW_MATCH_CONFIRM_MS); armed = false }
+    }
     Row(modifier.fillMaxWidth().height(52.dp)) {
-        SplitHalf("↶ Desfazer", canUndo, "Desfazer o último ponto", Alignment.TopEnd, Modifier.weight(1f), onUndo)
+        SplitHalf("↶ Desfazer", canUndo, undoSpoken, Alignment.TopEnd, Modifier.weight(1f)) { armed = false; onUndo() }
         Box(Modifier.fillMaxHeight().width(2.dp).background(Color.Black))
-        SplitHalf("▶ Nova", canStart, "Nova partida com os mesmos times e regras", Alignment.TopStart, Modifier.weight(1f), onStart)
+        SplitHalf(
+            if (armed) "Tocar de novo" else "▶ Nova", canStart,
+            if (armed) "Tocar de novo para começar a partida nova" else "Nova partida com os mesmos times e regras. Dois toques.",
+            Alignment.TopStart, Modifier.weight(1f), highlight = armed,
+        ) {
+            if (armed) { armed = false; onStart() } else { armed = true; onArm() }
+        }
     }
 }
 
 @Composable
 private fun SplitHalf(
-    label: String, enabled: Boolean, description: String, align: Alignment, modifier: Modifier, onTap: () -> Unit,
+    label: String, enabled: Boolean, description: String, align: Alignment, modifier: Modifier,
+    highlight: Boolean = false, onTap: () -> Unit,
 ) {
     Box(
         modifier
             .fillMaxHeight()
-            .background(if (enabled) Color(0xFF3A3A3A) else Color(0xFF1A1A1A))
+            .background(if (highlight) Color(0xFF8A5A00) else if (enabled) Color(0xFF3A3A3A) else Color(0xFF1A1A1A))
             .clickable(enabled = enabled, onClick = onTap)
             .semantics { contentDescription = description },
         contentAlignment = align,
@@ -277,17 +312,35 @@ private fun HeldOverlay(reason: String, count: Int, onDiscard: () -> Unit) {
             Text(reason, fontSize = 13.sp, textAlign = TextAlign.Center, color = Color.White)
             val lances = if (count == 1) "1 lance retido" else "$count lances retidos"
             if (!confirming) {
-                Text("$lances fora do placar.", fontSize = 11.sp, textAlign = TextAlign.Center, color = Color.LightGray)
+                Text("$lances fora do placar.", fontSize = 13.sp, textAlign = TextAlign.Center, color = Color.LightGray)
                 Chip(onClick = { confirming = true }, label = { Text("Descartar") },
                     colors = ChipDefaults.secondaryChipColors())
             } else {
-                Text("Descartar $lances? Eles não entram no placar.", fontSize = 11.sp,
+                Text("Descartar $lances? Eles não entram no placar.", fontSize = 13.sp,
                     textAlign = TextAlign.Center, color = Color(0xFFFFD27A))
                 Chip(onClick = onDiscard, label = { Text("Confirmar descarte") },
                     colors = ChipDefaults.primaryChipColors(backgroundColor = Color(0xFFB3261E)))
                 Chip(onClick = { confirming = false }, label = { Text("Voltar") },
                     colors = ChipDefaults.secondaryChipColors())
             }
+        }
+    }
+}
+
+/** A fila gravada não pôde ser lida (CV5.DS2.TS1): lances antigos podem faltar. */
+@Composable
+private fun LostQueueOverlay(onDismiss: () -> Unit) {
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.94f)), contentAlignment = Alignment.Center) {
+        Column(
+            Modifier.fillMaxWidth().padding(horizontal = 30.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                "Lances antigos ilegíveis no relógio. Confira o placar no telefone.",
+                fontSize = 13.sp, textAlign = TextAlign.Center, color = Color(0xFFFFD27A),
+            )
+            Chip(onClick = onDismiss, label = { Text("Entendi") }, colors = ChipDefaults.secondaryChipColors())
         }
     }
 }

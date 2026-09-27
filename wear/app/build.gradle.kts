@@ -5,16 +5,36 @@ plugins {
 }
 android {
     namespace = "br.com.placarvolei.watch"
-    compileSdk = 35
+    compileSdk = 36
     defaultConfig {
         applicationId = "br.com.placarvolei.watch"
         minSdk = 30
-        targetSdk = 35
-        versionCode = 8
-        versionName = "0.19.0"
+        targetSdk = 36
+        versionCode = 9
+        versionName = "0.20.0"
         val serverUrl = providers.gradleProperty("serverUrl").getOrElse("https://placar.elijunior.click")
         require(!serverUrl.contains('"') && !serverUrl.contains('\\') && !serverUrl.contains('\n'))
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
+    }
+    // Assinatura de release fora do repositório (CV5.DS2.TS4): caminho e senhas
+    // vêm de ~/.gradle/gradle.properties (placarKeystore, placarKeystorePassword,
+    // placarKeyAlias, placarKeyPassword).
+    val keystore = providers.gradleProperty("placarKeystore").orNull
+    signingConfigs {
+        if (keystore != null) create("release") {
+            storeFile = file(keystore)
+            storePassword = providers.gradleProperty("placarKeystorePassword").get()
+            keyAlias = providers.gradleProperty("placarKeyAlias").get()
+            keyPassword = providers.gradleProperty("placarKeyPassword").get()
+        }
+    }
+    buildTypes {
+        release {
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            signingConfig = signingConfigs.findByName("release")
+        }
     }
     buildFeatures { compose = true; buildConfig = true }
     compileOptions {
@@ -31,6 +51,8 @@ dependencies {
     implementation("androidx.wear.compose:compose-foundation:1.4.1")
     implementation("androidx.health:health-services-client:1.1.0")
     // ListenableFuture do cancelamento do MeasureClient; mesma versão que o Health Services já traz.
+    // O Health Services depende do Guava em runtime: removê-lo daqui não encolhe
+    // o APK (CV5.DS2.TS4). Quem encolhe é o R8 no release.
     implementation("com.google.guava:guava:32.0.1-android")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
     testImplementation("junit:junit:4.13.2")

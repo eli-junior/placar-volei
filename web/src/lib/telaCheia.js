@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Tela cheia do navegador (CV4.DS2.US2).
  *

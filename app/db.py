@@ -1,4 +1,5 @@
 import asyncio
+import hashlib
 import logging
 import os
 import sqlite3
@@ -102,6 +103,12 @@ CREATE TABLE IF NOT EXISTS watch_recibos (
 """
 
 
+# Versão do schema derivada do próprio DDL (CV5.DS1.TS3): release que não
+# mexe nas tabelas preserva salas e recibos do relógio; mudança de tabela
+# recria o banco, como antes. Não há número para esquecer de subir.
+SCHEMA_VERSAO = hashlib.sha256(SCHEMA_SQL.encode()).hexdigest()[:12]
+
+
 @contextmanager
 def get_db(db_path: str | None = None) -> Generator[sqlite3.Connection, None, None]:
     target_path = db_path if db_path is not None else settings.db_path
@@ -110,9 +117,11 @@ def get_db(db_path: str | None = None) -> Generator[sqlite3.Connection, None, No
         if parent_dir:
             os.makedirs(parent_dir, exist_ok=True)
 
-    conn = sqlite3.connect(target_path)
+    conn = sqlite3.connect(target_path, timeout=5.0)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA journal_mode=WAL;")
+    # WAL é do arquivo e fica gravado nele: ligado uma vez no init_db.
+    conn.execute("PRAGMA busy_timeout=5000;")
+    conn.execute("PRAGMA synchronous=NORMAL;")
     conn.execute("PRAGMA foreign_keys=ON;")
     try:
         with conn:
@@ -141,14 +150,14 @@ def init_db_sync(db_path: str | None = None, *args, **kwargs) -> None:
                     "SELECT name FROM sqlite_master WHERE type='table' AND name='app_meta'"
                 )
                 if cursor.fetchone():
-                    cursor.execute("SELECT valor FROM app_meta WHERE chave = 'versao'")
+                    cursor.execute("SELECT valor FROM app_meta WHERE chave = 'schema'")
                     row = cursor.fetchone()
-                    versao_gravada = row["valor"] if row else None
-                    if versao_gravada != settings.version:
+                    schema_gravado = row["valor"] if row else None
+                    if schema_gravado != SCHEMA_VERSAO:
                         logger.info(
-                            "Nova versão detectada (%s -> %s). Apagando banco de dados anterior...",
-                            versao_gravada,
-                            settings.version,
+                            "Schema novo detectado (%s -> %s). Apagando banco de dados anterior...",
+                            schema_gravado,
+                            SCHEMA_VERSAO,
                         )
                         precisa_apagar = True
                 else:
@@ -202,6 +211,7 @@ def init_db_sync(db_path: str | None = None, *args, **kwargs) -> None:
                     logger.warning("Fallback de limpeza de tabelas falhou: %s", e)
 
     with get_db(target_path) as conn:
+        conn.execute("PRAGMA journal_mode=WAL;")
         conn.executescript(SCHEMA_SQL)
         cursor = conn.cursor()
         cursor.execute("PRAGMA table_info(quadras);")
@@ -242,6 +252,14 @@ def init_db_sync(db_path: str | None = None, *args, **kwargs) -> None:
             ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em;
             """,
             (settings.version, agora),
+        )
+        cursor.execute(
+            """
+            INSERT INTO app_meta (chave, valor, atualizado_em)
+            VALUES ('schema', ?, ?)
+            ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor, atualizado_em = excluded.atualizado_em;
+            """,
+            (SCHEMA_VERSAO, agora),
         )
         conn.commit()
 

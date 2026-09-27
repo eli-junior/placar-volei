@@ -1,5 +1,6 @@
 <script>
-  import { fade, slide, fly } from 'svelte/transition';
+  import { slide } from 'svelte/transition';
+  import Dialogo from './Dialogo.svelte';
 
   let {
     itens = [],
@@ -31,37 +32,28 @@
   // Rola automaticamente para o fim da lista quando novos itens chegam
   $effect(() => {
     if (listaEl && itens.length > 0) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (listaEl) {
           listaEl.scrollTo({ top: listaEl.scrollHeight, behavior: prefersReducedMotion ? 'instant' : 'smooth' });
         }
       }, 50);
+      // Lista nova ou diálogo fechado antes dos 50 ms: o timer não sobrevive.
+      return () => clearTimeout(timer);
     }
   });
 
-  function handleKeydown(e) {
-    if (e.key === 'Escape') {
-      onFechar();
-    }
-  }
 </script>
 
-<svelte:window onkeydown={handleKeydown} />
-
-<!-- svelte-ignore a11y_click_events_have_key_events -->
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<div class="modal-backdrop" onclick={onFechar} in:fade={{ duration: prefersReducedMotion ? 0 : 150 }}>
-  <!-- svelte-ignore a11y_click_events_have_key_events -->
-  <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-  <div
-    class="modal-sheet"
-    tabindex="-1"
-    onclick={(e) => e.stopPropagation()}
-    in:fly={{ y: 80, duration: prefersReducedMotion ? 0 : 250 }}
-    role="dialog"
-    aria-modal="true"
-    aria-labelledby="titulo-linha-tempo"
-  >
+<!-- Diálogo nativo (CV5.DS4.US2): foco preso dentro, fundo inerte, Esc
+     e retorno do foco a quem abriu vêm do `Dialogo`. -->
+<Dialogo
+  rotuladoPor="titulo-linha-tempo"
+  variante="folha"
+  largura="580px"
+  movimentoReduzido={prefersReducedMotion}
+  {onFechar}
+>
+  <div class="modal-sheet">
     <!-- Header com Placar Resumido e Fechar -->
     <header class="sheet-header">
       <div class="header-info">
@@ -161,56 +153,19 @@
       </button>
     </footer>
   </div>
-</div>
+</Dialogo>
 
 <style>
-  .modal-backdrop {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: flex-end;
-    justify-content: center;
-    z-index: 200;
-    padding: max(12px, env(safe-area-inset-top))
-      max(12px, env(safe-area-inset-right))
-      0
-      max(12px, env(safe-area-inset-left));
-  }
-
-  @media (min-width: 640px) {
-    .modal-backdrop {
-      align-items: center;
-      padding: 24px;
-    }
-  }
-
+  /* Caixa, fundo e cantos vêm da folha do `Dialogo`; aqui só o miolo que rola. */
   .modal-sheet {
-    background: var(--fundo-base);
-    border: 1px solid rgba(var(--veu), 0.12);
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    width: 100%;
-    max-width: 580px;
-    max-height: min(88vh, calc(var(--tela-h, 100vh) - 16px));
     display: flex;
     flex-direction: column;
-    box-shadow: 0 -8px 36px rgba(0, 0, 0, 0.6);
+    flex: 1;
+    min-height: 0;
     overflow: hidden;
   }
 
-  @media (min-width: 640px) {
-    .modal-sheet {
-      border-radius: var(--radius-lg);
-      max-height: min(82vh, calc(var(--tela-h, 100vh) - 24px));
-      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.7);
-    }
-  }
-
   @media (max-height: 520px) {
-    .modal-sheet {
-      max-height: calc(100vh - 12px);
-    }
     .sheet-header {
       padding: 10px 16px;
     }

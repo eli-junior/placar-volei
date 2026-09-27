@@ -1,7 +1,9 @@
 ---
 code: CV5.DS4.US2
 level: User Story
-status: Planned
+status: Done
+status_reason: aceito pelo Navigator em 2026-09-27 (teste conjunto da integracao/cv5)
+human_validation: accepted
 updated: 2026-09-27
 ---
 
@@ -17,3 +19,15 @@ updated: 2026-09-27
 
 ## Acceptance
 Com leitor de tela, a queda de conexão é anunciada; com movimento reduzido, nada pulsa; o foco não escapa da Linha do Tempo.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds4-us2-web-acessivel`.
+
+## Revisão (Passo 5)
+
+- **Feito:** a Linha do Tempo passou para o `Dialogo` (variante folha), sem o `svelte:window` do Esc. O `.controle-painel` fica sempre montado, com `.vazio`. A posse é anunciada num `sr-only` fora do `{#key}`, e o texto visual recebeu `aria-hidden`. `role="alert"`, `aria-invalid` e `aria-describedby` no apelido. `origemEnvio` para o `aria-busy`. O `aria-label` "Trocar Duplas" saiu. Desfazer com 48px. Bloco global de movimento reduzido em `app.css`. A bolinha de status ganhou `aria-hidden`.
+- **Efeito visual:** o pulso de envio agora aparece só no botão tocado, não em todos.
+- **Testes:** `svelte-check` sem erros nem avisos, testes `node --test` (5 novos em `acessibilidade.test.js`, 1 ajustado) e build verdes. O e2e com axe (Playwright) não rodou nesta sessão.
+- **Débito novo:** nenhum.
+- **Validação humana pendente:** com TalkBack ou NVDA, derrubar a rede e ouvir "Sem conexão"; passar o controle e ouvir só a posse. Com movimento reduzido no sistema, nada deve pulsar. Abrir a Linha do Tempo: o Tab fica dentro dela e, ao fechar, o foco volta ao botão.

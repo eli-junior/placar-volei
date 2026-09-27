@@ -27,11 +27,15 @@
   } = $props();
 
   let feedbackEquipe = $state(null);
+  // Botão que originou o último envio (CV5.DS4.US2): só ele fica `aria-busy`,
+  // para o leitor de tela não anunciar "ocupado" em todos os botões.
+  let origemEnvio = $state(null);
   let feedbackTimer = null;
   let prefersReducedMotion = $state(false);
 
   function handleIniciarNovaPartida() {
     if (enviando || desabilitado) return;
+    origemEnvio = 'nova';
     onIniciarNovaPartida();
   }
 
@@ -77,6 +81,7 @@
   function handleToqueDesfazer() {
     if (!podeDesfazer) return;
     vibrar(30);
+    origemEnvio = 'desfazer';
     onDesfazerPonto();
   }
 
@@ -96,6 +101,7 @@
       feedbackEquipe = null;
     }, 300);
 
+    origemEnvio = equipe;
     onMarcarPonto(equipe);
   }
 
@@ -117,7 +123,7 @@
     }
 
     if (enc && venc) {
-      anuncioAcessivel = `Fim de jogo! Vitória de ${venc}. Placar final: ${equipeA} ${pA}, ${equipeB} ${pB}.`;
+      anuncioAcessivel = `Fim de jogo! ${venc} venceu. Placar final: ${equipeA} ${pA}, ${equipeB} ${pB}.`;
     } else if (pA !== pontosAnteriores.a || pB !== pontosAnteriores.b) {
       if (pA > pontosAnteriores.a) {
         anuncioAcessivel = `Ponto para ${equipeA}! Placar: ${equipeA} ${pA}, ${equipeB} ${pB}.`;
@@ -152,7 +158,7 @@
         <span class="trofeu">🏆</span>
         <div class="vitoria-texto">
           <span class="vitoria-titulo">Fim de Jogo!</span>
-          <span class="vitoria-vencedor">Vitória da {vencedorNome}</span>
+          <span class="vitoria-vencedor">{vencedorNome} venceu!</span>
         </div>
       </div>
 
@@ -162,9 +168,8 @@
             type="button"
             class="btn-nova-partida"
             disabled={desabilitado || enviando}
-            aria-busy={enviando}
+            aria-busy={enviando && origemEnvio === 'nova'}
             onclick={handleIniciarNovaPartida}
-            aria-label="Iniciar Próxima Partida e Trocar Duplas"
           >
             <span class="icone-nova-partida">▶</span>
             <span class="texto-nova-partida">Iniciar Próxima Partida</span>
@@ -222,7 +227,7 @@
       class="btn-marcar btn-marcar-a"
       class:flash={feedbackEquipe === 'A'}
       disabled={!podeMarcar}
-      aria-busy={enviando}
+      aria-busy={enviando && origemEnvio === 'A'}
       onclick={() => handleToquePonto('A')}
       aria-label="Marcar ponto para {equipeA}"
     ><span class="btn-plus">+1</span><span class="btn-sub">{equipeA}</span></button>
@@ -231,7 +236,7 @@
       class="btn-marcar btn-marcar-b"
       class:flash={feedbackEquipe === 'B'}
       disabled={!podeMarcar}
-      aria-busy={enviando}
+      aria-busy={enviando && origemEnvio === 'B'}
       onclick={() => handleToquePonto('B')}
       aria-label="Marcar ponto para {equipeB}"
     ><span class="btn-plus">+1</span><span class="btn-sub">{equipeB}</span></button>
@@ -242,7 +247,7 @@
       type="button"
       class="btn-desfazer"
       disabled={!podeDesfazer}
-      aria-busy={enviando}
+      aria-busy={enviando && origemEnvio === 'desfazer'}
       onclick={handleToqueDesfazer}
       aria-label={ultimoNome ? `Desfazer último ponto, de ${ultimoNome}` : 'Desfazer último ponto marcado'}
     >
@@ -471,7 +476,8 @@
   }
 
   .aviso-envio {
-    color: #a5f3fc;
+    /* Token do tema: no Modo Sol o cartão é branco e o ciano claro sumia. */
+    color: var(--acento-info);
     background: rgba(6, 182, 212, 0.12);
     border: 1px solid rgba(6, 182, 212, 0.35);
   }
@@ -690,7 +696,8 @@
     }
 
     .btn-desfazer {
-      height: 42px;
+      /* 48px: é a correção mais usada, não pode encolher abaixo do alvo mínimo. */
+      height: 48px;
       font-size: 0.85rem;
     }
 

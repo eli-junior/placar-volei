@@ -32,7 +32,10 @@ test('recusa ao entrar devolve o foco ao apelido que precisa ser corrigido', () 
 });
 
 test('modo claro escreve o valor sol esperado pelos tokens e o escuro remove o atributo', () => {
-  assert.match(fonte, /setAttribute\('data-tema', 'sol'\)/);
-  assert.match(fonte, /removeAttribute\('data-tema'\)/);
-  assert.doesNotMatch(fonte, /toggleAttribute\('data-tema'/);
+  // Desde a CV5.DS5.TS1 o tema mora em lib/tema.js, usado pela Home e pela sala.
+  const tema = readFileSync(new URL('../src/lib/tema.js', import.meta.url), 'utf8');
+  assert.match(fonte, /aplicarTema\(temaSol\)/);
+  assert.match(tema, /setAttribute\('data-tema', 'sol'\)/);
+  assert.match(tema, /removeAttribute\('data-tema'\)/);
+  assert.doesNotMatch(tema, /toggleAttribute\('data-tema'/);
 });

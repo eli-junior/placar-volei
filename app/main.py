@@ -1,7 +1,9 @@
 import asyncio
 import logging
 import os
+import re
 import sqlite3
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -14,7 +16,7 @@ from starlette.websockets import WebSocketDisconnect
 from app.api import ErroDeCampo, normalizar_erros_validacao
 from app.api import router as api_router
 from app.comandos import snapshot_sync
-from app.config import settings
+from app.config import settings, validar_producao
 from app.db import init_db
 from app.eventos import get_quadra_lock
 from app.hub import hub
@@ -32,9 +34,14 @@ from app.watch import router as watch_router
 
 logger = logging.getLogger(__name__)
 
+CODIGO_QUADRA = re.compile(r"\d{5}")
+# Intervalo do PING do /ws; o navegador desiste após 45 s de silêncio.
+PING_INTERVALO = 20.0
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    validar_producao(settings)
     # Inicializa o schema e WAL do SQLite na inicialização
     await init_db(settings.db_path)
 
@@ -52,16 +59,15 @@ async def lifespan(app: FastAPI):
         online = await hub.participantes_online(quadra_id)
         for p in snapshot["participantes"]:
             p["online"] = p["id"] in online
-        await hub.broadcast(
+        await hub.broadcast_many(
             quadra_id,
-            {"tipo": "PLACAR_ATUALIZADO", "payload": snapshot},
-        )
-        await hub.broadcast(
-            quadra_id,
-            {
-                "tipo": "PRESENCA_ATUALIZADA",
-                "payload": {"participantes": snapshot["participantes"]},
-            },
+            [
+                {"tipo": "PLACAR_ATUALIZADO", "payload": snapshot},
+                {
+                    "tipo": "PRESENCA_ATUALIZADA",
+                    "payload": {"participantes": snapshot["participantes"]},
+                },
+            ],
         )
 
     async def rotina_sucessao():
@@ -137,12 +143,15 @@ async def health_check():
     return {
         "status": "ok",
         "version": settings.version,
-        "db": settings.db_path,
     }
 
 
 @app.websocket("/ws/{quadra_id}")
 async def websocket_quadra(websocket: WebSocket, quadra_id: str):
+    # Id fora do formato nem chega a criar lock ou consultar o banco.
+    if not CODIGO_QUADRA.fullmatch(quadra_id):
+        await websocket.close(code=4404)
+        return
     session_id = websocket.cookies.get(SESSION_COOKIE)
     conectado = False
     watch_device_id = None
@@ -192,12 +201,18 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
                 },
             )
 
+        ultimo_ping = time.monotonic()
         while True:
             # Verifica expiração mesmo se o cliente não enviar mensagens.
             try:
                 await asyncio.wait_for(websocket.receive_text(), timeout=5)
             except TimeoutError:
                 pass
+            # Batimento (CV5.DS3.US1): com ele, o navegador percebe uma conexão
+            # meio aberta pelo silêncio. O relógio ignora tipos que não conhece.
+            if time.monotonic() - ultimo_ping >= PING_INTERVALO:
+                await websocket.send_json({"tipo": "PING", "payload": {}})
+                ultimo_ping = time.monotonic()
             if watch_device_id and not await asyncio.to_thread(
                 device_active, watch_device_id
             ):

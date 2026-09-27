@@ -1,6 +1,6 @@
 # Placar Vôlei — Wear OS
 
-APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca e desfaz pontos quando o admin passa o controle para ele (`CV3.DS1.US2`–`US3`) e, sem rede, segue marcando e sincroniza depois, mesmo após reabrir o app (`CV3.DS1.TS1`, versão `0.19.0`). O servidor deve executar a mesma versão do APK: a devolução do controle com fila pendente precisa da `0.19.0` no servidor.
+APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca e desfaz pontos quando o admin passa o controle para ele (`CV3.DS1.US2`–`US3`) e, sem rede, segue marcando e sincroniza depois, mesmo após reabrir o app (`CV3.DS1.TS1`). Na `0.20.0` (CV5), o relógio se recupera de vínculo ou fila ilegíveis, não trava a fila em recusas passageiras, desliga sensor e polling quando não precisa, pede dois toques para "Nova" e tem build de release com R8. O servidor deve executar a mesma versão do APK.
 
 ## WSL / Android Studio
 
@@ -28,6 +28,27 @@ Saída: `wear/app/build/outputs/apk/debug/app-debug.apk`. Credenciais não são 
 ```
 
 APK debug permite HTTP para validação local; o manifest principal exige HTTPS. O cliente não segue redirecionamentos com sua credencial.
+
+### APK de release (CV5.DS2.TS4)
+
+O release passa pelo R8 (cerca de 3,4 MB contra 26,6 MB do debug) e é assinado com uma keystore **fora do repositório**. Uma vez só:
+
+```bash
+keytool -genkeypair -v -keystore ~/.android/placar-release.jks -alias placar -keyalg RSA -keysize 4096 -validity 10000
+```
+
+Em `~/.gradle/gradle.properties`:
+
+```properties
+placarKeystore=/home/eli/.android/placar-release.jks
+placarKeystorePassword=...
+placarKeyAlias=placar
+placarKeyPassword=...
+```
+
+Depois: `./wear/gradlew -p wear assembleRelease` gera `wear/app/build/outputs/apk/release/app-release.apk`. Sem essas propriedades, sai `app-release-unsigned.apk`, que não instala. Instalar o release sobre o debug exige desinstalar antes (assinaturas diferentes) e parear de novo.
+
+`targetSdk` 36: no Wear OS 6 o app pede a permissão granular de frequência cardíaca (`READ_HEART_RATE`); em versões anteriores, `BODY_SENSORS`.
 
 ## Instalar no Watch via Wi-Fi
 

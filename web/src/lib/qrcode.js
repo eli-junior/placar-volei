@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Codificador de QR Code — CV2.DS4.US5.
  *

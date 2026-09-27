@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Regras de interface do relógio (CV3.DS1.US2).
  *

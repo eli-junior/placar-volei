@@ -51,6 +51,10 @@ docker compose up -d --build
 
 O `.env` é obrigatório para subir a aplicação. Ele guarda o segredo de owner e o caminho do arquivo SQLite. Existe um `.env.example` versionado; o `.env` real nunca é commitado.
 
+Desde a `CV5.DS1.TS2`, o `docker compose` recusa subir sem `OWNER_SECRET`, e o app (com `PRODUCAO=true`) recusa o valor de exemplo. Para gerar um segredo: `openssl rand -base64 32`.
+
+O banco é efêmero por decisão do Navigator: com `RESET_DB_ON_STARTUP=true` no compose, **todo start do contêiner** (deploy, `restart` ou reinício após falha) apaga salas, participantes e vínculos do relógio. Depois de cada start, é preciso recriar a quadra e parear o relógio de novo. `COOKIE_SECURE=true` (padrão no compose) exige HTTPS; o acesso é pelo túnel.
+
 ## Verification
 
 Trabalho verificado neste projeto significa as três coisas abaixo, não apenas a primeira.

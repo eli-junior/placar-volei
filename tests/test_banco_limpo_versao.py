@@ -4,6 +4,7 @@ import httpx
 import pytest
 from httpx import ASGITransport
 
+from app import db as db_module
 from app.config import settings
 from app.db import get_db, init_db, init_db_sync
 from app.main import app
@@ -41,46 +42,48 @@ def test_banco_novo_inicia_sem_nenhuma_quadra(tmp_path: Path):
         assert row_versao["valor"] == settings.version
 
 
-def test_atualizacao_de_versao_limpa_banco_completamente(tmp_path: Path):
+def test_versao_nova_sem_mudar_schema_preserva_banco(tmp_path: Path):
+    """CV5.DS1.TS3: release sem mudança de tabela mantém salas e recibos."""
+    db_file = str(tmp_path / "placar_versao.db")
+    settings.db_path = db_file
+    settings.version = "0.4.1"
+    init_db_sync(db_file)
+    criar_quadra_sync(db_file, apelido="Admin", session_id="sessao-1", nome="Quadra")
+
+    settings.version = "0.4.2"
+    init_db_sync(db_file)
+
+    assert len(listar_quadras_sync(db_file)) == 1
+    with get_db(db_file) as conn:
+        row = conn.execute(
+            "SELECT valor FROM app_meta WHERE chave = 'versao'"
+        ).fetchone()
+        assert row["valor"] == "0.4.2"
+
+
+def test_mudanca_de_schema_limpa_banco_completamente(tmp_path: Path, monkeypatch):
     """
-    Cenário BDD:
-    Dado que existe um banco com quadras e participantes em versão anterior (ex: 0.4.1)
-    Quando o servidor inicializa com uma nova versão (ex: 0.4.2)
-    Então o banco anterior é totalmente apagado e recriado limpo (0 quadras).
+    Dado um banco com quadras gravado por outro schema,
+    quando o servidor inicializa com o schema novo,
+    então o banco é apagado e recriado limpo.
     """
     db_file = str(tmp_path / "placar_migracao.db")
     settings.db_path = db_file
-    settings.version = "0.4.1"
-
-    # 1. Cria banco na versão 0.4.1 com quadras ativas
     init_db_sync(db_file)
-    criar_quadra_sync(
-        db_file, apelido="Admin", session_id="sessao-1", nome="Quadra Velha"
-    )
-    quadras_antigas = listar_quadras_sync(db_file)
-    assert len(quadras_antigas) == 1
+    criar_quadra_sync(db_file, apelido="Admin", session_id="sessao-1", nome="Velha")
+    assert len(listar_quadras_sync(db_file)) == 1
 
-    # 2. Atualiza versão da aplicação para 0.4.2
-    settings.version = "0.4.2"
-
-    # 3. Inicializa o banco na nova versão
+    monkeypatch.setattr(db_module, "SCHEMA_VERSAO", "schema-novo")
     init_db_sync(db_file)
 
-    # 4. O banco deve estar 100% limpo, sem nenhuma quadra ativa!
-    quadras_novas = listar_quadras_sync(db_file)
-    assert quadras_novas == []
-
+    assert listar_quadras_sync(db_file) == []
     with get_db(db_file) as conn:
-        (total_quadras,) = conn.execute("SELECT COUNT(*) FROM quadras").fetchone()
-        assert total_quadras == 0
-        (total_participantes,) = conn.execute(
-            "SELECT COUNT(*) FROM participantes"
+        (total,) = conn.execute("SELECT COUNT(*) FROM participantes").fetchone()
+        assert total == 0
+        row = conn.execute(
+            "SELECT valor FROM app_meta WHERE chave = 'schema'"
         ).fetchone()
-        assert total_participantes == 0
-        row_versao = conn.execute(
-            "SELECT valor FROM app_meta WHERE chave = 'versao'"
-        ).fetchone()
-        assert row_versao["valor"] == "0.4.2"
+        assert row["valor"] == "schema-novo"
 
 
 @pytest.mark.asyncio

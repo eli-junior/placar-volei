@@ -3,7 +3,8 @@
   import HomePlacar from './components/HomePlacar.svelte';
   import ModalEntrar from './components/ModalEntrar.svelte';
   import SalaQuadra from './components/SalaQuadra.svelte';
-  import { aceitarSnapshot, mensagemDeErro } from './sync.js';
+  import { aceitarSnapshot, lerJson, mensagemDeErro } from './sync.js';
+  import { criarConexao } from './lib/conexao.js';
 
   let quadraAtual = $state(null);
   let eu = $state(null);
@@ -21,9 +22,24 @@
   let modalEntrarAberto = $state(false);
   let quadraSelecionadaParaEntrar = $state(null);
   let wsConectado = $state(false);
-  let wsSocket = null;
-  let wsReconnectTimer = null;
-  let wsTentativasReconexao = 0;
+  const conexao = criarConexao({
+    criarSocket: quadraId => {
+      const protocolo = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      return new WebSocket(`${protocolo}//${window.location.host}/ws/${quadraId}`);
+    },
+    aoMensagem: tratarMensagem,
+    aoCair: () => { wsConectado = false; },
+    aoFechar: codigo => {
+      if (codigo === 4404) { salaExpirada(); return false; }
+      if (codigo === 4401) {
+        handleVoltarParaHome(false);
+        window.history.replaceState({}, '', '/');
+        erro = 'Sua sessão não é mais válida. Entre novamente com seu apelido.';
+        return false;
+      }
+      return true;
+    },
+  });
 
   function aplicarSnapshot(data) {
     if (!aceitarSnapshot(ultimoSnapshot, data, quadraAtual?.partida_id)) return;
@@ -36,12 +52,8 @@
   }
 
   function desconectar() {
-    clearTimeout(wsReconnectTimer);
-    wsTentativasReconexao = 0;
-    const anterior = wsSocket;
-    wsSocket = null;
+    conexao.desconectar();
     wsConectado = false;
-    anterior?.close();
   }
 
   function handleVoltarParaHome(navegar = true) {
@@ -64,54 +76,35 @@
     erro = 'Esta sala expirou ou foi encerrada pelo servidor. Crie um novo placar ou entre em outra sala.';
   }
 
-  function conectarWebSocket(quadraId) {
-    desconectar();
-    const protocolo = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-    const socket = new WebSocket(`${protocolo}//${window.location.host}/ws/${quadraId}`);
-    wsSocket = socket;
-    socket.onmessage = event => {
-      if (wsSocket !== socket) return;
-      try {
-        const msg = JSON.parse(event.data);
-        if (msg.tipo === 'SALA_EXPIRADA') return salaExpirada();
-        if (msg.tipo === 'ESTADO_INICIAL') {
-          if (!msg.payload.quadra || msg.payload.quadra.id !== quadraAtual?.id) return salaExpirada();
-          aplicarSnapshot(msg.payload);
-          wsConectado = true;
-          wsTentativasReconexao = 0;
-        } else if (msg.tipo === 'PLACAR_ATUALIZADO') {
-          aplicarSnapshot(msg.payload);
-        } else if (msg.tipo === 'PRESENCA_ATUALIZADA') {
-          // Presença não pode reverter uma promoção já recebida pelo log.
-          participantes = (msg.payload.participantes || []).map(p => {
-            const atual = participantes.find(a => a.id === p.id);
-            return atual ? { ...p, papel: atual.papel } : p;
-          });
-        }
-      } catch (e) {
-        console.error('Erro ao processar atualização:', e);
+  // Volta do segundo plano ou da rede: reconecta já, sem esperar o backoff.
+  function retomarConexao() {
+    if (document.visibilityState === 'hidden') return;
+    conexao.retomar();
+  }
+
+  function tratarMensagem(msg) {
+    try {
+      if (msg.tipo === 'SALA_EXPIRADA') return salaExpirada();
+      if (msg.tipo === 'ESTADO_INICIAL') {
+        if (!msg.payload.quadra || msg.payload.quadra.id !== quadraAtual?.id) return salaExpirada();
+        // Estado inicial é a verdade da conexão nova: substitui o anterior
+        // mesmo que o seq tenha voltado (servidor reiniciado).
+        ultimoSnapshot = null;
+        aplicarSnapshot(msg.payload);
+        wsConectado = true;
+        conexao.confirmar();
+      } else if (msg.tipo === 'PLACAR_ATUALIZADO') {
+        aplicarSnapshot(msg.payload);
+      } else if (msg.tipo === 'PRESENCA_ATUALIZADA') {
+        // Presença não pode reverter uma promoção já recebida pelo log.
+        participantes = (msg.payload.participantes || []).map(p => {
+          const atual = participantes.find(a => a.id === p.id);
+          return atual ? { ...p, papel: atual.papel } : p;
+        });
       }
-    };
-    socket.onclose = event => {
-      if (wsSocket !== socket) return;
-      wsConectado = false;
-      if (event.code === 4404) return salaExpirada();
-      if (event.code === 4401) {
-        handleVoltarParaHome(false);
-        window.history.replaceState({}, '', '/');
-        erro = 'Sua sessão não é mais válida. Entre novamente com seu apelido.';
-        return;
-      }
-      if (quadraAtual?.id === quadraId) {
-        // Backoff exponencial com jitter (CV2.DS2.TS1)
-        const base = Math.min(1000 * Math.pow(1.5, wsTentativasReconexao), 15000);
-        const jitter = Math.random() * 800;
-        const delay = Math.round(base + jitter);
-        wsTentativasReconexao += 1;
-        wsReconnectTimer = setTimeout(() => conectarWebSocket(quadraId), delay);
-      }
-    };
-    socket.onerror = () => socket.close();
+    } catch (e) {
+      console.error('Erro ao processar atualização:', e);
+    }
   }
 
   function abrirSala(quadra, participante) {
@@ -123,7 +116,7 @@
     quadraAtual = quadra;
     eu = participante;
     erro = null;
-    conectarWebSocket(quadra.id);
+    conexao.conectar(quadra.id);
   }
 
   async function handleCriarQuadraHome(dados) {
@@ -134,8 +127,8 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dados),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(mensagemDeErro(data, 'Não foi possível criar o placar.'));
+      const data = await lerJson(res);
+      if (!res.ok || !data) throw new Error(mensagemDeErro(data, 'Não foi possível criar o placar.'));
       abrirSala(data, data.participante);
       window.history.pushState({}, '', `/quadra/${data.id}`);
     } catch (e) { erro = e.message || 'Erro de conexão ao criar o placar.'; }
@@ -150,8 +143,8 @@
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ apelido }),
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(mensagemDeErro(data, 'Não foi possível entrar na sala.'));
+      const data = await lerJson(res);
+      if (!res.ok || !data) throw new Error(mensagemDeErro(data, 'Não foi possível entrar na sala.'));
       abrirSala(data.quadra, data.participante);
       modalEntrarAberto = false;
       quadraSelecionadaParaEntrar = null;
@@ -203,8 +196,8 @@
         });
         if (quadraAtual?.id !== sala.id) return;
         if (res.status === 404 && !rota.startsWith('participantes/')) return salaExpirada();
-        const data = await res.json();
-        if (!res.ok) throw new Error(mensagemDeErro(data, 'Não foi possível realizar a ação.'));
+        const data = await lerJson(res);
+        if (!res.ok || !data) throw new Error(mensagemDeErro(data, 'Não foi possível realizar a ação.'));
         aplicarSnapshot(data);
       } catch (e) {
         if (quadraAtual?.id === sala.id) erro = e.message || 'Falha de conexão. Confira o placar antes de tentar novamente.';
@@ -229,7 +222,7 @@
     const quadraId = match[1];
     try {
       const res = await fetch(`/api/quadras/${quadraId}/eu`);
-      const data = await res.json();
+      const data = (await lerJson(res)) || {};
       if (window.location.pathname !== `/quadra/${quadraId}`) return;
       if (data.participante && data.quadra) return abrirSala(data.quadra, data.participante);
       const sala = await fetch(`/api/quadras/${quadraId}`);
@@ -243,8 +236,12 @@
   onMount(() => {
     carregarRota();
     window.addEventListener('popstate', carregarRota);
+    document.addEventListener('visibilitychange', retomarConexao);
+    window.addEventListener('online', retomarConexao);
     return () => {
       window.removeEventListener('popstate', carregarRota);
+      document.removeEventListener('visibilitychange', retomarConexao);
+      window.removeEventListener('online', retomarConexao);
       desconectar();
     };
   });

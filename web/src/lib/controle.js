@@ -1,3 +1,4 @@
+// @ts-check
 /**
  * Passar o controle do placar (CV2.DS2.US5 no servidor; botão na CV3.DS1.US2).
  *

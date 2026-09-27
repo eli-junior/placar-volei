@@ -1,8 +1,12 @@
 import asyncio
+import contextlib
 from typing import Any
 
 from fastapi import WebSocket
 from starlette.websockets import WebSocketDisconnect
+
+# Tempo máximo para um socket receber uma rodada de mensagens.
+ENVIO_TIMEOUT = 2.0
 
 
 class ConnectionHub:
@@ -70,22 +74,32 @@ class ConnectionHub:
             }
 
     async def broadcast(self, quadra_id: str, message: dict[str, Any]) -> None:
+        await self.broadcast_many(quadra_id, [message])
+
+    async def broadcast_many(
+        self, quadra_id: str, messages: list[dict[str, Any]]
+    ) -> None:
+        """Entrega as mensagens, em ordem, a todos da sala ao mesmo tempo.
+
+        Cada socket tem `ENVIO_TIMEOUT` para receber tudo (CV5.DS3.TS1): um
+        celular lento é desconectado e reconecta com `ESTADO_INICIAL`, em vez
+        de atrasar o placar de todo mundo. Relógio revogado sai pelo
+        `close_watch_connections` da revogação e pelo laço de 5 s do `/ws`.
+        """
         async with self._lock:
             sockets = list(self._quadras.get(quadra_id, []))
 
-        for ws in sockets:
+        async def enviar(ws: WebSocket) -> None:
             try:
-                if device_id := self._ws_watch.get(ws):
-                    from app.watch import device_active
-
-                    if not await asyncio.to_thread(device_active, device_id):
-                        await self.close_watch_connections(
-                            quadra_id, device_id=device_id
-                        )
-                        continue
-                await ws.send_json(message)
-            except (WebSocketDisconnect, RuntimeError, OSError):
+                async with asyncio.timeout(ENVIO_TIMEOUT):
+                    for message in messages:
+                        await ws.send_json(message)
+            except (TimeoutError, WebSocketDisconnect, RuntimeError, OSError):
                 await self.disconnect(quadra_id, ws)
+                with contextlib.suppress(Exception):
+                    await ws.close(code=1011)
+
+        await asyncio.gather(*(enviar(ws) for ws in sockets))
 
     async def total_conexoes(self, quadra_id: str) -> int:
         async with self._lock:
