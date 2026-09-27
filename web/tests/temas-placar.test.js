@@ -47,3 +47,8 @@ test('cabeçalho em uma linha com alvos de 44px e status em bolinha', () => {
   assert.match(sala, /role="img"\s*aria-label=\{conexaoVisivel\.rotulo\}/);
   assert.doesNotMatch(sala, /Ao vivo/);
 });
+
+test('placar clássico também segue a escala P/M/G dos números', () => {
+  assert.match(classico, /--cartao-num:[^;]*var\(--escala-numeros, 1\)/);
+  assert.match(classico, /class:tres-digitos/);
+});

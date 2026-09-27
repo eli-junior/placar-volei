@@ -74,3 +74,29 @@ test('números empilhados cabem com 100 pontos no tamanho G', async ({ abrir }) 
   expect(caixas.every((c) => c.dentro)).toBe(true);
   expect(caixas[1].topo).toBeGreaterThan(caixas[0].topo);
 });
+
+// Escala P/M/G também no placar clássico: cresce de P para G e cabe no cartão.
+for (const [nome, viewport] of [['tablet', { width: 1280, height: 800 }], ['fold fechado', { width: 344, height: 882 }]]) {
+  test(`clássico segue P/M/G e cabe no cartão (${nome})`, async ({ abrir }) => {
+    test.setTimeout(120_000);
+    const medidas = {};
+    for (const t of ['P', 'M', 'G']) {
+      const p = await abrir({ viewport }, { fn: (v) => localStorage.setItem('placar:tamanho_numeros', v), arg: t });
+      await criarSala(p, { config: { alvo: 100, vantagem: false, tema_placar: 'classico' } });
+      const a = p.getByLabel('Marcar ponto para Equipe A');
+      for (let i = 0; i < 100; i++) await a.click();
+      await p.getByText('Iniciar Próxima Partida').last().waitFor();
+      await p.keyboard.press('Escape');
+      await p.waitForTimeout(600);
+      if (process.env.CAPTURAS) await p.screenshot({ path: `${process.env.CAPTURAS}/classico-${nome.replace(' ', '-')}-${t}.png` });
+      medidas[t] = await p.evaluate(() => [...document.querySelectorAll('.classico .time')].map((s) => {
+        const n = s.querySelector('.numero-texto').getBoundingClientRect();
+        const c = s.querySelector('.cartao-placa').getBoundingClientRect();
+        return { fonte: parseFloat(getComputedStyle(s.querySelector('.numero-texto')).fontSize), dentro: n.left >= c.left - 1 && n.right <= c.right + 1 && n.top >= c.top - 1 && n.bottom <= c.bottom + 1 };
+      }));
+    }
+    for (const t of ['P', 'M', 'G']) expect(medidas[t].every((m) => m.dentro), `tamanho ${t}`).toBe(true);
+    expect(medidas.G[1].fonte).toBeGreaterThan(medidas.P[1].fonte);
+    expect(medidas.G[0].fonte).toBeGreaterThan(medidas.P[0].fonte);
+  });
+}

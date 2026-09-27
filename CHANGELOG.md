@@ -4,6 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### feature/cv6-ds1-us3-escala-no-classico
+
+- **História / Escopo**: ajuste da CV6.DS1.US3 — tamanho dos números P/M/G também no placar clássico (cartões), pedido do Navigator.
+- **Branch**: `feature/cv6-ds1-us3-escala-no-classico`, de `master` `e824106`.
+- **Passo Ariad**: Passo 4 - Teste e Validação; aguardando validação do Navigator (Checkpoint 2).
+- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: session_0116vQyfn2t4ewHrNfdCCTkk | Data: 2026-09-27.
+- **Handoff / Próximos Passos**: validar no tablet e no Fold; depois revisão, docs e merge como patch.
+
 ### feature/cv6-ds2-us2-aro-de-conexao
 
 - **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
