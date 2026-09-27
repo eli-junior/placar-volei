@@ -98,6 +98,12 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     /** Desfazer segue valendo com a vitória prevista ou a partida encerrada. */
     val canUndo get() = rev.let { sync.canUndo }
 
+    /** Rótulo e descrição do desfazer com a equipe do ponto do topo. */
+    val undoText get() = undoLabel(rev.let { sync.undoTeam }, labels)
+    val undoSpoken get() = score.let { s ->
+        undoDescription(rev.let { sync.undoTeam }, s?.equipeA.orEmpty(), s?.equipeB.orEmpty())
+    }
+
     // Toda gravação da fila (com fsync) roda aqui, uma de cada vez e fora da
     // thread da tela (CV5.DS2.TS2). A ordem dos lances é a ordem dos toques.
     private val disk = Dispatchers.IO.limitedParallelism(1)

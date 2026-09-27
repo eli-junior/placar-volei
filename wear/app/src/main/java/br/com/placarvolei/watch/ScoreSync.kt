@@ -65,6 +65,9 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
     /** Desfazer segue valendo com a vitória prevista ou a partida encerrada. */
     val canUndo get() = controlReason == null && undoTarget != null
 
+    /** Equipe ("A"/"B") do ponto que o desfazer vai anular; null = nenhum. */
+    val undoTeam get() = undoTarget?.equipe
+
     /** Grava o ponto antes de qualquer retorno visual. Devolve se foi aceito. */
     fun tap(equipe: String): Boolean {
         val s = score ?: return false

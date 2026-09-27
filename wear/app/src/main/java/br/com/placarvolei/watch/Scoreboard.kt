@@ -119,3 +119,17 @@ internal fun initials(name: String, players: List<String>, default: String): Str
     return if (words.size >= 2) words.take(2).joinToString("") { it.first().uppercase() }
     else words.first().take(2).uppercase()
 }
+
+/** Rótulo da faixa de desfazer com a equipe do ponto do topo (CV5.DS4.US1). */
+fun undoLabel(team: String?, labels: Pair<String, String>): String = when (team) {
+    "A" -> "↶ Desfazer +1 ${labels.first}"
+    "B" -> "↶ Desfazer +1 ${labels.second}"
+    else -> "↶ Desfazer"
+}
+
+/** O que o leitor de tela diz do desfazer: o nome inteiro da equipe. */
+fun undoDescription(team: String?, nameA: String, nameB: String): String = when (team) {
+    "A" -> "Desfazer o último ponto de $nameA"
+    "B" -> "Desfazer o último ponto de $nameB"
+    else -> "Desfazer o último ponto"
+}
