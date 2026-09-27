@@ -463,8 +463,8 @@
        linha só em tela estreita. Espectador imersivo esconde a linha. -->
   {#if podeControlar || !modoImersivo}
     <header class="barra-sala" in:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }}>
-      <button type="button" class="btn-topo" onclick={onVoltar} aria-label="Voltar para a lista de quadras" title="Voltar">
-        <span aria-hidden="true">←</span>
+      <button type="button" class="btn-topo btn-voltar" onclick={onVoltar} aria-label="Voltar para a lista de quadras" title="Voltar">
+        <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
       </button>
       <button type="button" class="chip-codigo" onclick={copiarCodigo} title="Copiar código da sala" aria-label="Copiar código da sala {quadra.id}">
         <strong>#{quadra.id}</strong>
@@ -721,7 +721,11 @@
     border-radius: 12px;
     background: var(--bg-surface);
   }
-  .status-topo { width: 12px; height: 12px; }
+  /* Voltar e status redondos: saída e sinal de vida, distintos das ações. */
+  .btn-voltar { color: var(--text-primary); }
+  .btn-voltar,
+  .caixa-status { border-radius: 50%; }
+  .status-topo { width: 18px; height: 18px; }
   /* Pulso só quando ao vivo; movimento reduzido global o desliga. */
   .status-topo.status-online { animation: pulso-status 2s ease-in-out infinite; }
   @keyframes pulso-status {

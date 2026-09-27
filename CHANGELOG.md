@@ -12,6 +12,19 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 - **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us2-20260927 | Data: 2026-09-27 14:53 -03.
 - **Handoff / Próximos Passos**: plano aprovado em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; implementar após a integração da US1.
 
+## 0.21.1 - 2026-09-27
+
+Boundary: patch (manutenção visual da sala, fora de história)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver) | Sessão: a56a1487-0857-48f4-b41d-683dee5accbe
+
+Git source: merge `--no-ff` de `fix/ajustes-visuais-sala` em `master`.
+
+### Changed
+
+- Voltar e status do topo viram botões redondos; voltar com chevron em SVG e status com bolinha maior (18px).
+- Divisor do placar: × sem círculo, maior e mais grosso, cinza cheio no centro e sumindo nas pontas, sobre uma linha vertical com o mesmo degradê.
+
 ## 0.21.0 - 2026-09-27
 
 Boundary: minor (CV6.DS1 — placar web mais legível e fácil de operar; 5 histórias)
