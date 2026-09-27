@@ -4,15 +4,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### feature/cv6-ds2-us2-aro-de-conexao
-
-- **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
-- **Branch**: `feature/cv6-ds2-us2-aro-de-conexao`, de `origin/master` `290a36c`.
-- **Passo Ariad**: Passo 2 - Planejamento; Checkpoint 1 aprovado; aguardando integração da US1.
-- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us2-20260927 | Data: 2026-09-27 14:53 -03.
-- **Handoff / Próximos Passos**: plano aprovado em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; implementar após a integração da US1.
-
-## 0.21.1 - 2026-09-27
+## 0.22.2 - 2026-09-27
 
 Boundary: patch (manutenção visual da sala, fora de história)
 
@@ -24,6 +16,61 @@ Git source: merge `--no-ff` de `fix/ajustes-visuais-sala` em `master`.
 
 - Voltar e status do topo viram botões redondos; voltar com chevron em SVG e status com bolinha maior (18px).
 - Divisor do placar: × sem círculo, maior e mais grosso, cinza cheio no centro e sumindo nas pontas, sobre uma linha vertical com o mesmo degradê.
+
+
+## 0.22.1 - 2026-09-27
+
+Boundary: patch (CV6.DS2.US2 — conexão indicada por aro discreto)
+
+Authors: Eli (Navigator); Codex (Driver, Passos 1–2) | Sessão: cv6-ds2-us2-20260927; Claude Code, Opus 5.5 (Driver, Passos 3–7, assumido do Codex)
+
+Git source: merge `--no-ff` de `feature/cv6-ds2-us2-aro-de-conexao` em `master`.
+
+### Changed
+
+- Relógio: a bolinha de conexão virou um aro fino na borda da tela (verde conectado, amarelo reconectando/enviando, vermelho sem conexão). Batimentos sozinhos no centro; lances pendentes aparecem como `↑N` só quando existem. O leitor de tela ouve o estado e a quantidade de pendentes no cabeçalho. O aro não recebe toque.
+- Versões: backend e web 0.22.1; app do relógio `versionName` 0.22.1 (`versionCode` 10).
+
+### Verification
+
+- 53 testes JVM do relógio, builds debug/release e lint Android aprovados. Navigator validou no Galaxy Watch.
+
+## 0.22.0 - 2026-09-27
+
+Boundary: minor (CV6.DS1.US6 — atalhos de ajuste no placar)
+
+Authors: Eli (Navigator); Claude Code (Driver, Passos 1–7) | Sessão: session_0116vQyfn2t4ewHrNfdCCTkk
+
+Git source: merge `--no-ff` de `feature/cv6-ds1-us6-atalhos-no-placar` em `master`.
+
+### Added
+
+- Tocar no resumo de regras do topo abre só Pontuação e Vantagem; tocar no nome da equipe (esportivo e clássico) abre só os jogadores dela. Tocar fora fecha sem salvar. Mesma permissão do ⚙; o espectador não tem atalho.
+
+### Fixed
+
+- No esportivo, o número gigante cobria o nome da equipe e engolia o toque.
+
+### Verification
+
+- 93 testes unitários web, svelte-check, build e 31 testes de navegador (novo `e2e/atalhos.spec.js`) aprovados. Navigator validou.
+
+## 0.21.1 - 2026-09-27
+
+Boundary: patch (ajuste da CV6.DS1.US3 no placar clássico; fechamento documental da CV2.DS3.TS1)
+
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: session_0116vQyfn2t4ewHrNfdCCTkk
+
+Git source: merges `--no-ff` em `master` de `claude/hus-fora-relogio-pgvzgt` e `feature/cv6-ds1-us3-escala-no-classico`.
+
+### Changed
+
+- Tamanho dos números P/M/G (menu ⋯) também no placar clássico: o número do cartão acompanha a tela, cresce com a escolha e fica sempre dentro do cartão, inclusive com três dígitos e em tela em pé. No clássico, P deixa de ser o antigo tamanho fixo.
+- CV2.DS3.TS1 (tokens e cores semânticas) registrada como `Done` com aceite do Navigator.
+
+### Verification
+
+- Testes unitários web, svelte-check e build aprovados; novo e2e mede P/M/G do clássico no tablet e no Fold fechado. Navigator validou.
 
 ## 0.21.0 - 2026-09-27
 

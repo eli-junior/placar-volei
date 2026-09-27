@@ -2,11 +2,14 @@ package br.com.placarvolei.watch
 
 import android.view.HapticFeedbackConstants
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -20,9 +23,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -32,10 +33,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
@@ -97,18 +101,20 @@ fun ScoreScreen(model: WatchModel) {
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
         // Cabeçalho, aviso e ações têm espaço próprio: o placar ocupa só o que sobra.
-        Column(Modifier.fillMaxSize()) {
+        // Conteúdo recuado para dentro do aro de conexão (CV6.DS2.US2).
+        Column(Modifier.fillMaxSize().padding(RING_INSET)) {
+            // Estado da conexão lido junto do cabeçalho: a cor do aro sozinha não informa.
+            val status = statusLine(model.connection, pending)
             Row(
-                Modifier.align(Alignment.CenterHorizontally).padding(top = 16.dp, bottom = 4.dp),
+                Modifier.align(Alignment.CenterHorizontally).height(22.dp + 16.dp).padding(top = 16.dp)
+                    .semantics(mergeDescendants = true) { contentDescription = status },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                if (heart.granted) {
-                    Spacer(Modifier.size(22.dp))
-                    HeartText(heart.bpm)
-                }
-                StatusDot(model.connection, pending, Modifier)
+                if (heart.granted) HeartText(heart.bpm)
+                if (pending > 0) PendingText(pending)
             }
+            Spacer(Modifier.height(4.dp))
             if (model.controlled && reason != null && model.held == null) {
                 ReasonText(reason, Modifier.fillMaxWidth())
             }
@@ -133,6 +139,7 @@ fun ScoreScreen(model: WatchModel) {
                 Spacer(Modifier.height(52.dp))
             }
         }
+        ConnectionRing(signal(model.connection, pending))
         model.held?.let { HeldOverlay(it, pending, model::discardHeld) }
         if (model.lostQueue && model.held == null) LostQueueOverlay(model::dismissLostQueue)
     }
@@ -150,7 +157,7 @@ internal fun signal(connection: Connection, pending: Int) = when {
     else -> Signal.CONECTADO
 }
 
-/** Texto da bolinha para leitores de tela: a cor sozinha não informa. */
+/** Estado da conexão para leitores de tela: a cor sozinha não informa. */
 internal fun statusLine(connection: Connection, pending: Int): String {
     val link = when (connection) {
         Connection.CONECTADO -> "Conectado"
@@ -237,27 +244,50 @@ private fun FittedText(
     }
 }
 
-/** Bolinha de conexão no alto; com lances pendentes, mostra quantos. */
+/** Traço do aro e folga até a borda; o conteúdo fica recuado dessa medida. */
+private val RING_STROKE = 2.dp
+private val RING_INSET = 4.dp
+
+internal fun signalColor(signal: Signal) = when (signal) {
+    Signal.CONECTADO -> Color(0xFF4CD964)
+    Signal.PROCESSANDO -> Color(0xFFFFC83D)
+    Signal.DESCONECTADO -> Color(0xFFFF4D4D)
+}
+
+/**
+ * Aro fino na borda da tela com a cor da conexão (CV6.DS2.US2). Só desenha:
+ * não recebe toque nem foco, então não bloqueia pontuar, Voltar Ponto ou Nova.
+ * O estado para leitor de tela está no cabeçalho.
+ */
 @Composable
-private fun StatusDot(connection: Connection, pending: Int, modifier: Modifier) {
-    val color = when (signal(connection, pending)) {
-        Signal.CONECTADO -> Color(0xFF4CD964)
-        Signal.PROCESSANDO -> Color(0xFFFFC83D)
-        Signal.DESCONECTADO -> Color(0xFFFF4D4D)
-    }
-    val description = statusLine(connection, pending)
-    Box(
-        modifier.size(22.dp).clip(CircleShape).background(color)
-            .semantics { contentDescription = description },
-        contentAlignment = Alignment.Center,
-    ) {
-        if (pending > 0) {
-            Text(if (pending > 9) "9+" else pending.toString(), fontSize = 11.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+private fun ConnectionRing(signal: Signal) {
+    val color by animateColorAsState(signalColor(signal), tween(150), label = "Aro de conexão")
+    val round = LocalConfiguration.current.isScreenRound
+    Canvas(Modifier.fillMaxSize()) {
+        val stroke = RING_STROKE.toPx()
+        val half = stroke / 2 + 1.dp.toPx()
+        if (round) {
+            drawCircle(color, radius = size.minDimension / 2 - half, style = Stroke(stroke))
+        } else {
+            drawRect(color, Offset(half, half), Size(size.width - 2 * half, size.height - 2 * half), style = Stroke(stroke))
         }
     }
 }
 
-/** Batimento centralizado entre espaços simétricos; fica só no relógio. */
+/** Lances ainda não confirmados; a quantidade exata vai para o leitor de tela pelo cabeçalho. */
+@Composable
+private fun PendingText(pending: Int) {
+    Text(
+        "↑${if (pending > 9) "9+" else pending.toString()}",
+        Modifier.clearAndSetSemantics {},
+        fontSize = 15.sp,
+        fontWeight = FontWeight.Bold,
+        maxLines = 1,
+        color = signalColor(Signal.PROCESSANDO),
+    )
+}
+
+/** Batimento centralizado no cabeçalho; fica só no relógio. */
 @Composable
 private fun HeartText(bpm: Int?) {
     val label = heartLabel(bpm)

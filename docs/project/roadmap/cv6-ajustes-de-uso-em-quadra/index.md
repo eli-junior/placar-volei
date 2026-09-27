@@ -2,7 +2,7 @@
 code: CV6
 level: Value
 status: Active
-status_reason: CV6.DS1 entregue na 0.21.0; CV6.DS2.US1 validada; CV6.DS2.US2 em planejamento
+status_reason: CV6.DS1 entregue; CV6.DS2.US1 e US2 entregues (0.22.1); US3 e US4 planejadas
 updated: 2026-09-27
 ---
 
@@ -14,7 +14,7 @@ Consolidar a rodada de feedback de 27/09/2026 em nove HUs para desenvolvimento p
 
 ## Entregas
 
-- [CV6.DS1 — Placar web](cv6-ds1-placar-web/index.md): cinco HUs.
+- [CV6.DS1 — Placar web](cv6-ds1-placar-web/index.md): seis HUs (US6 acrescentada após a 0.21.0).
 - [CV6.DS2 — Placar no relógio](cv6-ds2-placar-no-relogio/index.md): quatro HUs.
 
 ## Acceptance / Done Condition
