@@ -16,6 +16,12 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
         private set
     var score: Confirmed? = parse(state.snapshot)
         private set
+    /** A fila gravada estava ilegível ao abrir: avisar até a pessoa dispensar. */
+    var lostQueue: Boolean = state.corrupted
+        private set
+
+    fun dismissLostQueue() { lostQueue = false }
+
     /** Motivo da última falha ao gravar; o lance não foi aceito. */
     var saveError: String? = null
         private set

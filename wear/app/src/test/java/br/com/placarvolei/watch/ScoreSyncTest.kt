@@ -84,6 +84,17 @@ class ScoreSyncTest {
     private fun ScoreSync.shown() = predicted(score!!, pending)
 
     @Test
+    fun corruptQueueFlagsLostUntilDismissedAndKeepsScoring() {
+        file.writeText("{corrompido")
+        val server = FakeServer()
+        val sync = linked(server)
+        assertTrue(sync.lostQueue)
+        assertTrue(sync.tap("A"))
+        sync.dismissLostQueue()
+        assertFalse(sync.lostQueue)
+    }
+
+    @Test
     fun offlineTapsAndUndoSurviveRestartAndSyncOnce() {
         val server = FakeServer()
         val sync = linked(server)

@@ -67,7 +67,9 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     var connecting by mutableStateOf(false)
         private set
     /** Aviso na tela de abertura (código expirado, falha ao gerar). */
-    var notice by mutableStateOf<String?>(null)
+    var notice by mutableStateOf<String?>(
+        if (store.lostLink) "Vínculo perdido no relógio. Pareie de novo." else null
+    )
         private set
     private val poke = Channel<Unit>(Channel.CONFLATED)
 
@@ -154,6 +156,14 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Descarte explícito, confirmado no relógio, dos lances retidos por recusa. */
+    /** Fila ilegível na abertura (CV5.DS2.TS1): aviso até a pessoa dispensar. */
+    val lostQueue get() = rev.let { sync.lostQueue }
+
+    fun dismissLostQueue() {
+        sync.dismissLostQueue()
+        changed(false)
+    }
+
     fun discardHeld() {
         sync.discardHeld()
         changed()
@@ -409,9 +419,11 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
 
     private fun connectPresence(court: String) {
         if (!visible || socket != null) return
+        // Sem token não há socket: nunca mandar "Bearer null".
+        val token = store.token() ?: return
         val url = address.replaceFirst("https://", "wss://").replaceFirst("http://", "ws://")
         val request = Request.Builder().url("$url/ws/$court")
-            .header("Authorization", "Bearer ${store.token()}").build()
+            .header("Authorization", "Bearer $token").build()
         connection = Connection.RECONECTANDO
         socket = http.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
