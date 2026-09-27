@@ -8,6 +8,13 @@ Nenhum trabalho ativo em `master`. Próximo: `CV3.DS1.US4` (revisão de conflito
 
 ## 0.20.0 - 2026-09-27
 
+### Documentação posterior à entrega — 2026-09-27
+
+- Consolidação aceita pelo Navigator: nove HUs planejadas em [CV6 — Ajustes de uso em quadra](docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/index.md), cobrindo navegador e relógio. Desenvolvimento e validação do produto permanecem futuros; sem alteração de versão.
+- Git source: `codex/docs-feedback-telas-20260927`; merge em `master` autorizado pelo Navigator.
+- Agente: Codex (Driver) | Sessão: 01a0e3cc-4e34-7061-8559-a9949280d6f0 | Data: 2026-09-27.
+- Verificação documental: 12 documentos, links relativos válidos e `git diff --check` sem erros.
+
 Boundary: minor (CV5 — robustez, segurança e acessibilidade; 13 histórias)
 
 Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7, automode autorizado pelo Navigator) | Sessão: 51cc5422-0716-48a4-a737-c2ae18bfcf4d
