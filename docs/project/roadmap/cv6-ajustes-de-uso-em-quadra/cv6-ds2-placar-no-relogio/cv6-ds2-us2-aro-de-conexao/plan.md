@@ -59,3 +59,11 @@ Som/retorno de pontuação (US3), repouso e execução em segundo plano (US4), r
 ## Documentação e coerência
 
 Atualizar HU/DS, changelog e roteiro no mesmo ciclo; avaliar README do relógio por descrever a bolinha. Reconciliar foco do README/briefing e versão com o trabalho web na fase documental. Preservar todos os registros de outras branches no changelog.
+
+## Fechamento
+
+- Implementado por Claude Code (Driver), assumindo do Codex no Passo 3, após a US1 entrar em master.
+- Contagem de pendentes exibida como `↑N` (até `9+`) na cor de envio; a quantidade exata vai ao leitor de tela junto do estado no cabeçalho.
+- Conteúdo recuado 4 dp para dentro do aro; aro desenhado em `Canvas`, sem toque nem foco.
+- Versão final: 0.22.1 (a numeração 0.20.x prevista acima ficou para trás com as entregas web).
+- Validado pelo Navigator no relógio em 2026-09-27.

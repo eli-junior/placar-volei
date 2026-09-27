@@ -4,13 +4,22 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### feature/cv6-ds2-us2-aro-de-conexao
+## 0.22.1 - 2026-09-27
 
-- **História / Escopo**: CV6.DS2.US2 — conexão indicada por aro discreto.
-- **Branch**: `feature/cv6-ds2-us2-aro-de-conexao`, de `origin/master` `290a36c`.
-- **Passo Ariad**: Passo 5 - Revisão; Checkpoint 2 validado pelo Navigator no relógio.
-- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Assumido de Codex a partir do Passo 3 | Data: 2026-09-27.
-- **Handoff / Próximos Passos**: plano aprovado em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us2-aro-de-conexao/plan.md`; branch atualizada com master; implementar aro em `ScoreScreen.kt`. Worktree: `/tmp/placar-cv6-ds2-us2`.
+Boundary: patch (CV6.DS2.US2 — conexão indicada por aro discreto)
+
+Authors: Eli (Navigator); Codex (Driver, Passos 1–2) | Sessão: cv6-ds2-us2-20260927; Claude Code, Opus 5.5 (Driver, Passos 3–7, assumido do Codex)
+
+Git source: merge `--no-ff` de `feature/cv6-ds2-us2-aro-de-conexao` em `master`.
+
+### Changed
+
+- Relógio: a bolinha de conexão virou um aro fino na borda da tela (verde conectado, amarelo reconectando/enviando, vermelho sem conexão). Batimentos sozinhos no centro; lances pendentes aparecem como `↑N` só quando existem. O leitor de tela ouve o estado e a quantidade de pendentes no cabeçalho. O aro não recebe toque.
+- Versões: backend e web 0.22.1; app do relógio `versionName` 0.22.1 (`versionCode` 10).
+
+### Verification
+
+- 53 testes JVM do relógio, builds debug/release e lint Android aprovados. Navigator validou no Galaxy Watch.
 
 ## 0.22.0 - 2026-09-27
 

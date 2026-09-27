@@ -2,7 +2,7 @@
 code: CV6.DS2.US2
 level: User Story
 status: Active
-status_reason: plano aprovado; implementação aguarda fechamento e integração da US1
+status_reason: aro de conexão validado pelo Navigator no relógio; entregue na 0.22.1
 updated: 2026-09-27
 ---
 

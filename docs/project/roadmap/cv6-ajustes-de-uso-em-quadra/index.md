@@ -2,7 +2,7 @@
 code: CV6
 level: Value
 status: Active
-status_reason: CV6.DS1 entregue na 0.21.0; CV6.DS2.US1 validada; CV6.DS2.US2 em planejamento
+status_reason: CV6.DS1 entregue; CV6.DS2.US1 e US2 entregues (0.22.1); US3 e US4 planejadas
 updated: 2026-09-27
 ---
 
