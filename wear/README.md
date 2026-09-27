@@ -29,6 +29,27 @@ Saída: `wear/app/build/outputs/apk/debug/app-debug.apk`. Credenciais não são 
 
 APK debug permite HTTP para validação local; o manifest principal exige HTTPS. O cliente não segue redirecionamentos com sua credencial.
 
+### APK de release (CV5.DS2.TS4)
+
+O release passa pelo R8 (cerca de 3,4 MB contra 26,6 MB do debug) e é assinado com uma keystore **fora do repositório**. Uma vez só:
+
+```bash
+keytool -genkeypair -v -keystore ~/.android/placar-release.jks -alias placar -keyalg RSA -keysize 4096 -validity 10000
+```
+
+Em `~/.gradle/gradle.properties`:
+
+```properties
+placarKeystore=/home/eli/.android/placar-release.jks
+placarKeystorePassword=...
+placarKeyAlias=placar
+placarKeyPassword=...
+```
+
+Depois: `./wear/gradlew -p wear assembleRelease` gera `wear/app/build/outputs/apk/release/app-release.apk`. Sem essas propriedades, sai `app-release-unsigned.apk`, que não instala. Instalar o release sobre o debug exige desinstalar antes (assinaturas diferentes) e parear de novo.
+
+`targetSdk` 36: no Wear OS 6 o app pede a permissão granular de frequência cardíaca (`READ_HEART_RATE`); em versões anteriores, `BODY_SENSORS`.
+
 ## Instalar no Watch via Wi-Fi
 
 1. No relógio, habilite opções de desenvolvedor e **Depuração sem fio**. Mantenha PC e Watch na mesma rede Wi-Fi durante instalação.
