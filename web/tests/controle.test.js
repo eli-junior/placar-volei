@@ -117,3 +117,11 @@ test('papéis não usam as cores das equipes', () => {
   assert.doesNotMatch(css, /--papel-controlador-texto: #38bdf8/);
   assert.doesNotMatch(presentes, /accent-orange/);
 });
+
+test('resumo das regras mostra alvo, vantagem e teto', async () => {
+  const { resumirRegras } = await import('../src/lib/controle.js');
+  assert.equal(resumirRegras({ alvo: 12, vantagem: true, teto: null }), '12 pontos · Vantagem');
+  assert.equal(resumirRegras({ alvo: 15, vantagem: false }), '15 pontos · Sem vantagem');
+  assert.equal(resumirRegras({ alvo: 21, vantagem: true, teto: 25 }), '21 pontos · Vantagem · Teto 25');
+  assert.equal(resumirRegras(null), '12 pontos · Vantagem');
+});

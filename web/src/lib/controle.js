@@ -52,3 +52,14 @@ export function descreverPosse({ temControle, ehAdmin, operador, conectado = tru
     podeAssumir: true,
   };
 }
+
+/**
+ * Resumo das regras no topo do operador (CV6.DS1.US1, pedido do Navigator):
+ * alvo, vantagem e teto, com os mesmos padrões do placar.
+ * @param {{ alvo?: number, vantagem?: boolean, teto?: number | null } | null | undefined} estado
+ */
+export function resumirRegras(estado) {
+  const partes = [`${estado?.alvo ?? 12} pontos`, (estado?.vantagem ?? true) ? 'Vantagem' : 'Sem vantagem'];
+  if (estado?.teto) partes.push(`Teto ${estado.teto}`);
+  return partes.join(' · ');
+}

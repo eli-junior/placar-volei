@@ -13,7 +13,7 @@
   import ModalConfigurarPartida from './ModalConfigurarPartida.svelte';
   import ModalCelebracaoVitoria from './ModalCelebracaoVitoria.svelte';
   import { ehDonoDoRelogio } from '../lib/relogio.js';
-  import { ultimoPontoDesfazivel, descreverPosse } from '../lib/controle.js';
+  import { ultimoPontoDesfazivel, descreverPosse, resumirRegras } from '../lib/controle.js';
   import MenuSala from './MenuSala.svelte';
   import { estadoConexao } from '../lib/conexao.js';
   import {
@@ -464,16 +464,11 @@
       </button>
       {#if podeControlar}
         <div class="faixa-posse" class:minha={temControle}>
-          <span class="pino" aria-hidden="true"></span>
           <!-- Anúncio da posse fora do {#key}: a região viva não pode nascer a
                cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
           <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
-          {#key quadra?.controle_id}
-            <div class="posse-texto" aria-hidden="true" in:fade={{ duration: prefersReducedMotion ? 0 : 180 }}>
-              <strong>{posse.titulo}</strong>
-              <small>{posse.detalhe}</small>
-            </div>
-          {/key}
+          <!-- Na tela, as regras da partida valem mais que a posse (Navigator, CV6.DS1.US1). -->
+          <span class="regras-topo"><span class="sr-only">Regras: </span>{resumirRegras(estadoPartida)}</span>
           <span class="selo-papel">{nomeDoPapel(eu?.papel)}</span>
           {#if posse.podeAssumir}
             <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
@@ -750,10 +745,7 @@
     .barra-sala .chip-codigo span { display: none; }
     .barra-sala .faixa-posse { order: 1; flex-basis: 100%; }
   }
-  .faixa-posse .pino { width: 10px; height: 10px; flex: 0 0 10px; border-radius: 50%; background: var(--text-secondary); }
-  .faixa-posse.minha .pino { background: var(--estado-sucesso, #34d399); }
-  .posse-texto { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; color: var(--text-primary); }
-  .posse-texto small { overflow: hidden; color: var(--text-secondary); font-size: .75rem; text-overflow: ellipsis; white-space: nowrap; }
+  .regras-topo { overflow: hidden; min-width: 0; color: var(--text-primary); font-weight: 700; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
   .selo-papel {
     margin-left: auto;
     padding: 3px 8px;
