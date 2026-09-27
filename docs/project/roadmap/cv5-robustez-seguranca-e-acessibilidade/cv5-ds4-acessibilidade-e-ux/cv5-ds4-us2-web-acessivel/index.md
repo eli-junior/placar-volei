@@ -1,7 +1,8 @@
 ---
 code: CV5.DS4.US2
 level: User Story
-status: Planned
+status: Active
+status_reason: Checkpoint 1 (plano) aguardando o Navigator
 updated: 2026-09-27
 ---
 
@@ -17,3 +18,7 @@ updated: 2026-09-27
 
 ## Acceptance
 Com leitor de tela, a queda de conexão é anunciada; com movimento reduzido, nada pulsa; o foco não escapa da Linha do Tempo.
+
+## Plano
+
+[plan.md](plan.md) — branch `feature/cv5-ds4-us2-web-acessivel`.
