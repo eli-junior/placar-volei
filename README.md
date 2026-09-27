@@ -10,7 +10,7 @@ Versão `0.20.0` entregue: o CV5 deixou o placar mais robusto, seguro e acessív
 
 Próximo trabalho: fechar a `CV6.DS2.US1`, já validada no relógio real, e implementar a `CV6.DS2.US2`, aro de conexão discreto. A `CV3.DS1.US4` continua como pendência independente.
 
-O ciclo CV6 também validou no relógio números maiores com Teko local, batimentos centralizados, **Voltar Ponto** e **Nova** verde em dois toques. A branch da HU aguarda o fechamento nos checkpoints do Ariad.
+O ciclo CV6 também entregou no relógio números maiores com Teko local, batimentos centralizados, **Voltar Ponto** e **Nova** verde em dois toques (`CV6.DS2.US1`, versão 0.20.1). A próxima HU é o aro discreto de conexão.
 
 ## Como funciona
 

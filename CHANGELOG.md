@@ -38,7 +38,7 @@ Boundary: patch (CV6.DS2.US1 — leitura e operação mais claras no relógio)
 
 Authors: Eli (Navigator); Codex (Driver, Passos 1–7)
 
-Git source: `feature/cv6-ds2-us1-leitura-no-pulso`, commit final a registrar no merge em `master`.
+Git source: merge commit `ed4502d` de `feature/cv6-ds2-us1-leitura-no-pulso` em `master`.
 
 ### Changed
 

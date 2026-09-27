@@ -28,4 +28,4 @@ O APK release foi instalado no Galaxy Watch SM-L330 sem apagar o vínculo. O Nav
 
 ## Follow-up
 
-Fechar a HU após o Checkpoint 4 e integrar a branch. A próxima HU do relógio é `CV6.DS2.US2`, com plano aprovado para o aro de conexão.
+A HU foi fechada no Checkpoint 4 e integrada em `master` no merge `ed4502d`. A próxima HU do relógio é `CV6.DS2.US2`, com plano aprovado para o aro de conexão.

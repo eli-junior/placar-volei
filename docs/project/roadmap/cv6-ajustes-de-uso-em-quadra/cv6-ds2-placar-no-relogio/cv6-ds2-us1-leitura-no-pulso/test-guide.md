@@ -2,7 +2,7 @@
 
 ## Estado no Checkpoint 2
 
-Implementada; aceite manual pendente. Nenhum merge ou publicação de versão feito. O APK ainda informa 0.20.0; a versão proposta 0.20.1 será consolidada no fechamento.
+Implementada e integrada em `master` no merge `ed4502d`. A versão do APK continua 0.20.0 até o próximo bump coordenado; o changelog registra a fronteira 0.20.1.
 
 ## Evidência automatizada
 
@@ -68,7 +68,7 @@ Usar o pacote principal `br.com.placarvolei.watch`, app **Placar Vôlei**. Se o 
 - `res/font/teko.ttf` e `assets/licenses/teko-*`: fonte e licença incorporadas.
 - Changelog, índice/plano da HU e este roteiro: estado, pedido adicional e evidência.
 
-Após o Navigator validar, seguir ao Passo 5 (revisão e dívida); documentação final e versão permanecem para os checkpoints seguintes.
+HU encerrada após os Checkpoints 3 e 4; a próxima etapa é a `CV6.DS2.US2` do aro de conexão.
 
 ### Ajuste após feedback do Checkpoint 2
 
