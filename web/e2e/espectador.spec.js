@@ -57,3 +57,20 @@ test('recusa de tela cheia informa e mantém o placar na aba', async ({ abrir })
   await expect(esp.getByText('O navegador não permitiu a tela cheia. O placar continua nesta aba.')).toBeVisible();
   await expect(esp.getByLabel('Tela cheia')).toBeVisible();
 });
+
+// CV6.DS1.US3: empilhado em tela em pé e três dígitos cabem no maior tamanho.
+test('números empilhados cabem com 100 pontos no tamanho G', async ({ abrir }) => {
+  test.setTimeout(90_000);
+  const p = await abrir({ viewport: { width: 344, height: 882 } }, { fn: () => localStorage.setItem('placar:tamanho_numeros', 'G') });
+  await criarSala(p, { config: { alvo: 100, vantagem: false } });
+  const a = p.getByLabel('Marcar ponto para Equipe A');
+  for (let i = 0; i < 100; i++) await a.click();
+  await p.keyboard.press('Escape');
+  const caixas = await p.evaluate(() => [...document.querySelectorAll('.resultado .time')].map((t) => {
+    const n = t.querySelector('strong').getBoundingClientRect();
+    const c = t.getBoundingClientRect();
+    return { dentro: n.left >= c.left - 1 && n.right <= c.right + 1, topo: c.top };
+  }));
+  expect(caixas.every((c) => c.dentro)).toBe(true);
+  expect(caixas[1].topo).toBeGreaterThan(caixas[0].topo);
+});

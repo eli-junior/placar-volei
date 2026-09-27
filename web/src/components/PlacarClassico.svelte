@@ -96,7 +96,14 @@
     font-weight: 850;
   }
 
+  /* Tela em pé: uma equipe sobre a outra (CV6.DS1.US3). */
   @media (max-aspect-ratio: 3 / 4) {
-    .classico { padding-inline: .35rem; }
+    .classico {
+      padding-inline: .35rem;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr);
+      grid-template-areas: 'a' 'divisor' 'b';
+    }
+    .classico.invertido { grid-template-areas: 'b' 'divisor' 'a'; }
   }
 </style>

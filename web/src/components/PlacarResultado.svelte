@@ -131,7 +131,9 @@
     max-width: 100%;
     color: var(--cor-time);
     font-family: var(--fonte-numeros);
-    font-size: clamp(7rem, min(50cqw, 74cqh), 32rem);
+    /* Escala P/M/G (CV6.DS1.US3) sobre o tamanho automático, limitada ao que
+       cabe na coluna: dois dígitos ≈ .62em de largura, três ≈ .95em, altura ≈ .65em. */
+    font-size: clamp(5rem, min(calc(min(50cqw, 74cqh) * var(--escala-numeros, 1)), 74cqw, 92cqh), 60rem);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     letter-spacing: -.045em;
@@ -141,7 +143,7 @@
   }
 
   strong.destaque { animation: ponto .36s ease-out; }
-  strong.tres-digitos { font-size: clamp(5rem, min(27cqw, 54cqh), 18rem); }
+  strong.tres-digitos { font-size: clamp(4rem, min(calc(min(27cqw, 54cqh) * var(--escala-numeros, 1)), 48cqw, 92cqh), 40rem); }
 
   .time.vencedor {
     background: linear-gradient(180deg, color-mix(in srgb, var(--cor-time) 24%, transparent), transparent 72%);
@@ -186,11 +188,20 @@
 
   .movimento-reduzido strong.destaque { animation: none; }
 
+  /* Tela em pé (CV6.DS1.US3): uma equipe sobre a outra, cada uma com a
+     largura toda; lado a lado os números ficavam presos à meia largura. */
   @media (max-aspect-ratio: 3 / 4) {
-    .resultado { grid-template-columns: minmax(0, 1fr) 30px minmax(0, 1fr); }
+    .resultado {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: minmax(0, 1fr) 0 minmax(0, 1fr);
+      grid-template-areas: 'a' 'divisor' 'b';
+    }
+    .resultado.invertido { grid-template-areas: 'b' 'divisor' 'a'; }
+    /* A faixa colorida de cada equipe já separa; o × cobriria o nome. */
+    .divisor { display: none; }
     .time { padding-inline: clamp(.35rem, 1.5cqw, .8rem); }
-    strong { font-size: clamp(7rem, min(50cqw, 66cqh), 28rem); }
-    strong.tres-digitos { font-size: clamp(5rem, min(27cqw, 48cqh), 17rem); }
+    strong { font-size: clamp(4rem, min(calc(min(72cqw, 30cqh) * var(--escala-numeros, 1)), 150cqw, 62cqh), 60rem); }
+    strong.tres-digitos { font-size: clamp(3.5rem, min(calc(min(46cqw, 28cqh) * var(--escala-numeros, 1)), 96cqw, 62cqh), 40rem); }
   }
 
   @media (prefers-reduced-motion: reduce) {
