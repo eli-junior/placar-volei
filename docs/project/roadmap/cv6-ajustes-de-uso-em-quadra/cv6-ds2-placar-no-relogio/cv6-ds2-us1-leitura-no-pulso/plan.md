@@ -51,3 +51,5 @@ Atualizar HU/DS/CV, changelog, roteiro de validação e documentação pertinent
 ## Ajuste solicitado durante implementação
 
 Navigator pediu o botão Nova verde. Usar fundo verde escuro com texto branco quando disponível; preservar estado desabilitado e confirmação em dois toques (âmbar ao armar).
+
+No Checkpoint 2, Navigator pediu substituir “Desfazer +1 Eles” por “Voltar Ponto”. Aplicar o texto curto durante e ao fim da partida; manter a descrição da equipe para leitores de tela.

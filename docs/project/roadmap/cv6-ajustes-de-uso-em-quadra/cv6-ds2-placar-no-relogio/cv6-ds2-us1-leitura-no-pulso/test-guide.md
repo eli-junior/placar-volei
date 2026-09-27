@@ -35,7 +35,7 @@ Capturas comprovam renderização; não comprovam coleta real do sensor, gravaç
 
 APK debug: `wear/app/build/outputs/apk/debug/app-debug.apk`, servidor compilado `https://placar.elijunior.click`. O relógio conectado recusou debug por assinatura diferente; atualização deve usar o release assinado com a chave local, sem desinstalar o app principal.
 
-O release `wear/app/build/outputs/apk/release/app-release.apk` foi instalado com sucesso via `adb install -r` no SM-L330 em 2026-09-27, preservando dados; a cópia temporária foi removida e o app principal aberto. SHA-256: `33368a5ffc952faaab698c7f619b72506472d9d84ec74dc8c77a679076bec391`.
+O release `wear/app/build/outputs/apk/release/app-release.apk` foi instalado com sucesso via `adb install -r` no SM-L330 em 2026-09-27, preservando dados; a cópia temporária foi removida e o app principal aberto. SHA-256: `cd2c30dab99e3c13676db83d775e2bed00fe971fb24bcd19ba521600daa0a0b8`.
 
 Para reinstalar, na raiz, com depuração Wi-Fi conectada (IP e porta podem mudar):
 
@@ -53,7 +53,7 @@ Usar o pacote principal `br.com.placarvolei.watch`, app **Placar Vôlei**. Se o 
 3. **Leitura:** configurar alvo 100 (sem teto, com vantagem) e conferir 0, 12 e 100 no relógio. Para chegar a 100 sem encerrar antes, alternar os pontos dos times até 100 × 100. Rótulos devem ficar acima dos números; conferir também jogadores cadastrados, que viram iniciais. Comparar fonte padrão e tamanho de fonte ampliado do relógio.
 4. **Controle e correção:** no telefone, tornar Eli (Relógio) controlador e passar o controle. Marcar A/B, desfazer e conferir a transição dos números, a linha do tempo e os três placares. Repetir com animações desativadas na acessibilidade do relógio; ao terminar, restaurar a preferência anterior.
 5. **Batimentos:** com permissão, conferir o indicador centralizado. Com leitura indisponível, observar **♥ --**; com permissão negada, indicador oculto. Com Samsung Health gravando um treino, voltar ao placar e depois conferir que o treino continua. Não usar o número simulado da prévia como prova de medição.
-6. **Fim de partida:** como dono admin, terminar o jogo usando o relógio. **Desfazer** deve continuar acessível e **Nova** ter fundo verde com texto branco. Primeiro toque em Nova mostra **Tocar de novo** em âmbar; esperar três segundos deve voltar ao verde. Dois toques dentro do prazo iniciam outra partida, sincronizada no telefone/espectador.
+6. **Fim de partida:** como dono admin, terminar o jogo usando o relógio. **Voltar Ponto** deve continuar acessível e **Nova** ter fundo verde com texto branco. Primeiro toque em Nova mostra **Tocar de novo** em âmbar; esperar três segundos deve voltar ao verde. Dois toques dentro do prazo iniciam outra partida, sincronizada no telefone/espectador.
 7. **Conexão:** durante partida de teste, isolar o relógio da rede por cerca de 30 s (desligar também Wi-Fi se o modo avião não o fizer), marcar um ponto e observar pendência/placar previsto. Reconectar e conferir um único ponto no histórico e os três placares iguais, sem avisos sobrepostos.
 
 **Passa:** números completos, melhor leitura no aparelho habitual, batimentos centralizados e honestos, ações acessíveis, Nova verde preservando confirmação e placares sincronizados.
@@ -63,8 +63,13 @@ Usar o pacote principal `br.com.placarvolei.watch`, app **Placar Vôlei**. Se o 
 ## Arquivos desta implementação
 
 - `ScoreScreen.kt`: organização do espaço, números Teko ajustados por medição, batimentos 17 sp e cor de Nova.
+- `Scoreboard.kt`, `WatchModel.kt` e `ScoreboardTest.kt`: rótulo único **Voltar Ponto** e descrição acessível da equipe preservada.
 - `ScoreSync.kt` e `ScoreSyncTest.kt`: mensagem curta e regressões de bloqueio/prioridade de conflito.
 - `res/font/teko.ttf` e `assets/licenses/teko-*`: fonte e licença incorporadas.
 - Changelog, índice/plano da HU e este roteiro: estado, pedido adicional e evidência.
 
 Após o Navigator validar, seguir ao Passo 5 (revisão e dívida); documentação final e versão permanecem para os checkpoints seguintes.
+
+### Ajuste após feedback do Checkpoint 2
+
+O rótulo de correção agora é **Voltar Ponto**, tanto durante quanto ao fim da partida. As capturas acima antecedem esse ajuste de texto. Conferir que um toque continua desfazendo só o último ponto e que a faixa permanece legível junto a Nova.

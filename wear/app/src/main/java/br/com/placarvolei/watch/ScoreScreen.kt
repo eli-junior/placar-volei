@@ -124,7 +124,7 @@ fun ScoreScreen(model: WatchModel) {
                         ::undo, ::newMatch, onArm = { view.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK) },
                     )
                 } else {
-                    UndoBar(model.canUndo, model.undoText, model.undoSpoken, Modifier.fillMaxWidth(), ::undo)
+                    UndoBar(model.canUndo, UNDO_LABEL, model.undoSpoken, Modifier.fillMaxWidth(), ::undo)
                 }
             } else if (reason != null && model.held == null) {
                 // Mede também a quebra de linha com fonte ampliada antes de distribuir o placar.
@@ -310,7 +310,7 @@ private fun UndoAndNewBar(
         if (armed) { delay(NEW_MATCH_CONFIRM_MS); armed = false }
     }
     Row(modifier.fillMaxWidth().height(52.dp)) {
-        SplitHalf("↶ Desfazer", canUndo, undoSpoken, Alignment.TopEnd, Modifier.weight(1f)) { armed = false; onUndo() }
+        SplitHalf(UNDO_LABEL, canUndo, undoSpoken, Alignment.TopEnd, Modifier.weight(1f)) { armed = false; onUndo() }
         Box(Modifier.fillMaxHeight().width(2.dp).background(Color.Black))
         SplitHalf(
             if (armed) "Tocar de novo" else "▶ Nova", canStart,

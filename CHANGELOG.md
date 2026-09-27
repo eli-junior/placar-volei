@@ -10,7 +10,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 - **Branch**: `feature/cv6-ds2-us1-leitura-no-pulso`, criada de `master` `c02285b`.
 - **Passo Ariad**: Passo 4 - Teste e Validação; aguardando validação manual no Checkpoint 2.
 - **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us1-20260927 | Data: 2026-09-27 14:21 -03.
-- **Handoff / Próximos Passos**: layout e mensagem implementados; Teko local com licença; Nova verde solicitado pelo Navigator; 52 testes JVM e 221 backend aprovados, builds debug/release, lint Android e Svelte Check concluídos; release instalado no relógio preservando dados, prévia temporária removida. Plano em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us1-leitura-no-pulso/plan.md`. Roteiro em `test-guide.md` na pasta da HU. Validar no relógio e telefone antes do Passo 5. CV3.DS1.US4 continua pendente. Versão proposta: 0.20.1.
+- **Handoff / Próximos Passos**: layout e mensagem implementados; Teko local com licença; Nova verde e rótulo Voltar Ponto solicitados pelo Navigator; 52 testes JVM e 221 backend aprovados, builds debug/release, lint Android e Svelte Check concluídos; release instalado no relógio preservando dados, prévia temporária removida. Plano em `docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us1-leitura-no-pulso/plan.md`. Roteiro em `test-guide.md` na pasta da HU. Validar no relógio e telefone antes do Passo 5. CV3.DS1.US4 continua pendente. Versão proposta: 0.20.1.
 
 ## 0.20.0 - 2026-09-27
 
