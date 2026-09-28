@@ -1,6 +1,6 @@
 # CV6.DS2.US4 — Teste e validação
 
-Checkpoint 2: APK instalado no Galaxy Watch SM-L330 (Android 16/API 36); validação física pendente.
+Checkpoint 2: APK instalado no Galaxy Watch SM-L330 (Android 16/API 36). Teste inicial ADB passou: tela em Dozing após KEYCODE_SLEEP, serviço foreground e sem WebSocket fechado após 60 s. Permission POST_NOTIFICATIONS concedida. Gesto físico e restante da validação aguardam Navigator.
 
 ## Preparação
 
@@ -33,4 +33,4 @@ Para coletar o recorte depois dos ciclos: `adb -s <watch> logcat -d -s WatchSess
 
 Comando: `JAVA_HOME=/home/eli/.sdkman/candidates/java/21.0.7-tem ./wear/gradlew -p wear testDebugUnitTest assembleDebug lintDebug assembleRelease`.
 
-59 testes JVM cobrem fila, reenvio e reconciliação existentes. Debug/release e lint devem terminar verdes. A conexão em ambiente/Doze, permissão, notificação, gesto, treino e bateria exigem este teste no relógio real.
+59 testes JVM cobrem fila, reenvio e reconciliação existentes; zero falhas. Debug/release e lint terminaram verdes. Diagnóstico ADB após repouso: `mWakefulness=Dozing`; serviço `WatchSessionService` em primeiro plano; log abriu o WebSocket antes do repouso e não registrou fechamento durante o intervalo observado. Esse teste não cobre gesto nem mensagem remota durante o repouso. A conexão em ambiente/Doze, permissão, notificação, gesto, treino e bateria exigem este teste no relógio real.
