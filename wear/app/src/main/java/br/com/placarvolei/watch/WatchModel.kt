@@ -85,7 +85,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     var connection by mutableStateOf(Connection.RECONECTANDO)
         private set
     val pending get() = rev.let { sync.pending }
-    val held get() = rev.let { sync.held }
+    val discardNotice get() = rev.let { sync.notice }
     val labels get() = score?.let(::teamLabels) ?: ("Nós" to "Eles")
     val shown get() = score?.let { predicted(it, pending) }
 
@@ -178,7 +178,6 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         return true
     }
 
-    /** Descarte explícito, confirmado no relógio, dos lances retidos por recusa. */
     /** Fila ilegível na abertura (CV5.DS2.TS1): aviso até a pessoa dispensar. */
     val lostQueue get() = rev.let { sync.lostQueue }
 
@@ -187,11 +186,9 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         changed(false)
     }
 
-    fun discardHeld() {
-        viewModelScope.launch {
-            withContext(disk) { sync.discardHeld() }
-            changed()
-        }
+    fun dismissDiscardNotice() {
+        sync.dismissNotice()
+        changed(false)
     }
 
     private suspend fun sendLoop() {
@@ -239,6 +236,10 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         invalid = true
         code = ""
         message = data.optString("detail", "Vínculo indisponível. Use o telefone.")
+        sync.notice?.let {
+            message += " ${it.substringBefore(" ·").replaceFirstChar(Char::uppercase)}."
+            sync.dismissNotice()
+        }
     }
 
     private suspend fun request(

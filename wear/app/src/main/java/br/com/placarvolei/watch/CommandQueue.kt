@@ -33,6 +33,7 @@ data class PendingCommand(
  */
 data class QueueState(
     val commands: List<PendingCommand> = emptyList(),
+    /** Pausa da 0.19–0.23; hoje só é lida para descartar a fila antiga. */
     val held: String? = null,
     val snapshot: String? = null,
     val participantId: String? = null,

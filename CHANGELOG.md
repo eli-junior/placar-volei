@@ -4,6 +4,25 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.24.0 - 2026-09-28
+
+Boundary: minor (fecha a CV3.DS1.US4, a CV3.DS1 e a CV3)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: 9add80cf
+
+Git source: merge `--no-ff` de `feature/cv3-ds1-us4-revisao-no-telefone` em `master`.
+
+### Changed
+
+- Relógio: conflito da fila offline (controle com outra pessoa, partida nova, placar mudado por fora ou vínculo encerrado) descarta a fila inteira e mostra por 3 s "N lances não enviados · motivo", voltando ao placar do servidor. Substitui a pausa com **Descartar** manual e a revisão pelo telefone que estava planejada (decisão `conflito-do-relogio-descarta-com-aviso`).
+- Filas pausadas por versões anteriores são descartadas ao abrir o app, com o mesmo aviso.
+- Roadmap: CV6.DS2.US2 marcada como Done (entregue na 0.22.1).
+- Versões: backend e web 0.24.0; relógio 0.24.0 (versionCode 11).
+
+### Verification
+
+- 56 testes do relógio (6 novos), build e lint sem avisos novos. Servidor e web sem mudança de código. Navigator validou no relógio real.
+
 ## 0.23.4 - 2026-09-28
 
 Boundary: patch (manutenção visual do topo da sala, fora de história)

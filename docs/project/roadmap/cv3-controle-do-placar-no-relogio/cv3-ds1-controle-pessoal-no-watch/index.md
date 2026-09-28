@@ -1,9 +1,9 @@
 ---
 code: CV3.DS1
 level: Delivery Story
-status: Active
-status_reason: US1 (0.7.0), US2 (0.8.0), US3 (0.9.0), US5 (0.10.0) e TS1 (0.19.0) entregues; falta a US4 (revisão de conflito pelo telefone)
-updated: 2026-09-23
+status: Done
+status_reason: US1 (0.7.0), US2 (0.8.0), US3 (0.9.0), US5 (0.10.0), TS1 (0.19.0) e US4 (0.24.0) entregues
+updated: 2026-09-28
 ---
 
 # CV3.DS1 — Controle pessoal no Galaxy Watch
@@ -16,7 +16,7 @@ Preparar a sala no telefone e operar pelo relógio durante o jogo.
 - US2: acompanhar o placar e marcar para cada equipe.
 - US3: desfazer o último ponto visto, inclusive com fila local.
 - TS1: fila offline com placar persistido e reenvio sem duplicar (0.19.0).
-- US4: revisão de conflito pelo telefone antes de reaplicar ou descartar.
+- US4: conflito da fila descarta com aviso de 3 s (0.24.0); a revisão pelo telefone foi abandonada.
 - US5: um vínculo por vez — retomar a quadra ou trocar, revogando a anterior. Entra antes da US4.
 
 ## Acceptance / Done Condition

@@ -101,17 +101,59 @@ class ScoreSyncTest {
     }
 
     @Test
-    fun heldCommandKeepsItsReasonEvenWhenControlIsOnPhone() = runBlocking {
+    fun refusalDiscardsTheWholeQueueWithNotice() = runBlocking {
         val server = FakeServer()
         val sync = linked(server)
         sync.tap("A")
-        sync.sendNext { 422 to JSONObject().put("detail", "Lance inválido.") }
+        sync.tap("B")
+        sync.sendNext { 200 to JSONObject().put("recibo", JSONObject().put("status", "RECUSADO").put("detalhe", "O controle mudou."))
+            .put("estado", server.snapshot()) }
+        assertTrue(sync.pending.isEmpty())
+        assertEquals("2 lances não enviados · placar mudou", sync.notice)
+        assertNull(sync.blockReason)
+        assertTrue(ScoreSync(CommandQueue(file)).pending.isEmpty())
+        sync.dismissNotice()
+        assertNull(sync.notice)
+    }
+
+    @Test
+    fun controlTakenWhileOfflineDiscardsQueueNamingTheController() {
+        val server = FakeServer()
+        val sync = linked(server)
+        server.online = false
+        sync.tap("A")
+        sync.tap("B")
+        sync.undo()
         val snapshot = server.snapshot()
-        snapshot.getJSONObject("quadra").put("controle_id", "phone")
+        snapshot.getJSONObject("quadra").put("controle_id", "p9")
+        snapshot.put("participantes", JSONArray().put(JSONObject().put("id", "p9").put("apelido", "Ana")))
         sync.applySnapshot(snapshot)
-        assertEquals("Lance inválido.", sync.blockReason)
-        assertFalse(sync.tap("B"))
-        assertEquals(1, sync.pending.size)
+        assertTrue(sync.pending.isEmpty())
+        assertEquals("3 lances não enviados · controle com Ana", sync.notice)
+        assertEquals("Controle no telefone.", sync.blockReason)
+        assertEquals(0, server.efeitos)
+    }
+
+    @Test
+    fun revokedLinkDiscardsQueue() = runBlocking {
+        val sync = linked(FakeServer())
+        sync.tap("A")
+        val (result, _) = sync.sendNext { 401 to JSONObject().put("detail", "Vínculo revogado.") }
+        assertEquals(SendResult.NAO_AUTORIZADO, result)
+        assertTrue(sync.pending.isEmpty())
+        assertEquals("1 lance não enviado · vínculo encerrado", sync.notice)
+    }
+
+    @Test
+    fun queueHeldByOlderVersionIsDiscardedOnOpen() {
+        val server = FakeServer()
+        linked(server).tap("A")
+        val queue = CommandQueue(file)
+        queue.save(queue.load().copy(held = "Lance recusado."))
+        val reopened = ScoreSync(queue)
+        assertTrue(reopened.pending.isEmpty())
+        assertNull(reopened.state.held)
+        assertEquals("1 lance não enviado · placar mudou", reopened.notice)
     }
 
     @Test
@@ -133,7 +175,7 @@ class ScoreSyncTest {
         for (status in listOf(408, 425, 429)) {
             val (result, _) = sync.sendNext { status to JSONObject().put("detail", "espere") }
             assertEquals(SendResult.ADIADO, result)
-            assertNull(sync.held)
+            assertNull(sync.notice)
             assertEquals(1, sync.pending.size)
         }
         sync.drain(server)
@@ -142,11 +184,12 @@ class ScoreSyncTest {
     }
 
     @Test
-    fun definitiveRefusalWithoutReceiptStillHolds() = runBlocking {
+    fun definitiveRefusalWithoutReceiptAlsoDiscards() = runBlocking {
         val sync = linked(FakeServer())
         assertTrue(sync.tap("B"))
         sync.sendNext { 422 to JSONObject().put("detail", "Lance inválido.") }
-        assertEquals("Lance inválido.", sync.held)
+        assertTrue(sync.pending.isEmpty())
+        assertEquals("1 lance não enviado · placar mudou", sync.notice)
     }
 
     @Test
@@ -211,7 +254,7 @@ class ScoreSyncTest {
     }
 
     @Test
-    fun queueOfPreviousMatchIsHeldNotAppliedToNewOne() {
+    fun queueOfPreviousMatchIsDiscardedNotAppliedToNewOne() {
         val server = FakeServer()
         val sync = linked(server)
         server.online = false
@@ -220,11 +263,8 @@ class ScoreSyncTest {
         server.partida = "p2"
         sync.drain(server)
         assertEquals(0, server.efeitos)
-        assertNotNull(sync.held)
-        assertEquals(1, sync.pending.size)
-        // Descartar tira só os lances; o placar confirmado da partida nova fica.
-        sync.discardHeld()
         assertTrue(sync.pending.isEmpty())
+        assertEquals("1 lance não enviado · nova partida", sync.notice)
         assertEquals("p2", ScoreSync(CommandQueue(file)).score!!.partidaId)
     }
 

@@ -40,7 +40,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
@@ -115,7 +117,7 @@ fun ScoreScreen(model: WatchModel) {
                 if (pending > 0) PendingText(pending)
             }
             Spacer(Modifier.height(4.dp))
-            if (model.controlled && reason != null && model.held == null) {
+            if (model.controlled && reason != null) {
                 ReasonText(reason, Modifier.fillMaxWidth())
             }
             Row(Modifier.fillMaxWidth().weight(1f)) {
@@ -132,7 +134,7 @@ fun ScoreScreen(model: WatchModel) {
                 } else {
                     UndoBar(model.canUndo, UNDO_LABEL, model.undoSpoken, Modifier.fillMaxWidth(), ::undo)
                 }
-            } else if (reason != null && model.held == null) {
+            } else if (reason != null) {
                 // Mede também a quebra de linha com fonte ampliada antes de distribuir o placar.
                 ReasonText(reason, Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 22.dp))
             } else {
@@ -140,8 +142,8 @@ fun ScoreScreen(model: WatchModel) {
             }
         }
         ConnectionRing(signal(model.connection, pending))
-        model.held?.let { HeldOverlay(it, pending, model::discardHeld) }
-        if (model.lostQueue && model.held == null) LostQueueOverlay(model::dismissLostQueue)
+        if (model.lostQueue) LostQueueOverlay(model::dismissLostQueue)
+        model.discardNotice?.let { DiscardNotice(it, model::dismissDiscardNotice) }
     }
 }
 
@@ -376,30 +378,24 @@ private fun SplitHalf(
     }
 }
 
+/** Aviso do descarte por conflito (CV3.DS1.US4): some sozinho em 3 s ou ao toque. */
+internal const val NOTICE_MS = 3_000L
+
 @Composable
-private fun HeldOverlay(reason: String, count: Int, onDiscard: () -> Unit) {
-    var confirming by remember { mutableStateOf(false) }
-    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.94f)), contentAlignment = Alignment.Center) {
-        Column(
-            Modifier.fillMaxWidth().padding(horizontal = 30.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Text(reason, fontSize = 13.sp, textAlign = TextAlign.Center, color = Color.White)
-            val lances = if (count == 1) "1 lance retido" else "$count lances retidos"
-            if (!confirming) {
-                Text("$lances fora do placar.", fontSize = 13.sp, textAlign = TextAlign.Center, color = Color.LightGray)
-                Chip(onClick = { confirming = true }, label = { Text("Descartar") },
-                    colors = ChipDefaults.secondaryChipColors())
-            } else {
-                Text("Descartar $lances? Eles não entram no placar.", fontSize = 13.sp,
-                    textAlign = TextAlign.Center, color = Color(0xFFFFD27A))
-                Chip(onClick = onDiscard, label = { Text("Confirmar descarte") },
-                    colors = ChipDefaults.primaryChipColors(backgroundColor = Color(0xFFB3261E)))
-                Chip(onClick = { confirming = false }, label = { Text("Voltar") },
-                    colors = ChipDefaults.secondaryChipColors())
-            }
-        }
+private fun DiscardNotice(text: String, onDismiss: () -> Unit) {
+    LaunchedEffect(text) {
+        delay(NOTICE_MS)
+        onDismiss()
+    }
+    Box(
+        Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.94f)).clickable(onClick = onDismiss)
+            .semantics { liveRegion = LiveRegionMode.Polite },
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(
+            text, Modifier.padding(horizontal = 30.dp),
+            fontSize = 15.sp, textAlign = TextAlign.Center, color = Color(0xFFFFD27A),
+        )
     }
 }
 
