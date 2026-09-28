@@ -4,11 +4,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: manutenção — fim de partida com "Reinício Rápido" (zera o placar e mantém duplas e regras) e "Ajustar e Iniciar" (abre o modal atual); sai o "Compartilhar Resultado". Tocar no código da sala abre o compartilhamento (link e QR), que sai do ⋯. Alvo 0.23.3.
-- **Branch**: `feature/reinicio-rapido`
-- **Passo Ariad**: Passo 4 - Teste e Validação
-- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 2c64122a | Data: 2026-09-28
-- **Handoff / Próximos Passos**: aguardando validação do Navigator.
+## 0.23.3 - 2026-09-28
+
+Boundary: patch (manutenção do fim de partida e do compartilhamento, fora de história)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: 2c64122a
+
+Git source: merge `--no-ff` de `feature/reinicio-rapido` em `master`.
+
+### Changed
+
+- Fim de partida: "Reinício Rápido" zera o placar e mantém duplas, regras e tema; "Ajustar e Iniciar" abre o modal de ajustes. Sai o "Compartilhar Resultado".
+- Tocar no código da sala abre o compartilhamento (link e QR) em vez de copiar o código; "Compartilhar e QR" sai do ⋯ e dos atalhos do topo.
+- Versões: backend e web 0.23.3.
+
+### Verification
+
+- 96 testes unitários web, svelte-check sem erros e build. Testes de navegador ajustados, não executados nesta sessão. Navigator validou.
 
 ## 0.23.2 - 2026-09-28
 
