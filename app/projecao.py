@@ -53,7 +53,7 @@ def avaliar_vitoria(
 
 def projetar_estado(eventos: Sequence[Evento]) -> EstadoPartida:
     partida_id: str | None = None
-    alvo: int = 12
+    alvo: int = 10
     vantagem: bool = True
     teto: int | None = None
     equipe_a: str = "Equipe A"
@@ -158,7 +158,7 @@ def projetar_linha_do_tempo(
     itens: list[dict[str, Any]] = []
     equipe_a = "Equipe A"
     equipe_b = "Equipe B"
-    alvo = 12
+    alvo = 10
     vantagem = True
 
     pontos_a_ativos: list[int] = []

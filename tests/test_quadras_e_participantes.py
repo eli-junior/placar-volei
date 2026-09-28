@@ -36,7 +36,7 @@ async def test_criar_e_listar_quadras():
         eventos = await carregar_eventos(settings.db_path, partida_id)
         assert len(eventos) == 1
         assert eventos[0].tipo == TipoEvento.PARTIDA_INICIADA
-        assert eventos[0].payload["alvo"] == 12
+        assert eventos[0].payload["alvo"] == 10
 
         # Listagem de quadras
         resp_list = await client.get("/api/quadras")

@@ -1,7 +1,7 @@
 <script>
   import { aplicarTema, guardarTema, lerTemaSol } from '../lib/tema.js';
   import { copiarTexto } from '../lib/areaDeTransferencia.js';
-  import { nomeDoPapel, lerTamanhoNumeros, guardarTamanhoNumeros, proximoTamanhoNumeros, TAMANHOS_NUMEROS } from '../lib/preferencias.js';
+  import { seloDoPapel, lerTamanhoNumeros, guardarTamanhoNumeros, proximoTamanhoNumeros, TAMANHOS_NUMEROS } from '../lib/preferencias.js';
   import { fade, slide } from 'svelte/transition';
   import ModalRelogio from './ModalRelogio.svelte';
   import ListaPresentes from './ListaPresentes.svelte';
@@ -13,7 +13,7 @@
   import ModalConfigurarPartida from './ModalConfigurarPartida.svelte';
   import ModalCelebracaoVitoria from './ModalCelebracaoVitoria.svelte';
   import { ehDonoDoRelogio } from '../lib/relogio.js';
-  import { ultimoPontoDesfazivel, descreverPosse, resumirRegras } from '../lib/controle.js';
+  import { ultimoPontoDesfazivel, descreverPosse, resumirRegras, resumirRegrasCurto } from '../lib/controle.js';
   import MenuSala from './MenuSala.svelte';
   import { estadoConexao } from '../lib/conexao.js';
   import {
@@ -42,6 +42,7 @@
     onPromoverControlador = (id) => {},
     onRevogarControlador = (id) => {},
     onAutorizarAdmin = (id) => {},
+    onLiberarQuadra = () => {},
     onPassarControle = (id) => {},
     operando = false,
     pendentes = 0,
@@ -100,6 +101,14 @@
   let modalConfigAberto = $state(false);
   // Parte do modal de configurações aberta pelo atalho (CV6.DS1.US6); `tudo` no ⚙.
   let secaoConfig = $state('tudo');
+  // Dica do selo de papel no topo (CV6.DS1.US7): aparece ao tocar e some sozinha.
+  let dicaSeloAberta = $state(false);
+  let timerDicaSelo;
+  function mostrarDicaSelo() {
+    dicaSeloAberta = !dicaSeloAberta;
+    clearTimeout(timerDicaSelo);
+    if (dicaSeloAberta) timerDicaSelo = setTimeout(() => { dicaSeloAberta = false; }, 2500);
+  }
   function abrirConfig(secao = 'tudo') {
     secaoConfig = secao;
     isReinicioConfig = false;
@@ -191,6 +200,7 @@
     eu?.papel === 'ADMIN' || eu?.papel === 'CONTROLADOR'
   );
   const ehAdmin = $derived(eu?.papel === 'ADMIN');
+  const selo = $derived(seloDoPapel(eu?.papel));
 
   const temControle = $derived(podeControlar && quadra?.controle_id === eu?.id);
   const posse = $derived(
@@ -483,12 +493,19 @@
                cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
           <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
           <!-- Na tela, as regras da partida valem mais que a posse (Navigator, CV6.DS1.US1). -->
-          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem"><span class="sr-only">Ajustar regras: </span>{resumirRegras(estadoPartida)}</button>
-          <span class="selo-papel">{nomeDoPapel(eu?.papel)}</span>
+          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem: {resumirRegras(estadoPartida)}"><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida)}</span></button>
           {#if posse.podeAssumir}
             <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
           {/if}
         </div>
+        {#if selo}
+          <span class="selo-papel-ancora">
+            <button type="button" class="btn-topo selo-papel" onclick={mostrarDicaSelo} aria-label={selo.dica} aria-expanded={dicaSeloAberta} title={selo.dica}>
+              <span class="letra-circulada" aria-hidden="true">{selo.letra}</span>
+            </button>
+            {#if dicaSeloAberta}<span class="dica-selo" role="status">{selo.dica}</span>{/if}
+          </span>
+        {/if}
         <button type="button" class="btn-topo" onclick={() => abrirConfig()} aria-label="Duplas e regras da partida" title="Duplas e regras">
           <Icone nome="engrenagem" tamanho="1.15em" />
         </button>
@@ -630,6 +647,8 @@
       temaPlacar={quadra?.tema_placar || 'esportivo'}
       isReinicio={isReinicioConfig}
       secao={isReinicioConfig ? 'tudo' : secaoConfig}
+      podeLiberar={ehAdmin && !isReinicioConfig && secaoConfig === 'tudo'}
+      onLiberar={() => { modalConfigAberto = false; onLiberarQuadra(); }}
       movimentoReduzido={prefersReducedMotion}
       submetendo={operando}
       onFechar={() => { modalConfigAberto = false; }}
@@ -851,15 +870,32 @@
   .regras-topo { min-height: 36px; padding: 0 4px; border: 0; border-radius: 8px; background: none; cursor: pointer; font-family: inherit; text-align: left; text-decoration: underline dotted color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 4px; }
   .regras-topo:hover { background: rgba(var(--veu), .06); }
   .regras-topo { overflow: hidden; min-width: 0; color: var(--text-primary); font-weight: 700; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
-  .selo-papel {
-    margin-left: auto;
-    padding: 3px 8px;
-    border: 1px solid var(--border-color);
-    border-radius: 999px;
-    color: var(--text-secondary);
+  .selo-papel-ancora { position: relative; flex: 0 0 auto; }
+  .selo-papel { color: var(--text-secondary); }
+  .letra-circulada {
+    display: grid;
+    place-items: center;
+    width: 1.5em;
+    height: 1.5em;
+    border: 2px solid currentColor;
+    border-radius: 50%;
     font-size: .8rem;
-    font-weight: 800;
-    letter-spacing: .02em;
+    font-weight: 900;
+  }
+  .dica-selo {
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    z-index: 30;
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: .85rem;
+    font-weight: 700;
+    white-space: nowrap;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
   }
   .faixa-posse .btn-assumir { min-height: 44px; padding: 0 14px; }
 

@@ -59,7 +59,16 @@ export function descreverPosse({ temControle, ehAdmin, operador, conectado = tru
  * @param {{ alvo?: number, vantagem?: boolean, teto?: number | null } | null | undefined} estado
  */
 export function resumirRegras(estado) {
-  const partes = [`${estado?.alvo ?? 12} pontos`, (estado?.vantagem ?? true) ? 'Vantagem' : 'Sem vantagem'];
+  const partes = [`${estado?.alvo ?? 10} pontos`, (estado?.vantagem ?? true) ? 'Vantagem' : 'Sem vantagem'];
   if (estado?.teto) partes.push(`Teto ${estado.teto}`);
   return partes.join(' · ');
+}
+
+/**
+ * Versão curta para o topo (CV6.DS1.US7): só o alvo. Vantagem e teto ficam no
+ * `title` e no leitor de tela, com `resumirRegras`.
+ * @param {{ alvo?: number } | null | undefined} estado
+ */
+export function resumirRegrasCurto(estado) {
+  return `${estado?.alvo ?? 10} pt`;
 }

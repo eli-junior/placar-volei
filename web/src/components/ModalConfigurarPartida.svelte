@@ -13,7 +13,17 @@
     /** `tudo` (⚙), `regras` ou `equipe-a`/`equipe-b` — atalhos do placar (CV6.DS1.US6).
         A seção curta só mostra uma parte, mas salva todos os campos atuais. */
     secao = 'tudo',
+    /** Só o admin, no ⚙ completo: libera a quadra para todos (CV6.DS1.US8). */
+    podeLiberar = false,
+    onLiberar = () => {},
   } = $props();
+
+  // Slider de 6 a 20; fora disso, ou marcando Personalizado, vale o número digitado (CV6.DS1.US7).
+  const SLIDER_MIN = 6;
+  const SLIDER_MAX = 20;
+  const cabeNoSlider = n => Number.isInteger(n) && n >= SLIDER_MIN && n <= SLIDER_MAX;
+  let alvoPersonalizado = $state(false);
+  let confirmandoLiberar = $state(false);
 
   const mostraRegras = $derived(secao === 'tudo' || secao === 'regras');
   const mostraA = $derived(secao === 'tudo' || secao === 'equipe-a');
@@ -31,7 +41,7 @@
   let timeBJogador1 = $state('');
   let timeBJogador2 = $state('');
 
-  let regraAlvo = $state(12);
+  let regraAlvo = $state(10);
   let regraVantagem = $state(true);
   let regraTeto = $state('');
   let temaVisual = $state('esportivo');
@@ -46,7 +56,9 @@
       timeAJogador2 = estadoPartida.jogadores_a?.[1] || '';
       timeBJogador1 = estadoPartida.jogadores_b?.[0] || '';
       timeBJogador2 = estadoPartida.jogadores_b?.[1] || '';
-      regraAlvo = estadoPartida.alvo ?? 12;
+      const alvo = estadoPartida.alvo ?? 10;
+      regraAlvo = alvo;
+      alvoPersonalizado = !cabeNoSlider(alvo);
       regraVantagem = estadoPartida.vantagem ?? true;
       regraTeto = estadoPartida.teto !== null && estadoPartida.teto !== undefined ? String(estadoPartida.teto) : '';
     }
@@ -58,20 +70,31 @@
       : null
   );
 
+  const alvoInvalido = $derived(
+    alvoPersonalizado && !(Number.isInteger(Number(regraAlvo)) && regraAlvo >= 1 && regraAlvo <= 100)
+  );
+
+  function alternarPersonalizado() {
+    // Voltar ao slider traz o alvo para dentro da faixa.
+    if (!alvoPersonalizado && !cabeNoSlider(Number(regraAlvo))) {
+      regraAlvo = Math.min(SLIDER_MAX, Math.max(SLIDER_MIN, Math.round(Number(regraAlvo)) || 10));
+    }
+  }
+
   const tetoInvalido = $derived(
     regraVantagem && tetoNumerico !== null && tetoNumerico < regraAlvo
   );
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (tetoInvalido || submetendo) return;
+    if (tetoInvalido || alvoInvalido || submetendo) return;
 
     onSalvar({
       time_a_jogador1: timeAJogador1.trim() || undefined,
       time_a_jogador2: timeAJogador2.trim() || undefined,
       time_b_jogador1: timeBJogador1.trim() || undefined,
       time_b_jogador2: timeBJogador2.trim() || undefined,
-      alvo: Number(regraAlvo) || 12,
+      alvo: Number(regraAlvo) || 10,
       vantagem: Boolean(regraVantagem),
       teto: regraVantagem && tetoNumerico !== null ? tetoNumerico : null,
       tema_placar: temaVisual,
@@ -109,45 +132,51 @@
       {#if mostraRegras}
       <div class="secao-bloco">
         {#if secao === 'tudo'}<span class="secao-rotulo">Pontuação e Vantagem</span>{/if}
-        <div class="pills-alvo">
-          {#each [12, 15, 21, 25] as preset}
-            <button
-              type="button"
-              class="btn-pill"
-              class:selecionado={regraAlvo === preset}
-              onclick={() => { regraAlvo = preset; }}
-              disabled={submetendo}
-            >
-              {preset} pts
-            </button>
-          {/each}
-          <button
-            type="button"
-            class="btn-pill"
-            class:selecionado={![12, 15, 21, 25].includes(regraAlvo)}
-            onclick={() => {
-              if ([12, 15, 21, 25].includes(regraAlvo)) regraAlvo = 18;
-            }}
-            disabled={submetendo}
-          >
-            Personalizado
-          </button>
-        </div>
-
-        {#if ![12, 15, 21, 25].includes(regraAlvo)}
-          <div class="campo campo-personalizado">
-            <label for="alvo-custom">Pontos para vencer</label>
-            <input
-              id="alvo-custom"
-              type="number"
-              min="1"
-              max="100"
-              bind:value={regraAlvo}
-              disabled={submetendo}
-              required
-            />
+        <div class="campo-alvo">
+          <label for="alvo-slider" class="rotulo-alvo">
+            Pontos para vencer <strong class="valor-alvo">{regraAlvo} pts</strong>
+          </label>
+          <input
+            id="alvo-slider"
+            class="slider-alvo"
+            type="range"
+            min={SLIDER_MIN}
+            max={SLIDER_MAX}
+            step="1"
+            value={cabeNoSlider(Number(regraAlvo)) ? regraAlvo : SLIDER_MAX}
+            oninput={e => { regraAlvo = Number(e.currentTarget.value); }}
+            disabled={submetendo || alvoPersonalizado}
+          />
+          <div class="linha-personalizado">
+            <label class="check-label">
+              <input
+                type="checkbox"
+                bind:checked={alvoPersonalizado}
+                onchange={alternarPersonalizado}
+                disabled={submetendo}
+              />
+              <span>Personalizado</span>
+            </label>
+            {#if alvoPersonalizado}
+              <input
+                id="alvo-custom"
+                class="input-personalizado"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                max="100"
+                step="1"
+                aria-label="Pontos para vencer (personalizado)"
+                bind:value={regraAlvo}
+                disabled={submetendo}
+                required
+              />
+            {/if}
           </div>
-        {/if}
+          {#if alvoInvalido}
+            <p class="aviso-erro">⚠️ Use um número inteiro de 1 a 100.</p>
+          {/if}
+        </div>
 
         <div class="campo-check">
           <label class="check-label">
@@ -279,6 +308,29 @@
       </div>
       {/if}
 
+      {#if podeLiberar}
+      <div class="secao-bloco zona-perigo">
+        <span class="secao-rotulo">Quadra</span>
+        {#if confirmandoLiberar}
+          <p class="aviso-liberar" role="alert">
+            Isso encerra a quadra para todos, agora. Placar e histórico somem e o código deixa de valer. Não dá para desfazer.
+          </p>
+          <div class="acoes-liberar">
+            <button type="button" class="btn-cancelar" onclick={() => { confirmandoLiberar = false; }} disabled={submetendo}>
+              Manter quadra
+            </button>
+            <button type="button" class="btn-liberar" onclick={onLiberar} disabled={submetendo}>
+              Liberar agora
+            </button>
+          </div>
+        {:else}
+          <button type="button" class="btn-liberar" onclick={() => { confirmandoLiberar = true; }} disabled={submetendo}>
+            Liberar quadra
+          </button>
+        {/if}
+      </div>
+      {/if}
+
       <div class="modal-acoes">
         <button
           type="button"
@@ -291,7 +343,7 @@
         <button
           type="submit"
           class="btn-salvar"
-          disabled={submetendo || tetoInvalido}
+          disabled={submetendo || tetoInvalido || alvoInvalido}
         >
           {submetendo ? 'Salvando...' : isReinicio ? 'Iniciar Rodada' : 'Salvar Alterações'}
         </button>
@@ -464,28 +516,84 @@
     width: 100%;
   }
 
-  .pills-alvo {
+  .campo-alvo {
     display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    gap: 10px;
   }
 
-  .btn-pill {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-circular);
-    color: var(--text-secondary);
-    padding: 6px 14px;
+  .rotulo-alvo {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    color: var(--text-primary);
     font-size: var(--texto-apoio);
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.15s ease;
   }
 
-  .btn-pill.selecionado {
-    background: var(--acento-info-forte);
-    color: #ffffff;
-    border-color: var(--acento-info);
+  .valor-alvo {
+    font-size: 1.25rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .slider-alvo {
+    width: 100%;
+    min-height: 44px;
+    margin: 0;
+    accent-color: var(--acento-info-forte);
+    touch-action: pan-y;
+  }
+
+  .slider-alvo:disabled {
+    opacity: 0.4;
+  }
+
+  .linha-personalizado {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 44px;
+  }
+
+  .input-personalizado {
+    width: 6em;
+    min-height: 44px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-primary);
+    padding: 8px 10px;
+    font-size: var(--texto-apoio);
+    box-sizing: border-box;
+  }
+
+  .aviso-liberar {
+    margin: 0;
+    color: var(--text-primary);
+    font-size: var(--texto-apoio);
+  }
+
+  .acoes-liberar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+
+  .btn-liberar {
+    align-self: flex-start;
+    min-height: 44px;
+    background: transparent;
+    border: 1px solid var(--estado-erro);
+    border-radius: var(--radius-md);
+    color: var(--estado-erro);
+    padding: 10px 18px;
+    font-size: var(--texto-apoio);
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .acoes-liberar .btn-liberar {
+    background: var(--estado-erro);
+    color: var(--fundo-superficie);
   }
 
   .campo-check {

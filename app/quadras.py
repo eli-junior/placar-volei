@@ -5,6 +5,8 @@ from dataclasses import asdict
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
+from fastapi import HTTPException
+
 from app.config import settings
 from app.db import get_db
 from app.eventos import (
@@ -96,6 +98,45 @@ def gerar_codigo_mestre_sync() -> str:
     return f"{secrets.randbelow(10000):04d}"
 
 
+def _apagar_quadras(cursor, ids: list[str]) -> None:
+    """Apaga as quadras e tudo o que pende delas (expiração e liberação)."""
+    placeholders = ",".join("?" for _ in ids)
+    cursor.execute(f"DELETE FROM eventos WHERE quadra_id IN ({placeholders})", ids)
+    # Recibos do relógio não têm FK para a sala: sem isto, cresciam
+    # para sempre no Mini PC.
+    cursor.execute(
+        f"DELETE FROM watch_recibos WHERE quadra_id IN ({placeholders})", ids
+    )
+    cursor.execute(
+        f"DELETE FROM participantes WHERE quadra_id IN ({placeholders})", ids
+    )
+    cursor.execute(f"DELETE FROM partidas WHERE quadra_id IN ({placeholders})", ids)
+    cursor.execute(f"DELETE FROM quadras WHERE id IN ({placeholders})", ids)
+
+
+def liberar_quadra_sync(db_path: str, quadra_id: str, session_id: str | None) -> None:
+    """Apaga a quadra na hora, a pedido do admin (CV6.DS1.US8)."""
+    with get_db(db_path) as conn:
+        conn.execute("BEGIN IMMEDIATE")
+        cursor = conn.cursor()
+        if not cursor.execute(
+            "SELECT 1 FROM quadras WHERE id = ?", (quadra_id,)
+        ).fetchone():
+            raise HTTPException(404, "Sala não encontrada ou expirada.")
+        autor = (
+            cursor.execute(
+                "SELECT papel FROM participantes WHERE quadra_id = ? AND session_hash = ?",
+                (quadra_id, hash_sessao(session_id)),
+            ).fetchone()
+            if session_id
+            else None
+        )
+        if not autor or autor["papel"] != "ADMIN":
+            raise HTTPException(403, "Apenas o administrador pode liberar a quadra.")
+        _apagar_quadras(cursor, [quadra_id])
+        conn.commit()
+
+
 def expirar_quadras_sync(db_path: str) -> list[str]:
     """Remove quadras sem atualização há mais de 1 hora (TTL configurável)."""
     limite = (
@@ -112,26 +153,7 @@ def expirar_quadras_sync(db_path: str) -> list[str]:
         cursor.execute("SELECT id FROM quadras WHERE atualizado_em < ?", (limite,))
         expiradas = [r["id"] for r in cursor.fetchall()]
         if expiradas:
-            placeholders = ",".join("?" for _ in expiradas)
-            cursor.execute(
-                f"DELETE FROM eventos WHERE quadra_id IN ({placeholders})", expiradas
-            )
-            # Recibos do relógio não têm FK para a sala: sem isto, cresciam
-            # para sempre no Mini PC.
-            cursor.execute(
-                f"DELETE FROM watch_recibos WHERE quadra_id IN ({placeholders})",
-                expiradas,
-            )
-            cursor.execute(
-                f"DELETE FROM participantes WHERE quadra_id IN ({placeholders})",
-                expiradas,
-            )
-            cursor.execute(
-                f"DELETE FROM partidas WHERE quadra_id IN ({placeholders})", expiradas
-            )
-            cursor.execute(
-                f"DELETE FROM quadras WHERE id IN ({placeholders})", expiradas
-            )
+            _apagar_quadras(cursor, expiradas)
             conn.commit()
         return expiradas
 
@@ -170,7 +192,7 @@ def criar_quadra_sync(
     equipe_b: str = "Equipe B",
     jogadores_a: list[str] | None = None,
     jogadores_b: list[str] | None = None,
-    alvo: int = 12,
+    alvo: int = 10,
     vantagem: bool = True,
     teto: int | None = None,
     **kwargs: Any,
@@ -284,7 +306,7 @@ async def criar_quadra(
     equipe_b: str = "Equipe B",
     jogadores_a: list[str] | None = None,
     jogadores_b: list[str] | None = None,
-    alvo: int = 12,
+    alvo: int = 10,
     vantagem: bool = True,
     teto: int | None = None,
     **kwargs: Any,

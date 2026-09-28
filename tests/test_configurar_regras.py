@@ -37,7 +37,7 @@ async def test_criar_quadra_com_regras_padrao():
         resp_p = await ac.get(f"/api/quadras/{quadra_id}/partida")
         assert resp_p.status_code == 200
         estado = resp_p.json()["estado_partida"]
-        assert estado["alvo"] == 12
+        assert estado["alvo"] == 10
         assert estado["vantagem"] is True
         assert estado["teto"] is None
 

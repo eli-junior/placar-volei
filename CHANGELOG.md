@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo**: CV6.DS1.US7 (pontuação padrão 10 com slider 6–20 e Personalizado; topo `12 pt`; selo Ⓐ/Ⓒ com dica) e CV6.DS1.US8 (admin libera a quadra na hora, com confirmação). Alvo 0.23.0.
+- **Branch**: `feature/cv6-ds1-us7-us8-pontuacao-e-liberar-quadra`
+- **Passo Ariad**: Passo 4 - Teste e Validação
+- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 5bfc5c62 | Data: 2026-09-28
+- **Handoff / Próximos Passos**: implementação e testes automáticos prontos (224 pytest, 96 unit web, svelte-check, build, 34 e2e). Aguardando validação do Navigator no Fold/celular; depois Passo 5 (revisão) e docs de roadmap das US7/US8.
+
 ## 0.22.3 - 2026-09-28
 
 Boundary: patch (manutenção visual da sala, fora de história)

@@ -36,6 +36,16 @@ export function nomeDoPapel(papel) {
   return PAPEIS[papel] || '';
 }
 
+const SELOS = {
+  ADMIN: { letra: 'A', dica: 'Administrador da quadra' },
+  CONTROLADOR: { letra: 'C', dica: 'Controlador do placar' },
+};
+
+/** Selo curto do topo (CV6.DS1.US7): letra circulada e a dica ao tocar. */
+export function seloDoPapel(papel) {
+  return SELOS[papel] || null;
+}
+
 /**
  * Tamanho dos números do placar, só neste aparelho (CV6.DS1.US3).
  */

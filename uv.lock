@@ -178,7 +178,7 @@ wheels = [
 
 [[package]]
 name = "placar-volei"
-version = "0.22.3"
+version = "0.23.0"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },

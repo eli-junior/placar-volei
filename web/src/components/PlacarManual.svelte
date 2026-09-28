@@ -21,7 +21,7 @@
   const pontosB = $derived(estadoPartida?.pontos_b ?? 0);
   const equipeA = $derived(estadoPartida?.equipe_a || 'Equipe A');
   const equipeB = $derived(estadoPartida?.equipe_b || 'Equipe B');
-  const alvo = $derived(estadoPartida?.alvo ?? 12);
+  const alvo = $derived(estadoPartida?.alvo ?? 10);
   const vantagem = $derived(estadoPartida?.vantagem ?? true);
   const teto = $derived(estadoPartida?.teto ?? null);
   const encerrada = $derived(estadoPartida?.encerrada ?? false);

@@ -70,10 +70,18 @@
     if (navegar) window.history.pushState({}, '', '/');
   }
 
-  function salaExpirada() {
+  // Sala que este aparelho pediu para liberar: o aviso do socket pode chegar antes da resposta.
+  let liberandoSalaId = null;
+
+  function salaExpirada(motivo) {
+    if (motivo === 'liberada' && liberandoSalaId && liberandoSalaId === quadraAtual?.id) motivo = 'liberada-por-mim';
     handleVoltarParaHome(false);
     window.history.replaceState({}, '', '/');
-    erro = 'Esta sala expirou ou foi encerrada pelo servidor. Crie um novo placar ou entre em outra sala.';
+    erro = motivo === 'liberada-por-mim'
+      ? 'Quadra liberada. Crie um novo placar quando quiser.'
+      : motivo === 'liberada'
+      ? 'A quadra foi liberada pelo administrador. Crie um novo placar ou entre em outra sala.'
+      : 'Esta sala expirou ou foi encerrada pelo servidor. Crie um novo placar ou entre em outra sala.';
   }
 
   // Volta do segundo plano ou da rede: reconecta já, sem esperar o backoff.
@@ -84,7 +92,7 @@
 
   function tratarMensagem(msg) {
     try {
-      if (msg.tipo === 'SALA_EXPIRADA') return salaExpirada();
+      if (msg.tipo === 'SALA_EXPIRADA') return salaExpirada(msg.payload?.motivo);
       if (msg.tipo === 'ESTADO_INICIAL') {
         if (!msg.payload.quadra || msg.payload.quadra.id !== quadraAtual?.id) return salaExpirada();
         // Estado inicial é a verdade da conexão nova: substitui o anterior
@@ -215,6 +223,27 @@
   const handleRevogarControlador = id => executar(`participantes/${id}/revogar`);
   const handlePassarControle = id => executar(`participantes/${id}/controle`);
 
+  // Liberar a quadra (CV6.DS1.US8): fora da fila de comandos, porque apaga a sala
+  // e não devolve snapshot. Quem liberou sai já; os outros saem pelo aviso do socket.
+  async function handleLiberarQuadra() {
+    const sala = quadraAtual;
+    if (!sala) return;
+    erro = null;
+    liberandoSalaId = sala.id;
+    try {
+      const res = await fetch(`/api/quadras/${sala.id}/liberar`, { method: 'POST' });
+      if (res.ok || res.status === 404) {
+        if (quadraAtual?.id === sala.id) salaExpirada('liberada-por-mim');
+        return;
+      }
+      throw new Error(mensagemDeErro(await lerJson(res), 'Não foi possível liberar a quadra.'));
+    } catch (e) {
+      if (quadraAtual?.id === sala.id) erro = e.message || 'Falha de conexão. Tente liberar de novo.';
+    } finally {
+      liberandoSalaId = null;
+    }
+  }
+
   async function carregarRota() {
     handleVoltarParaHome(false);
     const match = window.location.pathname.match(/^\/quadra\/([a-zA-Z0-9_-]+)$/);
@@ -267,6 +296,7 @@
       onRevogarControlador={handleRevogarControlador}
       onAutorizarAdmin={handleAutorizarAdmin}
       onPassarControle={handlePassarControle}
+      onLiberarQuadra={handleLiberarQuadra}
       {operando}
       {pendentes}
       {erro}

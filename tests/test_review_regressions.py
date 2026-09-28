@@ -305,7 +305,9 @@ async def test_transferencias_concorrentes_deixam_um_unico_operador():
 
 
 def test_pontos_concorrentes_nao_ultrapassam_vitoria():
-    q = criar_quadra_sync(settings.db_path, apelido="Admin", session_id="privado")
+    q = criar_quadra_sync(
+        settings.db_path, apelido="Admin", session_id="privado", alvo=12
+    )
 
     def marcar(_):
         try:
