@@ -1,9 +1,9 @@
 ---
 code: CV6.DS2.US4
 level: User Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
-updated: 2026-09-27
+status: Active
+status_reason: investigação inicial concluída; plano aguardando Checkpoint 1
+updated: 2026-09-28
 ---
 
 # CV6.DS2.US4 — Apagar a tela e retomar pelo pulso
@@ -41,3 +41,5 @@ Investigação obrigatória antes de implementar: ciclo de vida, restrições de
 
 Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, desenho final e versão serão definidos no checkpoint de planejamento da implementação.
 
+
+Plano proposto: [plan.md](plan.md). Nenhuma alteração de implementação autorizada pelo checkpoint desta história ainda.

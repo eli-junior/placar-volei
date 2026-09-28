@@ -4,6 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### feature/cv6-ds2-us4-repouso-e-retomada
+- **História / Escopo**: CV6.DS2.US4 — apagar a tela e retomar pelo pulso, preservando sessão e conexão.
+- **Branch**: `feature/cv6-ds2-us4-repouso-e-retomada`, criada da master após merge 50e05fa da US3.
+- **Passo Ariad**: Passo 2 - Planejamento; aguarda Checkpoint 1. Nenhuma implementação da US4 iniciada.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us3-us4-20260928 | Data: 2026-09-28
+- **Handoff / Próximos Passos**: Plano em `cv6-ds2-us4-repouso-e-retomada/plan.md`. Aparelho SM-L330, Android 16/API 36, timeout de tela 60 s. Hoje RESUMED cancela socket/envio e keepScreenOn bloqueia repouso. Propor sessão com serviço e atividade em andamento, retirar trava da tela e verificar gesto/AOD no aparelho. Continuidade do socket e reconexão são critérios distintos. Sem promessa de conexão durante Doze; investigar antes de alterar aceite. Alvo Wear 0.25.0, backend/web sem mudança prevista.
+
 ## 0.24.1 - 2026-09-28
 
 Boundary: patch do Wear OS (CV6.DS2.US3); backend e web permanecem em 0.24.0.
