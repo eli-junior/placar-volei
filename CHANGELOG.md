@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo**: manutenção do topo — ⚙ e ⇄ entram na fila de prioridade (saem por último para o ⋯), o código da sala nunca é cortado, e as regras ganham o nível médio `10 pontos Ⓥ`. Alvo 0.23.4.
+- **Branch**: `fix/topo-prioridade-ajustes`
+- **Passo Ariad**: Passo 4 - Teste e Validação
+- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 2c64122a | Data: 2026-09-28
+- **Handoff / Próximos Passos**: aguardando validação do Navigator no Fold aberto e fechado.
+
 ## 0.23.3 - 2026-09-28
 
 Boundary: patch (manutenção do fim de partida e do compartilhamento, fora de história)

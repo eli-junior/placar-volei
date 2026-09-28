@@ -211,6 +211,11 @@
   // Em ordem de prioridade (Navigator): as primeiras sobem para o topo
   // quando há espaço; o ⋯ fica só com o que não coube.
   const acoesSecundarias = $derived([
+    // Ajustes e inversão vêm primeiro: saem do topo por último (Navigator).
+    ...(podeControlar
+      ? [{ rotulo: 'Duplas e regras', dica: 'Duplas e regras da partida', icone: 'engrenagem', acao: () => abrirConfig() }]
+      : []),
+    { rotulo: 'Inverter lados', dica: 'Inverter lados das equipes', icone: 'inverter', acao: alternarLados, pressionado: ladosInvertidos, fechaMenu: false },
     { rotulo: temaSol ? 'Modo escuro' : 'Modo sol', icone: temaSol ? 'lua' : 'sol', acao: alternarTema, pressionado: temaSol, fechaMenu: false },
     ...(podeControlar
       ? [
@@ -230,15 +235,18 @@
   const PASSO_BOTAO = 52; // 44px de alvo + 8px de espaço
   const atalhosNoTopo = $derived.by(() => {
     if (!larguraBarra) return 0;
-    const fixos = 3 + (podeControlar ? 1 + (selo ? 1 : 0) : 0) + (!podeControlar && telaCheiaDisponivel ? 1 : 0);
+    // Voltar, ⋯, selo e tela cheia nunca saem; o status entra como o passo extra abaixo.
+    const fixos = 2 + (podeControlar && selo ? 1 : 0) + (!podeControlar && telaCheiaDisponivel ? 1 : 0);
     // A faixa das regras divide a linha só em tela larga; estreita, ela desce.
     // Mínimo para "10 pts (V)"; o texto longo só aparece com a sobra.
     const faixa = podeControlar && viewportW >= 600 ? 120 : 0;
-    const sobra = larguraBarra - 12 - (larguraCodigo + 8) - fixos * PASSO_BOTAO - PASSO_BOTAO - faixa;
+    // O chip precisa ao menos do código inteiro (o nome encolhe com reticências).
+    const sobra = larguraBarra - 12 - (larguraCodigo + 34) - fixos * PASSO_BOTAO - PASSO_BOTAO - faixa;
     return Math.max(0, Math.min(acoesSecundarias.length, Math.floor(sobra / PASSO_BOTAO)));
   });
   let larguraFaixa = $state(0);
-  const regrasLongas = $derived(larguraFaixa >= 240);
+  // "10 pts com vantagem" → "10 pontos Ⓥ" → "10 pts Ⓥ", conforme o espaço.
+  const nivelRegras = $derived(larguraFaixa >= 240 ? 'longo' : larguraFaixa >= 150 ? 'medio' : 'curto');
   const acoesNoTopo = $derived(acoesSecundarias.slice(0, atalhosNoTopo));
   const acoesDoMenu = $derived(acoesSecundarias.slice(atalhosNoTopo));
 
@@ -496,8 +504,8 @@
         <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
       </button>
       <!-- O código abre o compartilhamento (link, QR e cópia). -->
-      <button type="button" class="chip-codigo" bind:clientWidth={larguraCodigo} onclick={() => { modalCompartilharAberto = true; }} aria-haspopup="dialog" title="Compartilhar a sala" aria-label="Compartilhar a sala {quadra.id}">
-        <strong>#{quadra.id}</strong>
+      <button type="button" class="chip-codigo" onclick={() => { modalCompartilharAberto = true; }} aria-haspopup="dialog" title="Compartilhar a sala" aria-label="Compartilhar a sala {quadra.id}">
+        <strong bind:clientWidth={larguraCodigo}>#{quadra.id}</strong>
         {#if nomeProprio}<span>{nomeProprio}</span>{/if}
       </button>
       {#if podeControlar}
@@ -506,7 +514,7 @@
                cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
           <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
           <!-- Na tela, as regras da partida valem mais que a posse (Navigator, CV6.DS1.US1). -->
-          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem: {resumirRegras(estadoPartida)}"><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida, regrasLongas)}</span>{#if !regrasLongas}<span class="selo-vantagem" class:acesa={estadoPartida?.vantagem ?? true} aria-hidden="true">V</span>{/if}</button>
+          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem: {resumirRegras(estadoPartida)}"><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida, nivelRegras)}</span>{#if nivelRegras !== 'longo'}<span class="selo-vantagem" class:acesa={estadoPartida?.vantagem ?? true} aria-hidden="true">V</span>{/if}</button>
           {#if posse.podeAssumir}
             <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
           {/if}
@@ -519,19 +527,7 @@
             {#if dicaSeloAberta}<span class="dica-selo" role="status">{selo.dica}</span>{/if}
           </span>
         {/if}
-        <button type="button" class="btn-topo" onclick={() => abrirConfig()} aria-label="Duplas e regras da partida" title="Duplas e regras">
-          <Icone nome="engrenagem" tamanho="1.15em" />
-        </button>
-      {/if}
-      <button
-        type="button"
-        class="btn-topo"
-        class:ativo={ladosInvertidos}
-        onclick={alternarLados}
-        aria-pressed={ladosInvertidos}
-        aria-label="Inverter lados das equipes"
-        title="Inverter lados nesta tela"
-      ><span aria-hidden="true">⇄</span></button>
+{/if}
       {#if !podeControlar && telaCheiaDisponivel}
         <button
           type="button"
@@ -552,8 +548,8 @@
           class:ativo={item.pressionado}
           onclick={item.acao}
           aria-pressed={item.pressionado === undefined ? undefined : item.pressionado}
-          aria-label={item.rotulo}
-          title={item.rotulo}
+          aria-label={item.dica ?? item.rotulo}
+          title={item.dica ?? item.rotulo}
         ><Icone nome={item.icone} tamanho="1.15em" /></button>
       {/each}
       <button
