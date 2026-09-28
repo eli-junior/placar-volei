@@ -709,9 +709,9 @@
         modalConfigAberto = true;
         isReinicioConfig = true;
       }}
-      onCompartilhar={() => {
+      onReinicioRapido={() => {
         modalCelebracaoAberto = false;
-        modalCompartilharAberto = true;
+        onIniciarNovaPartida();
       }}
       onFechar={() => { modalCelebracaoAberto = false; }}
     />

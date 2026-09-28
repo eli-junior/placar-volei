@@ -85,7 +85,7 @@ for (const [nome, viewport] of [['tablet', { width: 1280, height: 800 }], ['fold
       await criarSala(p, { config: { alvo: 100, vantagem: false, tema_placar: 'classico' } });
       const a = p.getByLabel('Marcar ponto para Equipe A');
       for (let i = 0; i < 100; i++) await a.click();
-      await p.getByText('Iniciar Próxima Partida').last().waitFor();
+      await p.getByText('Reinício Rápido').last().waitFor();
       await p.keyboard.press('Escape');
       await p.waitForTimeout(600);
       if (process.env.CAPTURAS) await p.screenshot({ path: `${process.env.CAPTURAS}/classico-${nome.replace(' ', '-')}-${t}.png` });

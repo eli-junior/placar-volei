@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo**: manutenção — fim de partida com "Reinício Rápido" (zera o placar e mantém duplas e regras) e "Ajustar e Iniciar" (abre o modal atual); sai o "Compartilhar Resultado". Alvo 0.23.3.
+- **Branch**: `feature/reinicio-rapido`
+- **Passo Ariad**: Passo 4 - Teste e Validação
+- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 2c64122a | Data: 2026-09-28
+- **Handoff / Próximos Passos**: aguardando validação do Navigator.
+
 ## 0.23.2 - 2026-09-28
 
 Boundary: patch (manutenção visual do topo da sala, fora de história)

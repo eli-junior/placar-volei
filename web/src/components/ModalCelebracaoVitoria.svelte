@@ -6,7 +6,7 @@
     estadoPartida,
     podeControlar = false,
     onNovaPartida = () => {},
-    onCompartilhar = () => {},
+    onReinicioRapido = () => {},
     onFechar = () => {},
     movimentoReduzido = false,
   } = $props();
@@ -52,24 +52,24 @@
 
     <div class="acoes-celebracao">
       {#if podeControlar}
+        <!-- Reinício rápido: zera o placar e mantém duplas e regras. -->
         <button
           type="button"
           class="btn-proxima-rodada"
-          onclick={onNovaPartida}
+          onclick={onReinicioRapido}
         >
           <Icone nome="bola" tamanho="1.1em" />
-          <span>Iniciar Próxima Partida</span>
+          <span>Reinício Rápido</span>
+        </button>
+        <button
+          type="button"
+          class="btn-ajustar-iniciar"
+          onclick={onNovaPartida}
+        >
+          <Icone nome="engrenagem" tamanho="1.1em" />
+          <span>Ajustar e Iniciar</span>
         </button>
       {/if}
-
-      <button
-        type="button"
-        class="btn-compartilhar-resultado"
-        onclick={onCompartilhar}
-      >
-        <Icone nome="compartilhar" tamanho="1.1em" />
-        <span>Compartilhar Resultado</span>
-      </button>
 
       <button
         type="button"
@@ -200,7 +200,7 @@
     background: var(--acento-info-ativo);
   }
 
-  .btn-compartilhar-resultado {
+  .btn-ajustar-iniciar {
     background: transparent;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
@@ -216,7 +216,7 @@
     transition: all 0.15s ease;
   }
 
-  .btn-compartilhar-resultado:hover {
+  .btn-ajustar-iniciar:hover {
     background: rgba(var(--veu), 0.08);
   }
 
