@@ -243,10 +243,13 @@
     if (!larguraBarra) return 0;
     const fixos = 3 + (podeControlar ? 1 + (selo ? 1 : 0) : 0) + (!podeControlar && telaCheiaDisponivel ? 1 : 0);
     // A faixa das regras divide a linha só em tela larga; estreita, ela desce.
-    const faixa = podeControlar && viewportW >= 600 ? 188 : 0;
-    const sobra = larguraBarra - 16 - (larguraCodigo + 8) - fixos * PASSO_BOTAO - PASSO_BOTAO - faixa;
+    // Mínimo para "10 pts (V)"; o texto longo só aparece com a sobra.
+    const faixa = podeControlar && viewportW >= 600 ? 120 : 0;
+    const sobra = larguraBarra - 12 - (larguraCodigo + 8) - fixos * PASSO_BOTAO - PASSO_BOTAO - faixa;
     return Math.max(0, Math.min(acoesSecundarias.length, Math.floor(sobra / PASSO_BOTAO)));
   });
+  let larguraFaixa = $state(0);
+  const regrasLongas = $derived(larguraFaixa >= 240);
   const acoesNoTopo = $derived(acoesSecundarias.slice(0, atalhosNoTopo));
   const acoesDoMenu = $derived(acoesSecundarias.slice(atalhosNoTopo));
 
@@ -508,12 +511,12 @@
         {#if copiado || nomeProprio}<span>{copiado === 'ok' ? 'Copiado!' : copiado === 'falhou' ? `Código ${quadra.id}` : nomeProprio}</span>{/if}
       </button>
       {#if podeControlar}
-        <div class="faixa-posse" class:minha={temControle}>
+        <div class="faixa-posse" bind:clientWidth={larguraFaixa} class:minha={temControle}>
           <!-- Anúncio da posse fora do {#key}: a região viva não pode nascer a
                cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
           <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
           <!-- Na tela, as regras da partida valem mais que a posse (Navigator, CV6.DS1.US1). -->
-          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem: {resumirRegras(estadoPartida)}"><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida)}</span></button>
+          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem: {resumirRegras(estadoPartida)}"><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida, regrasLongas)}</span></button>
           {#if posse.podeAssumir}
             <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
           {/if}
