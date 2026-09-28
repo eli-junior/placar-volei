@@ -29,7 +29,7 @@ Como jogador, quero que a tela apague quando não a consulto e volte ao levantar
 
 No relógio real, repetir ciclos de abaixar/levantar o pulso; enquanto apagado, marcar no telefone e verificar conexão com evidência de transporte, não apenas pela UI. Repetir com queda de rede de 30 segundos e treino ativo. Aprova se satisfaz continuidade e retomada; falha se fecha o app, perde estado ou exige ação manual.
 
-Aplicar também a [matriz comum](../../index.md#validação-comum). Este roteiro é para a futura implementação; não representa testes já executados.
+Aplicar também a [matriz comum](../../index.md#validação-comum). Roteiro e evidência do Checkpoint 2 em [test-guide.md](test-guide.md).
 
 ## Out of Scope
 

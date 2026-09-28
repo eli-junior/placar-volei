@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <!-- Batimento no placar (CV3.DS2.US2); o Wear OS 6 usa a permissão granular. -->
     <uses-permission android:name="android.permission.BODY_SENSORS" android:maxSdkVersion="35" />
     <uses-permission android:name="android.permission.health.READ_HEART_RATE" />
@@ -7,7 +10,7 @@
         <package android:name="com.google.android.wearable.healthservices" />
     </queries>
     <uses-feature android:name="android.hardware.type.watch" />
-    <application android:label="Placar Vôlei" android:icon="@drawable/ic_placar" android:dataExtractionRules="@xml/backup_rules" android:theme="@android:style/Theme.DeviceDefault" android:allowBackup="false" android:fullBackupContent="false" android:usesCleartextTraffic="false" android:supportsRtl="true">
+    <application android:name=".WatchApplication" android:label="Placar Vôlei" android:icon="@drawable/ic_placar" android:dataExtractionRules="@xml/backup_rules" android:theme="@android:style/Theme.DeviceDefault" android:allowBackup="false" android:fullBackupContent="false" android:usesCleartextTraffic="false" android:supportsRtl="true">
         <meta-data android:name="com.google.android.wearable.standalone" android:value="true" />
         <activity android:name=".MainActivity" android:exported="true" android:taskAffinity="">
             <intent-filter>
@@ -15,5 +18,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service android:name=".WatchSessionService" android:exported="false" android:foregroundServiceType="specialUse">
+            <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Manter o placar de vôlei conectado e disponível para retomada durante uma partida iniciada pelo usuário." />
+        </service>
     </application>
 </manifest>

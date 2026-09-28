@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -92,16 +91,6 @@ fun ScoreScreen(model: WatchModel) {
         delay(200)
         highlighted = null
     }
-    // Tela acesa só no placar (CV3.DS2.US1): no jogo, o toque tem de estar
-    // pronto sem acordar o relógio. Vínculo e escolha seguem o tempo normal.
-    // Liberada depois de 10 min sem toque nem mudança no placar (CV5.DS2.TS3):
-    // placar esquecido aberto não segura a tela até a bateria acabar.
-    LaunchedEffect(view, pontosA, pontosB, pending) {
-        view.keepScreenOn = true
-        delay(SCREEN_IDLE_MS)
-        view.keepScreenOn = false
-    }
-    DisposableEffect(view) { onDispose { view.keepScreenOn = false } }
     val heart = rememberHeartRate()
     fun tap(equipe: String) {
         model.tap(equipe) { ok ->
@@ -180,9 +169,6 @@ fun ScoreScreen(model: WatchModel) {
         model.discardNotice?.let { DiscardNotice(it, model::dismissDiscardNotice) }
     }
 }
-
-/** Tela do placar acesa sem atividade por no máximo 10 min. */
-internal const val SCREEN_IDLE_MS = 10 * 60 * 1000L
 
 enum class Signal { CONECTADO, PROCESSANDO, DESCONECTADO }
 
