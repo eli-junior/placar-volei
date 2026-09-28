@@ -129,9 +129,9 @@ test('resumo das regras mostra alvo, vantagem e teto', async () => {
 
 test('resumo curto do topo: alvo, vantagem e teto', async () => {
   const { resumirRegrasCurto } = await import('../src/lib/controle.js');
-  assert.equal(resumirRegrasCurto({ alvo: 12, vantagem: true, teto: 15 }), '12 pts (V) · até 15');
+  assert.equal(resumirRegrasCurto({ alvo: 12, vantagem: true, teto: 15 }), '12 pts · até 15');
   assert.equal(resumirRegrasCurto({ alvo: 12, vantagem: true, teto: 15 }, true), '12 pts com vantagem · até 15');
   assert.equal(resumirRegrasCurto({ alvo: 15, vantagem: false }, true), '15 pts');
   assert.equal(resumirRegrasCurto({ alvo: 15, vantagem: false }), '15 pts');
-  assert.equal(resumirRegrasCurto(null), '10 pts (V)');
+  assert.equal(resumirRegrasCurto(null), '10 pts');
 });

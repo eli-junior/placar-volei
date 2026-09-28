@@ -516,7 +516,7 @@
                cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
           <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
           <!-- Na tela, as regras da partida valem mais que a posse (Navigator, CV6.DS1.US1). -->
-          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem: {resumirRegras(estadoPartida)}"><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida, regrasLongas)}</span></button>
+          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem: {resumirRegras(estadoPartida)}"><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida, regrasLongas)}</span>{#if !regrasLongas}<span class="selo-vantagem" class:acesa={estadoPartida?.vantagem ?? true} aria-hidden="true">V</span>{/if}</button>
           {#if posse.podeAssumir}
             <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
           {/if}
@@ -904,6 +904,10 @@
   .regras-topo { min-height: 36px; padding: 0 4px; border: 0; border-radius: 8px; background: none; cursor: pointer; font-family: inherit; text-align: left; text-decoration: underline dotted color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 4px; }
   .regras-topo:hover { background: rgba(var(--veu), .06); }
   .regras-topo { overflow: hidden; min-width: 0; color: var(--text-primary); font-weight: 700; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
+  .regras-topo { display: inline-flex; align-items: center; gap: 6px; }
+  /* Ⓥ: acesa com vantagem, apagada sem. */
+  .selo-vantagem { display: inline-grid; place-items: center; flex: 0 0 auto; width: 1.45em; height: 1.45em; border: 2px solid currentColor; border-radius: 50%; font-size: .75rem; font-weight: 900; opacity: .3; }
+  .selo-vantagem.acesa { opacity: 1; color: var(--estado-sucesso, #22c55e); box-shadow: 0 0 8px color-mix(in srgb, currentColor 55%, transparent); }
   .selo-papel-ancora { position: relative; flex: 0 0 auto; }
   .selo-papel { color: var(--text-secondary); }
   .letra-circulada {
