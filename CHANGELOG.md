@@ -4,6 +4,26 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.25.0 - 2026-09-28
+
+Boundary: minor do Wear OS (CV6.DS2.US4); backend e web permanecem em 0.24.0.
+
+Authors: Eli (Navigator); Codex (Driver) | Sessão: cv6-ds2-us3-us4-20260928
+
+Git source: branch `feature/cv6-ds2-us4-repouso-e-retomada`, integrada em `master` com `--no-ff`.
+
+### Changed
+
+- Tela do placar respeita o repouso do sistema. Serviço foreground e Ongoing Activity mantêm a sessão e oferecem ações visíveis para voltar ao placar ou encerrar acompanhamento.
+- Sessão do relógio sobrevive à pausa da Activity sem abrir proprietários concorrentes do WebSocket. A permissão de notificações é solicitada ao vincular.
+- APK Wear 0.25.0 (versionCode 13); nenhuma mudança de protocolo, backend ou web.
+
+### Verification
+
+- 59 testes passaram; builds debug/release e lint concluídos.
+- No Galaxy Watch SM-L330/Android 16, serviço foreground e WebSocket permaneceram ativos por 60 s em Dozing via ADB; Navigator aceitou essa evidência limitada.
+- Gesto físico, atualização recebida durante repouso, queda de rede, treino ativo e bateria não foram observados. Animações e leitura de frequência cardíaca não são pausadas no repouso; limitações e follow-up constam no roteiro/revisão da US4.
+
 ## 0.24.1 - 2026-09-28
 
 Boundary: patch do Wear OS (CV6.DS2.US3); backend e web permanecem em 0.24.0.

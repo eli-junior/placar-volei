@@ -2,6 +2,7 @@ package br.com.placarvolei.watch
 
 import android.app.Application
 import android.util.Base64
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -13,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.MediaType.Companion.toMediaType
@@ -37,7 +39,8 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         .pingInterval(20, TimeUnit.SECONDS)
         .followRedirects(false).followSslRedirects(false).build()
     private var socket: WebSocket? = null
-    private var visible = false
+    private var sessionActive = false
+    private var sessionJob: Job? = null
     // Endereço compilado no APK (CV3.DS1.US3): o relógio não edita o servidor.
     private val address = BuildConfig.SERVER_URL.trim().trimEnd('/')
     var code by mutableStateOf(store.code())
@@ -242,6 +245,8 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
             message += " ${it.substringBefore(" ·").replaceFirstChar(Char::uppercase)}."
             sync.dismissNotice()
         }
+        stopSession()
+        WatchSessionService.stop(getApplication())
     }
 
     private suspend fun request(
@@ -425,6 +430,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 connecting = false
                 notice = null
                 linked = true
+                runCatching { WatchSessionService.start(getApplication()) }
                 invalid = false
                 code = ""
                 store.saveCode("")
@@ -441,17 +447,14 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
             status == 200 -> { connecting = false; linked = false; message = "Aguardando autorização no telefone." }
             status == 401 || status == 410 -> {
                 connecting = false
-                linked = false
-                invalid = true
-                code = ""
-                message = data.optString("detail", "Gere um novo código.")
+                unlink(data)
             }
             else -> error(data.optString("detail", "Servidor indisponível. Tente novamente."))
         }
     }
 
     private fun connectPresence(court: String) {
-        if (!visible || socket != null) return
+        if (!sessionActive || socket != null) return
         // Sem token não há socket: nunca mandar "Bearer null".
         val token = store.token() ?: return
         val url = address.replaceFirst("https://", "wss://").replaceFirst("http://", "ws://")
@@ -460,6 +463,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         connection = Connection.RECONECTANDO
         socket = http.newWebSocket(request, object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
+                Log.i("WatchSession", "WebSocket conectado")
                 viewModelScope.launch {
                     if (socket === webSocket) { connection = Connection.CONECTADO; reconnectDelay = 2_000L }
                 }
@@ -474,12 +478,14 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 }.getOrNull() ?: return
                 viewModelScope.launch {
                     if (socket !== webSocket) return@launch
+                    Log.i("WatchSession", "snapshot recebido pelo WebSocket")
                     // Lance já confirmado: sai da fila junto com o snapshot, sem contar duas vezes.
                     withContext(disk) { sync.applySnapshot(payload, payload.optString("comando_id").ifBlank { null }) }
                     changed(false)
                 }
             }
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
+                Log.i("WatchSession", "WebSocket fechado: $code")
                 viewModelScope.launch {
                     if (socket === webSocket) {
                         socket = null
@@ -488,6 +494,8 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                             linked = false
                             invalid = true
                             message = "Vínculo indisponível. Use o telefone."
+                            stopSession()
+                            WatchSessionService.stop(getApplication())
                         }
                     }
                 }
@@ -496,6 +504,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
                 webSocket.close(code, null)
             }
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
+                Log.i("WatchSession", "WebSocket indisponível; reconexão agendada")
                 viewModelScope.launch {
                     if (socket === webSocket) {
                         socket = null
@@ -508,9 +517,19 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         })
     }
 
-    suspend fun observeWhileVisible() = coroutineScope {
-        visible = true
-        // O envio só roda com o app visível; em segundo plano fica para a US4.
+    /** Uma única sessão sobrevive à Activity enquanto o serviço está em andamento. */
+    fun startSession() {
+        if (sessionJob?.isActive == true) return
+        sessionActive = true
+        sessionJob = viewModelScope.launch { observeSession() }
+    }
+
+    fun stopSession() {
+        sessionJob?.cancel()
+        sessionJob = null
+    }
+
+    private suspend fun observeSession() = coroutineScope {
         val sender = launch { sendLoop() }
         try {
         while (true) {
@@ -551,7 +570,7 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
         } finally {
             sender.cancel()
             connection = Connection.RECONECTANDO
-            visible = false
+            sessionActive = false
             socket?.close(1000, null)
             socket = null
         }

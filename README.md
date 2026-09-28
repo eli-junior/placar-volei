@@ -6,11 +6,11 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-Wear OS `0.24.1` entregue: bola animada marca a equipe do último ponto, com retorno visual, tátil e sonoro após gravar o toque. Equipe A azul e B laranja; nomes dos jogadores em linhas separadas. Validado no Galaxy Watch pelo Navigator (`CV6.DS2.US3`). Backend e web seguem em `0.24.0`, compatíveis com este APK.
+Wear OS `0.25.0` entregue: inclui retorno perceptível ao pontuar e acompanhamento em segundo plano para repousar a tela e retomar pelo pulso (`CV6.DS2.US3–US4`). No Galaxy Watch SM-L330/Android 16, serviço e WebSocket permaneceram ativos durante 60 s em repouso via ADB; gesto físico, atualização remota durante repouso, reconexão, treino e bateria não foram validados. Backend e web seguem em `0.24.0`, compatíveis com este APK.
 
-O relógio também tem aro de conexão, fila offline durável, desfazer e descarte de conflitos com aviso. O histórico das entregas está no [changelog](CHANGELOG.md).
+O relógio também tem bola animada para o último ponto, Equipe A azul e B laranja, aro de conexão, fila offline durável, desfazer e descarte de conflitos com aviso. O histórico das entregas está no [changelog](CHANGELOG.md).
 
-Próximo trabalho: `CV6.DS2.US4` — apagar a tela e retomar pelo pulso, investigando continuidade da conexão durante o repouso.
+Limitações conhecidas da retomada pelo pulso e evidências estão registradas no [roteiro da US4](docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us4-repouso-e-retomada/test-guide.md).
 
 ## Como funciona
 

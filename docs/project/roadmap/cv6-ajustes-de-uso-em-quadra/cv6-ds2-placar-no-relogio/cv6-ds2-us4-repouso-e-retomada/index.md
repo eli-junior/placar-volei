@@ -1,9 +1,9 @@
 ---
 code: CV6.DS2.US4
 level: User Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
-updated: 2026-09-27
+status: Done
+status_reason: implementação e validação disponível aceitas pelo Navigator; Wear 0.25.0. Cenários físicos adicionais e pausa de animação/sensor permanecem documentados como limitações/follow-up.
+updated: 2026-09-28
 ---
 
 # CV6.DS2.US4 — Apagar a tela e retomar pelo pulso
@@ -29,7 +29,7 @@ Como jogador, quero que a tela apague quando não a consulto e volte ao levantar
 
 No relógio real, repetir ciclos de abaixar/levantar o pulso; enquanto apagado, marcar no telefone e verificar conexão com evidência de transporte, não apenas pela UI. Repetir com queda de rede de 30 segundos e treino ativo. Aprova se satisfaz continuidade e retomada; falha se fecha o app, perde estado ou exige ação manual.
 
-Aplicar também a [matriz comum](../../index.md#validação-comum). Este roteiro é para a futura implementação; não representa testes já executados.
+Aplicar também a [matriz comum](../../index.md#validação-comum). Roteiro e evidência do Checkpoint 2 em [test-guide.md](test-guide.md).
 
 ## Out of Scope
 
@@ -39,5 +39,4 @@ Mudanças não descritas nesta HU, novas regras de jogo e alterações de permis
 
 Investigação obrigatória antes de implementar: ciclo de vida, restrições de execução em segundo plano, gesto, configurações do sistema e custo de bateria. Revisita CV3.DS2.US1 (tela sempre acesa). Conexão mantida e reconexão automática são resultados distintos; se o sistema não permitir o pedido integral, apresentar limites e alternativa ao Navigator antes de mudar o aceite.
 
-Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, desenho final e versão serão definidos no checkpoint de planejamento da implementação.
-
+Origem: rodada de feedback do Navigator em 27/09/2026. Plano aceito e implementação entregue no Wear 0.25.0; backend/web não mudam. O Navigator aceitou evidência inicial via ADB (60 s em Dozing, serviço foreground e WebSocket sem fechamento). Gesto físico, mensagem recebida durante repouso, queda de rede, treino ativo e bateria não foram observados. A pausa de animação e frequência cardíaca prevista no plano também ficou pendente; ver [revisão](review.md) e [roteiro de validação](test-guide.md).
