@@ -4,7 +4,7 @@ import { test, expect, criarSala, entrarNaSala } from './apoio.js';
 test('topo mostra o alvo curto e o selo Ⓐ com dica', async ({ abrir }) => {
   const admin = await abrir({ viewport: { width: 1280, height: 800 } });
   await criarSala(admin);
-  await expect(admin.locator('.regras-topo [aria-hidden="true"]')).toHaveText('10 pt');
+  await expect(admin.locator('.regras-topo [aria-hidden="true"]')).toHaveText('10 pts · +2');
   const selo = admin.getByRole('button', { name: 'Administrador da quadra' });
   await expect(selo).toHaveText('A');
   await selo.click();
@@ -21,7 +21,7 @@ test('personalizado desliga o slider e vale o número digitado', async ({ abrir 
   await expect(dialogo.locator('#alvo-slider')).toBeDisabled();
   await dialogo.locator('#alvo-custom').fill('30');
   await dialogo.getByRole('button', { name: 'Salvar Alterações' }).click();
-  await expect(admin.locator('.regras-topo')).toContainText('30 pt');
+  await expect(admin.locator('.regras-topo')).toContainText('30 pts · +2');
 });
 
 test('só o admin vê Liberar quadra; confirmar derruba todos', async ({ abrir }) => {

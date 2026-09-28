@@ -19,7 +19,7 @@ for (const tema of ['esportivo', 'classico']) {
     await admin.getByTitle('Ajustar pontuação e vantagem').click();
     await dialogo.locator('#alvo-slider').fill('15');
     await dialogo.getByRole('button', { name: 'Salvar Alterações' }).click();
-    await expect(admin.locator('.regras-topo')).toContainText('15 pt');
+    await expect(admin.locator('.regras-topo')).toContainText('15 pts · +2');
 
     // Equipe A: só os jogadores da A.
     await admin.getByLabel(/Editar jogadores da Equipe A/).click();
@@ -30,7 +30,7 @@ for (const tema of ['esportivo', 'classico']) {
     await dialogo.getByRole('button', { name: 'Salvar Alterações' }).click();
     await expect(admin.getByLabel(/Editar jogadores da Ana/)).toBeVisible();
     await expect(admin.getByLabel(/Editar jogadores da Equipe B/)).toBeVisible();
-    await expect(admin.locator('.regras-topo')).toContainText('15 pt');
+    await expect(admin.locator('.regras-topo')).toContainText('15 pts · +2');
 
     // Espectador vê o resultado e não tem atalho.
     await expect(esp.getByText(/Ana/).first()).toBeVisible();
