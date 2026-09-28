@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -37,6 +38,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.geometry.Offset
@@ -84,15 +87,11 @@ fun ScoreScreen(model: WatchModel) {
     val view = LocalView.current
     var feedback by remember { mutableStateOf<PointFeedback?>(null) }
     var highlighted by remember { mutableStateOf<String?>(null) }
-    var badge by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(feedback) {
         val event = feedback ?: return@LaunchedEffect
         highlighted = event.team
-        badge = event.team
         delay(200)
         highlighted = null
-        delay(600)
-        badge = null
     }
     // Tela acesa só no placar (CV3.DS2.US1): no jogo, o toque tem de estar
     // pronto sem acordar o relógio. Vínculo e escolha seguem o tempo normal.
@@ -131,7 +130,6 @@ fun ScoreScreen(model: WatchModel) {
         model.undo { ok -> if (ok) {
             feedback = null
             highlighted = null
-            badge = null
             view.performHapticFeedback(HapticFeedbackConstants.REJECT)
         } }
     }
@@ -157,10 +155,10 @@ fun ScoreScreen(model: WatchModel) {
             }
             Row(Modifier.fillMaxWidth().weight(1f)) {
                 TeamHalf(rotuloA, pontosA, CorNos, reason == null, pending > 0, Modifier.weight(1f),
-                    highlighted == "A", badge == "A") { tap("A") }
+                    highlighted == "A", model.lastPointTeam == "A") { tap("A") }
                 Box(Modifier.fillMaxHeight().width(2.dp).background(Color(0xFF333333)))
                 TeamHalf(rotuloB, pontosB, CorEles, reason == null, pending > 0, Modifier.weight(1f),
-                    highlighted == "B", badge == "B") { tap("B") }
+                    highlighted == "B", model.lastPointTeam == "B") { tap("B") }
             }
             if (model.controlled) {
                 if (model.showNewMatch) {
@@ -219,7 +217,7 @@ private fun TeamHalf(
     predicted: Boolean,
     modifier: Modifier,
     highlighted: Boolean,
-    badge: Boolean,
+    lastPoint: Boolean,
     onTap: () -> Unit,
 ) {
     Box(
@@ -228,7 +226,7 @@ private fun TeamHalf(
             .background(color.copy(alpha = if (highlighted) 0.42f else if (enabled) 0.16f else 0.06f))
             .clickable(enabled = enabled, onClick = onTap)
             // Número previsto ainda não confirmado: o leitor de tela diz (CV5.DS4.US1).
-            .semantics { contentDescription = "$label, $points pontos${if (predicted) " (enviando)" else ""}. Tocar marca ponto." },
+            .semantics { contentDescription = "$label, $points pontos${if (predicted) " (enviando)" else ""}${if (lastPoint) ", último ponto" else ""}. Tocar marca ponto." },
         contentAlignment = Alignment.Center,
     ) {
         Column(Modifier.fillMaxSize().padding(horizontal = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -258,13 +256,32 @@ private fun TeamHalf(
             )
         }
         // Sobreposição sem alvo de toque: não desloca números nem cobre Voltar Ponto.
-        // Permanece legível mesmo com animações e som desativados.
-        if (badge) Text(
-            "+1", Modifier.align(Alignment.BottomEnd).padding(end = 8.dp, bottom = 6.dp)
-                .background(Color.Black).padding(horizontal = 3.dp)
-                .clearAndSetSemantics { contentDescription = "Ponto registrado neste relógio: $label" },
-            color = color, fontSize = 18.sp, fontWeight = FontWeight.Bold,
+        // Persiste até outro ponto ou correção; acompanha também os pontos do telefone.
+        if (lastPoint) Volleyball(
+            Modifier.align(Alignment.BottomEnd).padding(end = 8.dp, bottom = 6.dp).size(18.dp)
         )
+    }
+}
+
+/** Bola vetorial local: costuras curvas em três painéis duplos, sem depender de emoji. */
+@Composable
+private fun Volleyball(modifier: Modifier) {
+    Canvas(modifier.clearAndSetSemantics {}) {
+        val r = size.minDimension / 2
+        val seam = Color(0xFF333333)
+        drawCircle(Color.White, radius = r)
+        repeat(3) { panel ->
+            rotate(panel * 120f) {
+                drawPath(Path().apply {
+                    moveTo(r, r)
+                    cubicTo(r * 0.45f, r * 0.85f, r * 0.45f, r * 0.2f, r, 0f)
+                }, seam, style = Stroke(0.9.dp.toPx()))
+                drawPath(Path().apply {
+                    moveTo(r * 0.3f, r * 0.3f)
+                    cubicTo(r * 0.2f, r * 0.85f, r * 0.55f, r * 1.4f, r * 1.5f, r * 1.866f)
+                }, seam, style = Stroke(0.9.dp.toPx()))
+            }
+        }
     }
 }
 

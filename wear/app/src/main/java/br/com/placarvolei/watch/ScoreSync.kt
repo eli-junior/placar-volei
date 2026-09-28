@@ -83,6 +83,9 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
     /** Equipe ("A"/"B") do ponto que o desfazer vai anular; null = nenhum. */
     val undoTeam get() = undoTarget?.equipe
 
+    /** Último ponto ainda válido, incluindo marcações e correções pendentes. */
+    val lastPointTeam get() = undoTarget?.equipe
+
     /** Grava o ponto antes de qualquer retorno visual. Devolve se foi aceito. */
     fun tap(equipe: String): Boolean {
         val s = score ?: return false

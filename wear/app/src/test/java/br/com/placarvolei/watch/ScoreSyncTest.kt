@@ -84,6 +84,36 @@ class ScoreSyncTest {
     private fun ScoreSync.shown() = predicted(score!!, pending)
 
     @Test
+    fun lastPointMarkerFollowsUndoSyncReopenAndNewMatch() {
+        val server = FakeServer()
+        val sync = linked(server)
+        assertNull(sync.lastPointTeam)
+        sync.tap("A")
+        sync.tap("B")
+        assertEquals("B", sync.lastPointTeam)
+        sync.undo()
+        assertEquals("A", sync.lastPointTeam)
+        sync.drain(server)
+        assertEquals("A", sync.lastPointTeam)
+        assertEquals("A", ScoreSync(CommandQueue(file)).lastPointTeam)
+        // Ponto recebido de outro cliente muda o marcador, sem retorno sonoro local.
+        server.ativos += ++server.seq to "B"
+        val feedback = sync.pointFeedback
+        sync.applySnapshot(server.snapshot())
+        assertEquals("B", sync.lastPointTeam)
+        assertEquals(feedback, sync.pointFeedback)
+        sync.undo()
+        sync.undo()
+        assertNull(sync.lastPointTeam)
+        sync.drain(server)
+        server.partida = "p2"
+        server.ativos.clear()
+        server.seq = 0
+        sync.applySnapshot(server.snapshot())
+        assertNull(sync.lastPointTeam)
+    }
+
+    @Test
     fun localFeedbackFollowsPersistedTapsAndDoesNotReplayOnSyncOrReopen() = runBlocking {
         val server = FakeServer()
         val sync = linked(server)
