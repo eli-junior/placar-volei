@@ -4,6 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### feature/cv6-ds2-us3-retorno-ao-pontuar
+- **História / Escopo**: CV6.DS2.US3 — retorno perceptível ao pontuar. CV6.DS2.US4 solicitada em sequência, com investigação de repouso e conexão antes de implementar.
+- **Branch**: `feature/cv6-ds2-us3-retorno-ao-pontuar`, criada de `origin/master`.
+- **Passo Ariad**: Passo 4 - Teste e Validação; plano e commits parciais aceitos pelo Navigator.
+- **Assinatura do Agente**: Agente: Codex (Driver) | Sessão: cv6-ds2-us3-us4-20260928 | Data: 2026-09-28
+- **Handoff / Próximos Passos**: Proposta US3: destaque de 200 ms e +1 na equipe após persistência local, vibração existente e som curto respeitando ajustes do sistema; sem repetir em snapshots/reenvio nem em pontos do telefone. Pendência permanece identificada pelo aro/contador. Validar silêncio, movimento desativado, recusa, offline/reenvio e desfazer no Watch + telefone. Alvo patch 0.24.1. US4 terá branch e checkpoint próprios; hoje RESUMED governa transporte e cancela socket/envio ao sair, e o placar mantém tela acesa por até 10 min. Investigar modo ambiente, gesto, segundo plano e bateria no aparelho. Não substituir continuidade por reconexão sem decisão do Navigator. Implementação concluída; 58 testes passaram, builds debug/release e lint concluídos. Preparar APK 0.24.1 e roteiro físico no Checkpoint 2. Navigator autorizou commits parciais e sincronização nesta sessão; merge segue dependente do Checkpoint 4.
+
 ## 0.24.0 - 2026-09-28
 
 Boundary: minor (fecha a CV3.DS1.US4, a CV3.DS1 e a CV3)

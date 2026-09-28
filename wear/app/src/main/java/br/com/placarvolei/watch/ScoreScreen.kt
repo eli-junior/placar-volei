@@ -1,6 +1,9 @@
 package br.com.placarvolei.watch
 
 import android.view.HapticFeedbackConstants
+import android.media.AudioManager
+import android.app.NotificationManager
+import android.animation.ValueAnimator
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -79,6 +82,18 @@ fun ScoreScreen(model: WatchModel) {
     val reason = model.blockReason
     val pending = model.pending.size
     val view = LocalView.current
+    var feedback by remember { mutableStateOf<PointFeedback?>(null) }
+    var highlighted by remember { mutableStateOf<String?>(null) }
+    var badge by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(feedback) {
+        val event = feedback ?: return@LaunchedEffect
+        highlighted = event.team
+        badge = event.team
+        delay(200)
+        highlighted = null
+        delay(600)
+        badge = null
+    }
     // Tela acesa só no placar (CV3.DS2.US1): no jogo, o toque tem de estar
     // pronto sem acordar o relógio. Vínculo e escolha seguem o tempo normal.
     // Liberada depois de 10 min sem toque nem mudança no placar (CV5.DS2.TS3):
@@ -91,14 +106,34 @@ fun ScoreScreen(model: WatchModel) {
     DisposableEffect(view) { onDispose { view.keepScreenOn = false } }
     val heart = rememberHeartRate()
     fun tap(equipe: String) {
-        model.tap(equipe) { ok -> if (ok) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM) }
+        model.tap(equipe) { ok ->
+            if (ok) {
+                feedback = model.pointFeedback
+                view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                // A variante sem volume explícito respeita sons de toque do sistema.
+                // Falha de áudio não pode interromper um ponto já gravado.
+                runCatching {
+                    val audio = view.context.getSystemService(AudioManager::class.java)
+                    val notifications = view.context.getSystemService(NotificationManager::class.java)
+                    if (audio.ringerMode == AudioManager.RINGER_MODE_NORMAL &&
+                        notifications.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL) {
+                        audio.playSoundEffect(AudioManager.FX_KEY_CLICK)
+                    }
+                }
+            }
+        }
     }
     fun newMatch() {
         if (model.startNewMatch()) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }
     fun undo() {
         // Vibração diferente da do ponto: o pulso sente que foi uma correção.
-        model.undo { ok -> if (ok) view.performHapticFeedback(HapticFeedbackConstants.REJECT) }
+        model.undo { ok -> if (ok) {
+            feedback = null
+            highlighted = null
+            badge = null
+            view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        } }
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
@@ -121,9 +156,11 @@ fun ScoreScreen(model: WatchModel) {
                 ReasonText(reason, Modifier.fillMaxWidth())
             }
             Row(Modifier.fillMaxWidth().weight(1f)) {
-                TeamHalf(rotuloA, pontosA, CorNos, reason == null, pending > 0, Modifier.weight(1f)) { tap("A") }
+                TeamHalf(rotuloA, pontosA, CorNos, reason == null, pending > 0, Modifier.weight(1f),
+                    highlighted == "A", badge == "A") { tap("A") }
                 Box(Modifier.fillMaxHeight().width(2.dp).background(Color(0xFF333333)))
-                TeamHalf(rotuloB, pontosB, CorEles, reason == null, pending > 0, Modifier.weight(1f)) { tap("B") }
+                TeamHalf(rotuloB, pontosB, CorEles, reason == null, pending > 0, Modifier.weight(1f),
+                    highlighted == "B", badge == "B") { tap("B") }
             }
             if (model.controlled) {
                 if (model.showNewMatch) {
@@ -181,12 +218,14 @@ private fun TeamHalf(
     enabled: Boolean,
     predicted: Boolean,
     modifier: Modifier,
+    highlighted: Boolean,
+    badge: Boolean,
     onTap: () -> Unit,
 ) {
     Box(
         modifier
             .fillMaxHeight()
-            .background(color.copy(alpha = if (enabled) 0.16f else 0.06f))
+            .background(color.copy(alpha = if (highlighted) 0.42f else if (enabled) 0.16f else 0.06f))
             .clickable(enabled = enabled, onClick = onTap)
             // Número previsto ainda não confirmado: o leitor de tela diz (CV5.DS4.US1).
             .semantics { contentDescription = "$label, $points pontos${if (predicted) " (enviando)" else ""}. Tocar marca ponto." },
@@ -200,7 +239,9 @@ private fun TeamHalf(
                 // Ponto sobe; ponto desfeito desce, para ser visivelmente desfeito.
                 transitionSpec = {
                     val up = if (targetState >= initialState) 1 else -1
-                    (slideInVertically { up * it / 3 } + fadeIn()) togetherWith (slideOutVertically { -up * it / 3 } + fadeOut())
+                    val duration = if (ValueAnimator.areAnimatorsEnabled()) 200 else 0
+                    (slideInVertically(tween(duration)) { up * it / 3 } + fadeIn(tween(duration))) togetherWith
+                        (slideOutVertically(tween(duration)) { -up * it / 3 } + fadeOut(tween(duration)))
                 },
                 label = "Pontos $label",
             ) { value ->
@@ -216,6 +257,14 @@ private fun TeamHalf(
                     .background(if (predicted) color.copy(alpha = 0.8f) else Color.Transparent)
             )
         }
+        // Sobreposição sem alvo de toque: não desloca números nem cobre Voltar Ponto.
+        // Permanece legível mesmo com animações e som desativados.
+        if (badge) Text(
+            "+1", Modifier.align(Alignment.BottomEnd).padding(end = 8.dp, bottom = 6.dp)
+                .background(Color.Black).padding(horizontal = 3.dp)
+                .clearAndSetSemantics { contentDescription = "Ponto registrado neste relógio: $label" },
+            color = color, fontSize = 18.sp, fontWeight = FontWeight.Bold,
+        )
     }
 }
 

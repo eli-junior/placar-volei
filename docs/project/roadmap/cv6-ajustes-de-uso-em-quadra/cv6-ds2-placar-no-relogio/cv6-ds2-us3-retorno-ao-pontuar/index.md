@@ -1,9 +1,9 @@
 ---
 code: CV6.DS2.US3
 level: User Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
-updated: 2026-09-27
+status: Active
+status_reason: plano aceito; implementação em validação no Checkpoint 2
+updated: 2026-09-28
 ---
 
 # CV6.DS2.US3 — Perceber pontos registrados pelo relógio

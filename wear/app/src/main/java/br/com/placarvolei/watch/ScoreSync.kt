@@ -15,6 +15,9 @@ private val TRANSIENT = setOf(408, 425, 429)
  * `WatchModel` cuida de tela, rede e vínculo; esta classe decide o que muda.
  */
 class ScoreSync(private val queue: CommandQueue, private val newId: () -> String = { UUID.randomUUID().toString() }) {
+    /** Só o toque persistido gera retorno; snapshots, recibos e reabertura não geram. */
+    internal var pointFeedback: PointFeedback? = null
+        private set
     // Escritos no dispatcher de disco, lidos pela tela.
     @Volatile var state: QueueState = queue.load()
         private set
@@ -84,7 +87,9 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
     fun tap(equipe: String): Boolean {
         val s = score ?: return false
         if (blockReason != null) return false
-        return enqueue(PendingCommand(newId(), s.partidaId, s.controleVersao, equipe, baseSeq = s.seq))
+        val accepted = enqueue(PendingCommand(newId(), s.partidaId, s.controleVersao, equipe, baseSeq = s.seq))
+        if (accepted) pointFeedback = PointFeedback((pointFeedback?.sequence ?: 0) + 1, equipe)
+        return accepted
     }
 
     /** Grava o desfazer do ponto visto no topo, antes do retorno visual. */
