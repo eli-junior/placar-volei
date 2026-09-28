@@ -1,6 +1,5 @@
 <script>
   import { aplicarTema, guardarTema, lerTemaSol } from '../lib/tema.js';
-  import { copiarTexto } from '../lib/areaDeTransferencia.js';
   import { seloDoPapel, lerTamanhoNumeros, guardarTamanhoNumeros, proximoTamanhoNumeros, TAMANHOS_NUMEROS } from '../lib/preferencias.js';
   import { fade, slide } from 'svelte/transition';
   import ModalRelogio from './ModalRelogio.svelte';
@@ -118,8 +117,6 @@
   let modalCelebracaoAberto = $state(false);
   let celebracaoExibidaPartidaId = $state(null);
   let prefersReducedMotion = $state(false);
-  // '' | 'ok' | 'falhou': só diz "copiado" quando a cópia deu certo.
-  let copiado = $state('');
 
   // Celebração de Vitória Automática (CV2.DS4.US1)
   $effect(() => {
@@ -174,17 +171,10 @@
     };
   });
 
-  let timerCopiado;
   let timerClique;
   // Timers de aviso não sobrevivem à saída da sala.
-  $effect(() => () => { clearTimeout(timerCopiado); clearTimeout(timerClique); });
+  $effect(() => () => { clearTimeout(timerClique); });
 
-  async function copiarCodigo() {
-    if (!quadra?.id) return;
-    copiado = (await copiarTexto(quadra.id)) ? 'ok' : 'falhou';
-    clearTimeout(timerCopiado);
-    timerCopiado = setTimeout(() => { copiado = ''; }, 2000);
-  }
 
   // Dimensões da janela física
   let viewportW = $state(typeof window !== 'undefined' ? window.innerWidth : 390);
@@ -229,7 +219,6 @@
         ]
       : []),
     { rotulo: `Números: ${tamanhoNumeros}`, icone: 'expandir', acao: alternarTamanhoNumeros, fechaMenu: false },
-    { rotulo: 'Compartilhar e QR', icone: 'compartilhar', acao: () => { modalCompartilharAberto = true; } },
     ...(!podeControlar && !paisagemNativa
       ? [{ rotulo: girado ? 'Placar em retrato' : 'Girar para paisagem', icone: 'atualizar', acao: alternarGiro, pressionado: girado, fechaMenu: false }]
       : []),
@@ -506,9 +495,10 @@
       <button type="button" class="btn-topo btn-voltar" onclick={onVoltar} aria-label="Voltar para a lista de quadras" title="Voltar">
         <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
       </button>
-      <button type="button" class="chip-codigo" bind:clientWidth={larguraCodigo} onclick={copiarCodigo} title="Copiar código da sala" aria-label="Copiar código da sala {quadra.id}">
+      <!-- O código abre o compartilhamento (link, QR e cópia). -->
+      <button type="button" class="chip-codigo" bind:clientWidth={larguraCodigo} onclick={() => { modalCompartilharAberto = true; }} aria-haspopup="dialog" title="Compartilhar a sala" aria-label="Compartilhar a sala {quadra.id}">
         <strong>#{quadra.id}</strong>
-        {#if copiado || nomeProprio}<span>{copiado === 'ok' ? 'Copiado!' : copiado === 'falhou' ? `Código ${quadra.id}` : nomeProprio}</span>{/if}
+        {#if nomeProprio}<span>{nomeProprio}</span>{/if}
       </button>
       {#if podeControlar}
         <div class="faixa-posse" bind:clientWidth={larguraFaixa} class:minha={temControle}>

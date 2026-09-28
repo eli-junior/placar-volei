@@ -72,7 +72,7 @@ test('desfazer fica fora de menu e sem confirmação', () => {
 });
 
 test('ações secundárias aparecem uma vez só, no menu', () => {
-  for (const rotulo of ['Compartilhar e QR', 'Linha do tempo', 'Relógio']) {
+  for (const rotulo of ['Linha do tempo', 'Relógio']) {
     assert.equal(salaFonte.split(`rotulo: '${rotulo}'`).length - 1, 1, rotulo);
   }
   assert.doesNotMatch(placar, /Duplas & Regras|Linha do Tempo/);
