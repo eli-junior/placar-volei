@@ -2,7 +2,7 @@
 code: CV6.DS2
 level: Delivery Story
 status: Active
-status_reason: US1, US2 e US3 entregues (Wear 0.24.1); US4 é a próxima história
+status_reason: US1–US4 entregues; Wear 0.25.0 inclui repouso e sessão em segundo plano (validação limitada documentada)
 updated: 2026-09-28
 ---
 

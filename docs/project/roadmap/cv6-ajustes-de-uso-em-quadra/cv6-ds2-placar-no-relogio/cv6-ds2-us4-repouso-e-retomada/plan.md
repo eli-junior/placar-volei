@@ -1,6 +1,6 @@
-# Checkpoint 1 — CV6.DS2.US4
+# Plano aceito — CV6.DS2.US4
 
-User Story de CV6.DS2. Branch `feature/cv6-ds2-us4-repouso-e-retomada`, criada de `master` após US3 aceita. Proposta, aguardando Navigator; sem implementação.
+User Story de CV6.DS2. Branch `feature/cv6-ds2-us4-repouso-e-retomada`, criada de `master` após US3 aceita. Plano aceito pelo Navigator; implementação concluída. A revisão registra uma parte do plano não implementada (pausa de animação e sensor no repouso) e os limites da validação física aceita.
 
 ## Evidência inicial
 
@@ -15,7 +15,7 @@ User Story de CV6.DS2. Branch `feature/cv6-ds2-us4-repouso-e-retomada`, criada d
 2. Remover a trava de tela acesa no placar. Respeitar tempo de tela e gesto do sistema. Para tela completamente apagada, validar com AOD desligado; não alterar preferências globais automaticamente.
 3. Separar a duração da sessão de placar da atividade visível: transporte e fila com um único proprietário, evitando sockets ou envios concorrentes ao recriar a tela.
 4. Propor serviço em primeiro plano e Ongoing Activity durante o acompanhamento da quadra. Notificação discreta permite voltar ao placar e **Encerrar acompanhamento**, encerrando transporte local sem apagar vínculo/fila nem encerrar a partida. Início a partir do app visível, sem autoarranque no boot. Encerrar também ao revogar vínculo ou trocar de quadra. Confirmar o tipo de serviço adequado após a investigação (possível specialUse com justificativa explícita de acompanhamento de partida); não declarar treino/áudio fictícios para manter processo vivo.
-5. Retorno ao levantar o pulso deve reaproveitar a sessão, sem escolher sala novamente. Parar animações e leitura ativa de batimento durante repouso; retomá-las quando interativo. Manter Samsung Health independente.
+5. Retorno ao levantar o pulso deve reaproveitar a sessão, sem escolher sala novamente. **Pendente:** parar animações e leitura ativa de batimento durante repouso e retomá-las quando interativo; manter Samsung Health independente. Essa parte não entrou na implementação e não foi validada.
 6. Preservar fila e idempotência existentes. Queda real de rede reconcilia automaticamente; distinguir isso de desconexão causada pelo próprio ciclo de vida.
 
 ## Aceite
@@ -30,9 +30,9 @@ User Story de CV6.DS2. Branch `feature/cv6-ds2-us4-repouso-e-retomada`, criada d
 
 Automatizar transições de sessão, início/parada idempotentes, recriação de tela e reconciliação com servidor falso. Executar testes, builds e lint Wear; testar backend se houver mudança de protocolo, que não está prevista.
 
-No Watch e telefone na mesma quadra: dez ciclos de repouso/gesto, atualização no telefone com tela apagada, intervalo de repouso de pelo menos 5 min, rede ausente por 30 s e retorno, repetição com treino ativo. Conferir permissões recusadas e encerramento pela notificação. Observar bateria por 20–30 min; ADB pode interferir no repouso, por isso separar diagnóstico conectado e uso normal.
+Roteiro completo em `test-guide.md`. Evidência aceita pelo Navigator: Galaxy Watch SM-L330/Android 16 entrou em Dozing via ADB; serviço foreground e WebSocket permaneceram ativos por 60 s sem evento de fechamento. Não foram observados gesto físico, atualização remota durante repouso, queda/restauração de rede, treino ativo ou bateria. A aceitação dessa evidência limitada não equivale à execução dos demais cenários.
 
-Falha: retorno à escolha/pareamento, necessidade de abrir o app, socket encerrado só por apagar a tela, perda/duplicação, treino interrompido ou sessão impossível de encerrar. Elaborar roteiro operacional completo no Checkpoint 2.
+Falha: retorno à escolha/pareamento, necessidade de abrir o app, socket encerrado só por apagar a tela, perda/duplicação, treino interrompido ou sessão impossível de encerrar. Permanecem como critérios para validação futura os cenários físicos ainda não observados.
 
 ## Alternativas e limites
 
@@ -44,7 +44,7 @@ Falha: retorno à escolha/pareamento, necessidade de abrir o app, socket encerra
 
 ## Escopo e versão
 
-Alvo proposto: Wear **0.25.0**, minor por adicionar acompanhamento com sessão em segundo plano. Backend/web permanecem 0.24.0 se o protocolo continuar igual.
+Versão entregue: Wear **0.25.0**, minor por adicionar acompanhamento com sessão em segundo plano. Backend/web permanecem 0.24.0; o protocolo não mudou.
 
 Fora do escopo: novas regras de pontuação, alterações de permissões de quadra, novo treino de saúde, suporte garantido a todo fabricante, operação após encerramento forçado do app e sincronização por serviço externo. Revisitar somente se bloquear o aceite, com decisão explícita.
 

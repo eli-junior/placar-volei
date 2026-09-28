@@ -12,11 +12,11 @@ Audiência: o grupo de vôlei do Navigator. Escala esperada: dezenas de pessoas,
 
 ## Current State
 
-Wear OS `0.24.1` entregue em `master`, com retorno perceptível ao pontuar e bola animada na equipe do último ponto (`CV6.DS2.US3`), validado no Galaxy Watch. Backend e web continuam em `0.24.0`. CV6.DS2.US1–US3 estão concluídas; a resolução de conflitos da fila foi entregue na `CV3.DS1.US4`, com descarte e aviso.
+Wear OS `0.25.0` entregue em `master`, com retorno perceptível ao pontuar e acompanhamento em segundo plano para repouso/retomada (`CV6.DS2.US3–US4`). O Galaxy Watch SM-L330/Android 16 manteve serviço e WebSocket durante 60 s em Dozing via ADB; os limites dos cenários físicos ainda não observados estão no roteiro da US4. Backend e web continuam em `0.24.0`. CV6.DS2.US1–US4 estão concluídas; a resolução de conflitos da fila foi entregue na `CV3.DS1.US4`, com descarte e aviso.
 
 Repositório publicado e sincronizado em `github.com/eli-junior/placar-volei`.
 
-Próximo trabalho: `CV6.DS2.US4`, repouso e retomada pelo pulso com investigação da continuidade da conexão. Hoje o app mantém a tela acesa durante o uso e interrompe transporte ao sair de RESUMED.
+Próximo trabalho: seguir o roadmap CV6. Débito de testes ponta a ponta do relógio e validação física ampliada da US4 continuam em aberto.
 
 ## Architecture Premises
 

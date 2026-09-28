@@ -1,6 +1,6 @@
 # CV6.DS2.US4 — Teste e validação
 
-Checkpoint 2: APK instalado no Galaxy Watch SM-L330 (Android 16/API 36). Teste inicial ADB passou: tela em Dozing após KEYCODE_SLEEP, serviço foreground e sem WebSocket fechado após 60 s. Permission POST_NOTIFICATIONS concedida. Gesto físico e restante da validação aguardam Navigator.
+Resultado aceito pelo Navigator no Checkpoint 2: APK 0.25.0 instalado no Galaxy Watch SM-L330 (Android 16/API 36). POST_NOTIFICATIONS concedida; notificação e serviço foreground ativos. Via ADB, tela entrou em Dozing e não houve fechamento do WebSocket durante 60 s. Essa evidência não cobre gesto físico ou recebimento de ponto durante o repouso. Os demais cenários abaixo permanecem como rota de validação futura.
 
 ## Preparação
 
@@ -25,7 +25,7 @@ Para coletar o recorte depois dos ciclos: `adb -s <watch> logcat -d -s WatchSess
 
 ## Aceite
 
-**Aprova:** notificação e retorno em um toque, tela segue preferências de repouso/gesto, conexão fica sem fechamento durante o repouso com rede disponível, mudanças recebidas enquanto apagada, reconexão automática após queda real, fila íntegra e treino independente. Observar consumo por 20–30 min sem carregar, comparando com repouso normal; não usar isso como medição laboratorial.
+**Aprova a validação completa:** notificação e retorno em um toque, tela segue preferências de repouso/gesto, conexão fica sem fechamento durante o repouso com rede disponível, mudanças recebidas enquanto apagada, reconexão automática após queda real, fila íntegra e treino independente. Observar consumo por 20–30 min sem carregar, comparando com repouso normal; não usar isso como medição laboratorial.
 
 **Falha:** Activity encerra socket ao pausar, Watch volta para escolha/pareamento, pontos somem ou duplicam, requer ação manual após rede retornar, notificação não pode ser encerrada, treino para, ou custo de bateria inviável. Se Doze do dispositivo adiar WebSocket apesar da sessão ativa, registrar logs e comportamento; não alterar o aceite sem Navigator.
 
@@ -33,4 +33,4 @@ Para coletar o recorte depois dos ciclos: `adb -s <watch> logcat -d -s WatchSess
 
 Comando: `JAVA_HOME=/home/eli/.sdkman/candidates/java/21.0.7-tem ./wear/gradlew -p wear testDebugUnitTest assembleDebug lintDebug assembleRelease`.
 
-59 testes JVM cobrem fila, reenvio e reconciliação existentes; zero falhas. Debug/release e lint terminaram verdes. Diagnóstico ADB após repouso: `mWakefulness=Dozing`; serviço `WatchSessionService` em primeiro plano; log abriu o WebSocket antes do repouso e não registrou fechamento durante o intervalo observado. Esse teste não cobre gesto nem mensagem remota durante o repouso. A conexão em ambiente/Doze, permissão, notificação, gesto, treino e bateria exigem este teste no relógio real.
+59 testes JVM cobrem fila, reenvio e reconciliação existentes; zero falhas. Debug/release e lint terminaram verdes. Diagnóstico ADB após repouso: `mWakefulness=Dozing`; serviço `WatchSessionService` em primeiro plano; log abriu o WebSocket antes do repouso e não registrou fechamento durante o intervalo observado. O Navigator aceitou essa evidência limitada. Ela não comprova gesto nem mensagem remota durante o repouso. A conexão em ambiente/Doze, reconexão, treino e bateria exigem validação adicional no relógio real.

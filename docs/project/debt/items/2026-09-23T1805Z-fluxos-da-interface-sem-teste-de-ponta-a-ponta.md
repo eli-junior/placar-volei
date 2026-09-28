@@ -57,3 +57,4 @@ Atualizado na US5 (2026-09-23): o `WatchModel` tem 517 linhas; separar vínculo 
 - 2026-09-27 (CV6.DS2.US1): a leitura foi conferida no Galaxy Watch real com APK release, incluindo 0, 12 e 100, batimento, controle no telefone, fim de partida e Nova. A dívida continua Carried porque essa validação manual não substitui testes Compose ou do `WatchModel` para os fluxos de tela.
 
 - 2026-09-28 (CV6.DS2.US3): retorno e marcador cobertos pela lógica da ScoreSync; nomes por testes unitários. Posição, cores e movimento ajustados e aceitos no Galaxy Watch. A dívida de testes Compose/WatchModel permanece Carried.
+- 2026-09-28 (CV6.DS2.US4): 59 testes existentes passaram, mas não cobrem o ciclo Activity–serviço–repouso nem retomada pelo gesto. Serviço foreground/WebSocket observados por 60 s em Dozing via ADB e aceitos pelo Navigator; gesto, atualização remota durante repouso, queda de rede, treino e bateria ainda precisam de validação física. Dívida permanece Carried.
