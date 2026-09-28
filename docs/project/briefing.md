@@ -12,11 +12,11 @@ Audiência: o grupo de vôlei do Navigator. Escala esperada: dezenas de pessoas,
 
 ## Current State
 
-Versão `0.20.0` está publicada na branch principal `master`. `CV1` a `CV5` estão concluídos. O `CV6` registra ajustes de uso observados pelo Navigator; no relógio, a `CV6.DS2.US1` foi validada em aparelho real: placar legível com fonte Teko local, batimentos centralizados, aviso curto de controle, **Voltar Ponto** e **Nova** verde em dois toques. A `CV6.DS2.US2` (aro de conexão) está planejada em branch própria. Permanecem pendentes do ciclo anterior a revisão de conflito da fila pelo telefone (`CV3.DS1.US4`) e o envio em segundo plano.
+Wear OS `0.24.1` entregue em `master`, com retorno perceptível ao pontuar e bola animada na equipe do último ponto (`CV6.DS2.US3`), validado no Galaxy Watch. Backend e web continuam em `0.24.0`. CV6.DS2.US1–US3 estão concluídas; a resolução de conflitos da fila foi entregue na `CV3.DS1.US4`, com descarte e aviso.
 
 Repositório publicado e sincronizado em `github.com/eli-junior/placar-volei`.
 
-Trabalho puxado agora: planejar e implementar `CV6.DS2.US2`, depois seguir para as HUs de retorno e repouso do relógio. `CV3.DS1.US4` continua registrado como pendência independente.
+Próximo trabalho: `CV6.DS2.US4`, repouso e retomada pelo pulso com investigação da continuidade da conexão. Hoje o app mantém a tela acesa durante o uso e interrompe transporte ao sair de RESUMED.
 
 ## Architecture Premises
 

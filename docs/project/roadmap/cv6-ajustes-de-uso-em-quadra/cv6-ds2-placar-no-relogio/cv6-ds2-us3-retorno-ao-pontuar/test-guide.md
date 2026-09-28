@@ -1,6 +1,6 @@
 # CV6.DS2.US3 — Validação do retorno ao pontuar
 
-Checkpoint 2: validação física pendente. Branch `feature/cv6-ds2-us3-retorno-ao-pontuar`.
+Validação física aceita pelo Navigator em 2026-09-28; fechamento autorizado. Branch `feature/cv6-ds2-us3-retorno-ao-pontuar`.
 
 ## Preparação
 

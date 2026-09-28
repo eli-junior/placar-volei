@@ -2,8 +2,8 @@
 code: CV6
 level: Value
 status: Active
-status_reason: CV6.DS1 entregue; CV6.DS2.US1 e US2 entregues (0.22.1); US3 e US4 planejadas
-updated: 2026-09-27
+status_reason: CV6.DS1 entregue; CV6.DS2.US1–US3 entregues; próxima US4, repouso e retomada
+updated: 2026-09-28
 ---
 
 # CV6 — Ajustes de uso em quadra
@@ -32,7 +32,7 @@ Feedbacks e cinco imagens fornecidos pelo Navigator nesta conversa:
 - 20260927_135541.jpg: relógio; DS2.US1–US3.
 - Feedback textual posterior: repouso/retomada (DS2.US4), aro (DS2.US2) e batimentos centralizados (DS2.US1).
 
-As imagens permanecem anexadas à conversa original; não dependem de caminhos temporários para definir os critérios escritos. Fonte, áudio e continuidade em repouso são investigações futuras, ainda não verificadas.
+As imagens permanecem anexadas à conversa original; não dependem de caminhos temporários para definir os critérios escritos. Fonte e retorno de pontuação foram entregues; continuidade em repouso permanece para a US4.
 
 ## Validação comum
 
@@ -42,6 +42,6 @@ Web: tablet, Fold aberto e fechado/celular; temas claro/escuro; estilos esportiv
 
 - CV4 permanece concluído: esta rodada trata de melhorias posteriores observadas em uso.
 - DS2.US4 revisita explicitamente a decisão de manter a tela acesa em CV3.DS2.US1; não modifica retroativamente o aceite anterior.
-- README e briefing têm indicações de foco/versão divergentes; esta rodada não redefine o foco nem atualiza histórico alheio ao escopo.
+- README e briefing atualizados no fechamento da US3: Wear 0.24.1, backend/web 0.24.0; foco seguinte na US4.
 - O guia menciona restaurar estado após restart, mas também documenta reset intencional do banco em produção. Os testes destas HUs devem distinguir repouso/reconexão do relógio de reinício destrutivo do servidor.
 - Não inclui novas regras esportivas, redesenho de permissões ou infraestrutura. Pendências de produto estão nas respectivas HUs.
