@@ -58,3 +58,6 @@ local.properties
 # Playwright
 web/test-results/
 web/playwright-report/
+
+# Config local do Mini PC (porta de publish em producao, so existe la)
+compose.override.yml
