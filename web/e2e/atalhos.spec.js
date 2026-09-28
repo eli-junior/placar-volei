@@ -35,5 +35,13 @@ for (const tema of ['esportivo', 'classico']) {
     // Espectador vê o resultado e não tem atalho.
     await expect(esp.getByText(/Ana/).first()).toBeVisible();
     await expect(esp.getByLabel(/Editar jogadores/)).toHaveCount(0);
+
+    // Limpar apaga os nomes de uma vez; salvar volta ao nome padrão.
+    await admin.getByLabel(/Editar jogadores da Ana/).click();
+    await dialogo.getByRole('button', { name: 'Limpar nomes da Equipe A' }).click();
+    await expect(dialogo.locator('#cfg-time-a-j1')).toHaveValue('');
+    await expect(dialogo.locator('#cfg-time-a-j2')).toHaveValue('');
+    await dialogo.getByRole('button', { name: 'Salvar Alterações' }).click();
+    await expect(admin.getByLabel(/Editar jogadores da Equipe A/)).toBeVisible();
   });
 }

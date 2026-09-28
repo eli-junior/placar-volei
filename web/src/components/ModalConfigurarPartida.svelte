@@ -62,15 +62,26 @@
     regraVantagem && tetoNumerico !== null && tetoNumerico < regraAlvo
   );
 
+  let limpouA = $state(false);
+  let limpouB = $state(false);
+
+  function limparA() { timeAJogador1 = ''; timeAJogador2 = ''; limpouA = true; }
+  function limparB() { timeBJogador1 = ''; timeBJogador2 = ''; limpouB = true; }
+
   function handleSubmit(e) {
     e.preventDefault();
     if (tetoInvalido || submetendo) return;
 
+    const vazioA = !timeAJogador1.trim() && !timeAJogador2.trim();
+    const vazioB = !timeBJogador1.trim() && !timeBJogador2.trim();
     onSalvar({
       time_a_jogador1: timeAJogador1.trim() || undefined,
       time_a_jogador2: timeAJogador2.trim() || undefined,
       time_b_jogador1: timeBJogador1.trim() || undefined,
       time_b_jogador2: timeBJogador2.trim() || undefined,
+      // Campo omitido mantém o nome atual; após "Limpar", o nome padrão vai explícito.
+      equipe_a: limpouA && vazioA ? 'Equipe A' : undefined,
+      equipe_b: limpouB && vazioB ? 'Equipe B' : undefined,
       alvo: Number(regraAlvo) || 12,
       vantagem: Boolean(regraVantagem),
       teto: regraVantagem && tetoNumerico !== null ? tetoNumerico : null,
@@ -189,7 +200,10 @@
           <!-- Time A -->
           {#if mostraA}
           <div class="equipe-card time-a-card">
-            <span class="badge-time time-a-badge">Time A</span>
+            <div class="card-topo">
+              <span class="badge-time time-a-badge">Time A</span>
+              <button type="button" class="btn-limpar" onclick={limparA} disabled={submetendo} aria-label="Limpar nomes da Equipe A">Limpar</button>
+            </div>
             <div class="campo">
               <label for="cfg-time-a-j1">Jogador 1</label>
               <input
@@ -218,7 +232,10 @@
           <!-- Time B -->
           {#if mostraB}
           <div class="equipe-card time-b-card">
-            <span class="badge-time time-b-badge">Time B</span>
+            <div class="card-topo">
+              <span class="badge-time time-b-badge">Time B</span>
+              <button type="button" class="btn-limpar" onclick={limparB} disabled={submetendo} aria-label="Limpar nomes da Equipe B">Limpar</button>
+            </div>
             <div class="campo">
               <label for="cfg-time-b-j1">Jogador 1</label>
               <input
@@ -437,6 +454,23 @@
     font-size: var(--texto-micro);
     font-weight: 700;
     text-transform: uppercase;
+  }
+
+  .card-topo {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .btn-limpar {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    padding: 4px 10px;
+    font-size: var(--texto-legenda);
+    font-weight: 600;
+    cursor: pointer;
   }
 
   .time-a-badge { color: var(--time-a); }

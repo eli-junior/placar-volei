@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo**: Manutenção — botão "Limpar" nos jogadores de cada equipe; salvar após limpar volta ao nome padrão ("Equipe A"/"Equipe B").
+- **Branch**: `feature/limpar-nomes-equipe`
+- **Passo Ariad**: Passo 7 - Conclusão e Merge (versão alvo 0.22.3)
+- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 0886f1e8-8abe-4d50-9a13-a03a795ce8f7 | Data: 2026-09-28
+- **Handoff / Próximos Passos**: Só frontend (`ModalConfigurarPartida.svelte`); backend já trata `equipe_x` sem jogadores. Validado pelo Navigator (e2e `atalhos.spec.js` 2/2). Revisado; aguardando aceite do merge.
+
 ## 0.22.2 - 2026-09-27
 
 Boundary: patch (manutenção visual da sala, fora de história)
