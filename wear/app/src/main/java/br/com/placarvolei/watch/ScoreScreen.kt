@@ -38,8 +38,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.geometry.Offset
@@ -263,29 +261,9 @@ private fun TeamHalf(
         // Persiste até outro ponto ou correção; acompanha também os pontos do telefone.
         if (lastPoint) Volleyball(
             Modifier.align(Alignment.BottomEnd).padding(end = 14.dp, bottom = 10.dp).size(18.dp)
+                .clearAndSetSemantics {},
+            animated = true,
         )
-    }
-}
-
-/** Bola vetorial local: costuras curvas em três painéis duplos, sem depender de emoji. */
-@Composable
-private fun Volleyball(modifier: Modifier) {
-    Canvas(modifier.clearAndSetSemantics {}) {
-        val r = size.minDimension / 2
-        val seam = Color(0xFF333333)
-        drawCircle(Color.White, radius = r)
-        repeat(3) { panel ->
-            rotate(panel * 120f) {
-                drawPath(Path().apply {
-                    moveTo(r, r)
-                    cubicTo(r * 0.45f, r * 0.85f, r * 0.45f, r * 0.2f, r, 0f)
-                }, seam, style = Stroke(0.9.dp.toPx()))
-                drawPath(Path().apply {
-                    moveTo(r * 0.3f, r * 0.3f)
-                    cubicTo(r * 0.2f, r * 0.85f, r * 0.55f, r * 1.4f, r * 1.5f, r * 1.866f)
-                }, seam, style = Stroke(0.9.dp.toPx()))
-            }
-        }
     }
 }
 
