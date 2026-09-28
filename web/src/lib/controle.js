@@ -67,7 +67,7 @@ export function resumirRegras(estado) {
 /**
  * Versão curta para o topo (CV6.DS1.US7): alvo, `+2` com vantagem e o teto.
  * O texto por extenso fica no `title` e no leitor de tela, com `resumirRegras`.
- * @param {{ alvo?: number } | null | undefined} estado
+ * @param {{ alvo?: number, vantagem?: boolean, teto?: number | null } | null | undefined} estado
  */
 export function resumirRegrasCurto(estado) {
   const partes = [`${estado?.alvo ?? 10} pts`];
