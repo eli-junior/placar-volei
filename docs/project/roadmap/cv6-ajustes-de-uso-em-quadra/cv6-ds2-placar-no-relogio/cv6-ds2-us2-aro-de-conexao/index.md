@@ -1,9 +1,9 @@
 ---
 code: CV6.DS2.US2
 level: User Story
-status: Active
-status_reason: aro de conexão validado pelo Navigator no relógio; entregue na 0.22.1
-updated: 2026-09-27
+status: Done
+status_reason: validada pelo Navigator no relógio; entregue na 0.22.1
+updated: 2026-09-28
 ---
 
 # CV6.DS2.US2 — Conexão indicada por aro discreto

@@ -4,6 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### CV3.DS1.US4 — Revisão de conflito do relógio pelo telefone
+
+- **Branch:** `feature/cv3-ds1-us4-revisao-no-telefone`
+- **Passo Ariad:** Passo 2 - Planejamento (Checkpoint 1)
+- **Assinatura do Agente:** Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 9add80cf | Data: 2026-09-28
+- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us4-offline-e-reconciliacao/plan.md`, aguardando aceite do Navigator. Inclui também a CV6.DS2.US2 marcada como Done.
+
 ## 0.23.4 - 2026-09-28
 
 Boundary: patch (manutenção visual do topo da sala, fora de história)
