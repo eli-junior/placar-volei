@@ -4,6 +4,24 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.23.4 - 2026-09-28
+
+Boundary: patch (manutenção visual do topo da sala, fora de história)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: 2c64122a
+
+Git source: merge `--no-ff` de `fix/topo-prioridade-ajustes` em `master`.
+
+### Changed
+
+- ⚙ Duplas e regras e ⇄ Inverter lados entram na fila de prioridade do topo, à frente das demais ações; sem espaço, vão para o ⋯ por último. O código da sala é reservado inteiro e não é mais cortado.
+- Regras no topo em três níveis: `10 pts com vantagem`, `10 pontos Ⓥ` ou `10 pts Ⓥ`, conforme o espaço.
+- Versões: backend e web 0.23.4.
+
+### Verification
+
+- 96 testes unitários web, svelte-check sem erros e build. Testes de navegador ajustados, não executados nesta sessão. Navigator validou no Fold aberto e fechado.
+
 ## 0.23.3 - 2026-09-28
 
 Boundary: patch (manutenção do fim de partida e do compartilhamento, fora de história)

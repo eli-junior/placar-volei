@@ -65,16 +65,16 @@ export function resumirRegras(estado) {
 }
 
 /**
- * Versão curta para o topo (CV6.DS1.US7): alvo, vantagem e o teto. Com espaço,
- * `longo` escreve "com vantagem"; sem espaço, a vantagem sai do texto e vira
- * o selo Ⓥ desenhado pelo topo.
+ * Versão curta para o topo (CV6.DS1.US7): alvo, vantagem e o teto. `longo`
+ * escreve "com vantagem"; `medio` e `curto` deixam a vantagem para o selo Ⓥ
+ * do topo, com "pontos" ou "pts".
  * O texto por extenso fica no `title` e no leitor de tela, com `resumirRegras`.
  * @param {{ alvo?: number, vantagem?: boolean, teto?: number | null } | null | undefined} estado
- * @param {boolean} [longo]
+ * @param {'curto' | 'medio' | 'longo'} [nivel]
  */
-export function resumirRegrasCurto(estado, longo = false) {
-  let texto = `${estado?.alvo ?? 10} pts`;
-  if (longo && (estado?.vantagem ?? true)) texto += ' com vantagem';
+export function resumirRegrasCurto(estado, nivel = 'curto') {
+  let texto = `${estado?.alvo ?? 10} ${nivel === 'medio' ? 'pontos' : 'pts'}`;
+  if (nivel === 'longo' && (estado?.vantagem ?? true)) texto += ' com vantagem';
   if (estado?.teto) texto += ` · até ${estado.teto}`;
   return texto;
 }

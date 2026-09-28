@@ -77,8 +77,8 @@ test('ações secundárias aparecem uma vez só, no menu', () => {
   }
   assert.doesNotMatch(placar, /Duplas & Regras|Linha do Tempo/);
   assert.match(salaFonte, /<MenuSala acoes=\{acoesDoMenu\}/);
-  // Duplas e regras e inverter lados moram no cabeçalho (CV6.DS1.US1).
-  assert.doesNotMatch(salaFonte, /rotulo: 'Duplas e regras'/);
+  // Duplas e regras e inverter lados ficam no topo e só vão para o ⋯ sem espaço.
+  assert.match(salaFonte, /rotulo: 'Duplas e regras'/);
   assert.doesNotMatch(placar, /onAlternarLados/);
 });
 
@@ -130,8 +130,9 @@ test('resumo das regras mostra alvo, vantagem e teto', async () => {
 test('resumo curto do topo: alvo, vantagem e teto', async () => {
   const { resumirRegrasCurto } = await import('../src/lib/controle.js');
   assert.equal(resumirRegrasCurto({ alvo: 12, vantagem: true, teto: 15 }), '12 pts · até 15');
-  assert.equal(resumirRegrasCurto({ alvo: 12, vantagem: true, teto: 15 }, true), '12 pts com vantagem · até 15');
-  assert.equal(resumirRegrasCurto({ alvo: 15, vantagem: false }, true), '15 pts');
+  assert.equal(resumirRegrasCurto({ alvo: 12, vantagem: true, teto: 15 }, 'longo'), '12 pts com vantagem · até 15');
+  assert.equal(resumirRegrasCurto({ alvo: 12, vantagem: true }, 'medio'), '12 pontos');
+  assert.equal(resumirRegrasCurto({ alvo: 15, vantagem: false }, 'longo'), '15 pts');
   assert.equal(resumirRegrasCurto({ alvo: 15, vantagem: false }), '15 pts');
   assert.equal(resumirRegrasCurto(null), '10 pts');
 });

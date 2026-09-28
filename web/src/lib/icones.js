@@ -122,6 +122,14 @@ export const ICONES = {
     { tag: 'path', d: 'M8 16H3v5' },
   ],
 
+  // lucide: arrow-left-right
+  inverter: [
+    { tag: 'path', d: 'M8 3 4 7l4 4' },
+    { tag: 'path', d: 'M4 7h16' },
+    { tag: 'path', d: 'm16 21 4-4-4-4' },
+    { tag: 'path', d: 'M20 17H4' },
+  ],
+
   // lucide: arrow-right
   seta: [
     { tag: 'path', d: 'M5 12h14' },
