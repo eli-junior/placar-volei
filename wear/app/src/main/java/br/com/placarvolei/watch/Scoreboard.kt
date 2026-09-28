@@ -99,25 +99,14 @@ fun predicted(confirmed: Confirmed, pending: List<PendingCommand>): Pair<Int, In
         (confirmed.pontosB + top.count { it == "B" } - base.count { it == "B" })
 }
 
-/**
- * Rótulos no pulso: "Equipe A" e "Equipe B" com nomes padrão;
- * com nomes personalizados, as iniciais. Iniciais iguais voltam a Equipe A/Equipe B.
- */
-fun teamLabels(confirmed: Confirmed): Pair<String, String> {
-    val a = initials(confirmed.equipeA, confirmed.jogadoresA, "Equipe A")
-    val b = initials(confirmed.equipeB, confirmed.jogadoresB, "Equipe B")
-    if (a == null || b == null || a == b) return "Equipe A" to "Equipe B"
-    return a to b
-}
+/** Nomes dos jogadores em linhas separadas; sem jogadores, nome completo da equipe. */
+fun teamLabels(confirmed: Confirmed): Pair<String, String> =
+    teamLabel(confirmed.equipeA, confirmed.jogadoresA, "Equipe A") to
+        teamLabel(confirmed.equipeB, confirmed.jogadoresB, "Equipe B")
 
-internal fun initials(name: String, players: List<String>, default: String): String? {
+private fun teamLabel(name: String, players: List<String>, fallback: String): String {
     val named = players.map { it.trim() }.filter { it.isNotEmpty() }
-    if (named.isNotEmpty()) return named.joinToString("") { it.first().uppercase() }
-    val clean = name.trim()
-    if (clean.isEmpty() || clean.equals(default, ignoreCase = true)) return null
-    val words = clean.split(Regex("\\s+")).filter { it.isNotEmpty() }
-    return if (words.size >= 2) words.take(2).joinToString("") { it.first().uppercase() }
-    else words.first().take(2).uppercase()
+    return if (named.isNotEmpty()) named.joinToString("\n") else name.trim().ifEmpty { fallback }
 }
 
 /** Rótulo curto da correção, durante e ao fim da partida. */

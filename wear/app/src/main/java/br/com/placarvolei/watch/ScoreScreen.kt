@@ -67,8 +67,8 @@ import androidx.wear.compose.material.Text
 import androidx.compose.ui.platform.LocalConfiguration
 import kotlinx.coroutines.delay
 
-private val CorNos = Color(0xFFFFB020)
-private val CorEles = Color(0xFF4FC3F7)
+private val TeamAColor = Color(0xFF4FC3F7)
+private val TeamBColor = Color(0xFFFFB020)
 @OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
 private val ScoreFont = FontFamily(Font(R.font.teko, weight = FontWeight.Bold,
     variationSettings = FontVariation.Settings(FontVariation.weight(700))))
@@ -82,6 +82,7 @@ fun ScoreScreen(model: WatchModel) {
     val score = model.score ?: return
     val (pontosA, pontosB) = model.shown ?: (score.pontosA to score.pontosB)
     val (rotuloA, rotuloB) = model.labels
+    val headerLines = maxOf(rotuloA.lines().size, rotuloB.lines().size)
     val reason = model.blockReason
     val pending = model.pending.size
     val view = LocalView.current
@@ -154,11 +155,11 @@ fun ScoreScreen(model: WatchModel) {
                 ReasonText(reason, Modifier.fillMaxWidth())
             }
             Row(Modifier.fillMaxWidth().weight(1f)) {
-                TeamHalf(rotuloA, pontosA, CorNos, reason == null, pending > 0, Modifier.weight(1f),
-                    highlighted == "A", model.lastPointTeam == "A") { tap("A") }
+                TeamHalf(rotuloA, pontosA, TeamAColor, reason == null, pending > 0, Modifier.weight(1f),
+                    highlighted == "A", model.lastPointTeam == "A", headerLines) { tap("A") }
                 Box(Modifier.fillMaxHeight().width(2.dp).background(Color(0xFF333333)))
-                TeamHalf(rotuloB, pontosB, CorEles, reason == null, pending > 0, Modifier.weight(1f),
-                    highlighted == "B", model.lastPointTeam == "B") { tap("B") }
+                TeamHalf(rotuloB, pontosB, TeamBColor, reason == null, pending > 0, Modifier.weight(1f),
+                    highlighted == "B", model.lastPointTeam == "B", headerLines) { tap("B") }
             }
             if (model.controlled) {
                 if (model.showNewMatch) {
@@ -218,6 +219,7 @@ private fun TeamHalf(
     modifier: Modifier,
     highlighted: Boolean,
     lastPoint: Boolean,
+    headerLines: Int,
     onTap: () -> Unit,
 ) {
     Box(
@@ -230,7 +232,9 @@ private fun TeamHalf(
         contentAlignment = Alignment.Center,
     ) {
         Column(Modifier.fillMaxSize().padding(horizontal = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            FittedText(label, 22.sp, color, Modifier.fillMaxWidth().height(28.dp))
+            FittedText(label, 16.sp, color,
+                Modifier.fillMaxWidth().height(if (headerLines > 1) 40.dp else 26.dp),
+                maxLines = headerLines)
             AnimatedContent(
                 targetState = points,
                 modifier = Modifier.fillMaxWidth().weight(1f),
@@ -258,7 +262,7 @@ private fun TeamHalf(
         // Sobreposição sem alvo de toque: não desloca números nem cobre Voltar Ponto.
         // Persiste até outro ponto ou correção; acompanha também os pontos do telefone.
         if (lastPoint) Volleyball(
-            Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 14.dp).size(18.dp)
+            Modifier.align(Alignment.BottomEnd).padding(end = 14.dp, bottom = 10.dp).size(18.dp)
         )
     }
 }
@@ -290,25 +294,26 @@ private fun Volleyball(modifier: Modifier) {
 private fun FittedText(
     text: String, preferredSize: TextUnit, color: Color, modifier: Modifier,
     family: FontFamily = FontFamily.Default,
+    maxLines: Int = 1,
 ) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
         val bounds = with(density) { Constraints(maxWidth = maxWidth.roundToPx(), maxHeight = maxHeight.roundToPx()) }
-        val style = remember(text, preferredSize, family, bounds, density) {
+        val style = remember(text, preferredSize, family, bounds, density, maxLines) {
             var low = 1f
             var high = preferredSize.value
             repeat(10) {
                 val size = (low + high) / 2
                 val candidate = TextStyle(fontFamily = family, fontWeight = FontWeight.Bold,
                     fontSize = size.sp, lineHeight = size.sp, textAlign = TextAlign.Center)
-                val measured = measurer.measure(text, candidate, maxLines = 1, softWrap = false, constraints = bounds)
+                val measured = measurer.measure(text, candidate, maxLines = maxLines, softWrap = false, constraints = bounds)
                 if (measured.hasVisualOverflow) high = size else low = size
             }
             TextStyle(fontFamily = family, fontWeight = FontWeight.Bold,
                 fontSize = low.sp, lineHeight = low.sp, textAlign = TextAlign.Center)
         }
-        Text(text, style = style, color = color, maxLines = 1, softWrap = false)
+        Text(text, style = style, color = color, maxLines = maxLines, softWrap = false)
     }
 }
 

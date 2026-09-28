@@ -37,26 +37,26 @@ class ScoreboardTest {
     }
 
     @Test
-    fun playersBecomeInitials() {
+    fun playersAppearOnSeparateLines() {
         val c = confirmed(jogadoresA = listOf("Eli Junior", "Camila"), jogadoresB = listOf("Rafa", "Marvin"),
             equipeA = "Eli Junior / Camila", equipeB = "Rafa / Marvin")
-        assertEquals("EC" to "RM", teamLabels(c))
+        assertEquals("Eli Junior\nCamila" to "Rafa\nMarvin", teamLabels(c))
     }
 
     @Test
-    fun teamNameWithoutPlayersUsesWordInitialsOrTwoLetters() {
-        assertEquals("TA" to "LO", teamLabels(confirmed(equipeA = "Time Azul", equipeB = "Lobos")))
+    fun teamNameWithoutPlayersIsShownInFull() {
+        assertEquals("Time Azul" to "Lobos", teamLabels(confirmed(equipeA = "Time Azul", equipeB = "Lobos")))
     }
 
     @Test
-    fun equalInitialsFallBackToTeamAAndTeamB() {
+    fun playersWithEqualInitialsKeepTheirFullNames() {
         val c = confirmed(jogadoresA = listOf("Eli", "Camila"), jogadoresB = listOf("Edu", "Carla"))
-        assertEquals("Equipe A" to "Equipe B", teamLabels(c))
+        assertEquals("Eli\nCamila" to "Edu\nCarla", teamLabels(c))
     }
 
     @Test
-    fun onlyOneCustomTeamFallsBackToTeamAAndTeamB() {
-        assertEquals("Equipe A" to "Equipe B", teamLabels(confirmed(jogadoresB = listOf("Rafa", "Marvin"))))
+    fun onlyOneCustomTeamPreservesItsPlayers() {
+        assertEquals("Equipe A" to "Rafa\nMarvin", teamLabels(confirmed(jogadoresB = listOf("Rafa", "Marvin"))))
     }
 
     @Test
