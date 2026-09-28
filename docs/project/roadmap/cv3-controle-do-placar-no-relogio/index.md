@@ -1,9 +1,9 @@
 ---
 code: CV3
 level: Value
-status: Active
-status_reason: DS1 com US1 (0.7.0), US2 (0.8.0), US3 (0.9.0) e US5 (0.10.0) entregues, falta a US4; DS2 completo com US1 (0.10.1), US2 (0.11.0) e US3 (0.12.0)
-updated: 2026-09-26
+status: Done
+status_reason: DS1 completo com US1 (0.7.0), US2 (0.8.0), US3 (0.9.0), US5 (0.10.0), TS1 (0.19.0) e US4 (0.24.0); DS2 completo com US1 (0.10.1), US2 (0.11.0) e US3 (0.12.0)
+updated: 2026-09-28
 ---
 
 # CV3 — Controlar o placar enquanto joga
