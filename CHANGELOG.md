@@ -4,7 +4,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: Manutenção visual — × do placar clássico igual ao do esportivo; aviso "Enviando o toque…" sai de cima do placar e a quantidade de lances a sincronizar vai para a bolinha de conexão do topo (como o `↑N` do relógio).
+- **História / Escopo**: Manutenção visual — × do placar clássico igual ao do esportivo; aviso "Enviando o toque…" sai de cima do placar e a quantidade de lances a sincronizar vai para a bolinha de conexão do topo (como o `↑N` do relógio). Bolinha maior (24px) com onda de pulso vazando quando conectada.
 - **Branch**: `claude/placar-classico-melhorias-wnyd4f`
 - **Passo Ariad**: Passo 4 - Teste e Validação (aguardando validação do Navigator)
 - **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: session_018HHNpGHW3MAqyaYZzNwmse | Data: 2026-09-28

@@ -735,6 +735,73 @@
   .btn-voltar { color: var(--text-primary); }
   .btn-voltar,
   .caixa-status { border-radius: 50%; }
+  .status-topo { position: relative; width: 24px; height: 24px; }
+  /* Conectado: onda que vaza da bolinha e some; movimento reduzido global a desliga. */
+  .status-topo.status-online::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: inherit;
+    animation: vazar-status 1.8s ease-out infinite;
+    pointer-events: none;
+  }
+  @keyframes vazar-status {
+    0% { transform: scale(1); opacity: .7; }
+    100% { transform: scale(2.1); opacity: 0; }
+  }
+  /* Lances a sincronizar: número dentro da bolinha, como o ↑N do relógio. */
+  .status-topo.com-fila {
+    display: grid;
+    place-items: center;
+    width: auto;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 6px;
+    box-sizing: border-box;
+    border-radius: 14px;
+    color: #06140c;
+    font: 800 .9rem/1 var(--fonte-numeros, inherit);
+    font-variant-numeric: tabular-nums;
+  }
+  .status-topo.com-fila > span { position: relative; z-index: 1; }
+  .chip-codigo {
+    min-height: 44px;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  /* Alvo de toque fixo: o nome da quadra encolhe, os botões nunca. */
+  .btn-topo {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    flex: 0 0 44px;
+    padding: 0;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+  .btn-topo:hover { color: var(--text-primary); background: var(--bg-card); }
+  .btn-topo.ativo { color: var(--text-primary); border-color: var(--acento-info-ativo); }
+  .caixa-status {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    box-sizing: border-box;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--bg-surface);
+  }
+  /* Voltar e status redondos: saída e sinal de vida, distintos das ações. */
+  .btn-voltar { color: var(--text-primary); }
+  .btn-voltar,
+  .caixa-status { border-radius: 50%; }
   .status-topo { width: 18px; height: 18px; }
   /* Lances a sincronizar: número dentro da bolinha, como o ↑N do relógio. */
   .status-topo.com-fila {
