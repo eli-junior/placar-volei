@@ -26,12 +26,25 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
 
     fun dismissLostQueue() { lostQueue = false }
 
+    /**
+     * Lances descartados por conflito (CV3.DS1.US4): aviso curto até a tela
+     * dispensar. Não vai para o disco; o relógio converge para o servidor.
+     */
+    var notice: String? = null
+        private set
+
+    fun dismissNotice() { notice = null }
+
+    init {
+        // Fila pausada por versão anterior (0.19–0.23): converge como conflito.
+        if (state.held != null) discard("placar mudou")
+    }
+
     /** Motivo da última falha ao gravar; o lance não foi aceito. */
     var saveError: String? = null
         private set
 
     val pending get() = state.commands
-    val held get() = state.held
     val participantId get() = state.participantId
 
     /** O controle do placar está com este relógio. */
@@ -41,7 +54,6 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
     val controlReason: String?
         get() {
             val s = score ?: return "Carregando placar…"
-            held?.let { return it }
             if (s.controleId == null || s.controleId != participantId) {
                 return "Controle no telefone."
             }
@@ -97,14 +109,30 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
         if (!accepted && commands.size == state.commands.size) return
         if (accepted) score = next
         save(state.copy(commands = commands, snapshot = if (accepted) json.toString() else state.snapshot))
+        // Controle com outra pessoa: a fila não vale mais (decisão do Navigator).
+        val owner = score?.controleId
+        if (accepted && participantId != null && owner != participantId && state.commands.isNotEmpty()) {
+            val who = controllerName(json, owner)
+            discard(if (who == null) "controle no telefone" else "controle com $who")
+        }
+    }
+
+    /**
+     * Conflito não se revisa (CV3.DS1.US4): a fila inteira sai, o placar do
+     * servidor fica e o aviso diz quantos lances não entraram e por quê.
+     */
+    fun discard(reason: String) {
+        val count = state.commands.size
+        if (count == 0) return
+        if (save(state.copy(commands = emptyList(), held = null))) {
+            val lances = if (count == 1) "1 lance não enviado" else "$count lances não enviados"
+            notice = "$lances · $reason"
+        }
     }
 
     fun setParticipant(id: String?) {
         if (id != state.participantId) save(state.copy(participantId = id))
     }
-
-    /** Descarte explícito dos lances retidos; o placar confirmado fica. */
-    fun discardHeld() = save(state.copy(commands = emptyList(), held = null))
 
     /** Outra quadra: nada da anterior (fila, placar, id) vale mais. */
     fun reset() {
@@ -114,14 +142,17 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
     /** Envia o lance mais antigo e aplica o recibo. `send` devolve null sem rede. */
     suspend fun sendNext(send: suspend (JSONObject) -> Pair<Int, JSONObject>?): Pair<SendResult, JSONObject?> {
         val next = state.commands.firstOrNull()
-        if (next == null || state.held != null) return SendResult.OCIOSO to null
+        if (next == null) return SendResult.OCIOSO to null
         val result = send(next.toJson())
         if (result == null || result.first >= 500) return SendResult.SEM_REDE to null
         // Tempo esgotado, cedo demais ou excesso de pedidos: passageiros. O
         // lance fica na fila e sai depois, sem descarte manual (CV5.DS2.TS2).
         if (result.first in TRANSIENT) return SendResult.ADIADO to null
         val (status, data) = result
-        if (status == 401) return SendResult.NAO_AUTORIZADO to data
+        if (status == 401) {
+            discard("vínculo encerrado")
+            return SendResult.NAO_AUTORIZADO to data
+        }
         // O snapshot pelo WebSocket pode ter tirado o lance da fila antes da resposta.
         val stillQueued = state.commands.any { it.id == next.id }
         if (data.has("recibo")) {
@@ -131,10 +162,10 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
             else if (recibo.optString("status") == "APLICADO") {
                 save(state.copy(commands = state.commands.filterNot { it.id == next.id }))
             } else {
-                save(state.copy(held = recibo.optString("detalhe").ifBlank { "Lance recusado." }))
+                discard(conflictReason(recibo.optString("detalhe")))
             }
         } else if (stillQueued) {
-            save(state.copy(held = data.optString("detail", "Lance recusado.")))
+            discard(conflictReason(data.optString("detail")))
         }
         return SendResult.ENVIADO to data
     }
@@ -149,5 +180,22 @@ class ScoreSync(private val queue: CommandQueue, private val newId: () -> String
         false
     }
 
+    /** Motivo curto para o aviso: partida nova ou placar mudado por fora. */
+    private fun conflictReason(detail: String) = when {
+        score?.partidaId != state.commands.firstOrNull()?.partidaId -> "nova partida"
+        detail.contains("partida", ignoreCase = true) -> "nova partida"
+        else -> "placar mudou"
+    }
+
     private fun parse(raw: String?) = raw?.let { runCatching { Confirmed.fromSnapshot(JSONObject(it)) }.getOrNull() }
+}
+
+/** Apelido de quem está no controle, pela lista de participantes do snapshot. */
+private fun controllerName(json: JSONObject, id: String?): String? {
+    val list = json.optJSONArray("participantes") ?: return null
+    for (i in 0 until list.length()) {
+        val p = list.optJSONObject(i) ?: continue
+        if (p.optString("id") == id) return p.optString("apelido").ifBlank { null }
+    }
+    return null
 }
