@@ -32,8 +32,8 @@ class ScoreboardTest {
     }
 
     @Test
-    fun defaultNamesShowUsAndThem() {
-        assertEquals("Nós" to "Eles", teamLabels(confirmed()))
+    fun defaultNamesShowTeamAAndTeamB() {
+        assertEquals("Equipe A" to "Equipe B", teamLabels(confirmed()))
     }
 
     @Test
@@ -49,14 +49,14 @@ class ScoreboardTest {
     }
 
     @Test
-    fun equalInitialsFallBackToUsAndThem() {
+    fun equalInitialsFallBackToTeamAAndTeamB() {
         val c = confirmed(jogadoresA = listOf("Eli", "Camila"), jogadoresB = listOf("Edu", "Carla"))
-        assertEquals("Nós" to "Eles", teamLabels(c))
+        assertEquals("Equipe A" to "Equipe B", teamLabels(c))
     }
 
     @Test
-    fun onlyOneCustomTeamFallsBackToUsAndThem() {
-        assertEquals("Nós" to "Eles", teamLabels(confirmed(jogadoresB = listOf("Rafa", "Marvin"))))
+    fun onlyOneCustomTeamFallsBackToTeamAAndTeamB() {
+        assertEquals("Equipe A" to "Equipe B", teamLabels(confirmed(jogadoresB = listOf("Rafa", "Marvin"))))
     }
 
     @Test

@@ -44,3 +44,5 @@ Referência: [AudioManager](https://developer.android.com/reference/android/medi
 ## Ajuste pedido na validação
 
 O Navigator considerou o `+1` rápido demais e pediu uma bolinha de vôlei persistente na equipe do último ponto. A bola deriva da pilha de pontos válidos (confirmados + fila), acompanha desfazer e atualizações do telefone, e some com a pilha vazia. Destaque de 200 ms, som e vibração continuam exclusivos do toque local aceito.
+
+Ajuste adicional do Navigator: recuar a bola para não encostar no aro (20 dp da lateral e 14 dp da base do cartão) e substituir Nós/Eles por Equipe A/Equipe B nos rótulos padrão. Conferir no mostrador circular, com a bola em ambos os lados; nomes personalizados continuam com iniciais.

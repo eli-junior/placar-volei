@@ -100,13 +100,13 @@ fun predicted(confirmed: Confirmed, pending: List<PendingCommand>): Pair<Int, In
 }
 
 /**
- * Rótulos no pulso: "Nós" (equipe A) e "Eles" (equipe B) com nomes padrão;
- * com nomes personalizados, as iniciais. Iniciais iguais voltam a Nós/Eles.
+ * Rótulos no pulso: "Equipe A" e "Equipe B" com nomes padrão;
+ * com nomes personalizados, as iniciais. Iniciais iguais voltam a Equipe A/Equipe B.
  */
 fun teamLabels(confirmed: Confirmed): Pair<String, String> {
     val a = initials(confirmed.equipeA, confirmed.jogadoresA, "Equipe A")
     val b = initials(confirmed.equipeB, confirmed.jogadoresB, "Equipe B")
-    if (a == null || b == null || a == b) return "Nós" to "Eles"
+    if (a == null || b == null || a == b) return "Equipe A" to "Equipe B"
     return a to b
 }
 

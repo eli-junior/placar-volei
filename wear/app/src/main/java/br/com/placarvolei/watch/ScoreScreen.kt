@@ -74,8 +74,8 @@ private val ScoreFont = FontFamily(Font(R.font.teko, weight = FontWeight.Bold,
     variationSettings = FontVariation.Settings(FontVariation.weight(700))))
 
 /**
- * Placar no pulso (CV3.DS1.US2): metade esquerda = Nós (equipe A), direita =
- * Eles (equipe B). O toque grava o lance antes de vibrar e de mudar o número.
+ * Placar no pulso (CV3.DS1.US2): metade esquerda = Equipe A, direita =
+ * Equipe B. O toque grava o lance antes de vibrar e de mudar o número.
  */
 @Composable
 fun ScoreScreen(model: WatchModel) {
@@ -258,7 +258,7 @@ private fun TeamHalf(
         // Sobreposição sem alvo de toque: não desloca números nem cobre Voltar Ponto.
         // Persiste até outro ponto ou correção; acompanha também os pontos do telefone.
         if (lastPoint) Volleyball(
-            Modifier.align(Alignment.BottomEnd).padding(end = 8.dp, bottom = 6.dp).size(18.dp)
+            Modifier.align(Alignment.BottomEnd).padding(end = 20.dp, bottom = 14.dp).size(18.dp)
         )
     }
 }
