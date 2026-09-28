@@ -4,6 +4,29 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.23.2 - 2026-09-28
+
+Boundary: patch (manutenção visual do topo da sala, fora de história)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: 2c64122a
+
+Git source: merge `--no-ff` de `fix/topo-sala-menu-e-codigo` em `master`.
+
+### Changed
+
+- Ações do ⋯ sobem para o topo quando há espaço, nesta prioridade: modo sol/escuro, relógio, linha do tempo, números, compartilhar e girar. O ⋯ fica com o que não coube e com os presentes.
+- Código da sala em duas linhas: `#código` em cima e o nome menor embaixo; sem nome próprio (vazio ou `Quadra #código`), só o código.
+- Regras no topo: `10 pts com vantagem` quando há espaço; senão `10 pts` com o selo Ⓥ, aceso com vantagem e apagado sem.
+- Versões: backend e web 0.23.2.
+
+### Fixed
+
+- Tipo do estado em `resumirRegrasCurto` (3 erros do svelte-check).
+
+### Verification
+
+- 96 testes unitários web, svelte-check sem erros e build. Testes de navegador ajustados, não executados nesta sessão. Navigator validou no Fold e no desktop.
+
 ## 0.23.1 - 2026-09-28
 
 Boundary: patch (manutenção fora de história — limpar nomes das equipes)

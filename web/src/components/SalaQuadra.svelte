@@ -218,20 +218,43 @@
 
   // Local único das ações secundárias (CV4.DS3.US1/US2). Cada papel vê só o
   // que pode fazer; o que já tem lugar próprio na tela não se repete aqui.
-  const acoesDoMenu = $derived([
-    { rotulo: 'Compartilhar e QR', icone: 'compartilhar', acao: () => { modalCompartilharAberto = true; } },
+  // Em ordem de prioridade (Navigator): as primeiras sobem para o topo
+  // quando há espaço; o ⋯ fica só com o que não coube.
+  const acoesSecundarias = $derived([
+    { rotulo: temaSol ? 'Modo escuro' : 'Modo sol', icone: temaSol ? 'lua' : 'sol', acao: alternarTema, pressionado: temaSol, fechaMenu: false },
     ...(podeControlar
       ? [
-          { rotulo: 'Linha do tempo', icone: 'linhaDoTempo', acao: handleAbrirLinhaDoTempo },
           { rotulo: 'Relógio', icone: 'relogio', acao: abrirRelogio },
+          { rotulo: 'Linha do tempo', icone: 'linhaDoTempo', acao: handleAbrirLinhaDoTempo },
         ]
       : []),
+    { rotulo: `Números: ${tamanhoNumeros}`, icone: 'expandir', acao: alternarTamanhoNumeros, fechaMenu: false },
+    { rotulo: 'Compartilhar e QR', icone: 'compartilhar', acao: () => { modalCompartilharAberto = true; } },
     ...(!podeControlar && !paisagemNativa
       ? [{ rotulo: girado ? 'Placar em retrato' : 'Girar para paisagem', icone: 'atualizar', acao: alternarGiro, pressionado: girado, fechaMenu: false }]
       : []),
-    { rotulo: `Números: ${tamanhoNumeros}`, icone: 'expandir', acao: alternarTamanhoNumeros, fechaMenu: false },
-    { rotulo: temaSol ? 'Modo escuro' : 'Modo sol', icone: temaSol ? 'lua' : 'sol', acao: alternarTema, pressionado: temaSol, fechaMenu: false },
   ]);
+
+  // Quantos atalhos cabem no topo: sobra da barra depois dos itens fixos.
+  let larguraBarra = $state(0);
+  let larguraCodigo = $state(0);
+  const PASSO_BOTAO = 52; // 44px de alvo + 8px de espaço
+  const atalhosNoTopo = $derived.by(() => {
+    if (!larguraBarra) return 0;
+    const fixos = 3 + (podeControlar ? 1 + (selo ? 1 : 0) : 0) + (!podeControlar && telaCheiaDisponivel ? 1 : 0);
+    // A faixa das regras divide a linha só em tela larga; estreita, ela desce.
+    // Mínimo para "10 pts (V)"; o texto longo só aparece com a sobra.
+    const faixa = podeControlar && viewportW >= 600 ? 120 : 0;
+    const sobra = larguraBarra - 12 - (larguraCodigo + 8) - fixos * PASSO_BOTAO - PASSO_BOTAO - faixa;
+    return Math.max(0, Math.min(acoesSecundarias.length, Math.floor(sobra / PASSO_BOTAO)));
+  });
+  let larguraFaixa = $state(0);
+  const regrasLongas = $derived(larguraFaixa >= 240);
+  const acoesNoTopo = $derived(acoesSecundarias.slice(0, atalhosNoTopo));
+  const acoesDoMenu = $derived(acoesSecundarias.slice(atalhosNoTopo));
+
+  // Nome padrão ("Quadra #código") não acrescenta nada ao código.
+  const nomeProprio = $derived(quadra?.nome && quadra.nome !== `Quadra #${quadra.id}` ? quadra.nome : '');
 
   const operador = $derived(participantes.find(p => p.id === quadra?.controle_id)?.apelido || (temControle ? eu?.apelido : 'aguardando atualização'));
   // O relógio é pessoal do eli nesta fase; para os demais, só um aviso.
@@ -479,21 +502,21 @@
        inverter lados e menu; a posse ocupa o meio e desce para a segunda
        linha só em tela estreita. Espectador imersivo esconde a linha. -->
   {#if podeControlar || !modoImersivo}
-    <header class="barra-sala" in:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }}>
+    <header class="barra-sala" bind:clientWidth={larguraBarra} in:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }}>
       <button type="button" class="btn-topo btn-voltar" onclick={onVoltar} aria-label="Voltar para a lista de quadras" title="Voltar">
         <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
       </button>
-      <button type="button" class="chip-codigo" onclick={copiarCodigo} title="Copiar código da sala" aria-label="Copiar código da sala {quadra.id}">
+      <button type="button" class="chip-codigo" bind:clientWidth={larguraCodigo} onclick={copiarCodigo} title="Copiar código da sala" aria-label="Copiar código da sala {quadra.id}">
         <strong>#{quadra.id}</strong>
-        <span>{copiado === 'ok' ? 'Copiado!' : copiado === 'falhou' ? `Código ${quadra.id}` : quadra.nome}</span>
+        {#if copiado || nomeProprio}<span>{copiado === 'ok' ? 'Copiado!' : copiado === 'falhou' ? `Código ${quadra.id}` : nomeProprio}</span>{/if}
       </button>
       {#if podeControlar}
-        <div class="faixa-posse" class:minha={temControle}>
+        <div class="faixa-posse" bind:clientWidth={larguraFaixa} class:minha={temControle}>
           <!-- Anúncio da posse fora do {#key}: a região viva não pode nascer a
                cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
           <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
           <!-- Na tela, as regras da partida valem mais que a posse (Navigator, CV6.DS1.US1). -->
-          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem: {resumirRegras(estadoPartida)}"><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida)}</span></button>
+          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem: {resumirRegras(estadoPartida)}"><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida, regrasLongas)}</span>{#if !regrasLongas}<span class="selo-vantagem" class:acesa={estadoPartida?.vantagem ?? true} aria-hidden="true">V</span>{/if}</button>
           {#if posse.podeAssumir}
             <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
           {/if}
@@ -532,6 +555,17 @@
           <Icone nome={telaCheia ? 'recolher' : 'expandir'} tamanho="1.15em" />
         </button>
       {/if}
+      {#each acoesNoTopo as item (item.rotulo)}
+        <button
+          type="button"
+          class="btn-topo"
+          class:ativo={item.pressionado}
+          onclick={item.acao}
+          aria-pressed={item.pressionado === undefined ? undefined : item.pressionado}
+          aria-label={item.rotulo}
+          title={item.rotulo}
+        ><Icone nome={item.icone} tamanho="1.15em" /></button>
+      {/each}
       <button
         type="button"
         class="btn-topo"
@@ -842,9 +876,9 @@
     0%, 100% { box-shadow: 0 0 0 0 var(--estado-sucesso-brilho); }
     50% { box-shadow: 0 0 0 6px transparent; }
   }
-  .chip-codigo { display: flex; align-items: center; gap: 8px; flex: 0 1 auto; min-width: 0; max-width: 40%; padding: 0 12px; }
+  .chip-codigo { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; flex: 0 1 auto; min-width: 0; max-width: 40%; padding: 2px 12px; line-height: 1.1; }
   .chip-codigo strong { font-family: var(--fonte-numeros); font-size: 1.35rem; letter-spacing: .04em; color: var(--text-primary); }
-  .chip-codigo span { overflow: hidden; font-size: .78rem; text-overflow: ellipsis; white-space: nowrap; }
+  .chip-codigo span { max-width: 100%; overflow: hidden; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
 
   .faixa-posse {
     display: flex;
@@ -870,6 +904,10 @@
   .regras-topo { min-height: 36px; padding: 0 4px; border: 0; border-radius: 8px; background: none; cursor: pointer; font-family: inherit; text-align: left; text-decoration: underline dotted color-mix(in srgb, currentColor 45%, transparent); text-underline-offset: 4px; }
   .regras-topo:hover { background: rgba(var(--veu), .06); }
   .regras-topo { overflow: hidden; min-width: 0; color: var(--text-primary); font-weight: 700; font-size: .9rem; text-overflow: ellipsis; white-space: nowrap; }
+  .regras-topo { display: inline-flex; align-items: center; gap: 6px; }
+  /* Ⓥ: acesa com vantagem, apagada sem. */
+  .selo-vantagem { display: inline-grid; place-items: center; flex: 0 0 auto; width: 1.45em; height: 1.45em; border: 2px solid currentColor; border-radius: 50%; font-size: .75rem; font-weight: 900; opacity: .3; }
+  .selo-vantagem.acesa { opacity: 1; color: var(--estado-sucesso, #22c55e); box-shadow: 0 0 8px color-mix(in srgb, currentColor 55%, transparent); }
   .selo-papel-ancora { position: relative; flex: 0 0 auto; }
   .selo-papel { color: var(--text-secondary); }
   .letra-circulada {
