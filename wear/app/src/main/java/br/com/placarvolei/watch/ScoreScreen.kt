@@ -1,6 +1,9 @@
 package br.com.placarvolei.watch
 
 import android.view.HapticFeedbackConstants
+import android.media.AudioManager
+import android.app.NotificationManager
+import android.animation.ValueAnimator
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -24,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -61,24 +65,33 @@ import androidx.wear.compose.material.Text
 import androidx.compose.ui.platform.LocalConfiguration
 import kotlinx.coroutines.delay
 
-private val CorNos = Color(0xFFFFB020)
-private val CorEles = Color(0xFF4FC3F7)
+private val TeamAColor = Color(0xFF4FC3F7)
+private val TeamBColor = Color(0xFFFFB020)
 @OptIn(androidx.compose.ui.text.ExperimentalTextApi::class)
 private val ScoreFont = FontFamily(Font(R.font.teko, weight = FontWeight.Bold,
     variationSettings = FontVariation.Settings(FontVariation.weight(700))))
 
 /**
- * Placar no pulso (CV3.DS1.US2): metade esquerda = Nós (equipe A), direita =
- * Eles (equipe B). O toque grava o lance antes de vibrar e de mudar o número.
+ * Placar no pulso (CV3.DS1.US2): metade esquerda = Equipe A, direita =
+ * Equipe B. O toque grava o lance antes de vibrar e de mudar o número.
  */
 @Composable
 fun ScoreScreen(model: WatchModel) {
     val score = model.score ?: return
     val (pontosA, pontosB) = model.shown ?: (score.pontosA to score.pontosB)
     val (rotuloA, rotuloB) = model.labels
+    val headerLines = maxOf(rotuloA.lines().size, rotuloB.lines().size)
     val reason = model.blockReason
     val pending = model.pending.size
     val view = LocalView.current
+    var feedback by remember { mutableStateOf<PointFeedback?>(null) }
+    var highlighted by remember { mutableStateOf<String?>(null) }
+    LaunchedEffect(feedback) {
+        val event = feedback ?: return@LaunchedEffect
+        highlighted = event.team
+        delay(200)
+        highlighted = null
+    }
     // Tela acesa só no placar (CV3.DS2.US1): no jogo, o toque tem de estar
     // pronto sem acordar o relógio. Vínculo e escolha seguem o tempo normal.
     // Liberada depois de 10 min sem toque nem mudança no placar (CV5.DS2.TS3):
@@ -91,14 +104,33 @@ fun ScoreScreen(model: WatchModel) {
     DisposableEffect(view) { onDispose { view.keepScreenOn = false } }
     val heart = rememberHeartRate()
     fun tap(equipe: String) {
-        model.tap(equipe) { ok -> if (ok) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM) }
+        model.tap(equipe) { ok ->
+            if (ok) {
+                feedback = model.pointFeedback
+                view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
+                // A variante sem volume explícito respeita sons de toque do sistema.
+                // Falha de áudio não pode interromper um ponto já gravado.
+                runCatching {
+                    val audio = view.context.getSystemService(AudioManager::class.java)
+                    val notifications = view.context.getSystemService(NotificationManager::class.java)
+                    if (audio.ringerMode == AudioManager.RINGER_MODE_NORMAL &&
+                        notifications.currentInterruptionFilter == NotificationManager.INTERRUPTION_FILTER_ALL) {
+                        audio.playSoundEffect(AudioManager.FX_KEY_CLICK)
+                    }
+                }
+            }
+        }
     }
     fun newMatch() {
         if (model.startNewMatch()) view.performHapticFeedback(HapticFeedbackConstants.CONFIRM)
     }
     fun undo() {
         // Vibração diferente da do ponto: o pulso sente que foi uma correção.
-        model.undo { ok -> if (ok) view.performHapticFeedback(HapticFeedbackConstants.REJECT) }
+        model.undo { ok -> if (ok) {
+            feedback = null
+            highlighted = null
+            view.performHapticFeedback(HapticFeedbackConstants.REJECT)
+        } }
     }
 
     Box(Modifier.fillMaxSize().background(Color.Black)) {
@@ -121,9 +153,11 @@ fun ScoreScreen(model: WatchModel) {
                 ReasonText(reason, Modifier.fillMaxWidth())
             }
             Row(Modifier.fillMaxWidth().weight(1f)) {
-                TeamHalf(rotuloA, pontosA, CorNos, reason == null, pending > 0, Modifier.weight(1f)) { tap("A") }
+                TeamHalf(rotuloA, pontosA, TeamAColor, reason == null, pending > 0, Modifier.weight(1f),
+                    highlighted == "A", model.lastPointTeam == "A", headerLines) { tap("A") }
                 Box(Modifier.fillMaxHeight().width(2.dp).background(Color(0xFF333333)))
-                TeamHalf(rotuloB, pontosB, CorEles, reason == null, pending > 0, Modifier.weight(1f)) { tap("B") }
+                TeamHalf(rotuloB, pontosB, TeamBColor, reason == null, pending > 0, Modifier.weight(1f),
+                    highlighted == "B", model.lastPointTeam == "B", headerLines) { tap("B") }
             }
             if (model.controlled) {
                 if (model.showNewMatch) {
@@ -181,26 +215,33 @@ private fun TeamHalf(
     enabled: Boolean,
     predicted: Boolean,
     modifier: Modifier,
+    highlighted: Boolean,
+    lastPoint: Boolean,
+    headerLines: Int,
     onTap: () -> Unit,
 ) {
     Box(
         modifier
             .fillMaxHeight()
-            .background(color.copy(alpha = if (enabled) 0.16f else 0.06f))
+            .background(color.copy(alpha = if (highlighted) 0.42f else if (enabled) 0.16f else 0.06f))
             .clickable(enabled = enabled, onClick = onTap)
             // Número previsto ainda não confirmado: o leitor de tela diz (CV5.DS4.US1).
-            .semantics { contentDescription = "$label, $points pontos${if (predicted) " (enviando)" else ""}. Tocar marca ponto." },
+            .semantics { contentDescription = "$label, $points pontos${if (predicted) " (enviando)" else ""}${if (lastPoint) ", último ponto" else ""}. Tocar marca ponto." },
         contentAlignment = Alignment.Center,
     ) {
         Column(Modifier.fillMaxSize().padding(horizontal = 6.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            FittedText(label, 22.sp, color, Modifier.fillMaxWidth().height(28.dp))
+            FittedText(label, 16.sp, color,
+                Modifier.fillMaxWidth().height(if (headerLines > 1) 40.dp else 26.dp),
+                maxLines = headerLines)
             AnimatedContent(
                 targetState = points,
                 modifier = Modifier.fillMaxWidth().weight(1f),
                 // Ponto sobe; ponto desfeito desce, para ser visivelmente desfeito.
                 transitionSpec = {
                     val up = if (targetState >= initialState) 1 else -1
-                    (slideInVertically { up * it / 3 } + fadeIn()) togetherWith (slideOutVertically { -up * it / 3 } + fadeOut())
+                    val duration = if (ValueAnimator.areAnimatorsEnabled()) 200 else 0
+                    (slideInVertically(tween(duration)) { up * it / 3 } + fadeIn(tween(duration))) togetherWith
+                        (slideOutVertically(tween(duration)) { -up * it / 3 } + fadeOut(tween(duration)))
                 },
                 label = "Pontos $label",
             ) { value ->
@@ -216,6 +257,13 @@ private fun TeamHalf(
                     .background(if (predicted) color.copy(alpha = 0.8f) else Color.Transparent)
             )
         }
+        // Sobreposição sem alvo de toque: não desloca números nem cobre Voltar Ponto.
+        // Persiste até outro ponto ou correção; acompanha também os pontos do telefone.
+        if (lastPoint) Volleyball(
+            Modifier.align(Alignment.BottomEnd).padding(end = 14.dp, bottom = 10.dp).size(18.dp)
+                .clearAndSetSemantics {},
+            animated = true,
+        )
     }
 }
 
@@ -224,25 +272,26 @@ private fun TeamHalf(
 private fun FittedText(
     text: String, preferredSize: TextUnit, color: Color, modifier: Modifier,
     family: FontFamily = FontFamily.Default,
+    maxLines: Int = 1,
 ) {
     val measurer = rememberTextMeasurer()
     val density = LocalDensity.current
     BoxWithConstraints(modifier, contentAlignment = Alignment.Center) {
         val bounds = with(density) { Constraints(maxWidth = maxWidth.roundToPx(), maxHeight = maxHeight.roundToPx()) }
-        val style = remember(text, preferredSize, family, bounds, density) {
+        val style = remember(text, preferredSize, family, bounds, density, maxLines) {
             var low = 1f
             var high = preferredSize.value
             repeat(10) {
                 val size = (low + high) / 2
                 val candidate = TextStyle(fontFamily = family, fontWeight = FontWeight.Bold,
                     fontSize = size.sp, lineHeight = size.sp, textAlign = TextAlign.Center)
-                val measured = measurer.measure(text, candidate, maxLines = 1, softWrap = false, constraints = bounds)
+                val measured = measurer.measure(text, candidate, maxLines = maxLines, softWrap = false, constraints = bounds)
                 if (measured.hasVisualOverflow) high = size else low = size
             }
             TextStyle(fontFamily = family, fontWeight = FontWeight.Bold,
                 fontSize = low.sp, lineHeight = low.sp, textAlign = TextAlign.Center)
         }
-        Text(text, style = style, color = color, maxLines = 1, softWrap = false)
+        Text(text, style = style, color = color, maxLines = maxLines, softWrap = false)
     }
 }
 

@@ -18,17 +18,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -212,18 +208,9 @@ private fun Ball() {
         Canvas(Modifier.size(34.dp, 6.dp)) {
             drawOval(Color.White.copy(alpha = 0.10f + 0.15f * (1f - height)))
         }
-        Canvas(
+        Volleyball(
             Modifier.padding(bottom = 6.dp).size(40.dp)
                 .graphicsLayer { translationY = -height * 26.dp.toPx(); rotationZ = bounce * 40f }
-                .clip(CircleShape)
-        ) {
-            val r = size.minDimension / 2
-            drawCircle(Color.White, r)
-            val stroke = Stroke(width = r * 0.12f)
-            // Gomos da bola nas cores das equipes do placar.
-            drawArc(Color(0xFFFFB020), 200f, 140f, false, Offset(-r * 0.2f, r * 0.1f), Size(r * 1.6f, r * 1.6f), style = stroke)
-            drawArc(Color(0xFF4FC3F7), 20f, 140f, false, Offset(r * 0.6f, -r * 0.7f), Size(r * 1.6f, r * 1.6f), style = stroke)
-            drawCircle(Color(0xFF333333), r, style = Stroke(width = r * 0.08f))
-        }
+        )
     }
 }

@@ -84,6 +84,85 @@ class ScoreSyncTest {
     private fun ScoreSync.shown() = predicted(score!!, pending)
 
     @Test
+    fun lastPointMarkerFollowsUndoSyncReopenAndNewMatch() {
+        val server = FakeServer()
+        val sync = linked(server)
+        assertNull(sync.lastPointTeam)
+        sync.tap("A")
+        sync.tap("B")
+        assertEquals("B", sync.lastPointTeam)
+        sync.undo()
+        assertEquals("A", sync.lastPointTeam)
+        sync.drain(server)
+        assertEquals("A", sync.lastPointTeam)
+        assertEquals("A", ScoreSync(CommandQueue(file)).lastPointTeam)
+        // Ponto recebido de outro cliente muda o marcador, sem retorno sonoro local.
+        server.ativos += ++server.seq to "B"
+        val feedback = sync.pointFeedback
+        sync.applySnapshot(server.snapshot())
+        assertEquals("B", sync.lastPointTeam)
+        assertEquals(feedback, sync.pointFeedback)
+        sync.undo()
+        sync.undo()
+        assertNull(sync.lastPointTeam)
+        sync.drain(server)
+        server.partida = "p2"
+        server.ativos.clear()
+        server.seq = 0
+        sync.applySnapshot(server.snapshot())
+        assertNull(sync.lastPointTeam)
+    }
+
+    @Test
+    fun localFeedbackFollowsPersistedTapsAndDoesNotReplayOnSyncOrReopen() = runBlocking {
+        val server = FakeServer()
+        val sync = linked(server)
+        assertNull(sync.pointFeedback)
+        server.online = false
+        assertTrue(sync.tap("A"))
+        assertEquals(PointFeedback(1, "A"), sync.pointFeedback)
+        assertEquals("A", CommandQueue(file).load().commands.single().equipe)
+        assertTrue(sync.tap("A"))
+        assertEquals(PointFeedback(2, "A"), sync.pointFeedback)
+        assertTrue(sync.tap("B"))
+        val last = PointFeedback(3, "B")
+        assertEquals(last, sync.pointFeedback)
+        sync.drain(server)
+        assertEquals(last, sync.pointFeedback)
+        server.online = true
+        server.perderProximaResposta = true
+        sync.sendNext { server.send(it) }
+        sync.drain(server)
+        repeat(3) { sync.applySnapshot(server.snapshot()) }
+        assertEquals(last, sync.pointFeedback)
+        assertEquals(3, server.efeitos)
+        assertNull(ScoreSync(CommandQueue(file)).pointFeedback)
+        assertTrue(sync.undo())
+        assertEquals(last, sync.pointFeedback)
+    }
+
+    @Test
+    fun refusedTapAndDiskFailureDoNotGenerateFeedback() {
+        val server = FakeServer()
+        val sync = linked(server)
+        val phone = server.snapshot().apply {
+            getJSONObject("quadra").put("controle_id", "phone")
+        }
+        sync.applySnapshot(phone)
+        assertFalse(sync.tap("A"))
+        assertNull(sync.pointFeedback)
+        sync.applySnapshot(server.snapshot())
+        assertTrue(sync.tap("B"))
+        val last = sync.pointFeedback
+        // Um diretório no lugar do temporário força falha real de gravação.
+        folder.root.resolve("fila.json.tmp").mkdir()
+        assertFalse(sync.tap("A"))
+        assertEquals(last, sync.pointFeedback)
+        assertEquals(1, sync.pending.size)
+        assertNotNull(sync.saveError)
+    }
+
+    @Test
     fun phoneControlShowsShortMessageAndBlocksCommandsUntilReturned() {
         val server = FakeServer()
         val sync = linked(server)

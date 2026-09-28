@@ -85,8 +85,10 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     var connection by mutableStateOf(Connection.RECONECTANDO)
         private set
     val pending get() = rev.let { sync.pending }
+    val lastPointTeam get() = rev.let { sync.lastPointTeam }
+    internal val pointFeedback get() = sync.pointFeedback
     val discardNotice get() = rev.let { sync.notice }
-    val labels get() = score?.let(::teamLabels) ?: ("Nós" to "Eles")
+    val labels get() = score?.let(::teamLabels) ?: ("Equipe A" to "Equipe B")
     val shown get() = score?.let { predicted(it, pending) }
 
     /** O controle do placar está com este relógio. */

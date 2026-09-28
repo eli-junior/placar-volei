@@ -1,9 +1,9 @@
 ---
 code: CV6.DS2.US3
 level: User Story
-status: Planned
-status_reason: feedback do Navigator em 2026-09-27; desenvolvimento posterior
-updated: 2026-09-27
+status: Done
+status_reason: validada no Galaxy Watch e fechamento autorizado pelo Navigator; Wear 0.24.1
+updated: 2026-09-28
 ---
 
 # CV6.DS2.US3 — Perceber pontos registrados pelo relógio
@@ -29,7 +29,7 @@ Como jogador, quero receber retorno perceptível ao pontuar, para notar inclusiv
 
 Marcar e desfazer no relógio, testar silêncio, movimento reduzido, toque rejeitado e ponto offline seguido de reconexão; conferir no telefone. Aprova se cada ação é compreensível sem duplicar pontos ou sinais; falha se houver sucesso falso ou repetição no reenvio.
 
-Aplicar também a [matriz comum](../../index.md#validação-comum). Este roteiro é para a futura implementação; não representa testes já executados.
+Aplicar também a [matriz comum](../../index.md#validação-comum). Resultados e roteiro em [test-guide.md](test-guide.md).
 
 ## Out of Scope
 
@@ -37,7 +37,8 @@ Mudanças não descritas nesta HU, novas regras de jogo e alterações de permis
 
 ## Notes
 
-Investigar áudio e animação no dispositivo. Decidir padrão/controle do som e se sinais também ocorrem em pontos originados no telefone. Não prometer prevenção do toque acidental: o objetivo é percebê-lo.
+Entrega aceita na versão Wear 0.24.1. O retorno imediato significa gravação local, com pendência indicada até o servidor confirmar. Pontos remotos atualizam o marcador, sem som/vibração de toque local. O som segue as preferências do sistema. A bola persistente substituiu o +1 transitório por pedido do Navigator.
 
-Origem: rodada de feedback do Navigator em 27/09/2026. Dependências técnicas, desenho final e versão serão definidos no checkpoint de planejamento da implementação.
+Ajustes aprovados na validação: posição da bola, desenho e giro iguais aos da abertura, Equipe A azul/B laranja, títulos de até 16 sp e jogadores em linhas separadas. A bola deriva dos pontos ativos e acompanha desfazer, fila, reabertura e nova partida.
 
+Revisão e coerência: [review.md](review.md). US4 permanece separada para repouso e continuidade de conexão.

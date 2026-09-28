@@ -2,8 +2,8 @@
 code: CV6.DS2
 level: Delivery Story
 status: Active
-status_reason: US1 e US2 entregues (aro de conexão na 0.22.1); US3 e US4 planejadas
-updated: 2026-09-27
+status_reason: US1, US2 e US3 entregues (Wear 0.24.1); US4 é a próxima história
+updated: 2026-09-28
 ---
 
 # CV6.DS2 — Consulta e operação no relógio

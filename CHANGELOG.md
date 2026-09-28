@@ -4,6 +4,27 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.24.1 - 2026-09-28
+
+Boundary: patch do Wear OS (CV6.DS2.US3); backend e web permanecem em 0.24.0.
+
+Authors: Eli (Navigator); Codex (Driver) | Sessão: cv6-ds2-us3-us4-20260928
+
+Git source: branch `feature/cv6-ds2-us3-retorno-ao-pontuar`, integrada em `master` com `--no-ff`.
+
+### Changed
+
+- Ponto gravado no relógio destaca a equipe por 200 ms, vibra e solicita som de toque respeitando as preferências do sistema. Reenvios e snapshots não repetem esse retorno.
+- Bola de vôlei persistente e animada identifica a equipe do último ponto válido, inclusive pendente; acompanha desfazer e pontos do telefone e some ao zerar. Compartilha o desenho da abertura e fica estática com animações desativadas.
+- Equipe A azul e B laranja, títulos menores e nomes completos dos jogadores em linhas separadas. Posição da bola ajustada no Galaxy Watch pelo Navigator.
+- APK 0.24.1 (versionCode 12) instalado no relógio, sem mudança de protocolo ou necessidade de reiniciar o servidor.
+
+### Verification
+
+- 59 testes do relógio passaram; builds debug/release e lint concluídos. Avisos de dependências/KTX permanecem.
+- Navigator validou no aparelho e autorizou o fechamento. Roteiro e revisão na pasta da US3.
+- Dívida de testes de tela Compose permanece; esta entrega não introduz dependências nem nova dívida estrutural identificada.
+
 ## 0.24.0 - 2026-09-28
 
 Boundary: minor (fecha a CV3.DS1.US4, a CV3.DS1 e a CV3)

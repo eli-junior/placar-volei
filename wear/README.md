@@ -1,6 +1,6 @@
 # Placar Vôlei — Wear OS
 
-APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca e desfaz pontos quando o admin passa o controle para ele (`CV3.DS1.US2`–`US3`) e, sem rede, segue marcando e sincroniza depois, mesmo após reabrir o app (`CV3.DS1.TS1`). Na `0.20.0` (CV5), o relógio se recupera de vínculo ou fila ilegíveis, não trava a fila em recusas passageiras, desliga sensor e polling quando não precisa, pede dois toques para "Nova" e tem build de release com R8. O servidor deve executar a mesma versão do APK.
+APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca e desfaz pontos quando o admin passa o controle para ele (`CV3.DS1.US2`–`US3`) e, sem rede, segue marcando e sincroniza depois, mesmo após reabrir o app (`CV3.DS1.TS1`). Na `0.20.0` (CV5), o relógio se recupera de vínculo ou fila ilegíveis, não trava a fila em recusas passageiras, desliga sensor e polling quando não precisa, pede dois toques para "Nova" e tem build de release com R8. O APK 0.24.1 é compatível com o servidor 0.24.0; esta atualização muda a interface do relógio e não exige deploy do servidor.
 
 ## WSL / Android Studio
 
@@ -110,7 +110,7 @@ python3 scripts/watch_access.py https://placar.elijunior.click PIN_DA_SALA
 ## Marcar pelo relógio
 
 1. Com o app aberto no relógio, na lista de presentes do telefone: **Tornar controlador** em Eli (Relógio) e depois **Passar controle**.
-2. O site deixa de mostrar +1/Desfazer, e o relógio libera as duas metades: **Nós** (equipe A, à esquerda) e **Eles** (equipe B, à direita). Com jogadores cadastrados, aparecem as iniciais (ex.: EC × RM).
+2. O site deixa de mostrar +1/Desfazer, e o relógio libera as duas metades: **Equipe A** (azul, à esquerda) e **Equipe B** (laranja, à direita). Com jogadores cadastrados, aparece um nome completo por linha.
 3. Cada toque é gravado no relógio antes de vibrar. Enquanto o servidor não confirma, o número fica apagado, com um traço embaixo. O status da tela indica o estado: verde conectado, amarelo enviando ou reconectando, vermelho sem conexão. O status acessível informa quantos lances estão pendentes.
 4. Sem rede, os toques ficam na fila e são enviados em ordem quando a rede volta, com o app aberto. O envio em segundo plano é da US4.
 5. Conflito não se revisa (`CV3.DS1.US4`, `0.24.0`): se o controle foi para outra pessoa, começou partida nova, o placar mudou por fora ou o vínculo caiu, a fila inteira é descartada. O relógio mostra por 3 s um aviso como “3 lances não enviados · controle com Ana” e volta ao placar do servidor.
@@ -141,3 +141,9 @@ Revogar: no telefone, **ícone de relógio → Revogar acesso**. O Eli (Relógio
 Siga o [roteiro da US3](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us3-desfazer/test-guide.md) e, para a pontuação, o [roteiro da US2](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us2-ver-e-marcar/test-guide.md). O [roteiro da US1](../docs/project/roadmap/cv3-controle-do-placar-no-relogio/cv3-ds1-controle-pessoal-no-watch/cv3-ds1-us1-vincular-relogio/test-guide.md) traz instruções para testar localmente sem alterar produção.
 
 O tráfego Wear OS normalmente usa o telefone pareado como proxy Bluetooth; a plataforma gerencia as redes disponíveis. Suspensão em background pode adiar rede: a presença via WebSocket e o envio de lances funcionam enquanto a tela do app está ativa. [Referência de rede Wear OS](https://developer.android.com/training/wearables/data/network-communication).
+
+## Retorno ao pontuar (CV6.DS2.US3, Wear 0.24.1)
+
+Após gravar o ponto localmente, a equipe recebe destaque breve, vibração e som de toque conforme preferências do sistema. A bola animada indica o último ponto válido e acompanha desfazer, pontos do telefone e lances pendentes. Ao zerar, desaparece. Reenvios não repetem o sinal de toque. Som e movimento podem ser desativados pelo sistema; o marcador permanece legível.
+
+[Roteiro de validação](../docs/project/roadmap/cv6-ajustes-de-uso-em-quadra/cv6-ds2-placar-no-relogio/cv6-ds2-us3-retorno-ao-pontuar/test-guide.md).
