@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo**: manutenção visual do topo da sala — atalhos do ⋯ sobem para o topo quando há espaço (prioridade: tema, relógio, linha do tempo, números, compartilhar, girar); código em duas linhas, sem repetir o nome padrão `Quadra #código`. Alvo 0.23.2.
+- **Branch**: `fix/topo-sala-menu-e-codigo`
+- **Passo Ariad**: Passo 4 - Teste e Validação
+- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 2c64122a | Data: 2026-09-28
+- **Handoff / Próximos Passos**: aguardando validação do Navigator no Fold/desktop; e2e de navegador não rodados nesta sessão.
+
 ## 0.23.1 - 2026-09-28
 
 Boundary: patch (manutenção fora de história — limpar nomes das equipes)

@@ -6,7 +6,7 @@ test('menu por papel e foco de volta ao ⋯', async ({ abrir }) => {
   const sala = await criarSala(admin);
   const mais = admin.getByLabel(/Mais ações/);
   await mais.click();
-  await expect(admin.locator('.menu-acoes button')).toHaveText(['Compartilhar e QR', 'Linha do tempo', 'Relógio', 'Números: M', 'Modo sol', 'Fechar']);
+  await expect(admin.locator('.menu-acoes button')).toHaveText(['Modo sol', 'Relógio', 'Linha do tempo', 'Números: M', 'Compartilhar e QR', 'Fechar']);
   await admin.keyboard.press('Escape');
   await expect(mais).toBeFocused();
   // Duplas e regras mora no cabeçalho (CV6.DS1.US1).
@@ -20,10 +20,23 @@ test('menu por papel e foco de volta ao ⋯', async ({ abrir }) => {
   await entrarNaSala(esp, sala.id);
   await esp.mouse.click(180, 320);
   await esp.getByLabel(/Mais ações/).click();
-  await expect(esp.locator('.menu-acoes button')).toHaveText(['Compartilhar e QR', 'Girar para paisagem', 'Números: M', 'Modo sol', 'Fechar']);
+  await expect(esp.locator('.menu-acoes button')).toHaveText(['Modo sol', 'Números: M', 'Compartilhar e QR', 'Girar para paisagem', 'Fechar']);
   await expect(esp.locator('dialog[open] .badge')).toHaveCount(2);
   await esp.keyboard.press('Escape');
   await expect(esp.getByLabel(/Mais ações/)).toBeFocused();
+});
+
+test('tela larga: ações sobem para o topo e o ⋯ fica com o resto', async ({ abrir }) => {
+  const admin = await abrir({ viewport: { width: 1280, height: 800 } });
+  await criarSala(admin);
+  const topo = admin.locator('.barra-sala');
+  for (const rotulo of ['Modo sol', 'Relógio', 'Linha do tempo', 'Números: M', 'Compartilhar e QR']) {
+    await expect(topo.getByLabel(rotulo, { exact: true })).toBeVisible();
+  }
+  await admin.getByLabel(/Mais ações/).click();
+  await expect(admin.locator('.menu-acoes button')).toHaveText(['Fechar']);
+  // Nome padrão não repete o código.
+  await expect(admin.locator('.chip-codigo span')).toHaveCount(0);
 });
 
 test('campo do formulário continua visível com o teclado aberto', async ({ abrir }) => {
