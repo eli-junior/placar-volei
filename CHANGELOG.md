@@ -4,6 +4,25 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.22.3 - 2026-09-28
+
+Boundary: patch (manutenção visual da sala, fora de história)
+
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: session_018HHNpGHW3MAqyaYZzNwmse
+
+Git source: merge `--no-ff` de `claude/placar-classico-melhorias-wnyd4f` em `master`.
+
+### Changed
+
+- Placar clássico: o × ganhou o divisor do esportivo (X em SVG sobre linha em degradê; horizontal com a tela em pé).
+- O aviso "Enviando o toque…" saiu de cima do placar. Lances a sincronizar aparecem como número dentro da bolinha de conexão do topo (como o `↑N` do relógio), e o leitor de tela ouve a quantidade no rótulo.
+- Bolinha de conexão maior (24px; pílula de 28px com fila) e, quando conectada, onda de pulso vazando para fora.
+- Versões: backend e web 0.22.3.
+
+### Verification
+
+- 94 testes unitários web, svelte-check, build e 31 testes de navegador aprovados. Navigator validou.
+
 ## 0.22.2 - 2026-09-27
 
 Boundary: patch (manutenção visual da sala, fora de história)

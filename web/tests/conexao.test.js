@@ -113,3 +113,14 @@ test('estadoConexao mapeia os três estados da bolinha', async () => {
   assert.equal(estadoConexao(false, true).chave, 'reconectando');
   assert.equal(estadoConexao(false, false).chave, 'offline');
 });
+
+test('estadoConexao leva os lances a sincronizar para a bolinha', async () => {
+  const { estadoConexao } = await import('../src/lib/conexao.js');
+  assert.equal(estadoConexao(true, true).pendentes, 0);
+  assert.equal(estadoConexao(true, true).rotulo, 'Conexão: ao vivo');
+  const dois = estadoConexao(true, true, 2);
+  assert.equal(dois.chave, 'conectado');
+  assert.equal(dois.pendentes, 2);
+  assert.equal(dois.rotulo, 'Conexão: ao vivo, 2 lances a sincronizar');
+  assert.equal(estadoConexao(false, true, 1).rotulo, 'Conexão: reconectando, 1 lance a sincronizar');
+});

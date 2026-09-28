@@ -138,12 +138,17 @@ export function criarConexao({
  * Estado mostrado pela bolinha do cabeçalho (CV6.DS1.US1): sem rede no
  * aparelho é offline mesmo antes de o socket notar a queda; com rede e sem
  * sala confirmada, reconectando.
+ * Lances ainda sem confirmação do servidor aparecem como número na própria
+ * bolinha (como no relógio), em vez de aviso sobre o placar.
  * @param {boolean} conectado
  * @param {boolean} online
- * @returns {{ chave: 'conectado' | 'reconectando' | 'offline', rotulo: string }}
+ * @param {number} [pendentes]
+ * @returns {{ chave: 'conectado' | 'reconectando' | 'offline', rotulo: string, pendentes: number }}
  */
-export function estadoConexao(conectado, online) {
-  if (!online) return { chave: 'offline', rotulo: 'Conexão: sem internet' };
-  if (conectado) return { chave: 'conectado', rotulo: 'Conexão: ao vivo' };
-  return { chave: 'reconectando', rotulo: 'Conexão: reconectando' };
+export function estadoConexao(conectado, online, pendentes = 0) {
+  const n = Math.max(0, pendentes | 0);
+  const fila = n === 0 ? '' : n === 1 ? ', 1 lance a sincronizar' : `, ${n} lances a sincronizar`;
+  if (!online) return { chave: 'offline', rotulo: `Conexão: sem internet${fila}`, pendentes: n };
+  if (conectado) return { chave: 'conectado', rotulo: `Conexão: ao vivo${fila}`, pendentes: n };
+  return { chave: 'reconectando', rotulo: `Conexão: reconectando${fila}`, pendentes: n };
 }
