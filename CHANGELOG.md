@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV3.DS1.US4 — Revisão de conflito do relógio pelo telefone
 
 - **Branch:** `feature/cv3-ds1-us4-revisao-no-telefone`
-- **Passo Ariad:** Passo 4 - Teste e Validação (Checkpoint 2)
+- **Passo Ariad:** Passo 5 - Revisão (Checkpoint 3)
 - **Assinatura do Agente:** Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 9add80cf | Data: 2026-09-28
-- **Handoff / Próximos Passos:** Navigator escolheu a opção simples (descarte automático com aviso de 3 s, sem revisão no telefone); implementado só no relógio. Aguardando teste físico; ver plan.md da US.
+- **Handoff / Próximos Passos:** Navigator escolheu a opção simples (descarte automático com aviso de 3 s, sem revisão no telefone); implementado só no relógio. Teste físico aprovado pelo Navigator em 2026-09-28. Aguardando aceite da revisão.
 
 ## 0.23.4 - 2026-09-28
 
