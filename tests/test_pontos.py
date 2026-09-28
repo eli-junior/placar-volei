@@ -26,7 +26,9 @@ async def test_marcar_ponto_equipe_a_e_b():
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         # Cria quadra
-        resp_q = await client.post("/api/quadras", json={"nome": "Quadra Principal"})
+        resp_q = await client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra Principal"}
+        )
         assert resp_q.status_code == 201
         quadra_id = resp_q.json()["id"]
 
@@ -80,7 +82,9 @@ async def test_marcar_ponto_validacoes():
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        resp_q = await client.post("/api/quadras", json={"nome": "Quadra Teste"})
+        resp_q = await client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra Teste"}
+        )
         quadra_id = resp_q.json()["id"]
 
         # 1. Sem cookie de sessão
@@ -121,7 +125,9 @@ async def test_consultar_partida_quadra():
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        resp_q = await client.post("/api/quadras", json={"nome": "Quadra Central"})
+        resp_q = await client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra Central"}
+        )
         quadra_id = resp_q.json()["id"]
 
         # Consulta antes de qualquer ponto
@@ -152,7 +158,9 @@ async def test_marcar_ponto_bloqueado_se_partida_encerrada():
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        resp_q = await client.post("/api/quadras", json={"nome": "Quadra Final"})
+        resp_q = await client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra Final"}
+        )
         quadra_id = resp_q.json()["id"]
 
         await client.post(f"/api/quadras/{quadra_id}/entrar", json={"apelido": "Juiz"})
@@ -185,7 +193,9 @@ async def test_marcar_ponto_bloqueado_se_partida_encerrada():
 def test_websocket_broadcast_ponto():
     """Conexão WebSocket recebe PLACAR_ATUALIZADO quando um ponto é marcado."""
     with TestClient(app) as client:
-        resp_q = client.post("/api/quadras", json={"nome": "Quadra WS Ponto"})
+        resp_q = client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra WS Ponto"}
+        )
         quadra_id = resp_q.json()["id"]
 
         # Entra na quadra

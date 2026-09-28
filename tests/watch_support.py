@@ -28,7 +28,7 @@ def client(tmp_path, monkeypatch):
 
 
 def prepare(client):
-    court = client.post("/api/quadras", json={"apelido": "eli"}).json()
+    court = client.post("/api/quadras", json={"apelido": "eli", "alvo": 12}).json()
     response = client.post(
         "/api/owner/watch-access",
         json={"participant_id": court["participante"]["id"]},

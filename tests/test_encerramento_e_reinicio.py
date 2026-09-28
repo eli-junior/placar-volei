@@ -27,7 +27,8 @@ async def test_vitoria_direta_e_partida_encerrada():
     ) as client:
         # Cria quadra com apelido Eli
         resp_q = await client.post(
-            "/api/quadras", json={"nome": "Quadra Central", "apelido": "Eli"}
+            "/api/quadras",
+            json={"alvo": 12, "nome": "Quadra Central", "apelido": "Eli"},
         )
         assert resp_q.status_code == 201
         data_q = resp_q.json()
@@ -106,7 +107,8 @@ async def test_vantagem_apos_empate_e_encerramento():
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         resp_q = await client.post(
-            "/api/quadras", json={"nome": "Quadra Vantagem", "apelido": "Eli"}
+            "/api/quadras",
+            json={"alvo": 12, "nome": "Quadra Vantagem", "apelido": "Eli"},
         )
         quadra_id = resp_q.json()["id"]
 
@@ -166,7 +168,8 @@ async def test_desfazer_ponto_da_vitoria_reabre_partida():
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         resp_q = await client.post(
-            "/api/quadras", json={"nome": "Quadra Reversão", "apelido": "Eli"}
+            "/api/quadras",
+            json={"alvo": 12, "nome": "Quadra Reversão", "apelido": "Eli"},
         )
         quadra_id = resp_q.json()["id"]
         partida_id = resp_q.json()["partida_id"]
@@ -229,7 +232,8 @@ async def test_reiniciar_partida_sob_demanda():
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         resp_q = await client.post(
-            "/api/quadras", json={"nome": "Quadra Reinício", "apelido": "Eli"}
+            "/api/quadras",
+            json={"alvo": 12, "nome": "Quadra Reinício", "apelido": "Eli"},
         )
         quadra_id = resp_q.json()["id"]
         partida_1_id = resp_q.json()["partida_id"]
@@ -310,7 +314,7 @@ async def test_encerramento_com_teto_atingido():
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         resp_q = await client.post(
-            "/api/quadras", json={"nome": "Quadra Teto", "apelido": "Eli"}
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra Teto", "apelido": "Eli"}
         )
         quadra_id = resp_q.json()["id"]
         partida_id = resp_q.json()["partida_id"]
@@ -358,7 +362,7 @@ async def test_websocket_continuidade_ao_reiniciar():
     with TestClient(app) as test_client:
         # Cria quadra com apelido
         res = test_client.post(
-            "/api/quadras", json={"nome": "Quadra WS", "apelido": "Eli"}
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra WS", "apelido": "Eli"}
         )
         assert res.status_code == 201
         data_q = res.json()

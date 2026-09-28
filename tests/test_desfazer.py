@@ -26,7 +26,9 @@ async def test_desfazer_ponto_sucesso():
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
         # Cria quadra e entra
-        resp_q = await client.post("/api/quadras", json={"nome": "Quadra Desfazer"})
+        resp_q = await client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra Desfazer"}
+        )
         quadra_id = resp_q.json()["id"]
         partida_id = resp_q.json()["partida_id"]
         await client.post(f"/api/quadras/{quadra_id}/entrar", json={"apelido": "Eli"})
@@ -87,7 +89,9 @@ async def test_desfazer_quando_placar_zerado():
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        resp_q = await client.post("/api/quadras", json={"nome": "Quadra 0x0"})
+        resp_q = await client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra 0x0"}
+        )
         quadra_id = resp_q.json()["id"]
         await client.post(f"/api/quadras/{quadra_id}/entrar", json={"apelido": "Ana"})
 
@@ -105,7 +109,9 @@ async def test_desfazer_reverte_vitoria():
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        resp_q = await client.post("/api/quadras", json={"nome": "Quadra Match Point"})
+        resp_q = await client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra Match Point"}
+        )
         quadra_id = resp_q.json()["id"]
         await client.post(f"/api/quadras/{quadra_id}/entrar", json={"apelido": "Juiz"})
 
@@ -145,7 +151,9 @@ async def test_desfazer_validacoes_seguranca():
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        resp_q = await client.post("/api/quadras", json={"nome": "Quadra Auth"})
+        resp_q = await client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra Auth"}
+        )
         quadra_id = resp_q.json()["id"]
 
         # 1. Sem autenticação
@@ -165,7 +173,9 @@ async def test_desfazer_validacoes_seguranca():
 def test_websocket_broadcast_desfazer():
     """Conexão WebSocket recebe PLACAR_ATUALIZADO ao desfazer um ponto."""
     with TestClient(app) as client:
-        resp_q = client.post("/api/quadras", json={"nome": "Quadra WS Desfazer"})
+        resp_q = client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra WS Desfazer"}
+        )
         quadra_id = resp_q.json()["id"]
 
         # Entra na quadra
@@ -207,7 +217,9 @@ async def test_espectador_nao_pode_marcar_nem_desfazer_ponto():
     async with httpx.AsyncClient(
         transport=ASGITransport(app=app), base_url="http://test"
     ) as client:
-        resp_q = await client.post("/api/quadras", json={"nome": "Quadra Papeis"})
+        resp_q = await client.post(
+            "/api/quadras", json={"alvo": 12, "nome": "Quadra Papeis"}
+        )
         quadra_id = resp_q.json()["id"]
 
         # 1. Primeiro participante entra -> ADMIN

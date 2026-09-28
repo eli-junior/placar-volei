@@ -64,6 +64,18 @@ class ConnectionHub:
             except (WebSocketDisconnect, RuntimeError, OSError):
                 pass
 
+    async def encerrar_quadra(self, quadra_id: str, aviso: dict[str, Any]) -> None:
+        """Avisa e fecha todos os sockets de uma quadra que deixou de existir."""
+        async with self._lock:
+            sockets = list(self._quadras.get(quadra_id, set()))
+        for ws in sockets:
+            await self.disconnect(quadra_id, ws)
+            try:
+                await asyncio.wait_for(ws.send_json(aviso), ENVIO_TIMEOUT)
+                await ws.close(code=4404)
+            except (WebSocketDisconnect, RuntimeError, OSError, TimeoutError):
+                pass
+
     async def participantes_online(self, quadra_id: str) -> set[str]:
         async with self._lock:
             sockets = self._quadras.get(quadra_id, set())

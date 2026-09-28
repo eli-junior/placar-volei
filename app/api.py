@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from app.comandos import executar_sync, snapshot_sync
 from app.config import settings
-from app.eventos import carregar_eventos, get_quadra_lock
+from app.eventos import carregar_eventos, descartar_quadra_locks, get_quadra_lock
 from app.hub import hub
 from app.identidade import SESSION_COOKIE
 
@@ -19,6 +19,7 @@ from app.projecao import projetar_estado, projetar_linha_do_tempo
 from app.quadras import (
     ApelidoEmUso,
     criar_quadra,
+    liberar_quadra_sync,
     listar_participantes,
     listar_quadras,
     listar_quadras_owner,
@@ -176,7 +177,7 @@ class CriarQuadraBody(BaseModel):
     equipe_a: str | None = Field(default=None, max_length=60)
     equipe_b: str | None = Field(default=None, max_length=60)
     alvo: int = Field(
-        default=12, ge=1, le=100, description="Pontuação-alvo para vitória"
+        default=10, ge=1, le=100, description="Pontuação-alvo para vitória"
     )
     vantagem: bool = Field(
         default=True, description="Exigência de 2 pontos de vantagem"
@@ -559,6 +560,23 @@ async def post_configurar_partida(
         kwargs["tema_placar"] = body.tema_placar
 
     return await executar_comando(quadra_id, request, "configurar", **kwargs)
+
+
+@router.post("/quadras/{quadra_id}/liberar", status_code=204)
+async def post_liberar_quadra(quadra_id: str, request: Request):
+    """Admin encerra a quadra para todos, na hora (CV6.DS1.US8)."""
+    session_id = request.headers.get("x-session-id") or request.cookies.get(
+        SESSION_COOKIE
+    )
+    async with get_quadra_lock(quadra_id):
+        await asyncio.to_thread(
+            liberar_quadra_sync, settings.db_path, quadra_id, session_id
+        )
+        await hub.encerrar_quadra(
+            quadra_id, {"tipo": "SALA_EXPIRADA", "payload": {"motivo": "liberada"}}
+        )
+    descartar_quadra_locks([quadra_id])
+    return Response(status_code=204)
 
 
 @router.post("/quadras/{quadra_id}/controle/assumir")

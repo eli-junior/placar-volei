@@ -4,6 +4,30 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.23.0 - 2026-09-28
+
+Boundary: minor (CV6.DS1.US7 — pontuação por slider, topo curto e selo de papel; CV6.DS1.US8 — admin libera a quadra)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: 5bfc5c62
+
+Git source: merge `--no-ff` de `feature/cv6-ds1-us7-us8-pontuacao-e-liberar-quadra` em `master`.
+
+### Added
+
+- Admin libera a quadra no ⚙, com confirmação: a quadra some na hora e todos os aparelhos voltam à tela inicial (`POST /api/quadras/{id}/liberar`, só admin).
+- Selo do papel em caixinha no topo, Ⓐ admin ou Ⓒ controlador, com dica ao tocar.
+
+### Changed
+
+- Alvo padrão passa de 12 para 10 pontos. Quadras existentes mantêm o alvo.
+- Pontuação por slider de 6 a 20; Personalizado aceita inteiro de 1 a 100 e desliga o slider.
+- Topo curto: `10 pts · +2 · até 15`; o texto por extenso fica no leitor de tela.
+- Versões: backend e web 0.23.0.
+
+### Verification
+
+- 224 testes Python, 96 unitários web, svelte-check, build e 34 testes de navegador (novo `e2e/liberar-e-selo.spec.js`). Navigator validou no Fold.
+
 ## 0.22.3 - 2026-09-28
 
 Boundary: patch (manutenção visual da sala, fora de história)

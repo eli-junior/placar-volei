@@ -82,8 +82,9 @@ test('ações secundárias aparecem uma vez só, no menu', () => {
   assert.doesNotMatch(placar, /onAlternarLados/);
 });
 
-test('papel aparece em selo neutro, separado da posse', () => {
-  assert.match(salaFonte, /<span class="selo-papel">\{nomeDoPapel\(eu\?\.papel\)\}<\/span>/);
+test('papel aparece em selo neutro com letra circulada, fora da faixa de posse', () => {
+  assert.match(salaFonte, /class="btn-topo selo-papel" onclick=\{mostrarDicaSelo\} aria-label=\{selo\.dica\}/);
+  assert.ok(salaFonte.indexOf('selo-papel-ancora') > salaFonte.indexOf('<div class="faixa-posse"'));
   assert.doesNotMatch(salaFonte, /badge-admin/);
 });
 
@@ -123,5 +124,12 @@ test('resumo das regras mostra alvo, vantagem e teto', async () => {
   assert.equal(resumirRegras({ alvo: 12, vantagem: true, teto: null }), '12 pontos · Vantagem');
   assert.equal(resumirRegras({ alvo: 15, vantagem: false }), '15 pontos · Sem vantagem');
   assert.equal(resumirRegras({ alvo: 21, vantagem: true, teto: 25 }), '21 pontos · Vantagem · Teto 25');
-  assert.equal(resumirRegras(null), '12 pontos · Vantagem');
+  assert.equal(resumirRegras(null), '10 pontos · Vantagem');
+});
+
+test('resumo curto do topo: alvo, vantagem e teto', async () => {
+  const { resumirRegrasCurto } = await import('../src/lib/controle.js');
+  assert.equal(resumirRegrasCurto({ alvo: 12, vantagem: true, teto: 15 }), '12 pts · +2 · até 15');
+  assert.equal(resumirRegrasCurto({ alvo: 15, vantagem: false }), '15 pts');
+  assert.equal(resumirRegrasCurto(null), '10 pts · +2');
 });

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { CHAVE_APELIDO, guardarApelido, lerApelido, nomeDoPapel } from '../src/lib/preferencias.js';
+import { CHAVE_APELIDO, guardarApelido, lerApelido, nomeDoPapel, seloDoPapel } from '../src/lib/preferencias.js';
 
 function memoria(inicial = {}) {
   const dados = { ...inicial };
@@ -37,6 +37,12 @@ test('selo mostra o papel legível', () => {
   assert.equal(nomeDoPapel('CONTROLADOR'), 'Controlador');
   assert.equal(nomeDoPapel('ADMIN'), 'Admin');
   assert.equal(nomeDoPapel(undefined), '');
+});
+
+test('selo curto do topo: letra e dica por papel', () => {
+  assert.deepEqual(seloDoPapel('ADMIN'), { letra: 'A', dica: 'Administrador da quadra' });
+  assert.deepEqual(seloDoPapel('CONTROLADOR'), { letra: 'C', dica: 'Controlador do placar' });
+  assert.equal(seloDoPapel('ESPECTADOR'), null);
 });
 
 test('conexão tem um só vocabulário e vitória um só texto', () => {
