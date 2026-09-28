@@ -20,6 +20,8 @@ Melhorar organização, leitura, configuração e operação no tablet e telefon
 - [CV6.DS1.US4 — Regras da partida visíveis no placar](cv6-ds1-us4-regras-visiveis/index.md).
 - [CV6.DS1.US5 — Configurações legíveis com pontuação primeiro](cv6-ds1-us5-ajustes-espacosos/index.md).
 - [CV6.DS1.US6 — Atalhos de ajuste no placar](cv6-ds1-us6-atalhos-no-placar/index.md) (0.22.0).
+- [CV6.DS1.US7 — Pontuação por slider, topo curto e selo de papel](cv6-ds1-us7-pontuacao-por-slider/index.md) (0.23.0).
+- [CV6.DS1.US8 — Admin libera a quadra](cv6-ds1-us8-liberar-quadra/index.md) (0.23.0).
 
 ## Acceptance / Done Condition
 
