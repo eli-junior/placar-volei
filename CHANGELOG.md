@@ -4,11 +4,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: manutenção do topo — ⚙ e ⇄ entram na fila de prioridade (saem por último para o ⋯), o código da sala nunca é cortado, e as regras ganham o nível médio `10 pontos Ⓥ`. Alvo 0.23.4.
-- **Branch**: `fix/topo-prioridade-ajustes`
-- **Passo Ariad**: Passo 4 - Teste e Validação
-- **Assinatura do Agente**: Agente: Claude Code, Opus 5.5 (Driver) | Sessão: 2c64122a | Data: 2026-09-28
-- **Handoff / Próximos Passos**: aguardando validação do Navigator no Fold aberto e fechado.
+## 0.23.4 - 2026-09-28
+
+Boundary: patch (manutenção visual do topo da sala, fora de história)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: 2c64122a
+
+Git source: merge `--no-ff` de `fix/topo-prioridade-ajustes` em `master`.
+
+### Changed
+
+- ⚙ Duplas e regras e ⇄ Inverter lados entram na fila de prioridade do topo, à frente das demais ações; sem espaço, vão para o ⋯ por último. O código da sala é reservado inteiro e não é mais cortado.
+- Regras no topo em três níveis: `10 pts com vantagem`, `10 pontos Ⓥ` ou `10 pts Ⓥ`, conforme o espaço.
+- Versões: backend e web 0.23.4.
+
+### Verification
+
+- 96 testes unitários web, svelte-check sem erros e build. Testes de navegador ajustados, não executados nesta sessão. Navigator validou no Fold aberto e fechado.
 
 ## 0.23.3 - 2026-09-28
 
