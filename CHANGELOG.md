@@ -4,6 +4,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.23.1 - 2026-09-28
+
+Boundary: patch (manutenção fora de história — limpar nomes das equipes)
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: 0886f1e8-8abe-4d50-9a13-a03a795ce8f7
+
+Git source: merge `--no-ff` de `feature/limpar-nomes-equipe` em `master` (desenvolvida como 0.22.3, renumerada após 0.23.0).
+
+### Added
+
+- Botão "Limpar" nos jogadores de cada equipe: esvazia os dois nomes de uma vez. Salvar após limpar volta ao nome padrão ("Equipe A"/"Equipe B"); cancelar mantém os nomes.
+- Versões: backend e web 0.23.1.
+
+### Verification
+
+- Build e `e2e/atalhos.spec.js` (2/2, esportivo e clássico). Navigator validou.
+
 ## 0.23.0 - 2026-09-28
 
 Boundary: minor (CV6.DS1.US7 — pontuação por slider, topo curto e selo de papel; CV6.DS1.US8 — admin libera a quadra)
