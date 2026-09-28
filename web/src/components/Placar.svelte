@@ -12,8 +12,6 @@
     // `enviando` = há comando em voo. Não bloqueia o toque seguinte: apenas
     // pinta o botão de "processando" (aria-busy + pulso).
     enviando = false,
-    // Quantos toques já aceitos ainda aguardam resposta do servidor.
-    pendentes = 0,
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
     onIniciarNovaPartida = () => {},
@@ -191,12 +189,6 @@
     </div>
   {/if}
 
-  {#if podeControlar && enviando && !desabilitado}
-    <div class="aviso-envio" role="status">
-      <span class="aviso-icone pulsando" aria-hidden="true">●</span>
-      <span>{pendentes > 1 ? `Enviando ${pendentes} toques na fila…` : 'Enviando o toque…'}</span>
-    </div>
-  {/if}
 
   <div class="palco">
     <div class="resultado">
@@ -426,44 +418,6 @@
     font-style: italic;
   }
 
-  /* Avisos de transporte: conexão caída e envio em andamento */
-  .aviso-envio {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 10px 14px;
-    border-radius: var(--radius-md);
-    font-size: 0.85rem;
-    font-weight: 600;
-    line-height: 1.35;
-  }
-
-  .aviso-envio {
-    /* Token do tema: no Modo Sol o cartão é branco e o ciano claro sumia. */
-    color: var(--acento-info);
-    background: rgba(6, 182, 212, 0.12);
-    border: 1px solid rgba(6, 182, 212, 0.35);
-  }
-
-  .aviso-icone {
-    font-size: 1rem;
-    line-height: 1;
-    flex: 0 0 auto;
-  }
-
-  .aviso-icone.pulsando {
-    animation: pulsar-aviso 0.9s ease-in-out infinite;
-  }
-
-  @keyframes pulsar-aviso {
-    0%, 100% {
-      opacity: 0.35;
-    }
-    50% {
-      opacity: 1;
-    }
-  }
-
   /* Botões Grandes para Uma Mão */
   .btn-marcar {
     width: 100%;
@@ -572,8 +526,7 @@
     .btn-marcar[aria-busy='true'],
     .btn-nova-partida[aria-busy='true'],
     .btn-desfazer[aria-busy='true'],
-    .btn-marcar[aria-busy='true']::after,
-    .aviso-icone.pulsando {
+    .btn-marcar[aria-busy='true']::after {
       animation: none !important;
     }
 

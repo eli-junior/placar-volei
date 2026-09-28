@@ -335,7 +335,7 @@
       window.removeEventListener('offline', atualizar);
     };
   });
-  const conexaoVisivel = $derived(estadoConexao(wsConectado, online));
+  const conexaoVisivel = $derived(estadoConexao(wsConectado, online, pendentes));
 
   $effect(() => observarTelaCheia((ativa) => { telaCheia = ativa; }));
 
@@ -526,9 +526,10 @@
       <span class="caixa-status" title={conexaoVisivel.rotulo}>
         <span
           class="status-dot status-topo {conexaoVisivel.chave === 'conectado' ? 'status-online' : conexaoVisivel.chave === 'offline' ? 'status-sem-rede' : 'status-reconectando'}"
+          class:com-fila={conexaoVisivel.pendentes > 0}
           role="img"
           aria-label={conexaoVisivel.rotulo}
-        ></span>
+        >{#if conexaoVisivel.pendentes > 0}<span aria-hidden="true">{conexaoVisivel.pendentes > 99 ? '99+' : conexaoVisivel.pendentes}</span>{/if}</span>
       </span>
     </header>
   {/if}
@@ -567,7 +568,6 @@
       podeControlar={temControle}
       desabilitado={!wsConectado}
       enviando={operando}
-      {pendentes}
       {ladosInvertidos}
       {onMarcarPonto}
       {onDesfazerPonto}
@@ -736,6 +736,20 @@
   .btn-voltar,
   .caixa-status { border-radius: 50%; }
   .status-topo { width: 18px; height: 18px; }
+  /* Lances a sincronizar: número dentro da bolinha, como o ↑N do relógio. */
+  .status-topo.com-fila {
+    display: grid;
+    place-items: center;
+    width: auto;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 5px;
+    box-sizing: border-box;
+    border-radius: 12px;
+    color: #06140c;
+    font: 800 .8rem/1 var(--fonte-numeros, inherit);
+    font-variant-numeric: tabular-nums;
+  }
   /* Pulso só quando ao vivo; movimento reduzido global o desliga. */
   .status-topo.status-online { animation: pulso-status 2s ease-in-out infinite; }
   @keyframes pulso-status {

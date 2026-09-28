@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo**: Manutenção visual — × do placar clássico igual ao do esportivo; aviso "Enviando o toque…" sai de cima do placar e a quantidade de lances a sincronizar vai para a bolinha de conexão do topo (como o `↑N` do relógio).
+- **Branch**: `claude/placar-classico-melhorias-wnyd4f`
+- **Passo Ariad**: Passo 4 - Teste e Validação (aguardando validação do Navigator)
+- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: session_018HHNpGHW3MAqyaYZzNwmse | Data: 2026-09-28
+- **Handoff / Próximos Passos**: 94 testes unitários, svelte-check, build e 31 e2e aprovados. Falta validação manual do Navigator, versão (patch 0.22.3) e merge.
+
 ## 0.22.2 - 2026-09-27
 
 Boundary: patch (manutenção visual da sala, fora de história)

@@ -21,7 +21,9 @@
     {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeA}" onclick={() => onEditarEquipe('A')}>{equipeA}</button>{:else}<span class="nome" title={equipeA}>{equipeA}</span>{/if}
     <CartaoDobravel valor={pontosA} equipe={equipeA} tema="a" tamanho="fluido" prefersReducedMotion={movimentoReduzido} />
   </section>
-  <span class="divisor" aria-hidden="true">×</span>
+  <div class="divisor" aria-hidden="true">
+    <svg viewBox="0 0 100 100"><path d="M8 8L92 92M92 8L8 92" /></svg>
+  </div>
   <section class="time time-b" class:tres-digitos={String(pontosB).length > 2}>
     {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeB}" onclick={() => onEditarEquipe('B')}>{equipeB}</button>{:else}<span class="nome" title={equipeB}>{equipeB}</span>{/if}
     <CartaoDobravel valor={pontosB} equipe={equipeB} tema="b" tamanho="fluido" prefersReducedMotion={movimentoReduzido} />
@@ -95,13 +97,37 @@
   .time { --cartao-num: clamp(3.5rem, min(calc(min(22cqw, 48cqh) * var(--escala-numeros, 1)), 34cqw, 62cqh), 40rem); }
   .time.tres-digitos { --cartao-num: clamp(3rem, min(calc(min(15cqw, 40cqh) * var(--escala-numeros, 1)), 23cqw, 62cqh), 28rem); }
 
+  /* Mesmo divisor do esportivo: linha e × cheios no centro, sumindo nas pontas. */
   .divisor {
     grid-area: divisor;
+    position: relative;
+    align-self: stretch;
     display: grid;
     place-items: center;
-    color: var(--texto-apagado);
-    font-size: clamp(1.15rem, 3cqw, 2rem);
-    font-weight: 850;
+    color: var(--texto-medio);
+  }
+
+  .divisor::before {
+    content: '';
+    position: absolute;
+    inset: 0 auto;
+    left: 50%;
+    width: 2px;
+    transform: translateX(-50%);
+    background: linear-gradient(180deg, transparent, currentColor 50%, transparent);
+  }
+
+  .divisor svg {
+    position: relative;
+    width: clamp(30px, 5cqw, 64px);
+    aspect-ratio: 1;
+    padding: 4px;
+    background: var(--fundo-elevado);
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 18;
+    stroke-linecap: round;
+    mask-image: radial-gradient(circle, #000 20%, transparent 72%);
   }
 
   /* Tela em pé: uma equipe sobre a outra (CV6.DS1.US3). */
@@ -113,6 +139,9 @@
       grid-template-areas: 'a' 'divisor' 'b';
     }
     .classico.invertido { grid-template-areas: 'b' 'divisor' 'a'; }
+    /* Em pé a linha vira horizontal. */
+    .divisor { align-self: center; justify-self: stretch; }
+    .divisor::before { inset: auto 0; top: 50%; left: 0; width: auto; height: 2px; transform: translateY(-50%); background: linear-gradient(90deg, transparent, currentColor 50%, transparent); }
     .time { --cartao-num: clamp(3.5rem, min(calc(min(42cqw, 22cqh) * var(--escala-numeros, 1)), 70cqw, 30cqh), 40rem); }
     .time.tres-digitos { --cartao-num: clamp(3rem, min(calc(min(30cqw, 20cqh) * var(--escala-numeros, 1)), 48cqw, 30cqh), 28rem); }
   }
