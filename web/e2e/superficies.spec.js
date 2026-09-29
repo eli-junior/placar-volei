@@ -28,7 +28,7 @@ test('menu por papel e foco de volta ao ⋯', async ({ abrir }) => {
 
 test('tela larga: ações sobem para o topo e o ⋯ fica com o resto', async ({ abrir }) => {
   const admin = await abrir({ viewport: { width: 1280, height: 800 } });
-  await criarSala(admin);
+  await criarSala(admin, { nome: '' });
   const topo = admin.locator('.barra-sala');
   for (const rotulo of ['Duplas e regras da partida', 'Inverter lados das equipes', 'Modo sol', 'Relógio', 'Linha do tempo', 'Números: M']) {
     await expect(topo.getByLabel(rotulo, { exact: true })).toBeVisible();
@@ -63,7 +63,13 @@ test('vitória chega aos dois clientes', async ({ abrir }) => {
 test('configurações: pontuação primeiro e salvar sempre visível', async ({ abrir }) => {
   const p = await abrir({ viewport: { width: 344, height: 882 } });
   await criarSala(p);
-  await p.getByLabel('Duplas e regras da partida').click();
+  const botaoAjustes = p.getByLabel('Duplas e regras da partida');
+  if (await botaoAjustes.isVisible()) {
+    await botaoAjustes.click();
+  } else {
+    await p.getByLabel(/Mais ações/).click();
+    await p.getByRole('button', { name: 'Duplas e regras' }).click();
+  }
   await expect(p.locator('dialog[open] .secao-rotulo').first()).toHaveText(/Pontuação/i);
   await p.setViewportSize({ width: 344, height: 420 });
   const salvar = p.getByRole('button', { name: 'Salvar Alterações' });
