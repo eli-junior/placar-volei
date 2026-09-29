@@ -4,6 +4,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.24.1 - 2026-09-29
+
+Boundary: patch da web (manutenção fora de história — tela do celular acesa entre partidas); Wear segue em 0.25.0.
+
+Authors: Eli (Navigator); Claude Code, Opus 5.5 (Driver, Passos 1–7) | Sessão: b97ff9ae
+
+Git source: merge `--no-ff` de `fix/tela-acesa-entre-partidas-2` em `master` (desenvolvida como 0.23.2 sobre base antiga, reaplicada sobre 0.25.0).
+
+### Fixed
+
+- A tela do celular apagava ao fim da partida e o relógio perdia a conexão. O Wake Lock agora fica ativo enquanto a sala da quadra estiver aberta, com ou sem partida em andamento, e só é liberado ao sair da sala.
+- Versões: backend e web 0.24.1.
+
+### Verification
+
+- Build do web. Navigator validou no celular.
+
 ## 0.25.0 - 2026-09-28 (atualizado em 2026-09-29)
 
 Boundary: minor do Wear OS (CV6.DS2.US4); backend e web permanecem em 0.24.0. Manutenção de testes e2e da web em 2026-09-29.
