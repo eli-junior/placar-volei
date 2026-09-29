@@ -128,11 +128,12 @@
     }
   });
 
-  // Wake Lock API (CV2.DS2.US3)
+  // Wake Lock API (CV2.DS2.US3): tela acesa enquanto a sala estiver aberta,
+  // inclusive entre partidas, para não perder a conexão com o relógio.
   let wakeLockSentinel = null;
 
   async function requisitarWakeLock() {
-    if (typeof navigator === 'undefined' || !navigator.wakeLock || estadoPartida?.encerrada) return;
+    if (typeof navigator === 'undefined' || !navigator.wakeLock) return;
     try {
       if (!wakeLockSentinel || wakeLockSentinel.released) {
         wakeLockSentinel = await navigator.wakeLock.request('screen');
@@ -152,16 +153,10 @@
   $effect(() => {
     if (typeof document === 'undefined') return;
 
-    if (!estadoPartida?.encerrada) {
-      requisitarWakeLock();
-    } else {
-      liberarWakeLock();
-    }
+    requisitarWakeLock();
 
     const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && !estadoPartida?.encerrada) {
-        requisitarWakeLock();
-      }
+      if (document.visibilityState === 'visible') requisitarWakeLock();
     };
 
     document.addEventListener('visibilitychange', onVisibilityChange);
