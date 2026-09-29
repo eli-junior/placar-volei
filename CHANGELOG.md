@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo**: Manutenção — correção de testes e2e de superfícies (`superficies.spec.js`) após manutenção visual 0.23.4 (nome padrão de sala e acesso a Duplas e Regras no Fold fechado).
+- **Branch**: `fix/e2e-superficies-topo`
+- **Passo Ariad**: Passo 4 - Teste e Validação
+- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 22a7f4ef-3f50-406e-af46-16af48e95824 | Data: 2026-09-29 12:04
+- **Handoff / Próximos Passos**: Testes 100% verdes (35 e2e, 96 unitários web, 224 backend). Checkpoint 2 apresentado.
+
 ## 0.25.0 - 2026-09-28
 
 Boundary: minor do Wear OS (CV6.DS2.US4); backend e web permanecem em 0.24.0.
