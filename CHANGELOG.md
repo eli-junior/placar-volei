@@ -4,19 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: Manutenção — correção de testes e2e de superfícies (`superficies.spec.js`) após manutenção visual 0.23.4 (nome padrão de sala e acesso a Duplas e Regras no Fold fechado).
-- **Branch**: `fix/e2e-superficies-topo`
-- **Passo Ariad**: Passo 5 - Revisão
-- **Assinatura do Agente**: Agente: Antigravity (Driver) | Sessão: 22a7f4ef-3f50-406e-af46-16af48e95824 | Data: 2026-09-29 13:28
-- **Handoff / Próximos Passos**: Avaliação de refatoração e dívida técnica concluída. Checkpoint 3 apresentado.
+## 0.25.0 - 2026-09-28 (atualizado em 2026-09-29)
 
-## 0.25.0 - 2026-09-28
+Boundary: minor do Wear OS (CV6.DS2.US4); backend e web permanecem em 0.24.0. Manutenção de testes e2e da web em 2026-09-29.
 
-Boundary: minor do Wear OS (CV6.DS2.US4); backend e web permanecem em 0.24.0.
+Authors: Eli (Navigator); Codex (Driver, US4); Antigravity (Driver, manutenção e2e) | Sessões: cv6-ds2-us3-us4-20260928; 22a7f4ef-3f50-406e-af46-16af48e95824
 
-Authors: Eli (Navigator); Codex (Driver) | Sessão: cv6-ds2-us3-us4-20260928
-
-Git source: branch `feature/cv6-ds2-us4-repouso-e-retomada`, integrada em `master` com `--no-ff`.
+Git source: branch `feature/cv6-ds2-us4-repouso-e-retomada` e `fix/e2e-superficies-topo`, integradas em `master` com `--no-ff`.
 
 ### Changed
 
@@ -24,9 +18,14 @@ Git source: branch `feature/cv6-ds2-us4-repouso-e-retomada`, integrada em `maste
 - Sessão do relógio sobrevive à pausa da Activity sem abrir proprietários concorrentes do WebSocket. A permissão de notificações é solicitada ao vincular.
 - APK Wear 0.25.0 (versionCode 13); nenhuma mudança de protocolo, backend ou web.
 
+### Fixed
+
+- Testes e2e de superfícies (`superficies.spec.js`): alinhadas as expectativas com o topo da sala da 0.23.4 (uso de nome padrão sem repetir código e abertura de configurações no Fold fechado via menu `⋯` quando não couber no topo).
+
 ### Verification
 
-- 59 testes passaram; builds debug/release e lint concluídos.
+- 59 testes do relógio passaram; builds debug/release e lint concluídos.
+- 35/35 testes e2e do Playwright verdes, 96 testes unitários web, svelte-check sem erros, 224 testes pytest no backend e linters ruff 100% aprovados. CI do GitHub Actions verde.
 - No Galaxy Watch SM-L330/Android 16, serviço foreground e WebSocket permaneceram ativos por 60 s em Dozing via ADB; Navigator aceitou essa evidência limitada.
 - Gesto físico, atualização recebida durante repouso, queda de rede, treino ativo e bateria não foram observados. Animações e leitura de frequência cardíaca não são pausadas no repouso; limitações e follow-up constam no roteiro/revisão da US4.
 
