@@ -56,7 +56,7 @@ test('metadados operacionais não antecedem o placar do espectador', () => {
 test('painel do espectador ocupa a altura útil no modo imersivo', () => {
   assert.match(sala, /class="placar-espectador-wrapper"/);
   assert.match(sala, /\.em-modo-imersivo \.placar-espectador-wrapper\s*\{[^}]*flex: 1 1 auto;[^}]*height: 100%;/s);
-  assert.match(espectador, /grid-template-areas:\s*'contexto'\s*'vitoria'\s*'resultado'\s*'rodape'/);
+  assert.match(espectador, /grid-template-areas:\s*'contexto'\s*'vitoria'\s*'resultado'\s*'sequencia'\s*'rodape'/);
 });
 
 test('feedback de atualização respeita movimento reduzido', () => {
