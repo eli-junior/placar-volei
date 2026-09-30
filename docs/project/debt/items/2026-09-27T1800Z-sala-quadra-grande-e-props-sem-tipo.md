@@ -17,3 +17,7 @@ closure_condition: SalaQuadra.svelte abaixo de ~600 linhas (preferências e imer
 ## Carrying Reason
 
 A `CV5.DS5.TS1` ligou o `@ts-check` só nos módulos de lógica (`sync.js`, `lib/*.js`) e extraiu tema e conexão. Dividir a sala e tipar as props mexe em quase todos os componentes, sem mudança visível. Fica para quando uma história já for mexer nesses pontos.
+
+## Updates
+
+- 2026-09-30 (CV6.DS1.US9): `SalaQuadra.svelte` ganhou a derivação `sequencia`, repassada a `Placar` e `PlacarManual` como mais uma prop sem tipo. Crescimento pequeno; revisit trigger inalterado.
