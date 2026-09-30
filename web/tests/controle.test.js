@@ -16,7 +16,7 @@ test('não oferece passar para espectador, para si, para quem já controla ou se
   assert.equal(podePassarControle({ id: 'relogio', papel: 'CONTROLADOR' }, { ...ctx, ehAdmin: false }), false);
 });
 
-import { ultimoPontoDesfazivel, descreverPosse } from '../src/lib/controle.js';
+import { ultimoPontoDesfazivel, descreverPosse, sequenciaDePontos } from '../src/lib/controle.js';
 
 test('desfazer aponta o último ponto ativo da partida atual', () => {
   const itens = [
@@ -38,6 +38,22 @@ test('pontos da partida anterior não são oferecidos para desfazer', () => {
     { tipo: 'PARTIDA_INICIADA' },
   ];
   assert.equal(ultimoPontoDesfazivel(itens), null);
+});
+
+test('sequência traz só os pontos ativos da partida atual, em ordem', () => {
+  const itens = [
+    { tipo: 'PARTIDA_INICIADA' },
+    { id: 1, tipo: 'PONTO_MARCADO', equipe: 'B' },
+    { tipo: 'PARTIDA_ENCERRADA' },
+    { tipo: 'PARTIDA_INICIADA' },
+    { id: 2, tipo: 'PONTO_MARCADO', equipe: 'A' },
+    { id: 3, tipo: 'PONTO_MARCADO', equipe: 'B' },
+    { id: 4, tipo: 'PONTO_MARCADO', equipe: 'B', anulado: true },
+    { tipo: 'PONTO_DESFEITO' },
+    { id: 5, tipo: 'PONTO_MARCADO', equipe: 'B' },
+  ];
+  assert.deepEqual(sequenciaDePontos(itens).map((p) => p.equipe), ['A', 'B', 'B']);
+  assert.deepEqual(sequenciaDePontos([]), []);
 });
 
 test('posse é distinta do papel', () => {

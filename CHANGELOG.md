@@ -4,6 +4,24 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.26.0 - 2026-09-30
+
+Boundary: minor da web e do backend (CV6.DS1.US9); Wear segue em 0.25.0.
+
+Authors: Eli (Navigator); Claude Code (Driver, Passos 1–7) | Sessão: 014YCmLkudLSJamwqvTsmtEJ
+
+Git source: merge `--no-ff` de `claude/scoreboard-improvements-ni7ols` em `master`.
+
+### Changed
+
+- O placar web destaca a equipe do último ponto: número maior e aceso, o outro apagado, com um pulso por ponto marcado (sem pulso no desfazer; parado com movimento reduzido). Temas esportivo e clássico, operador e espectador.
+- Faixa de sequência sob o placar: uma bolinha por ponto ativo da partida atual, nas cores das equipes, a mais recente à direita. Desfazer remove a bolinha; partida nova limpa a faixa.
+- Versões: backend e web 0.26.0.
+
+### Verification
+
+- `npm test` (97), `npm run check`, `npm run test:e2e` (36, incluindo `sequencia.spec.js` com dois clientes), `uv run pytest` (224). Navigator validou no celular.
+
 ## 0.24.1 - 2026-09-29
 
 Boundary: patch da web (manutenção fora de história — tela do celular acesa entre partidas); Wear segue em 0.25.0.

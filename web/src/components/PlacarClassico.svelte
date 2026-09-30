@@ -7,9 +7,24 @@
     equipeA = 'Equipe A',
     equipeB = 'Equipe B',
     ladosInvertidos = false,
+    ultimoPonto = null,
     movimentoReduzido = false,
     onEditarEquipe = null,
   } = $props();
+
+  // Um pulso por ponto: só quando o total sobe, nunca no desfazer.
+  let pulso = $state(null);
+  let totalAnterior = null;
+  $effect(() => {
+    const total = (Number(pontosA) || 0) + (Number(pontosB) || 0);
+    const equipe = ultimoPonto;
+    const subiu = totalAnterior !== null && total > totalAnterior;
+    totalAnterior = total;
+    if (!subiu || !equipe || movimentoReduzido) return;
+    pulso = equipe;
+    const timer = setTimeout(() => { pulso = null; }, 600);
+    return () => clearTimeout(timer);
+  });
 </script>
 
 <div
@@ -17,14 +32,14 @@
   class:invertido={ladosInvertidos}
   aria-label="Placar clássico: {equipeA} {pontosA}, {equipeB} {pontosB}"
 >
-  <section class="time time-a" class:tres-digitos={String(pontosA).length > 2}>
+  <section class="time time-a" class:tres-digitos={String(pontosA).length > 2} class:ultimo={ultimoPonto === 'A'} class:apagado={ultimoPonto === 'B'} class:pulso={pulso === 'A'}>
     {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeA}" onclick={() => onEditarEquipe('A')}>{equipeA}</button>{:else}<span class="nome" title={equipeA}>{equipeA}</span>{/if}
     <CartaoDobravel valor={pontosA} equipe={equipeA} tema="a" tamanho="fluido" prefersReducedMotion={movimentoReduzido} />
   </section>
   <div class="divisor" aria-hidden="true">
     <svg viewBox="0 0 100 100"><path d="M8 8L92 92M92 8L8 92" /></svg>
   </div>
-  <section class="time time-b" class:tres-digitos={String(pontosB).length > 2}>
+  <section class="time time-b" class:tres-digitos={String(pontosB).length > 2} class:ultimo={ultimoPonto === 'B'} class:apagado={ultimoPonto === 'A'} class:pulso={pulso === 'B'}>
     {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeB}" onclick={() => onEditarEquipe('B')}>{equipeB}</button>{:else}<span class="nome" title={equipeB}>{equipeB}</span>{/if}
     <CartaoDobravel valor={pontosB} equipe={equipeB} tema="b" tamanho="fluido" prefersReducedMotion={movimentoReduzido} />
   </section>
@@ -85,6 +100,20 @@
 
   .time-a { --cor-time: var(--time-a); }
   .time-b { --cor-time: var(--time-b); }
+
+  /* Último ponto: cartão de quem pontuou cresce e acende; o outro recua. */
+  .time :global(.cartao-wrapper) { transition: transform .25s ease, opacity .25s ease, filter .25s ease; }
+  .time.ultimo :global(.cartao-wrapper) {
+    transform: scale(1.06);
+    filter: drop-shadow(0 0 14px color-mix(in srgb, var(--cor-time) 55%, transparent));
+  }
+  .time.apagado :global(.cartao-wrapper) { opacity: .62; }
+  .time.pulso :global(.cartao-wrapper) { animation: pulso-classico .6s ease-out; }
+  @keyframes pulso-classico {
+    0% { transform: scale(1); filter: brightness(1); }
+    40% { transform: scale(1.14); filter: brightness(1.5) drop-shadow(0 0 22px var(--cor-time)); }
+    100% { transform: scale(1.06); }
+  }
 
   .time :global(.cartao-wrapper) {
     --cartao-w: 100%;
