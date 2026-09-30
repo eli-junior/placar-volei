@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: Destaque da equipe do último ponto e faixa de sequência de pontos (linha do tempo compacta) sob o placar da web.
 - **Branch**: `claude/scoreboard-improvements-ni7ols`
-- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Passo Ariad**: Passo 4 - Teste e Validação (aguardando Checkpoint 2)
 - **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-09-30
-- **Handoff / Próximos Passos**: Plano apresentado ao Navigator; implementar em `Placar.svelte`/`PlacarManual.svelte` + novo componente de faixa após aprovação.
+- **Handoff / Próximos Passos**: Implementado (SequenciaPontos.svelte, destaque em PlacarResultado/PlacarClassico, sequenciaDePontos em controle.js). Aguarda validação do Navigator no celular; depois Passo 5 (revisão), docs e versão 0.26.0.
 
 ## 0.24.1 - 2026-09-29
 

@@ -1,6 +1,7 @@
 <script>
   import { fly, fade, slide } from 'svelte/transition';
   import PlacarClassico from './PlacarClassico.svelte';
+  import SequenciaPontos from './SequenciaPontos.svelte';
   import PlacarResultado from './PlacarResultado.svelte';
 
   let {
@@ -19,6 +20,8 @@
     // Ações secundárias ficam num único menu (CV4.DS3.US1).
     // Equipe do ponto que o Desfazer vai anular, quando conhecida.
     ultimoPonto = null,
+    // Pontos ativos da partida em ordem, para a faixa sob o placar.
+    sequencia = [],
     ladosInvertidos = false,
     // Tocar no nome da equipe abre os jogadores dela (CV6.DS1.US6).
     onEditarEquipe = null,
@@ -199,6 +202,7 @@
           {equipeA}
           {equipeB}
           {ladosInvertidos}
+          {ultimoPonto}
           {vencedor}
           {onEditarEquipe}
           movimentoReduzido={prefersReducedMotion}
@@ -210,6 +214,7 @@
           {equipeA}
           {equipeB}
           {ladosInvertidos}
+          {ultimoPonto}
           {onEditarEquipe}
           movimentoReduzido={prefersReducedMotion}
         />
@@ -247,6 +252,8 @@
       {#if ultimoNome && podeDesfazer}<small>último: +1 {ultimoNome}</small>{/if}
     </button>
   </div>
+
+  <SequenciaPontos pontos={sequencia} {equipeA} {equipeB} movimentoReduzido={prefersReducedMotion} />
 </section>
 
 <style>

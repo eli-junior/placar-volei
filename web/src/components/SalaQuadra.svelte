@@ -12,7 +12,7 @@
   import ModalConfigurarPartida from './ModalConfigurarPartida.svelte';
   import ModalCelebracaoVitoria from './ModalCelebracaoVitoria.svelte';
   import { ehDonoDoRelogio } from '../lib/relogio.js';
-  import { ultimoPontoDesfazivel, descreverPosse, resumirRegras, resumirRegrasCurto } from '../lib/controle.js';
+  import { ultimoPontoDesfazivel, sequenciaDePontos, descreverPosse, resumirRegras, resumirRegrasCurto } from '../lib/controle.js';
   import MenuSala from './MenuSala.svelte';
   import { estadoConexao } from '../lib/conexao.js';
   import {
@@ -192,6 +192,7 @@
     descreverPosse({ temControle, ehAdmin, operador: participantes.find(p => p.id === quadra?.controle_id)?.apelido, conectado: wsConectado })
   );
   const ultimoPonto = $derived(ultimoPontoDesfazivel(linhaDoTempo));
+  const sequencia = $derived(sequenciaDePontos(linhaDoTempo));
   let menuAberto = $state(false);
 
   // Tamanho dos números, só neste aparelho (CV6.DS1.US3).
@@ -610,6 +611,7 @@
       }}
       onEditarEquipe={(equipe) => abrirConfig(equipe === 'A' ? 'equipe-a' : 'equipe-b')}
       {ultimoPonto}
+      {sequencia}
       onAbrirCompartilhar={() => { modalCompartilharAberto = true; }}
     />
   {:else}
@@ -624,6 +626,8 @@
       controlesOcultos={modoImersivo}
       {paisagem}
       {ladosInvertidos}
+      {ultimoPonto}
+      {sequencia}
       onAbrirLinhaDoTempo={handleAbrirLinhaDoTempo}
     />
     </div>

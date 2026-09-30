@@ -35,6 +35,26 @@ export function ultimoPontoDesfazivel(itens = []) {
 }
 
 /**
+ * Sequência dos pontos ativos da partida atual, em ordem ('A' | 'B').
+ *
+ * Parte do fim da linha do tempo até o último PARTIDA_INICIADA; pontos
+ * anulados por desfazer ficam de fora. Alimenta a faixa sob o placar.
+ * @param {Array<any>} itens
+ * @returns {Array<{id: any, equipe: 'A' | 'B'}>}
+ */
+export function sequenciaDePontos(itens = []) {
+  const seq = [];
+  for (let i = itens.length - 1; i >= 0; i -= 1) {
+    const item = itens[i];
+    if (item?.tipo === 'PARTIDA_INICIADA') break;
+    if (item?.tipo === 'PONTO_MARCADO' && !item.anulado && (item.equipe === 'A' || item.equipe === 'B')) {
+      seq.push({ id: item.id ?? item.seq ?? i, equipe: item.equipe });
+    }
+  }
+  return seq.reverse();
+}
+
+/**
  * Texto da faixa de posse. Papel (quem pode) e posse (quem opera agora) são
  * coisas diferentes: um admin sem o controle não pontua até assumir.
  */

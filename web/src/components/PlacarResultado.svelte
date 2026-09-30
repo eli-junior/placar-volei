@@ -8,6 +8,8 @@
     vencedor = null,
     movimentoReduzido = false,
     onEditarEquipe = null,
+    // Equipe do último ponto ativo: número maior e aceso, o outro apagado.
+    ultimoPonto = null,
   } = $props();
 
   let iniciou = false;
@@ -53,7 +55,7 @@
   class:movimento-reduzido={movimentoReduzido}
   aria-label="Placar: {equipeA} {pontosA}, {equipeB} {pontosB}"
 >
-  <section class="time time-a" class:vencedor={vencedor === 'A'}>
+  <section class="time time-a" class:vencedor={vencedor === 'A'} class:ultimo={ultimoPonto === 'A'} class:apagado={ultimoPonto === 'B'}>
     {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeA}" onclick={() => onEditarEquipe('A')}>{equipeA}</button>{:else}<span class="nome" title={equipeA}>{equipeA}</span>{/if}
     <strong class:tres-digitos={tresDigitosA} class:destaque={destaque === 'a' || destaque === 'ambos'}>{pontosA}</strong>
   </section>
@@ -62,7 +64,7 @@
     <svg viewBox="0 0 100 100"><path d="M8 8L92 92M92 8L8 92" /></svg>
   </div>
 
-  <section class="time time-b" class:vencedor={vencedor === 'B'}>
+  <section class="time time-b" class:vencedor={vencedor === 'B'} class:ultimo={ultimoPonto === 'B'} class:apagado={ultimoPonto === 'A'}>
     {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeB}" onclick={() => onEditarEquipe('B')}>{equipeB}</button>{:else}<span class="nome" title={equipeB}>{equipeB}</span>{/if}
     <strong class:tres-digitos={tresDigitosB} class:destaque={destaque === 'b' || destaque === 'ambos'}>{pontosB}</strong>
   </section>
@@ -143,9 +145,17 @@
     line-height: .72;
     text-shadow: 0 0 clamp(12px, 3cqw, 36px) color-mix(in srgb, var(--cor-time) 24%, transparent);
     transform: scale(1);
+    transition: transform .25s ease, opacity .25s ease, text-shadow .25s ease;
   }
 
-  strong.destaque { animation: ponto .36s ease-out; }
+  /* Último ponto: o número de quem pontuou cresce e acende; o outro recua. */
+  .time.ultimo strong {
+    transform: scale(1.09);
+    text-shadow: 0 0 clamp(18px, 5cqw, 56px) color-mix(in srgb, var(--cor-time) 55%, transparent);
+  }
+  .time.apagado strong { opacity: .62; }
+
+  strong.destaque { animation: ponto .6s ease-out; }
   strong.tres-digitos { font-size: clamp(4rem, min(calc(min(27cqw, 54cqh) * var(--escala-numeros, 1)), 48cqw, 92cqh), 40rem); }
 
   .time.vencedor {
@@ -198,8 +208,8 @@
 
   @keyframes ponto {
     0% { transform: scale(1); filter: brightness(1); }
-    45% { transform: scale(1.08); filter: brightness(1.35); }
-    100% { transform: scale(1); filter: brightness(1); }
+    40% { transform: scale(1.18); filter: brightness(1.6); }
+    100% { transform: scale(1.09); filter: brightness(1); }
   }
 
   .movimento-reduzido strong.destaque { animation: none; }

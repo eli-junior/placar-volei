@@ -3,6 +3,7 @@
   import Icone from './Icone.svelte';
   import PlacarResultado from './PlacarResultado.svelte';
   import PlacarClassico from './PlacarClassico.svelte';
+  import SequenciaPontos from './SequenciaPontos.svelte';
 
   let {
     estadoPartida = null,
@@ -14,6 +15,8 @@
     controlesOcultos = true,
     paisagem = false,
     ladosInvertidos = false,
+    ultimoPonto = null,
+    sequencia = [],
     onAbrirLinhaDoTempo = () => {},
   } = $props();
 
@@ -65,6 +68,7 @@
         {equipeA}
         {equipeB}
         {ladosInvertidos}
+        {ultimoPonto}
         movimentoReduzido={prefersReducedMotion}
       />
     {:else}
@@ -74,10 +78,15 @@
         {equipeA}
         {equipeB}
         {ladosInvertidos}
+        {ultimoPonto}
         {vencedor}
         movimentoReduzido={prefersReducedMotion}
       />
     {/if}
+  </div>
+
+  <div class="faixa-sequencia">
+    <SequenciaPontos pontos={sequencia} {equipeA} {equipeB} movimentoReduzido={prefersReducedMotion} />
   </div>
 
   <footer class="rodape">
@@ -98,11 +107,12 @@
   .placar-esportivo {
     box-sizing: border-box;
     display: grid;
-    grid-template-rows: auto auto minmax(280px, 1fr) auto;
+    grid-template-rows: auto auto minmax(280px, 1fr) auto auto;
     grid-template-areas:
       'contexto'
       'vitoria'
       'resultado'
+      'sequencia'
       'rodape';
     gap: clamp(.5rem, 1.6vmin, 1rem);
     width: 100%;
@@ -114,7 +124,7 @@
   .placar-esportivo.modo-imersivo {
     height: 100%;
     min-height: 0;
-    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
     padding: 0;
   }
 
@@ -184,6 +194,8 @@
   .vitoria small { margin-right: .45rem; font-size: .7em; letter-spacing: .09em; }
   .area-resultado { grid-area: resultado; min-height: 0; }
 
+  .faixa-sequencia { grid-area: sequencia; min-width: 0; height: 18px; }
+
   .rodape {
     grid-area: rodape;
     display: grid;
@@ -233,7 +245,7 @@
   }
 
   @media (max-height: 540px) {
-    .placar-esportivo { grid-template-rows: auto auto minmax(0, 1fr) auto; gap: .3rem; }
+    .placar-esportivo { grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: .3rem; }
     .contexto { flex-direction: row; }
     .rodape { min-height: 40px; }
     .dica { padding-block: .2rem; }
