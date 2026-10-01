@@ -2,8 +2,8 @@
 code: CV6.DS1.US9
 level: User Story
 status: Done
-status_reason: validado no celular pelo Navigator em 2026-09-30; entregue na 0.26.0
-updated: 2026-09-30
+status_reason: validado no celular pelo Navigator em 2026-09-30; entregue na 0.26.0, destaque permanente e faixa maior na 0.26.1
+updated: 2026-10-01
 ---
 
 # CV6.DS1.US9 — Destaque do último ponto e sequência de pontos

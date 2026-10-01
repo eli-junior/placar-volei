@@ -4,11 +4,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: Ajuste da CV6.DS1.US9 — destaque do último ponto permanente e forte (moldura, fundo na cor da equipe, bolinha como no relógio, número maior; o outro lado apagado), não só no pulso da marcação. Patch 0.26.1.
-- **Branch**: `claude/scoreboard-improvements-ni7ols` (reiniciada a partir de `master` após o merge da 0.26.0)
-- **Passo Ariad**: Passo 4 - Teste e Validação (ciclo compacto; aguardando validação do Navigator)
-- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-01
-- **Handoff / Próximos Passos**: Navigator valida no celular; depois versão 0.26.1, fechar changelog e merge em `master`.
+## 0.26.1 - 2026-10-01
+
+Boundary: patch da web (ajuste da CV6.DS1.US9 após uso em quadra); Wear segue em 0.25.0.
+
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ
+
+Git source: merge `--no-ff` de `claude/scoreboard-improvements-ni7ols` em `master`.
+
+### Changed
+
+- Destaque do último ponto permanente e forte, não só no pulso: moldura e fundo na cor da equipe, bolinha fixa (como no relógio), número 14% maior; o outro lado apagado e dessaturado. Todos conferem se o ponto foi para o lado certo.
+- Faixa de sequência mais visível: bolinhas de 18 px numa pílula com fundo.
+- Versões: backend e web 0.26.1.
+
+### Verification
+
+- `npm test` (97), `npm run check`, `npm run test:e2e` (36; `sequencia.spec.js` confere o destaque após o pulso nos dois clientes), `uv run pytest`. Navigator validou no celular.
 
 ## 0.26.0 - 2026-09-30
 
