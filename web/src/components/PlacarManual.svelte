@@ -194,7 +194,7 @@
   .vitoria small { margin-right: .45rem; font-size: .7em; letter-spacing: .09em; }
   .area-resultado { grid-area: resultado; min-height: 0; }
 
-  .faixa-sequencia { grid-area: sequencia; min-width: 0; height: 18px; }
+  .faixa-sequencia { grid-area: sequencia; min-width: 0; height: 30px; }
 
   .rodape {
     grid-area: rodape;
