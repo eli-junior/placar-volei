@@ -1,13 +1,20 @@
 import { mount } from 'svelte';
 import App from './App.svelte';
+import InicioApp from './components/InicioApp.svelte';
+import { emCascaEmbarcada } from './lib/casca.js';
 import './app.css';
 import { aplicarTema, lerTemaSol } from './lib/tema.js';
 
 // Antes do mount: sem piscar o tema escuro para quem usa o Modo Sol.
 aplicarTema(lerTemaSol());
 
-const app = mount(App, {
-  target: document.getElementById('app'),
-});
+// No APK a interface embarcada abre a escolha de quadra (CV7.TS1); no
+// navegador e nas páginas do servidor, o app de sempre.
+const app = emCascaEmbarcada()
+  ? mount(InicioApp, {
+      target: document.getElementById('app'),
+      props: { servidorPadrao: import.meta.env.VITE_PLACAR_SERVIDOR ?? '' },
+    })
+  : mount(App, { target: document.getElementById('app') });
 
 export default app;
