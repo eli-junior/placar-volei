@@ -39,13 +39,15 @@
   .sequencia {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 7px;
     box-sizing: border-box;
     width: fit-content;
     max-width: 100%;
     margin-inline: auto;
-    min-height: 18px;
-    padding: 3px 6px;
+    min-height: 30px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--fundo-superficie) 80%, transparent);
     overflow-x: auto;
     scrollbar-width: none;
   }
@@ -53,8 +55,8 @@
 
   .bolinha {
     flex: 0 0 auto;
-    width: 12px;
-    height: 12px;
+    width: 18px;
+    height: 18px;
     border-radius: 50%;
   }
   .time-a { background: var(--time-a); }
