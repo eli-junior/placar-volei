@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo**: Ajuste da CV6.DS1.US9 — destaque do último ponto permanente e forte (moldura, fundo na cor da equipe, bolinha como no relógio, número maior; o outro lado apagado), não só no pulso da marcação. Patch 0.26.1.
+- **Branch**: `claude/scoreboard-improvements-ni7ols` (reiniciada a partir de `master` após o merge da 0.26.0)
+- **Passo Ariad**: Passo 4 - Teste e Validação (ciclo compacto; aguardando validação do Navigator)
+- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-01
+- **Handoff / Próximos Passos**: Navigator valida no celular; depois versão 0.26.1, fechar changelog e merge em `master`.
+
 ## 0.26.0 - 2026-09-30
 
 Boundary: minor da web e do backend (CV6.DS1.US9); Wear segue em 0.25.0.

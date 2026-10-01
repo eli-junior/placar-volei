@@ -104,15 +104,28 @@
   /* Último ponto: cartão de quem pontuou cresce e acende; o outro recua. */
   .time :global(.cartao-wrapper) { transition: transform .25s ease, opacity .25s ease, filter .25s ease; }
   .time.ultimo :global(.cartao-wrapper) {
-    transform: scale(1.06);
-    filter: drop-shadow(0 0 14px color-mix(in srgb, var(--cor-time) 55%, transparent));
+    transform: scale(1.1);
+    filter: drop-shadow(0 0 18px color-mix(in srgb, var(--cor-time) 75%, transparent));
   }
-  .time.apagado :global(.cartao-wrapper) { opacity: .62; }
+  .time.apagado :global(.cartao-wrapper) { opacity: .42; filter: saturate(.55); }
+  /* Bolinha fixa ao lado do nome de quem fez o último ponto, como no relógio. */
+  .time { position: relative; }
+  .time.ultimo::after {
+    content: '';
+    position: absolute;
+    top: .5rem;
+    right: .5rem;
+    width: 14px;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--cor-time);
+    box-shadow: 0 0 12px var(--cor-time);
+  }
   .time.pulso :global(.cartao-wrapper) { animation: pulso-classico .6s ease-out; }
   @keyframes pulso-classico {
     0% { transform: scale(1); filter: brightness(1); }
     40% { transform: scale(1.14); filter: brightness(1.5) drop-shadow(0 0 22px var(--cor-time)); }
-    100% { transform: scale(1.06); }
+    100% { transform: scale(1.1); }
   }
 
   .time :global(.cartao-wrapper) {

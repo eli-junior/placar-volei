@@ -148,12 +148,30 @@
     transition: transform .25s ease, opacity .25s ease, text-shadow .25s ease;
   }
 
-  /* Último ponto: o número de quem pontuou cresce e acende; o outro recua. */
-  .time.ultimo strong {
-    transform: scale(1.09);
-    text-shadow: 0 0 clamp(18px, 5cqw, 56px) color-mix(in srgb, var(--cor-time) 55%, transparent);
+  /* Último ponto, o tempo todo: quem pontuou fica com moldura e fundo na cor
+     da equipe, uma bolinha (como no relógio) e o número maior e aceso; o
+     outro lado recua. Assim todos conferem se o ponto foi para o lado certo. */
+  .time { transition: background .25s ease, box-shadow .25s ease; }
+  .time.ultimo {
+    background: linear-gradient(180deg, color-mix(in srgb, var(--cor-time) 30%, transparent), color-mix(in srgb, var(--cor-time) 8%, transparent) 80%);
+    box-shadow: inset 0 0 0 3px var(--cor-time);
   }
-  .time.apagado strong { opacity: .62; }
+  .time.ultimo::after {
+    content: '';
+    position: absolute;
+    top: clamp(.6rem, 2cqw, 1.2rem);
+    right: clamp(.6rem, 2cqw, 1.2rem);
+    width: clamp(12px, 2.6cqmin, 22px);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--cor-time);
+    box-shadow: 0 0 12px var(--cor-time);
+  }
+  .time.ultimo strong {
+    transform: scale(1.14);
+    text-shadow: 0 0 clamp(20px, 6cqw, 64px) color-mix(in srgb, var(--cor-time) 70%, transparent);
+  }
+  .time.apagado strong { opacity: .42; filter: saturate(.55); }
 
   strong.destaque { animation: ponto .6s ease-out; }
   strong.tres-digitos { font-size: clamp(4rem, min(calc(min(27cqw, 54cqh) * var(--escala-numeros, 1)), 48cqw, 92cqh), 40rem); }
@@ -209,7 +227,7 @@
   @keyframes ponto {
     0% { transform: scale(1); filter: brightness(1); }
     40% { transform: scale(1.18); filter: brightness(1.6); }
-    100% { transform: scale(1.09); filter: brightness(1); }
+    100% { transform: scale(1.14); filter: brightness(1); }
   }
 
   .movimento-reduzido strong.destaque { animation: none; }
