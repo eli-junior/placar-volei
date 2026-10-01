@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo**: CV7 (proposta) — Placar como APK Android, online ou offline, com sincronia com o relógio.
+- **Branch**: `claude/scoreboard-improvements-ni7ols` (reiniciada a partir de `master` após a 0.26.1)
+- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1 e decisões do Navigator)
+- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-01
+- **Handoff / Próximos Passos**: Plano apresentado no chat; após aprovação, registrar ADR do modo offline e roadmap da CV7, começando pela TS1 (casca Capacitor).
+
 ## 0.26.1 - 2026-10-01
 
 Boundary: patch da web (ajuste da CV6.DS1.US9 após uso em quadra); Wear segue em 0.25.0.
