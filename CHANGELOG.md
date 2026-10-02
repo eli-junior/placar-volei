@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo. A CV7 (APK online e offline, com relógio) está entregue.
+- **História / Escopo**: Manutenção — MCP de dispositivos (celular e relógio): servidor MCP que pareia, conecta, compila, instala, captura tela, toca e lê log nos aparelhos físicos, para qualquer agente fazer o que hoje só se faz com comandos de `adb` soltos.
+- **Branch**: `chore/mcp-dispositivos`
+- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-02
+- **Handoff / Próximos Passos**: plano apresentado ao Navigator; nada implementado. Ferramenta de desenvolvimento: não muda versão do produto.
 
 ## 0.30.0 - 2026-10-02
 
