@@ -5,8 +5,6 @@
  * WebView na mesma origem (cookies e WebSocket iguais ao navegador).
  */
 
-const CHAVE_SERVIDOR = 'placar.servidor';
-
 /**
  * Verdadeiro só na interface embarcada do APK, não nas páginas do servidor
  * que o WebView abre depois.
