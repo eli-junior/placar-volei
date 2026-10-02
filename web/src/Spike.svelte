@@ -32,7 +32,10 @@
     }
   }
 
+  let iniciado = false;
   async function iniciar() {
+    if (iniciado) return;
+    iniciado = true;
     log = [];
     estado = 'rodando';
     await Preferences.remove({ key: 'spike_js' });
@@ -41,6 +44,8 @@
     await Spike.addListener('tique', (e) => { nativos += 1; anotar('nativo', { n: e.n, tn: e.t }); });
     setInterval(() => { timers += 1; anotar('timer', { n: timers }); }, 5000);
     document.addEventListener('visibilitychange', () => anotar('vis', { v: document.visibilityState }));
+    await Spike.servico();
+    await anotar('servico');
     await Spike.iniciar();
   }
 

@@ -1,8 +1,11 @@
 package br.com.placarvolei;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.HandlerThread;
+
+import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -54,8 +57,15 @@ public class SpikePlugin extends Plugin {
     }
 
     @PluginMethod
+    public void servico(PluginCall call) {
+        ContextCompat.startForegroundService(getContext(), new Intent(getContext(), SpikeService.class));
+        call.resolve();
+    }
+
+    @PluginMethod
     public void parar(PluginCall call) {
         rodando = false;
+        getContext().stopService(new Intent(getContext(), SpikeService.class));
         if (thread != null) thread.quit();
         call.resolve();
     }
