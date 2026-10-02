@@ -32,6 +32,8 @@
     estadoPartida = null,
     linhaDoTempo = [],
     wsConectado = false,
+    // Quadra local do APK (CV7.US1): sem servidor, espectadores, presença nem relógio.
+    modoLocal = false,
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
     onIniciarNovaPartida = () => {},
@@ -215,7 +217,8 @@
     { rotulo: temaSol ? 'Modo escuro' : 'Modo sol', icone: temaSol ? 'lua' : 'sol', acao: alternarTema, pressionado: temaSol, fechaMenu: false },
     ...(podeControlar
       ? [
-          { rotulo: 'Relógio', icone: 'relogio', acao: abrirRelogio },
+          // O relógio na quadra local chega com a CV7.US2.
+          ...(modoLocal ? [] : [{ rotulo: 'Relógio', icone: 'relogio', acao: abrirRelogio }]),
           { rotulo: 'Linha do tempo', icone: 'linhaDoTempo', acao: handleAbrirLinhaDoTempo },
         ]
       : []),
@@ -361,7 +364,11 @@
       window.removeEventListener('offline', atualizar);
     };
   });
-  const conexaoVisivel = $derived(estadoConexao(wsConectado, online, pendentes));
+  const conexaoVisivel = $derived(
+    modoLocal
+      ? { chave: 'conectado', rotulo: 'Quadra local: placar guardado neste aparelho, sem internet', pendentes: 0 }
+      : estadoConexao(wsConectado, online, pendentes)
+  );
 
   $effect(() => observarTelaCheia((ativa) => { telaCheia = ativa; }));
 
@@ -496,14 +503,20 @@
        linha só em tela estreita. Espectador imersivo esconde a linha. -->
   {#if podeControlar || !modoImersivo}
     <header class="barra-sala" bind:clientWidth={larguraBarra} in:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }} out:slide={{ duration: prefersReducedMotion || podeControlar ? 0 : 200 }}>
-      <button type="button" class="btn-topo btn-voltar" onclick={onVoltar} aria-label="Voltar para a lista de quadras" title="Voltar">
+      <button type="button" class="btn-topo btn-voltar" onclick={onVoltar} aria-label={modoLocal ? 'Voltar ao início' : 'Voltar para a lista de quadras'} title="Voltar">
         <svg aria-hidden="true" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7" /></svg>
       </button>
       <!-- O código abre o compartilhamento (link, QR e cópia). -->
-      <button type="button" class="chip-codigo" onclick={() => { modalCompartilharAberto = true; }} aria-haspopup="dialog" title="Compartilhar a sala" aria-label="Compartilhar a sala {quadra.id}">
-        <strong bind:clientWidth={larguraCodigo}>#{quadra.id}</strong>
-        {#if nomeProprio}<span>{nomeProprio}</span>{/if}
-      </button>
+      {#if modoLocal}
+        <span class="chip-codigo" role="img" aria-label="Quadra local, sem internet">
+          <strong bind:clientWidth={larguraCodigo}>Local</strong>
+        </span>
+      {:else}
+        <button type="button" class="chip-codigo" onclick={() => { modalCompartilharAberto = true; }} aria-haspopup="dialog" title="Compartilhar a sala" aria-label="Compartilhar a sala {quadra.id}">
+          <strong bind:clientWidth={larguraCodigo}>#{quadra.id}</strong>
+          {#if nomeProprio}<span>{nomeProprio}</span>{/if}
+        </button>
+      {/if}
       {#if podeControlar}
         <div class="faixa-posse" bind:clientWidth={larguraFaixa} class:minha={temControle}>
           <!-- Anúncio da posse fora do {#key}: a região viva não pode nascer a
@@ -613,6 +626,7 @@
       {ultimoPonto}
       {sequencia}
       onAbrirCompartilhar={() => { modalCompartilharAberto = true; }}
+      semCompartilhar={modoLocal}
     />
   {:else}
     <!-- Painel esportivo responsivo do espectador -->
@@ -667,6 +681,7 @@
       isReinicio={isReinicioConfig}
       secao={isReinicioConfig ? 'tudo' : secaoConfig}
       podeLiberar={ehAdmin && !isReinicioConfig && secaoConfig === 'tudo'}
+      {modoLocal}
       onLiberar={() => { modalConfigAberto = false; onLiberarQuadra(); }}
       movimentoReduzido={prefersReducedMotion}
       submetendo={operando}
@@ -704,18 +719,20 @@
 
   {#if menuAberto}
     <MenuSala acoes={acoesDoMenu} movimentoReduzido={prefersReducedMotion} onFechar={() => { menuAberto = false; }}>
-      <ListaPresentes
-        {prefersReducedMotion}
-        {participantes}
-        euId={eu?.id}
-        podeAutorizar={ehAdmin}
-        controleId={quadra?.controle_id}
-        {onPassarControle}
-        desabilitado={!wsConectado || operando}
-        {onPromoverControlador}
-        {onRevogarControlador}
-        {onAutorizarAdmin}
-      />
+      {#if !modoLocal}
+        <ListaPresentes
+          {prefersReducedMotion}
+          {participantes}
+          euId={eu?.id}
+          podeAutorizar={ehAdmin}
+          controleId={quadra?.controle_id}
+          {onPassarControle}
+          desabilitado={!wsConectado || operando}
+          {onPromoverControlador}
+          {onRevogarControlador}
+          {onAutorizarAdmin}
+        />
+      {/if}
     </MenuSala>
   {/if}
 </div>
@@ -727,10 +744,10 @@
     height: 100dvh;
     min-height: 0;
     gap: 8px;
-    padding: max(8px, env(safe-area-inset-top))
-      max(8px, env(safe-area-inset-right))
-      max(8px, env(safe-area-inset-bottom))
-      max(8px, env(safe-area-inset-left));
+    padding: max(8px, var(--sa-topo))
+      max(8px, var(--sa-direita))
+      max(8px, var(--sa-baixo))
+      max(8px, var(--sa-esquerda));
     overflow: hidden;
   }
 
@@ -863,6 +880,7 @@
   }
   .chip-codigo { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 1px; flex: 0 1 auto; min-width: 0; max-width: 40%; padding: 2px 12px; line-height: 1.1; }
   .chip-codigo strong { font-family: var(--fonte-numeros); font-size: 1.35rem; letter-spacing: .04em; color: var(--text-primary); }
+  span.chip-codigo { cursor: default; }
   .chip-codigo span { max-width: 100%; overflow: hidden; font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
 
   .faixa-posse {
@@ -955,10 +973,10 @@
   .btn-assumir:disabled { opacity: .5; cursor: not-allowed; }
 
   .sala-container {
-    padding: max(18px, env(safe-area-inset-top))
-      max(20px, env(safe-area-inset-right))
-      max(32px, env(safe-area-inset-bottom))
-      max(20px, env(safe-area-inset-left));
+    padding: max(18px, var(--sa-topo))
+      max(20px, var(--sa-direita))
+      max(32px, var(--sa-baixo))
+      max(20px, var(--sa-esquerda));
     display: flex;
     flex-direction: column;
     gap: 22px;
@@ -993,10 +1011,10 @@
    */
   .sala-container.em-modo-imersivo {
     position: relative;
-    padding: max(8px, env(safe-area-inset-top))
-      max(6px, env(safe-area-inset-right))
-      max(8px, env(safe-area-inset-bottom))
-      max(6px, env(safe-area-inset-left));
+    padding: max(8px, var(--sa-topo))
+      max(6px, var(--sa-direita))
+      max(8px, var(--sa-baixo))
+      max(6px, var(--sa-esquerda));
     justify-content: center;
     cursor: pointer;
     gap: 0;
@@ -1018,9 +1036,9 @@
   .em-modo-imersivo > .barra-sala {
     position: absolute;
     z-index: 6;
-    top: max(8px, env(safe-area-inset-top));
-    left: max(6px, env(safe-area-inset-left));
-    right: max(6px, env(safe-area-inset-right));
+    top: max(8px, var(--sa-topo));
+    left: max(6px, var(--sa-esquerda));
+    right: max(6px, var(--sa-direita));
     padding: 6px 8px;
     border: 1px solid var(--border-color);
     border-radius: 12px;

@@ -15,6 +15,8 @@
     secao = 'tudo',
     /** Só o admin, no ⚙ completo: libera a quadra para todos (CV6.DS1.US8). */
     podeLiberar = false,
+    // Quadra local (CV7.US1): "liberar" vira apagar a quadra deste aparelho.
+    modoLocal = false,
     onLiberar = () => {},
   } = $props();
 
@@ -330,19 +332,23 @@
         <span class="secao-rotulo">Quadra</span>
         {#if confirmandoLiberar}
           <p class="aviso-liberar" role="alert">
-            Isso encerra a quadra para todos, agora. Placar e histórico somem e o código deixa de valer. Não dá para desfazer.
+            {#if modoLocal}
+              Isso apaga a quadra local deste aparelho, agora. Placar e histórico somem. Não dá para desfazer.
+            {:else}
+              Isso encerra a quadra para todos, agora. Placar e histórico somem e o código deixa de valer. Não dá para desfazer.
+            {/if}
           </p>
           <div class="acoes-liberar">
             <button type="button" class="btn-cancelar" onclick={() => { confirmandoLiberar = false; }} disabled={submetendo}>
               Manter quadra
             </button>
             <button type="button" class="btn-liberar" onclick={onLiberar} disabled={submetendo}>
-              Liberar agora
+              {modoLocal ? 'Apagar agora' : 'Liberar agora'}
             </button>
           </div>
         {:else}
           <button type="button" class="btn-liberar" onclick={() => { confirmandoLiberar = true; }} disabled={submetendo}>
-            Liberar quadra
+            {modoLocal ? 'Apagar quadra local' : 'Liberar quadra'}
           </button>
         {/if}
       </div>
@@ -656,7 +662,7 @@
     position: sticky;
     bottom: 0;
     margin: 0 -24px;
-    padding: 14px 24px max(16px, env(safe-area-inset-bottom));
+    padding: 14px 24px max(16px, var(--sa-baixo));
     border-top: 1px solid var(--border-color);
     background: var(--fundo-superficie);
   }

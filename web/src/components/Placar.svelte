@@ -17,6 +17,8 @@
     onDesfazerPonto = () => {},
     onIniciarNovaPartida = () => {},
     onAbrirCompartilhar = () => {},
+    // Quadra local (CV7.US1): sem espectadores remotos, não há o que compartilhar.
+    semCompartilhar = false,
     // Ações secundárias ficam num único menu (CV4.DS3.US1).
     // Equipe do ponto que o Desfazer vai anular, quando conhecida.
     ultimoPonto = null,
@@ -175,14 +177,16 @@
             <span class="icone-nova-partida">▶</span>
             <span class="texto-nova-partida">Iniciar Próxima Partida</span>
           </button>
-          <button
-            type="button"
-            class="btn-compartilhar-vitoria"
-            onclick={onAbrirCompartilhar}
-            aria-label="Compartilhar resultado da partida"
-          >
-            <span>📢 Compartilhar</span>
-          </button>
+          {#if !semCompartilhar}
+            <button
+              type="button"
+              class="btn-compartilhar-vitoria"
+              onclick={onAbrirCompartilhar}
+              aria-label="Compartilhar resultado da partida"
+            >
+              <span>📢 Compartilhar</span>
+            </button>
+          {/if}
         </div>
       {:else}
         <div class="aguardando-container">

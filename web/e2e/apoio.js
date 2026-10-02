@@ -56,3 +56,29 @@ export async function semRolagem(pagina, seletor = '.btn-marcar, .btn-desfazer, 
     }).length,
   }), seletor);
 }
+
+// APK (CV7.TS1/US1): Capacitor simulado e o servidor "no ar" ou "fora". O
+// `/health` de outra origem precisa de CORS para o fetch do navegador lê-lo;
+// no APK real o teste usa a rede nativa e não tem esse limite.
+export const comCasca = { fn: (tema) => {
+  window.Capacitor = { isNativePlatform: () => true };
+  try { if (tema) localStorage.setItem('placar:tema', tema); } catch {}
+}, arg: null };
+
+export const servidorNoAr = (pagina) => pagina.route('**/health', (rota) => rota.fulfill({
+  status: 200,
+  contentType: 'application/json',
+  headers: { 'access-control-allow-origin': '*' },
+  body: JSON.stringify({ status: 'ok', version: 'e2e' }),
+}));
+
+export const servidorFora = (pagina) => pagina.route('**/health', (rota) => rota.abort());
+
+/** O túnel responde, mas o backend está fora: 502 sem o corpo do /health. */
+export const backendFora = (pagina) => pagina.route('**/health', (rota) => rota.fulfill({
+  status: 502,
+  headers: { 'access-control-allow-origin': '*' },
+  body: 'Bad gateway',
+}));
+
+export const abrirCasca = (pagina, baseURL) => pagina.goto(baseURL.replace('127.0.0.1', 'localhost'));
