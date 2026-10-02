@@ -4,11 +4,25 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: CV7.TS2 — regras e projeção da partida em JS, com testes de paridade contra o Python (base do modo offline do APK).
-- **Branch**: `feature/cv7-ts2-regras-e-projecao-em-js`
-- **Passo Ariad**: Passo 5 - Revisão (validação do Navigator aprovada; aguardando Checkpoint 3)
-- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-01
-- **Handoff / Próximos Passos**: TS2 implementada: `web/src/lib/partida.js`, `tests/paridade_fixtures.py`, `web/tests/paridade.test.js`, `tests/test_paridade_fixtures.py`. Navigator valida a paridade (ver roteiro). Depois da TS2: CV7.US1 (quadra local), CV7.TS3 (ponte Data Layer), CV7.US2 (relógio controla a quadra local).
+Nenhum trabalho ativo. Próximo da CV7: US1 (quadra local no celular).
+
+## 0.27.1 - 2026-10-02
+
+Boundary: CV7.TS2 — regras e projeção da partida em JS (patch; sem mudança visível; backend, web e APK em 0.27.1).
+
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ
+
+Git source: merge `--no-ff` de `feature/cv7-ts2-regras-e-projecao-em-js` em `master`.
+
+### Added
+
+- `web/src/lib/partida.js`: projeção do estado e da linha do tempo e comandos puros de ponto, desfazer, configurar e reiniciar, com as mesmas recusas do servidor. Base da quadra local do APK.
+- Paridade Python↔JS: `tests/paridade_fixtures.py` gera fixtures a partir do backend real (9 logs à mão e 18 cenários, 8 deles aleatórios) e `web/tests/paridade.test.js` exige resultado idêntico. `tests/test_paridade_fixtures.py` falha se as fixtures ficarem para trás da regra em Python.
+- Comando para regerar as fixtures: `uv run python -m tests.paridade_fixtures`.
+
+### Verification
+
+- `npm test` (129), `npm run check`, `uv run pytest` (225). Navigator validou quebrando a regra nos dois lados.
 
 ## 0.27.0 - 2026-10-01
 

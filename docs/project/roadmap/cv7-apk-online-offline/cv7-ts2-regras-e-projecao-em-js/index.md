@@ -1,9 +1,9 @@
 ---
 code: CV7.TS2
 level: Technical Story
-status: In Progress
-status_reason: implementada e com paridade verde; aguardando validação do Navigator
-updated: 2026-10-01
+status: Validated
+status_reason: paridade validada pelo Navigator em 2026-10-02 (testes verdes e quebra proposital de regra nos dois lados)
+updated: 2026-10-02
 ---
 
 # CV7.TS2 — Regras e projeção em JS
@@ -33,3 +33,7 @@ And o JS recusa o que o servidor recusa, com o mesmo status
 ## Out of Scope
 
 Papéis, versão de controle, presença, tema do placar, persistência e interface da quadra local (CV7.US1); ponte com o relógio (CV7.TS3). O `alvo_seq` do desfazer é coberto por um teste de unidade no JS, não pelas fixtures (a rota HTTP do site não o envia; só o relógio).
+
+## Known Limits
+
+Em payload malformado (por exemplo `alvo: "abc"`), o Python levanta erro e o JS produz `NaN`. Não ocorre, pois os eventos saem sempre dos comandos validados. Cerca de 25% dos passos dos cenários aleatórios esbarram em partida já encerrada; revisitar se uma regra nova passar sem o teste notar.
