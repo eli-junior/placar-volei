@@ -8,6 +8,7 @@
   import PlacarManual from './PlacarManual.svelte';
   import LinhaDoTempo from './LinhaDoTempo.svelte';
   import Icone from './Icone.svelte';
+  import Dialogo from './Dialogo.svelte';
   import ModalCompartilhar from './ModalCompartilhar.svelte';
   import ModalConfigurarPartida from './ModalConfigurarPartida.svelte';
   import ModalCelebracaoVitoria from './ModalCelebracaoVitoria.svelte';
@@ -116,6 +117,8 @@
     modalConfigAberto = true;
   }
   let isReinicioConfig = $state(false);
+  // Reiniciar no meio da partida: zera pontos e linha do tempo, mantém regras e nomes.
+  let confirmandoReiniciar = $state(false);
   let modalCelebracaoAberto = $state(false);
   let celebracaoExibidaPartidaId = $state(null);
   let prefersReducedMotion = $state(false);
@@ -225,6 +228,10 @@
     { rotulo: `Números: ${tamanhoNumeros}`, icone: 'expandir', acao: alternarTamanhoNumeros, fechaMenu: false },
     ...(!podeControlar && !paisagemNativa
       ? [{ rotulo: girado ? 'Placar em retrato' : 'Girar para paisagem', icone: 'atualizar', acao: alternarGiro, pressionado: girado, fechaMenu: false }]
+      : []),
+    // Destrutivo: por último, sobe ao topo só se sobrar espaço depois de tudo.
+    ...(podeControlar && temControle && ehAdmin
+      ? [{ rotulo: 'Reiniciar partida', icone: 'atualizar', acao: () => { confirmandoReiniciar = true; } }]
       : []),
   ]);
 
@@ -717,6 +724,18 @@
     />
   {/if}
 
+  {#if confirmandoReiniciar}
+    <Dialogo rotulo="Reiniciar partida" movimentoReduzido={prefersReducedMotion} onFechar={() => { confirmandoReiniciar = false; }}>
+      <div class="confirma-reiniciar">
+        <p>Reiniciar a partida? Pontos e linha do tempo serão apagados. Regras e nomes ficam.</p>
+        <div class="confirma-acoes">
+          <button type="button" onclick={() => { confirmandoReiniciar = false; }}>Cancelar</button>
+          <button type="button" class="perigo" disabled={operando} onclick={() => { confirmandoReiniciar = false; modalCelebracaoAberto = false; onIniciarNovaPartida({ zerar: true }); }}>Reiniciar</button>
+        </div>
+      </div>
+    </Dialogo>
+  {/if}
+
   {#if menuAberto}
     <MenuSala acoes={acoesDoMenu} movimentoReduzido={prefersReducedMotion} onFechar={() => { menuAberto = false; }}>
       {#if !modoLocal}
@@ -738,6 +757,11 @@
 </div>
 
 <style>
+  .confirma-reiniciar { display: flex; flex-direction: column; gap: 14px; padding: 18px; color: var(--text-primary); }
+  .confirma-reiniciar p { margin: 0; }
+  .confirma-acoes { display: flex; gap: 8px; justify-content: flex-end; }
+  .confirma-acoes button { min-height: 44px; padding: 0 16px; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-surface); color: var(--text-primary); font: inherit; font-weight: 650; cursor: pointer; }
+  .confirma-acoes .perigo { border-color: #c62828; background: #c62828; color: #fff; }
   /* Operação sem rolagem (CV4.DS3.US1). */
   .sala-container.operador {
     height: 100vh;

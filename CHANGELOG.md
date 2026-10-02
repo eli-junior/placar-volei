@@ -4,7 +4,10 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo. A CV7 (APK online e offline, com relógio) está entregue.
+- **História / Escopo**: Manutenção — botão **Reiniciar partida** no menu ⋯ (web e APK): zera pontos e linha do tempo no meio da partida, mantém regras, nomes e tema.
+- **Branch**: - **Passo Ariad**: Passo 4 - Teste e Validação
+- **Assinatura do Agente**: Agente: Claude Sonnet 5.5 (Driver) | Sessão: 3e3250cd | Data: 2026-10-02
+- **Handoff / Próximos Passos**: código e testes prontos (pytest 226, npm test 164, e2e 51); falta validação do Navigator (Checkpoint 2), docs e versão (minor 0.30.0 proposto).
 
 ## 0.29.0 - 2026-10-02
 

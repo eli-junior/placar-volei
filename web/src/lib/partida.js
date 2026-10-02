@@ -353,6 +353,7 @@ export function formatarNomeEquipe(j1, j2, equipeDireta, padrao) {
  * @property {number | null} [alvo]
  * @property {boolean | null} [vantagem]
  * @property {number | null} [teto]
+ * @property {boolean} [zerar] reinicia mesmo sem a partida encerrada
  */
 
 /**
@@ -544,7 +545,7 @@ export function configurarPartida(eventos, campos, ctx) {
 export function reiniciarPartida(eventos, campos, ctx, novaPartidaId) {
   validarCampos(campos);
   const estado = projetarEstado(eventos);
-  if (!estado.encerrada) throw new ErroRegra(400, 'A partida atual ainda não foi encerrada.');
+  if (!estado.encerrada && !campos.zerar) throw new ErroRegra(400, 'A partida atual ainda não foi encerrada.');
   const regras = regrasDosCampos(campos);
   return criarEventos(ctx, novaPartidaId, 0, [
     [

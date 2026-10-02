@@ -198,6 +198,8 @@ class ReiniciarPartidaBody(BaseModel):
     vantagem: bool | None = None
     teto: int | None = Field(default=None, ge=1, le=200)
     tema_placar: Literal["esportivo", "classico"] | None = None
+    # Reinicia no meio da partida: zera pontos e log, mantém regras e nomes.
+    zerar: bool = False
 
 
 class ConfigurarPartidaBody(BaseModel):
@@ -529,6 +531,9 @@ async def post_reiniciar_partida(
             kwargs["teto"] = body.teto
         if body.tema_placar is not None:
             kwargs["tema_placar"] = body.tema_placar
+
+        if body.zerar:
+            kwargs["zerar"] = True
 
     return await executar_comando(quadra_id, request, "reiniciar", **kwargs)
 

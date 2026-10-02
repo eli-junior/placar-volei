@@ -6,7 +6,7 @@ test('menu por papel e foco de volta ao ⋯', async ({ abrir }) => {
   const sala = await criarSala(admin);
   const mais = admin.getByLabel(/Mais ações/);
   await mais.click();
-  await expect(admin.locator('.menu-acoes button')).toHaveText(['Inverter lados', 'Modo sol', 'Relógio', 'Linha do tempo', 'Números: M', 'Fechar']);
+  await expect(admin.locator('.menu-acoes button')).toHaveText(['Inverter lados', 'Modo sol', 'Relógio', 'Linha do tempo', 'Números: M', 'Reiniciar partida', 'Fechar']);
   await admin.keyboard.press('Escape');
   await expect(mais).toBeFocused();
   // Duplas e regras mora no cabeçalho (CV6.DS1.US1).

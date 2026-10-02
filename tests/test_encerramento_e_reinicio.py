@@ -407,3 +407,33 @@ async def test_websocket_continuidade_ao_reiniciar():
             assert msg_nova["payload"]["estado_partida"]["pontos_a"] == 0
             assert msg_nova["payload"]["estado_partida"]["pontos_b"] == 0
             assert msg_nova["payload"]["estado_partida"]["encerrada"] is False
+
+
+@pytest.mark.asyncio
+async def test_reiniciar_zerar_no_meio_da_partida_mantem_regras():
+    """`zerar` reinicia sem exigir encerramento: 0x0, regras e nomes mantidos."""
+    async with httpx.AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as client:
+        resp_q = await client.post(
+            "/api/quadras",
+            json={"alvo": 15, "nome": "Quadra Zerar", "apelido": "Eli"},
+        )
+        quadra_id = resp_q.json()["id"]
+        partida_1_id = resp_q.json()["partida_id"]
+        for _ in range(3):
+            await client.post(
+                f"/api/quadras/{quadra_id}/pontos",
+                headers={"x-control-version": "1"},
+                json={"equipe": "A"},
+            )
+        resp = await client.post(
+            f"/api/quadras/{quadra_id}/reiniciar",
+            headers={"x-control-version": "1"},
+            json={"zerar": True},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["partida_id"] != partida_1_id
+        assert data["estado_partida"]["pontos_a"] == 0
+        assert data["estado_partida"]["alvo"] == 15
