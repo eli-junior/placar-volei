@@ -6,22 +6,28 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo. A CV7 (APK online e offline, com relógio) está entregue.
 
-## 0.30.0 - 2026-10-02
+## 0.29.1 - 2026-10-02
 
-Boundary: Manutenção — reiniciar partida pelo menu ⋯ (minor; backend, web e APK em 0.30.0, APK `versionCode` 5; Wear OS inalterado em 0.27.0).
+Boundary: manutenção — MCP de dispositivos (patch do pacote em 0.29.1; APK 0.29.0 e Wear 0.27.0 seguem iguais, pois o produto não mudou).
 
-Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) | Sessão: 3e3250cd
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ
 
-Git source: merge `--no-ff` de `feature/reiniciar-partida-menu` em `master`.
+Git source: merge `--no-ff` de `chore/mcp-dispositivos` em `master`.
 
 ### Added
 
-- Botão **Reiniciar partida** no menu ⋯ (web e quadra local do APK), com confirmação: zera pontos e linha do tempo no meio da partida e mantém regras, nomes e tema. Só para admin com o controle.
-- `zerar` no corpo de `POST /quadras/{id}/reiniciar`; sem ele, reiniciar continua exigindo partida encerrada.
+- **MCP `dispositivos`** (`tools/mcp-dispositivos/`, registrado em `.mcp.json`): servidor MCP que deixa um agente parear, conectar, compilar, instalar, capturar a tela, tocar e ler o log no celular e no relógio. Ferramentas: `listar_dispositivos`, `conectar`, `parear`, `descobrir_portas`, `registrar_dispositivo`, `reiniciar_adb`, `estado_tela`, `info_app`, `compilar`, `instalar`, `compilar_e_instalar`, `desinstalar`, `iniciar_app`, `parar_app`, `tocar`, `deslizar`, `tecla`, `texto`, `capturar_tela`, `logcat`, `adb_shell`.
+- As armadilhas deste projeto ficam no código: celular sempre com `--user 0` (Dual App do Samsung), release que não atualiza debug (recusa e só desinstala com pedido explícito), porta do `adb` sem fio achada por varredura (o `mDNS` não funciona no WSL), reconexão automática do relógio, captura da tela ativa do Z Fold, e nunca contornar o bloqueio de tela.
+- `AGENTS.md` e `docs/process/development-guide.md` mandam usar o MCP para os aparelhos físicos.
+
+### Notes
+
+- Os endereços dos aparelhos ficam em `~/.config/placar-dispositivos.json`, fora do repositório.
+- O servidor fixa `mcp<2` (a 2.x renomeou a API).
 
 ### Verification
 
-- `uv run pytest` (226), `npm test` (164), `npm run check`, `npm run test:e2e` (51); validado pelo Navigator na web e no APK.
+- `uv run pytest` (258, 33 do MCP com um `adb` falso) e `ruff`. Servidor testado com um cliente MCP real contra o Galaxy Z Fold e o Galaxy Watch: ferramentas listadas, `estado_tela`, `info_app`, `capturar_tela` (PNG válido da tela ativa) e `reboot` recusado.
 
 ## 0.29.0 - 2026-10-02
 
