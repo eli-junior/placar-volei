@@ -6,6 +6,17 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
+APK Android do celular (`0.27.0`, `CV7.TS1`): casca Capacitor que abre a quadra online do servidor fixo do build, depois de testar a conexão. Para gerar e instalar:
+
+```bash
+export ANDROID_HOME=/caminho/do/Android/Sdk
+PLACAR_SERVIDOR=https://placar.exemplo.com scripts/build-apk.sh debug
+adb install -r --user 0 android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+Precisa de Node, JDK 21 e Android SDK. Validado no Galaxy Z Fold; quadra local e ponte com o relógio ficam para a CV7.
+
+
 Wear OS `0.25.0` entregue: inclui retorno perceptível ao pontuar e acompanhamento em segundo plano para repousar a tela e retomar pelo pulso (`CV6.DS2.US3–US4`). No Galaxy Watch SM-L330/Android 16, serviço e WebSocket permaneceram ativos durante 60 s em repouso via ADB; gesto físico, atualização remota durante repouso, reconexão, treino e bateria não foram validados. Backend e web seguem em `0.24.0`, compatíveis com este APK.
 
 O relógio também tem bola animada para o último ponto, Equipe A azul e B laranja, aro de conexão, fila offline durável, desfazer e descarte de conflitos com aviso. O histórico das entregas está no [changelog](CHANGELOG.md).

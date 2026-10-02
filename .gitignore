@@ -2,6 +2,7 @@
 .env
 .env.*
 !.env.example
+!web/.env.e2e
 
 # Python
 __pycache__/
