@@ -1,16 +1,26 @@
 <script>
-  // Tela inicial do APK (CV7.TS1): abre a quadra online do servidor fixo do build.
-  // A quadra local (sem internet) chega na CV7.US1.
+  // Tela inicial do APK (CV7.TS1, US1): a quadra online do servidor fixo do
+  // build, ou a quadra local quando não há comunicação com ele. A conexão
+  // decide qual das duas está habilitada.
   import { onMount, untrack } from 'svelte';
   import Icone from './Icone.svelte';
-  import { normalizarServidor, servidorDisponivel } from '../lib/casca.js';
+  import { modosDisponiveis, normalizarServidor, servidorDisponivel } from '../lib/casca.js';
 
-  let { servidorPadrao = '' } = $props();
+  let {
+    servidorPadrao = '',
+    // { existe, emAndamento } da quadra local guardada neste aparelho.
+    local = { existe: false, emAndamento: false },
+    ilegivel = false,
+    onAbrirLocal = () => {},
+    onDescartarIlegivel = () => {},
+    erro = '',
+  } = $props();
 
   // O servidor é o do build (`PLACAR_SERVIDOR`) e não é editável.
   const origem = untrack(() => normalizarServidor(servidorPadrao));
   // 'testando' | 'disponivel' | 'indisponivel'
   let estado = $state(origem ? 'testando' : 'indisponivel');
+  const modos = $derived(modosDisponiveis({ servidor: estado, configurado: Boolean(origem), local }));
 
   async function testar() {
     if (!origem) return;
@@ -22,8 +32,13 @@
 
   function abrirOnline(evento) {
     evento.preventDefault();
-    if (estado !== 'disponivel') return;
+    if (!modos.online) return;
     window.location.href = `${origem}/`;
+  }
+
+  function abrirLocal(evento) {
+    evento.preventDefault();
+    if (modos.local) onAbrirLocal();
   }
 </script>
 
@@ -33,6 +48,8 @@
     <h1>Placar Vôlei</h1>
   </header>
 
+  {#if erro}<p class="erro" role="alert">{erro}</p>{/if}
+
   <form class="cartao" onsubmit={abrirOnline}>
     <h2>Quadra online</h2>
     <p>Placar compartilhado pelo servidor: espectadores pelo link e relógio pela internet.</p>
@@ -40,18 +57,29 @@
     <p class="estado" class:erro={estado === 'indisponivel'} role="status">
       {#if estado === 'testando'}Testando a conexão…
       {:else if estado === 'disponivel'}Servidor disponível.
-      {:else}Servidor indisponível. Verifique a internet e tente de novo.{/if}
+      {:else}Sem comunicação com o servidor.{/if}
     </p>
-    <button type="submit" disabled={estado !== 'disponivel'}>Abrir quadras online</button>
+    <button type="submit" disabled={!modos.online}>Abrir quadras online</button>
     {#if estado === 'indisponivel' && origem}
       <button type="button" class="secundario" onclick={testar}>Testar de novo</button>
     {/if}
   </form>
 
-  <section class="cartao em-breve" aria-labelledby="titulo-local">
+  <form class="cartao" class:inativo={!modos.local} onsubmit={abrirLocal} aria-labelledby="titulo-local">
     <h2 id="titulo-local">Quadra local</h2>
-    <p>Sem internet, com o relógio por Bluetooth. Em breve.</p>
-  </section>
+    <p>Sem internet nem servidor: o placar fica guardado neste aparelho.</p>
+    {#if ilegivel}
+      <p class="erro" role="alert">Os dados da quadra local estavam ilegíveis e não foram usados.</p>
+      <button type="button" class="secundario" onclick={onDescartarIlegivel}>Começar do zero</button>
+    {/if}
+    {#if modos.aviso}<p class="estado" role="status">{modos.aviso}</p>{/if}
+    {#if local.existe && local.emAndamento && estado === 'disponivel'}
+      <p class="estado" role="status">Há uma partida em andamento nesta quadra.</p>
+    {/if}
+    <button type="submit" disabled={!modos.local}>
+      {modos.acaoLocal === 'continuar' ? 'Continuar quadra local' : 'Criar quadra local'}
+    </button>
+  </form>
 </main>
 
 <style>
@@ -93,5 +121,5 @@
   button:disabled { opacity: .5; cursor: not-allowed; }
   .secundario { background: transparent; color: var(--texto-forte); border: 1px solid rgba(var(--veu), 0.3); }
   .erro { color: var(--estado-erro); font-weight: 600; }
-  .em-breve { border-style: dashed; }
+  .inativo { border-style: dashed; }
 </style>
