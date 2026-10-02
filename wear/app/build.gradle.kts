@@ -7,11 +7,12 @@ android {
     namespace = "br.com.placarvolei.watch"
     compileSdk = 36
     defaultConfig {
-        applicationId = "br.com.placarvolei.watch"
+        // Mesmo id do app do celular: o Data Layer exige o mesmo id e a mesma assinatura (CV7.TS3).
+        applicationId = "br.com.placarvolei"
         minSdk = 30
         targetSdk = 36
-        versionCode = 13
-        versionName = "0.25.0"
+        versionCode = 14
+        versionName = "0.26.0"
         val serverUrl = providers.gradleProperty("serverUrl").getOrElse("https://placar.elijunior.click")
         require(!serverUrl.contains('"') && !serverUrl.contains('\\') && !serverUrl.contains('\n'))
         buildConfigField("String", "SERVER_URL", "\"$serverUrl\"")
@@ -56,6 +57,8 @@ dependencies {
     // o APK (CV5.DS2.TS4). Quem encolhe é o R8 no release.
     implementation("com.google.guava:guava:32.0.1-android")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    // Ponte com o celular (CV7.TS3): Wearable Data Layer.
+    implementation("com.google.android.gms:play-services-wearable:19.0.0")
     testImplementation("junit:junit:4.13.2")
     // org.json do Android é stub nos testes locais da JVM.
     testImplementation("org.json:json:20240303")

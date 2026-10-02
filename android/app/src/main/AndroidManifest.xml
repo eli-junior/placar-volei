@@ -24,6 +24,14 @@
 
         </activity>
 
+        <!-- Lances do relógio pelo Data Layer (CV7.TS3). -->
+        <service android:name=".RelogioListenerService" android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/placar/local/" />
+            </intent-filter>
+        </service>
+
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"

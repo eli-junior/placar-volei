@@ -6,6 +6,7 @@
   import SalaQuadra from './components/SalaQuadra.svelte';
   import { QuadraLocal, armazenamentoPadrao } from './lib/quadraLocal.js';
   import { lerApelido } from './lib/preferencias.js';
+  import { criarPonteRelogio, pluginRelogio } from './lib/ponteRelogio.js';
 
   let { servidorPadrao = '' } = $props();
 
@@ -18,6 +19,8 @@
   let tela = $state('inicio');
   let snapshot = $state(null);
   let pendentes = $state(0);
+  // Ponte com o relógio (CV7.TS3): só no APK e só com a sala local aberta.
+  let ponte = null;
 
   function apelidoSalvo() {
     try {
@@ -58,9 +61,28 @@
       quadraLocal ??= await QuadraLocal.criar(armazenamento, { apelido: apelidoSalvo() });
       snapshot = quadraLocal.snapshot();
       tela = 'sala';
+      ligarPonte();
     } catch (e) {
       erro = e.message || 'Não foi possível abrir a quadra local.';
     }
+  }
+
+  // O relógio é um extra: sem ele (ou fora do APK) a quadra local segue igual.
+  async function ligarPonte() {
+    try {
+      const plugin = await pluginRelogio();
+      if (!plugin || tela !== 'sala') return;
+      ponte = criarPonteRelogio({ plugin, quadra: quadraLocal, aoMudar: (s) => { snapshot = s; } });
+      await ponte.iniciar();
+    } catch {
+      ponte = null;
+    }
+  }
+
+  async function desligarPonte() {
+    const atual = ponte;
+    ponte = null;
+    try { await atual?.parar(); } catch {}
   }
 
   async function descartarIlegivel() {
@@ -81,6 +103,7 @@
     erroSala = null;
     try {
       snapshot = await comando(quadraLocal);
+      ponte?.publicar();
     } catch (e) {
       erroSala = e.message || 'Não foi possível realizar a ação.';
     } finally {
@@ -90,6 +113,7 @@
 
   async function apagarQuadraLocal() {
     erroSala = null;
+    await desligarPonte();
     try {
       await quadraLocal.apagar();
     } catch (e) {
@@ -103,6 +127,7 @@
   }
 
   function voltar() {
+    desligarPonte();
     atualizarResumo();
     tela = 'inicio';
     snapshot = null;

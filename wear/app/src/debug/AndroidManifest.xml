@@ -1,3 +1,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
-    <application android:usesCleartextTraffic="true" tools:replace="android:usesCleartextTraffic" />
+    <application android:usesCleartextTraffic="true" tools:replace="android:usesCleartextTraffic">
+        <!-- Disparador de debug da ponte com o celular (CV7.TS3); não existe no release. -->
+        <receiver android:name=".DebugCelular" android:exported="true">
+            <intent-filter>
+                <action android:name="br.com.placarvolei.watch.DEBUG_ESTADO" />
+                <action android:name="br.com.placarvolei.watch.DEBUG_PONTO" />
+                <action android:name="br.com.placarvolei.watch.DEBUG_DESFAZER" />
+            </intent-filter>
+        </receiver>
+    </application>
 </manifest>
