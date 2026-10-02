@@ -19,7 +19,7 @@ test('último ponto em destaque e sequência de bolinhas nas duas telas', async 
     await expect(bolinhas.nth(0)).toHaveClass(/time-a/);
     await expect(bolinhas.nth(2)).toHaveClass(/time-b/);
     await expect(p.locator('.time-b.ultimo')).toHaveCount(1);
-    await expect(p.locator('.time-a.apagado')).toHaveCount(1);
+    await expect(p.locator('.time-a.ultimo')).toHaveCount(0);
   }
   // Depois do pulso: o destaque precisa continuar (é permanente, não só na marcação).
   await op.waitForTimeout(900);
