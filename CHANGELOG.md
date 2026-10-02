@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo. Próximo da CV7: US1 (quadra local no celular).
+- **História / Escopo**: CV7.US1 — quadra local no celular: criar e jogar sem internet, com o log guardado no aparelho.
+- **Branch**: `feature/cv7-us1-quadra-local`
+- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-02
+- **Handoff / Próximos Passos**: plano apresentado ao Navigator; nada implementado. Base pronta: `web/src/lib/partida.js` (CV7.TS2). Depois da US1: CV7.TS3 (ponte Data Layer) e CV7.US2 (relógio na quadra local).
 
 ## 0.27.1 - 2026-10-02
 
