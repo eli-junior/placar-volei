@@ -6,7 +6,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: CV7 (proposta) — Placar como APK Android, online ou offline, com sincronia com o relógio.
 - **Branch**: `claude/scoreboard-improvements-ni7ols` (reiniciada a partir de `master` após a 0.26.1)
-- **Passo Ariad**: CV7.TS1 em Passo 5 - Revisão (APK de debug validado pelo Navigator no Z Fold; aguardando Checkpoint 3)
+- **Passo Ariad**: CV7.TS1 em Passo 6 - Documentação (revisão confirmada pelo Navigator; aguardando Checkpoint 4)
 - **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-01
 - **Handoff / Próximos Passos**: ADR `apk-capacitor-e-quadra-local` e roadmap CV7 registrados. TS1 implementada (Capacitor em `web/`, `android/`, `InicioApp.svelte`, `lib/casca.js`, `scripts/build-apk.sh`). Ajustes pós-validação: servidor fixo do build com teste de `/health` (botão online só libera se responder), ícone da bola do `favicon.svg`, instalação com `adb install --user 0` (evita duplicar no Dual App do Samsung). Build: `PLACAR_SERVIDOR=https://placar.elijunior.click scripts/build-apk.sh`. Próximo: revisão (Passo 5) e TS2 (projeção em JS).
 
