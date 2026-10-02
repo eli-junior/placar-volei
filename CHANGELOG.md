@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo. Próximo da CV7: TS3 (ponte Data Layer) e US2 (relógio na quadra local).
+- **História / Escopo**: CV7.TS3 — ponte Bluetooth (Wearable Data Layer) entre o APK do celular e o app do relógio, com a quadra local como destino.
+- **Branch**: `feature/cv7-ts3-ponte-data-layer`
+- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-02
+- **Handoff / Próximos Passos**: plano apresentado ao Navigator; nada implementado. Primeiro passo previsto: spike do WebView com a tela apagada (decide plano B ou C). Depois da TS3: CV7.US2 (relógio controla a quadra local, com a escolha de modo na tela do relógio).
 
 ## 0.28.0 - 2026-10-02
 
