@@ -6,6 +6,45 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo. A CV7 (APK online e offline, com relógio) está entregue.
 
+## 0.30.1 - 2026-10-02
+
+Boundary: manutenção — destaque do último ponto legível (patch; backend, web e APK em 0.30.1, APK `versionCode` 6; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: 8c235e38
+
+Git source: merge `--no-ff` de `fix/destaque-ultimo-ponto` em `master`.
+
+### Changed
+
+- **Quem tomou o ponto não é mais apagado.** O número do outro time ficava com 42% de opacidade e pouca saturação, claro demais para ler; agora fica como no 0x0, nos modos clássico e resultado.
+- **Clássico:** o cartão de quem pontuou ganha borda de 4px na cor do time, além de crescer, acender e ter a bolinha.
+- **Resultado:** sai a moldura cinza arredondada em volta do placar; fica só a borda reta na cor de quem pontuou.
+
+### Fixed
+
+- Restaurada no CHANGELOG a seção 0.30.0 (reiniciar partida), perdida no merge da 0.29.1.
+
+### Verification
+
+- `npm test` (164) e `npm run build`. APK release instalado no Galaxy Z Fold e aprovado pelo Navigator.
+
+## 0.30.0 - 2026-10-02
+
+Boundary: Manutenção — reiniciar partida pelo menu ⋯ (minor; backend, web e APK em 0.30.0, APK `versionCode` 5; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) | Sessão: 3e3250cd
+
+Git source: merge `--no-ff` de `feature/reiniciar-partida-menu` em `master`.
+
+### Added
+
+- Botão **Reiniciar partida** no menu ⋯ (web e quadra local do APK), com confirmação: zera pontos e linha do tempo no meio da partida e mantém regras, nomes e tema. Só para admin com o controle.
+- `zerar` no corpo de `POST /quadras/{id}/reiniciar`; sem ele, reiniciar continua exigindo partida encerrada.
+
+### Verification
+
+- `uv run pytest` (226), `npm test` (164), `npm run check`, `npm run test:e2e` (51); validado pelo Navigator na web e no APK.
+
 ## 0.29.1 - 2026-10-02
 
 Boundary: manutenção — MCP de dispositivos (patch do pacote em 0.29.1; APK 0.29.0 e Wear 0.27.0 seguem iguais, pois o produto não mudou).

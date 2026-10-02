@@ -32,14 +32,14 @@
   class:invertido={ladosInvertidos}
   aria-label="Placar clássico: {equipeA} {pontosA}, {equipeB} {pontosB}"
 >
-  <section class="time time-a" class:tres-digitos={String(pontosA).length > 2} class:ultimo={ultimoPonto === 'A'} class:apagado={ultimoPonto === 'B'} class:pulso={pulso === 'A'}>
+  <section class="time time-a" class:tres-digitos={String(pontosA).length > 2} class:ultimo={ultimoPonto === 'A'}  class:pulso={pulso === 'A'}>
     {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeA}" onclick={() => onEditarEquipe('A')}>{equipeA}</button>{:else}<span class="nome" title={equipeA}>{equipeA}</span>{/if}
     <CartaoDobravel valor={pontosA} equipe={equipeA} tema="a" tamanho="fluido" prefersReducedMotion={movimentoReduzido} />
   </section>
   <div class="divisor" aria-hidden="true">
     <svg viewBox="0 0 100 100"><path d="M8 8L92 92M92 8L8 92" /></svg>
   </div>
-  <section class="time time-b" class:tres-digitos={String(pontosB).length > 2} class:ultimo={ultimoPonto === 'B'} class:apagado={ultimoPonto === 'A'} class:pulso={pulso === 'B'}>
+  <section class="time time-b" class:tres-digitos={String(pontosB).length > 2} class:ultimo={ultimoPonto === 'B'}  class:pulso={pulso === 'B'}>
     {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeB}" onclick={() => onEditarEquipe('B')}>{equipeB}</button>{:else}<span class="nome" title={equipeB}>{equipeB}</span>{/if}
     <CartaoDobravel valor={pontosB} equipe={equipeB} tema="b" tamanho="fluido" prefersReducedMotion={movimentoReduzido} />
   </section>
@@ -101,13 +101,14 @@
   .time-a { --cor-time: var(--time-a); }
   .time-b { --cor-time: var(--time-b); }
 
-  /* Último ponto: cartão de quem pontuou cresce e acende; o outro recua. */
+  /* Último ponto: cartão de quem pontuou cresce, acende e ganha borda na cor
+     do time; o outro fica como no 0x0 (apagá-lo deixava o número ilegível). */
   .time :global(.cartao-wrapper) { transition: transform .25s ease, opacity .25s ease, filter .25s ease; }
   .time.ultimo :global(.cartao-wrapper) {
     transform: scale(1.1);
     filter: drop-shadow(0 0 18px color-mix(in srgb, var(--cor-time) 75%, transparent));
   }
-  .time.apagado :global(.cartao-wrapper) { opacity: .42; filter: saturate(.55); }
+  .time.ultimo :global(.cartao-placa) { box-shadow: 0 0 0 4px var(--cor-time); }
   /* Bolinha fixa ao lado do nome de quem fez o último ponto, como no relógio. */
   .time { position: relative; }
   .time.ultimo::after {
