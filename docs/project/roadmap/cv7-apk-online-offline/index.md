@@ -2,7 +2,7 @@
 code: CV7
 level: Value
 status: Active
-status_reason: planejada em 2026-10-01; TS1 validada, TS2 é a próxima
+status_reason: planejada em 2026-10-01; TS1 e TS2 validadas, US1 é a próxima
 updated: 2026-10-01
 ---
 
@@ -15,7 +15,7 @@ O placar roda como app Android. Com internet, usa a quadra do servidor como hoje
 ## Entregas
 
 - **CV7.TS1 — Casca Capacitor:** APK `br.com.placarvolei` que abre a quadra online do servidor fixo do build, após testar a conexão. Sem comportamento novo (validada, 0.27.0).
-- **CV7.TS2 — Regras e projeção em JS:** porte com testes de paridade contra fixtures geradas pelo Python.
+- **CV7.TS2 — Regras e projeção em JS:** porte com testes de paridade contra fixtures geradas pelo Python (validada, 0.27.1).
 - **CV7.US1 — Quadra local no celular:** criar e jogar sem internet (marcar, desfazer, faixa, linha do tempo, nova partida), log persistido no aparelho.
 - **CV7.TS3 — Ponte Data Layer:** plugin nativo no celular; transporte "Celular" no relógio; troca do `applicationId` do relógio.
 - **CV7.US2 — Relógio controla a quadra local offline:** mesma fila, `base_seq` e descarte com aviso.

@@ -44,6 +44,7 @@ cd web && npm run dev      # dev server com proxy para o backend
 cd web && npm run build    # gera os estáticos servidos pelo FastAPI
 cd web && npm run check    # svelte-check
 cd web && npm run test:e2e # build + Playwright/axe (sobe o FastAPI com SQLite descartável)
+uv run python -m tests.paridade_fixtures # regera as fixtures de paridade Python↔JS (CV7.TS2)
 
 # subir como roda no Mini PC
 docker compose up -d --build
