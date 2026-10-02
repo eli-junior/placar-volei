@@ -6,7 +6,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: CV7.US2 — o relógio controla a quadra local do celular, sem internet, com o mesmo placar e a mesma fila offline do modo servidor.
 - **Branch**: `feature/cv7-us2-relogio-na-quadra-local`
-- **Passo Ariad**: Passo 4 - Teste e Validação (aguardando Checkpoint 2)
+- **Passo Ariad**: Passo 5 - Revisão (validação do Navigator aprovada; aguardando Checkpoint 3)
 - **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-02
 - **Handoff / Próximos Passos**: US2 implementada e validada por mim no Z Fold + Galaxy Watch SM-L330 (debug). Escolha de modo automática pelo celular (`sala_aberta` + sinal de vida de 20 s, validade de 90 s). Relógio: `PlacarFonte`, `CelularSessao`; celular: ponte com `ping` e sinal de vida. Falta o Navigator validar (roteiro) e, depois, revincular o relógio ao servidor para conferir o modo servidor. Fecha a CV7.
 

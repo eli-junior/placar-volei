@@ -97,6 +97,37 @@ class CelularSessaoTest {
     }
 
     @Test
+    fun `sinal vencido com lances na fila mantem a quadra local com o anel vermelho`() = runBlocking {
+        val s = sessao()
+        s.aplicarEstado(estado())
+        s.tap("A") {}
+        hora += CelularSessao.VIDA_MS + 1
+        s.reavaliar()
+        // Celular com a tela apagada: o relógio segue mostrando a partida e os pontos pendentes.
+        assertTrue(s.ativa)
+        assertEquals(Connection.SEM_CONEXAO, s.connection)
+        assertEquals(1, s.pending.size)
+
+        // Enviado o que faltava, sem sinal e sem fila o relógio volta ao servidor.
+        celular.online = true
+        s.enviarProximo()
+        hora += CelularSessao.VIDA_MS + 1
+        s.reavaliar()
+        assertFalse(s.ativa)
+    }
+
+    @Test
+    fun `celular que fechou a sala devolve ao servidor mesmo com lances na fila`() = runBlocking {
+        val s = sessao()
+        s.aplicarEstado(estado())
+        s.tap("A") {}
+        s.aplicarEstado(estado(aberta = false, seq = 2))
+        assertFalse(s.ativa)
+        // O lance continua guardado para quando a sala reabrir (ou descartado com aviso).
+        assertEquals(1, s.pending.size)
+    }
+
+    @Test
     fun `estado velho que ficou no Data Layer nao liga a quadra local`() = runBlocking {
         val s = sessao()
         s.aplicarEstado(estado(), recebidoEm = hora - CelularSessao.VIDA_MS - 1)

@@ -73,9 +73,15 @@ class CelularSessao(
     override val canStartNewMatch get() = showNewMatch && sync.controlReason == null && pending.isEmpty() &&
         connection == Connection.CONECTADO && !startingMatch
 
-    /** Começa a seguir o celular. Idempotente: a atividade pode abrir várias vezes. */
+    /**
+     * Começa a seguir o celular. Idempotente: a atividade pode abrir várias vezes,
+     * e cada abertura pergunta o estado de novo em vez de esperar o sinal de vida.
+     */
     fun iniciar() {
-        if (iniciada?.isActive == true) return
+        if (iniciada?.isActive == true) {
+            scope.launch { canal.pedirEstado() }
+            return
+        }
         iniciada = scope.launch {
             val remover = CelularCanal.observarEstado { estado -> scope.launch { aplicarEstado(estado) } }
             try {
@@ -111,10 +117,18 @@ class CelularSessao(
         wake.trySend(Unit)
     }
 
-    /** O sinal de vida venceu? Chamado pela verificação periódica e a cada estado. */
+    /**
+     * O sinal de vida venceu? Chamado pela verificação periódica e a cada estado.
+     * Com lances ainda na fila a quadra local não some: com a tela do celular
+     * apagada o JS dele congela e o sinal para, e o relógio não pode largar a
+     * partida (e esconder os pontos que ainda não foram) por causa disso. Só o
+     * celular dizendo que fechou a sala, ou a fila vazia, devolve ao servidor.
+     */
     internal fun reavaliar() {
-        ativa = salaAberta && agora() - sinalEm <= vidaMs && score != null
-        if (!ativa && connection == Connection.CONECTADO) connection = Connection.RECONECTANDO
+        val fresco = agora() - sinalEm <= vidaMs
+        ativa = salaAberta && score != null && (fresco || pending.isNotEmpty())
+        if (ativa && !fresco) connection = Connection.SEM_CONEXAO
+        else if (!ativa && connection == Connection.CONECTADO) connection = Connection.RECONECTANDO
     }
 
     override fun tap(equipe: String, done: (Boolean) -> Unit) = write({ sync.tap(equipe) }, done)
