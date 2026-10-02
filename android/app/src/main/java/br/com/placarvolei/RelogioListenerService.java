@@ -11,6 +11,8 @@ public class RelogioListenerService extends WearableListenerService {
     public void onMessageReceived(MessageEvent evento) {
         if (PlacarRelogioPlugin.CAMINHO_COMANDO.equals(evento.getPath())) {
             PlacarRelogioPlugin.entregar(evento.getSourceNodeId(), new String(evento.getData(), StandardCharsets.UTF_8));
+        } else if (PlacarRelogioPlugin.CAMINHO_PING.equals(evento.getPath())) {
+            PlacarRelogioPlugin.pingar();
         }
     }
 }

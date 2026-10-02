@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
 
 enum class Connection { CONECTADO, RECONECTANDO, SEM_CONEXAO }
 
-class WatchModel(app: Application) : AndroidViewModel(app) {
+class WatchModel(app: Application) : AndroidViewModel(app), PlacarFonte {
     private val store = CredentialStore(app)
     private val http = OkHttpClient.Builder().connectTimeout(10, TimeUnit.SECONDS)
         .readTimeout(10, TimeUnit.SECONDS).callTimeout(15, TimeUnit.SECONDS)
@@ -83,28 +83,29 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     private val sync = ScoreSync(CommandQueue(File(app.filesDir, "fila-lances.json")))
     private var rev by mutableIntStateOf(0)
     private val wake = Channel<Unit>(Channel.CONFLATED)
-    val score get() = rev.let { sync.score }
+    override val score get() = rev.let { sync.score }
     val participantId get() = rev.let { sync.participantId }
-    var connection by mutableStateOf(Connection.RECONECTANDO)
+    override var connection by mutableStateOf(Connection.RECONECTANDO)
         private set
-    val pending get() = rev.let { sync.pending }
-    val lastPointTeam get() = rev.let { sync.lastPointTeam }
-    internal val pointFeedback get() = sync.pointFeedback
-    val discardNotice get() = rev.let { sync.notice }
-    val labels get() = score?.let(::teamLabels) ?: ("Equipe A" to "Equipe B")
-    val shown get() = score?.let { predicted(it, pending) }
+    override val pending get() = rev.let { sync.pending }
+    override val lastPointTeam get() = rev.let { sync.lastPointTeam }
+    override val pointFeedback get() = sync.pointFeedback
+    override val modoRotulo: String? = null
+    override val discardNotice get() = rev.let { sync.notice }
+    override val labels get() = score?.let(::teamLabels) ?: ("Equipe A" to "Equipe B")
+    override val shown get() = score?.let { predicted(it, pending) }
 
     /** O controle do placar está com este relógio. */
-    val controlled get() = rev.let { sync.controlled }
+    override val controlled get() = rev.let { sync.controlled }
 
     /** Por que os botões de ponto estão travados agora; null = pode marcar. */
-    val blockReason get() = rev.let { sync.blockReason }
+    override val blockReason get() = rev.let { sync.blockReason }
 
     /** Desfazer segue valendo com a vitória prevista ou a partida encerrada. */
-    val canUndo get() = rev.let { sync.canUndo }
+    override val canUndo get() = rev.let { sync.canUndo }
 
     /** Descrição acessível do desfazer com a equipe do ponto do topo. */
-    val undoSpoken get() = score.let { s ->
+    override val undoSpoken get() = score.let { s ->
         undoDescription(rev.let { sync.undoTeam }, s?.equipeA.orEmpty(), s?.equipeB.orEmpty())
     }
 
@@ -116,10 +117,10 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     private var writing = false
 
     /** Grava o lance antes de qualquer retorno visual; `done` recebe se foi aceito. */
-    fun tap(equipe: String, done: (Boolean) -> Unit) = write({ sync.tap(equipe) }, done)
+    override fun tap(equipe: String, done: (Boolean) -> Unit) = write({ sync.tap(equipe) }, done)
 
     /** Grava na fila o desfazer do ponto visto no topo, antes do retorno visual. */
-    fun undo(done: (Boolean) -> Unit) = write({ sync.undo() }, done)
+    override fun undo(done: (Boolean) -> Unit) = write({ sync.undo() }, done)
 
     private fun write(action: () -> Boolean, done: (Boolean) -> Unit) {
         if (writing) return
@@ -148,14 +149,14 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     private var newMatchId: Pair<String, String>? = null
 
     /** Partida encerrada com o controle: a faixa de baixo ganha "▶ Nova". */
-    val showNewMatch get() = controlled && ownerAdmin && score?.encerrada == true
+    override val showNewMatch get() = controlled && ownerAdmin && score?.encerrada == true
 
     /** Só com conexão e fila vazia: a partida nova não entra na fila offline. */
-    val canStartNewMatch get() = showNewMatch && sync.controlReason == null && pending.isEmpty() &&
+    override val canStartNewMatch get() = showNewMatch && sync.controlReason == null && pending.isEmpty() &&
         connection == Connection.CONECTADO && !startingMatch
 
     /** Nova partida nos mesmos moldes (CV3.DS2.US3), enviada direto ao servidor. */
-    fun startNewMatch(): Boolean {
+    override fun startNewMatch(): Boolean {
         val s = score ?: return false
         if (!canStartNewMatch) return false
         val id = newMatchId?.takeIf { it.first == s.partidaId }?.second ?: UUID.randomUUID().toString()
@@ -184,14 +185,14 @@ class WatchModel(app: Application) : AndroidViewModel(app) {
     }
 
     /** Fila ilegível na abertura (CV5.DS2.TS1): aviso até a pessoa dispensar. */
-    val lostQueue get() = rev.let { sync.lostQueue }
+    override val lostQueue get() = rev.let { sync.lostQueue }
 
-    fun dismissLostQueue() {
+    override fun dismissLostQueue() {
         sync.dismissLostQueue()
         changed(false)
     }
 
-    fun dismissDiscardNotice() {
+    override fun dismissDiscardNotice() {
         sync.dismissNotice()
         changed(false)
     }

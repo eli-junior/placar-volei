@@ -75,7 +75,7 @@ private val ScoreFont = FontFamily(Font(R.font.teko, weight = FontWeight.Bold,
  * Equipe B. O toque grava o lance antes de vibrar e de mudar o número.
  */
 @Composable
-fun ScoreScreen(model: WatchModel) {
+fun ScoreScreen(model: PlacarFonte) {
     val score = model.score ?: return
     val (pontosA, pontosB) = model.shown ?: (score.pontosA to score.pontosB)
     val (rotuloA, rotuloB) = model.labels
@@ -127,13 +127,14 @@ fun ScoreScreen(model: WatchModel) {
         // Conteúdo recuado para dentro do aro de conexão (CV6.DS2.US2).
         Column(Modifier.fillMaxSize().padding(RING_INSET)) {
             // Estado da conexão lido junto do cabeçalho: a cor do aro sozinha não informa.
-            val status = statusLine(model.connection, pending)
+            val status = (if (model.modoRotulo != null) "Quadra local do celular. " else "") + statusLine(model.connection, pending)
             Row(
                 Modifier.align(Alignment.CenterHorizontally).height(22.dp + 16.dp).padding(top = 16.dp)
                     .semantics(mergeDescendants = true) { contentDescription = status },
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
             ) {
+                model.modoRotulo?.let { ModoText(it) }
                 if (heart.granted) HeartText(heart.bpm)
                 if (pending > 0) PendingText(pending)
             }
@@ -312,6 +313,12 @@ private fun ConnectionRing(signal: Signal) {
 }
 
 /** Lances ainda não confirmados; a quantidade exata vai para o leitor de tela pelo cabeçalho. */
+/** Qual quadra o relógio está marcando, quando não é a do servidor (CV7.US2). */
+@Composable
+private fun ModoText(rotulo: String) {
+    Text(rotulo.uppercase(), Modifier.clearAndSetSemantics {}, fontSize = 11.sp, fontWeight = FontWeight.Bold, color = TeamAColor, maxLines = 1)
+}
+
 @Composable
 private fun PendingText(pending: Int) {
     Text(

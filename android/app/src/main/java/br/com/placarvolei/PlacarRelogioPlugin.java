@@ -34,6 +34,7 @@ public class PlacarRelogioPlugin extends Plugin {
     static final String CAMINHO_ESTADO = "/placar/local/estado";
     static final String CAMINHO_COMANDO = "/placar/local/comando";
     static final String CAMINHO_RECIBO = "/placar/local/recibo";
+    static final String CAMINHO_PING = "/placar/local/ping";
     private static final int MAX_ESPERANDO = 50;
 
     private static PlacarRelogioPlugin ativo;
@@ -48,6 +49,11 @@ public class PlacarRelogioPlugin extends Plugin {
         }
         if (esperando.size() >= MAX_ESPERANDO) esperando.removeFirst();
         esperando.addLast(new String[] {no, corpo});
+    }
+
+    /** O relógio acabou de abrir e quer o estado agora; sem JS ouvindo, não há o que fazer. */
+    static synchronized void pingar() {
+        if (ativo != null) ativo.notifyListeners("ping", new JSObject());
     }
 
     private void emitir(String no, String corpo) {

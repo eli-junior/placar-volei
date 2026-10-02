@@ -14,11 +14,14 @@ import androidx.wear.compose.material.MaterialTheme
 
 class MainActivity : ComponentActivity() {
     private lateinit var model: WatchModel
+    private lateinit var celular: CelularSessao
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         model = (application as WatchApplication).watchModel()
+        celular = (application as WatchApplication).celular
         model.startSession()
+        celular.iniciar()
         setContent {
             val context = LocalContext.current
             val requestNotifications = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) {}
@@ -29,8 +32,12 @@ class MainActivity : ComponentActivity() {
                 }
             }
             MaterialTheme {
-                if (model.stage == Stage.PLACAR && model.linked && model.score != null) ScoreScreen(model)
-                else LinkScreen(model)
+                // O celular decide o modo (CV7.US2): com a sala local aberta lá, o relógio marca a quadra local.
+                when {
+                    celular.ativa -> ScoreScreen(celular)
+                    model.stage == Stage.PLACAR && model.linked && model.score != null -> ScoreScreen(model)
+                    else -> LinkScreen(model)
+                }
             }
         }
     }
@@ -39,6 +46,7 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         Log.i("WatchSession", "placar retomado em primeiro plano")
         model.startSession()
+        celular.iniciar()
     }
 
     override fun onPause() {

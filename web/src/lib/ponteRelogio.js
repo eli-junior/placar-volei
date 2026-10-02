@@ -12,7 +12,7 @@ import { ErroGravacao } from './quadraLocal.js';
 
 /**
  * @typedef {Object} PluginRelogio
- * @property {(evento: 'comando', ouvinte: (e: { no: string, corpo: string }) => void) => Promise<{ remove: () => Promise<void> }>} addListener
+ * @property {(evento: 'comando' | 'ping', ouvinte: (e: any) => void) => Promise<{ remove: () => Promise<void> }>} addListener
  * @property {() => Promise<void>} iniciar
  * @property {() => Promise<void>} parar
  * @property {(args: { no: string, json: string }) => Promise<void>} responder
@@ -42,13 +42,20 @@ export async function pluginRelogio() {
 /**
  * @param {{ plugin: PluginRelogio, quadra: import('./quadraLocal.js').QuadraLocal, aoMudar?: (snapshot: any) => void }} opcoes
  */
-export function criarPonteRelogio({ plugin, quadra, aoMudar }) {
-  /** @type {{ remove: () => Promise<void> } | null} */
-  let ouvinte = null;
+/** Sinal de vida: o relógio trata a sala como fechada se ficar tanto tempo sem notícia (CV7.US2). */
+export const INTERVALO_SINAL_MS = 20_000;
 
-  async function publicar() {
+export function criarPonteRelogio({ plugin, quadra, aoMudar }) {
+  /** @type {Array<{ remove: () => Promise<void> }>} */
+  let ouvintes = [];
+  /** @type {ReturnType<typeof setInterval> | null} */
+  let sinal = null;
+  let aberta = false;
+
+  /** @param {string | null} [comandoId] */
+  async function publicar(comandoId = null) {
     try {
-      await plugin.publicarEstado({ json: JSON.stringify(quadra.snapshotParaRelogio()) });
+      await plugin.publicarEstado({ json: JSON.stringify(quadra.snapshotParaRelogio(comandoId, aberta)) });
     } catch {
       // Sem relógio ao alcance: ele pega o último estado ao reconectar.
     }
@@ -80,15 +87,28 @@ export function criarPonteRelogio({ plugin, quadra, aoMudar }) {
   }
 
   return {
-    publicar,
+    publicar: () => publicar(),
     async iniciar() {
-      ouvinte = await plugin.addListener('comando', tratar);
+      aberta = true;
+      ouvintes = [
+        await plugin.addListener('comando', tratar),
+        // O relógio que acabou de abrir pergunta pelo estado em vez de esperar o sinal de vida.
+        await plugin.addListener('ping', () => { publicar(); }),
+      ];
       await plugin.iniciar();
       await publicar();
+      sinal = setInterval(() => { publicar(); }, INTERVALO_SINAL_MS);
+      // Nos testes (Node) o intervalo não pode segurar o processo; no navegador não existe.
+      /** @type {any} */ (sinal).unref?.();
     },
     async parar() {
-      await ouvinte?.remove();
-      ouvinte = null;
+      if (sinal) clearInterval(sinal);
+      sinal = null;
+      // Avisa o relógio de que a sala fechou, para ele voltar ao servidor já.
+      aberta = false;
+      await publicar();
+      await Promise.all(ouvintes.map((o) => o.remove()));
+      ouvintes = [];
       await plugin.parar();
     },
   };

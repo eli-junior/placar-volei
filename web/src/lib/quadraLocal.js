@@ -251,9 +251,13 @@ export class QuadraLocal {
    * O que o relógio precisa do placar, sem a linha do tempo (o Data Layer limita
    * cada mensagem a ~100 KB). O controle é sempre dele: na quadra local celular
    * e relógio operam juntos, sem passar o comando de um para o outro.
+   * `sala_aberta` diz ao relógio se este celular está com a sala local aberta
+   * (é o que o faz entrar na quadra local) e `t` muda a cada publicação, para o
+   * Data Layer entregar também o sinal de vida (CV7.US2).
    * @param {string | null} [comandoId]  lance do relógio que este estado confirma
+   * @param {boolean} [aberta]
    */
-  snapshotParaRelogio(comandoId = null) {
+  snapshotParaRelogio(comandoId = null, aberta = true) {
     const { quadra, partida_id, seq, estado_partida } = this.snapshot();
     return {
       quadra: { id: quadra.id, nome: quadra.nome, controle_id: ID_RELOGIO_LOCAL, controle_versao: 1 },
@@ -264,6 +268,8 @@ export class QuadraLocal {
         { id: ID_RELOGIO_LOCAL, apelido: 'Relógio', papel: 'ADMIN' },
         { id: ID_OPERADOR_LOCAL, apelido: this.apelido, papel: 'ADMIN' },
       ],
+      sala_aberta: aberta,
+      t: Date.parse(this.agora()),
       ...(comandoId ? { comando_id: comandoId } : {}),
     };
   }

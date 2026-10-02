@@ -1,5 +1,6 @@
 package br.com.placarvolei.watch
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
@@ -78,8 +79,9 @@ class CelularProtocoloTest {
     @Test
     fun `respostas de lances diferentes nao se misturam`() = runBlocking {
         val respostas = RespostasEsperadas()
-        val a = async { respostas.aguardar("a", 1_000) { true } }
-        val b = async { respostas.aguardar("b", 1_000) { true } }
+        // Em outra thread: o laço abaixo espera com Thread.sleep e travaria o runBlocking.
+        val a = async(Dispatchers.Default) { respostas.aguardar("a", 1_000) { true } }
+        val b = async(Dispatchers.Default) { respostas.aguardar("b", 1_000) { true } }
         while (!respostas.entregar(resposta("b", 200))) Thread.sleep(5)
         while (!respostas.entregar(resposta("a", 409, JSONObject().put("detail", "x")))) Thread.sleep(5)
         assertEquals(200, b.await()!!.first)
@@ -90,7 +92,7 @@ class CelularProtocoloTest {
     @Test
     fun `resposta duplicada para o mesmo lance so vale uma vez`() = runBlocking {
         val respostas = RespostasEsperadas()
-        val par = async { respostas.aguardar("id-1", 1_000) { true } }
+        val par = async(Dispatchers.Default) { respostas.aguardar("id-1", 1_000) { true } }
         while (!respostas.entregar(resposta("id-1", 201))) Thread.sleep(5)
         assertEquals(201, par.await()!!.first)
         assertFalse(respostas.entregar(resposta("id-1", 201)))
