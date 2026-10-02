@@ -9,6 +9,7 @@
  */
 import {
   ErroRegra,
+  MSG_ALVO_MUDOU,
   configurarPartida,
   desfazerPonto,
   iniciarPartida,
@@ -30,12 +31,28 @@ import {
  * @property {number} versao
  * @property {{ id: string, nome: string, criado_em: string, tema_placar: string }} quadra
  * @property {Evento[]} eventos   todas as partidas, em ordem (o `seq` recomeça a cada partida)
+ * @property {ReciboRelogio[]} [recibos]   resultado de cada lance do relógio, para não aplicar duas vezes
+ */
+/**
+ * @typedef {Object} ReciboRelogio
+ * @property {string} id
+ * @property {string} partida_id
+ * @property {string} acao
+ * @property {string | null} equipe
+ * @property {string | null} alvo
+ * @property {'APLICADO' | 'RECUSADO'} status
+ * @property {string | null} detalhe
+ * @property {number | null} evento_seq
  */
 
 export const CHAVE_QUADRA_LOCAL = 'placar.quadra_local';
 export const CHAVE_ILEGIVEL = 'placar.quadra_local.ilegivel';
 export const ID_QUADRA_LOCAL = 'LOCAL';
 export const ID_OPERADOR_LOCAL = 'local';
+/** O relógio é um segundo operador da quadra local, com o controle sempre dele. */
+export const ID_RELOGIO_LOCAL = 'relogio-local';
+const MAX_RECIBOS = 500;
+const UUID = /^[0-9a-fA-F-]{36}$/;
 const VERSAO = 1;
 const TEMAS_PLACAR = ['esportivo', 'classico'];
 
@@ -201,13 +218,17 @@ export class QuadraLocal {
     return { quadraId: ID_QUADRA_LOCAL, autorId: ID_OPERADOR_LOCAL, agora: this.agora, novoId: this.novoId };
   }
 
+  get contextoRelogio() {
+    return { ...this.contexto, autorId: ID_RELOGIO_LOCAL };
+  }
+
   get eu() {
     return { id: ID_OPERADOR_LOCAL, quadra_id: ID_QUADRA_LOCAL, apelido: this.apelido, papel: /** @type {const} */ ('ADMIN') };
   }
 
   /** Mesma forma do snapshot do servidor, para a `SalaQuadra` consumir sem mudar. */
   snapshot() {
-    const partida = projetarPartida(this.eventosDaPartida, { [ID_OPERADOR_LOCAL]: this.apelido });
+    const partida = projetarPartida(this.eventosDaPartida, { [ID_OPERADOR_LOCAL]: this.apelido, [ID_RELOGIO_LOCAL]: 'Relógio' });
     const eventos = this.registro.eventos;
     const q = this.registro.quadra;
     return {
@@ -227,6 +248,95 @@ export class QuadraLocal {
   }
 
   /**
+   * O que o relógio precisa do placar, sem a linha do tempo (o Data Layer limita
+   * cada mensagem a ~100 KB). O controle é sempre dele: na quadra local celular
+   * e relógio operam juntos, sem passar o comando de um para o outro.
+   * @param {string | null} [comandoId]  lance do relógio que este estado confirma
+   */
+  snapshotParaRelogio(comandoId = null) {
+    const { quadra, partida_id, seq, estado_partida } = this.snapshot();
+    return {
+      quadra: { id: quadra.id, nome: quadra.nome, controle_id: ID_RELOGIO_LOCAL, controle_versao: 1 },
+      partida_id,
+      seq,
+      estado_partida,
+      participantes: [
+        { id: ID_RELOGIO_LOCAL, apelido: 'Relógio', papel: 'ADMIN' },
+        { id: ID_OPERADOR_LOCAL, apelido: this.apelido, papel: 'ADMIN' },
+      ],
+      ...(comandoId ? { comando_id: comandoId } : {}),
+    };
+  }
+
+  /**
+   * Lance do relógio (mesmo corpo do `POST /api/watch/comandos`). Aplica uma
+   * vez só: o reenvio do mesmo id devolve o mesmo resultado. Devolve o que o
+   * relógio espera: `{ status, recibo, estado }`, ou `{ status, detail }` quando
+   * o corpo nem é um lance válido.
+   * @param {any} corpo
+   * @returns {Promise<{ status: number, recibo?: object, estado?: object, detail?: string }>}
+   */
+  aplicarComandoRelogio(corpo) {
+    return this.enfileirar(async () => {
+      const invalido = corpoInvalido(corpo);
+      if (invalido) return { status: 422, detail: invalido };
+      const alvo = corpo.alvo_seq != null ? `seq:${corpo.alvo_seq}` : corpo.alvo_comando != null ? `comando:${corpo.alvo_comando}` : null;
+      const equipe = corpo.equipe ?? null;
+      const recibos = this.registro.recibos ?? [];
+
+      const anterior = recibos.find((r) => r.id === corpo.id);
+      if (anterior) {
+        const igual = anterior.partida_id === corpo.partida_id && anterior.acao === corpo.acao && anterior.equipe === equipe && anterior.alvo === alvo;
+        if (!igual) return { status: 409, detail: 'Este lance já foi usado com outro conteúdo.' };
+        return { status: 200, recibo: paraRecibo(anterior), estado: this.snapshotParaRelogio() };
+      }
+
+      /** @type {Evento[]} */
+      let novos = [];
+      /** @type {string | null} */
+      let recusa = null;
+      try {
+        if (corpo.partida_id !== this.snapshot().partida_id) {
+          throw new ErroRegra(409, 'Uma nova partida começou. Este lance não vale para ela.');
+        }
+        let alvoSeq = corpo.alvo_seq ?? null;
+        if (corpo.alvo_comando != null) {
+          const alvoRecibo = recibos.find((r) => r.id === corpo.alvo_comando);
+          if (!alvoRecibo || alvoRecibo.acao !== 'ponto' || alvoRecibo.status !== 'APLICADO' || alvoRecibo.partida_id !== corpo.partida_id) {
+            throw new ErroRegra(409, MSG_ALVO_MUDOU);
+          }
+          alvoSeq = alvoRecibo.evento_seq;
+        }
+        const eventos = this.eventosDaPartida;
+        if (corpo.acao === 'ponto') novos = marcarPonto(eventos, corpo.equipe, this.contextoRelogio);
+        else if (corpo.acao === 'desfazer') novos = desfazerPonto(eventos, alvoSeq, this.contextoRelogio);
+        else novos = reiniciarPartida(eventos, {}, this.contextoRelogio, this.novoId());
+      } catch (e) {
+        if (!(e instanceof ErroRegra)) throw e;
+        recusa = e.message;
+      }
+
+      /** @type {ReciboRelogio} */
+      const recibo = {
+        id: corpo.id,
+        partida_id: corpo.partida_id,
+        acao: corpo.acao,
+        equipe,
+        alvo,
+        status: recusa === null ? 'APLICADO' : 'RECUSADO',
+        detalhe: recusa,
+        evento_seq: recusa === null ? novos[0].seq : null,
+      };
+      await this.confirmar(novos, {}, recibo);
+      return {
+        status: recusa === null ? 201 : 200,
+        recibo: paraRecibo(recibo),
+        estado: this.snapshotParaRelogio(recusa === null ? corpo.id : null),
+      };
+    });
+  }
+
+  /**
    * Um comando por vez, na ordem do toque: o quinto toque em dois segundos
    * vira o quinto ponto, e nunca dois gravam por cima um do outro.
    * @template T
@@ -242,14 +352,16 @@ export class QuadraLocal {
   /**
    * @param {Evento[]} novos
    * @param {Partial<Registro['quadra']>} [quadra]
+   * @param {ReciboRelogio | null} [recibo]
    */
-  async confirmar(novos, quadra = {}) {
+  async confirmar(novos, quadra = {}, recibo = null) {
     /** @type {Registro} */
     const proximo = {
       ...this.registro,
       quadra: { ...this.registro.quadra, ...quadra },
       eventos: [...this.registro.eventos, ...novos],
     };
+    if (recibo) proximo.recibos = [...(this.registro.recibos ?? []), recibo].slice(-MAX_RECIBOS);
     try {
       await this.armazenamento.gravar(CHAVE_QUADRA_LOCAL, JSON.stringify(proximo));
     } catch {
@@ -305,4 +417,29 @@ export class QuadraLocal {
     if (!TEMAS_PLACAR.includes(tema)) throw new ErroRegra(422, 'Tema de placar inválido.');
     return tema;
   }
+}
+
+/** @param {ReciboRelogio} r */
+const paraRecibo = (r) => ({ id: r.id, status: r.status, detalhe: r.detalhe, evento_seq: r.evento_seq });
+
+/**
+ * As mesmas regras de forma do `CommandBody` do servidor. Devolve o motivo ou null.
+ * @param {any} c
+ */
+function corpoInvalido(c) {
+  if (!c || typeof c !== 'object') return 'Comando inválido.';
+  if (typeof c.id !== 'string' || !UUID.test(c.id)) return 'id inválido.';
+  if (typeof c.partida_id !== 'string' || !c.partida_id || c.partida_id.length > 64) return 'partida_id inválido.';
+  if (!Number.isInteger(c.controle_versao) || c.controle_versao < 0) return 'controle_versao inválido.';
+  const acao = c.acao ?? 'ponto';
+  if (!['ponto', 'desfazer', 'nova_partida'].includes(acao)) return 'acao inválida.';
+  c.acao = acao;
+  if (c.equipe != null && c.equipe !== 'A' && c.equipe !== 'B') return 'equipe inválida.';
+  if (c.alvo_seq != null && (!Number.isInteger(c.alvo_seq) || c.alvo_seq < 1)) return 'alvo_seq inválido.';
+  if (c.alvo_comando != null && !(typeof c.alvo_comando === 'string' && UUID.test(c.alvo_comando))) return 'alvo_comando inválido.';
+  const alvos = (c.alvo_seq != null ? 1 : 0) + (c.alvo_comando != null ? 1 : 0);
+  if (acao === 'ponto' && (c.equipe == null || alvos)) return 'Ponto leva a equipe e nenhum alvo.';
+  if (acao === 'desfazer' && (c.equipe != null || alvos !== 1)) return 'Desfazer leva exatamente um alvo e nenhuma equipe.';
+  if (acao === 'nova_partida' && (c.equipe != null || alvos)) return 'Nova partida não leva equipe nem alvo.';
+  return null;
 }

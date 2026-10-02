@@ -6,7 +6,7 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-APK Android do celular (`0.28.0`, `CV7.TS1–US1`): casca Capacitor que abre a quadra online do servidor fixo do build quando ele responde e, **só sem comunicação com o servidor**, uma quadra local guardada no aparelho (uma por APK). Para gerar e instalar:
+APK Android do celular (`0.28.1`, `CV7.TS1–TS3`): casca Capacitor que abre a quadra online do servidor fixo do build quando ele responde e, **só sem comunicação com o servidor**, uma quadra local guardada no aparelho (uma por APK). Para gerar e instalar:
 
 ```bash
 export ANDROID_HOME=/caminho/do/Android/Sdk
@@ -14,7 +14,7 @@ PLACAR_SERVIDOR=https://placar.exemplo.com scripts/build-apk.sh debug
 adb install -r --user 0 android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Precisa de Node, JDK 21 e Android SDK. Validado no Galaxy Z Fold. O relógio na quadra local (ponte Bluetooth) fica para a CV7.TS3 e a CV7.US2; hoje o relógio só marca quadras do servidor.
+Precisa de Node, JDK 21 e Android SDK. Validado no Galaxy Z Fold. A ponte Bluetooth com o relógio já existe (CV7.TS3): o celular aplica os lances do relógio na quadra local, com a tela do celular acesa. A tela do relógio para a quadra local e a escolha do modo ficam para a CV7.US2; hoje o relógio de produção só marca quadras do servidor, e o app novo do relógio (`0.26.0`, `applicationId` `br.com.placarvolei`) exige desinstalar o antigo e revincular.
 
 
 Wear OS `0.25.0` entregue: inclui retorno perceptível ao pontuar e acompanhamento em segundo plano para repousar a tela e retomar pelo pulso (`CV6.DS2.US3–US4`). No Galaxy Watch SM-L330/Android 16, serviço e WebSocket permaneceram ativos durante 60 s em repouso via ADB; gesto físico, atualização remota durante repouso, reconexão, treino e bateria não foram validados. Backend e web seguem em `0.24.0`, compatíveis com este APK.

@@ -4,7 +4,34 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo. Próximo da CV7: TS3 (ponte Data Layer) e US2 (relógio na quadra local).
+Nenhum trabalho ativo. Próximo da CV7: US2 (relógio controla a quadra local, com a escolha de modo na tela do relógio).
+
+## 0.28.1 - 2026-10-02
+
+Boundary: CV7.TS3 — ponte Data Layer entre o celular e o relógio (patch no backend, web e APK em 0.28.1, `versionCode` 3; Wear OS 0.26.0, `versionCode` 14). Sem mudança visível: a tela do relógio para a quadra local é a CV7.US2.
+
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ
+
+Git source: merge `--no-ff` de `feature/cv7-ts3-ponte-data-layer` em `master`.
+
+### Added
+
+- Celular: a quadra local aplica os lances do relógio (`aplicarComandoRelogio`) com o contrato do servidor, recibos gravados com o log (reenvio sem duplicar, mesmo depois de reabrir o app), partida antiga recusada e desfazer por `alvo_seq` ou `alvo_comando`. Plugin `PlacarRelogio` e `RelogioListenerService` (Java) com a ponte JS, ligados enquanto a sala local está aberta.
+- Relógio: `CelularLink`, respostas casadas por id e `CelularListenerService`; estado da quadra local por DataItem (sem a linha do tempo, abaixo do limite de ~100 KB). Disparador `DebugCelular` por `adb`, só nas builds debug.
+
+### Changed
+
+- **Wear OS 0.26.0:** o `applicationId` passa de `br.com.placarvolei.watch` para `br.com.placarvolei`, o mesmo do celular (o Data Layer exige o mesmo id e a mesma assinatura). Incompatível: é preciso desinstalar o app antigo do relógio e vincular as quadras do servidor de novo.
+
+### Notes
+
+- Plano B (Navigator): o spike mostrou que o JS do WebView para ~2 min depois de a tela apagar, mesmo com serviço em primeiro plano e wake lock parcial. A quadra local mantém a tela acesa; com ela apagada, a fila offline do relógio segura os lances e eles entram em ordem, uma vez só, quando o celular volta.
+- Em release, celular e relógio precisam ser assinados com a mesma keystore.
+- Dívida: `debt-quadra-local-so-atende-relogio-com-tela-acesa` (nova); `debt-apk-caminhos-nativos-sem-teste-automatico` e `debt-apk-release-sem-assinatura` atualizadas.
+
+### Verification
+
+- `npm test` (161), `npm run check`, `npm run test:e2e`, `uv run pytest` (225); relógio: 59 testes JVM, lint e APK debug. No Galaxy Z Fold e no Galaxy Watch SM-L330: ponto A/B e desfazer aplicados, lance enfileirado com o celular fora da sala e reenviado sem duplicar.
 
 ## 0.28.0 - 2026-10-02
 

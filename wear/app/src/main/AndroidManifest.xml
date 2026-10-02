@@ -18,6 +18,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <!-- Recibos e estado da quadra local do celular pelo Data Layer (CV7.TS3). -->
+        <service android:name=".CelularListenerService" android:exported="true">
+            <intent-filter>
+                <action android:name="com.google.android.gms.wearable.MESSAGE_RECEIVED" />
+                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
+                <data android:scheme="wear" android:host="*" android:pathPrefix="/placar/local/" />
+            </intent-filter>
+        </service>
         <service android:name=".WatchSessionService" android:exported="false" android:foregroundServiceType="specialUse">
             <property android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE" android:value="Manter o placar de vôlei conectado e disponível para retomada durante uma partida iniciada pelo usuário." />
         </service>
