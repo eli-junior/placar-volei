@@ -1,5 +1,17 @@
 # Placar Vôlei — Wear OS
 
+> **0.26.0 (CV7.TS3):** o `applicationId` passou de `br.com.placarvolei.watch` para **`br.com.placarvolei`**, o mesmo do app do celular (o Wearable Data Layer exige o mesmo id e a mesma assinatura nos dois). Para atualizar, **desinstale o app antigo do relógio** e instale este; o vínculo com o servidor é zerado e as quadras precisam ser vinculadas de novo. A ponte com a quadra local do celular existe como contrato e transporte (`CelularLink`); a tela do relógio para ela chega na CV7.US2. Nas builds **debug** há um disparador por `adb` para exercitá-la:
+>
+> ```bash
+> DBG="-n br.com.placarvolei/br.com.placarvolei.watch.DebugCelular"
+> adb -s <relógio> shell am broadcast $DBG -a br.com.placarvolei.watch.DEBUG_ESTADO
+> adb -s <relógio> shell am broadcast $DBG -a br.com.placarvolei.watch.DEBUG_PONTO --es equipe A
+> adb -s <relógio> shell am broadcast $DBG -a br.com.placarvolei.watch.DEBUG_DESFAZER
+> adb -s <relógio> logcat -d -s CelularDebug
+> ```
+>
+> Em release, o relógio e o celular precisam ser assinados com a mesma keystore.
+
 APK de teste pessoal para **acompanhar e marcar o placar pelo Galaxy Watch**. O relógio é vinculado à sala pelo telefone e entra nela como o participante **Eli (Relógio)**. Ele marca e desfaz pontos quando o admin passa o controle para ele (`CV3.DS1.US2`–`US3`) e, sem rede, segue marcando e sincroniza depois, mesmo após reabrir o app (`CV3.DS1.TS1`). Na `0.20.0` (CV5), o relógio se recupera de vínculo ou fila ilegíveis, não trava a fila em recusas passageiras, desliga sensor e polling quando não precisa, pede dois toques para "Nova" e tem build de release com R8. O APK 0.24.1 é compatível com o servidor 0.24.0; esta atualização muda a interface do relógio e não exige deploy do servidor.
 
 ## WSL / Android Studio
