@@ -8,7 +8,7 @@
     vencedor = null,
     movimentoReduzido = false,
     onEditarEquipe = null,
-    // Equipe do último ponto ativo: número maior e aceso, o outro apagado.
+    // Equipe do último ponto ativo: número maior, aceso e com borda.
     ultimoPonto = null,
   } = $props();
 
@@ -55,7 +55,7 @@
   class:movimento-reduzido={movimentoReduzido}
   aria-label="Placar: {equipeA} {pontosA}, {equipeB} {pontosB}"
 >
-  <section class="time time-a" class:vencedor={vencedor === 'A'} class:ultimo={ultimoPonto === 'A'} class:apagado={ultimoPonto === 'B'}>
+  <section class="time time-a" class:vencedor={vencedor === 'A'} class:ultimo={ultimoPonto === 'A'} >
     {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeA}" onclick={() => onEditarEquipe('A')}>{equipeA}</button>{:else}<span class="nome" title={equipeA}>{equipeA}</span>{/if}
     <strong class:tres-digitos={tresDigitosA} class:destaque={destaque === 'a' || destaque === 'ambos'}>{pontosA}</strong>
   </section>
@@ -64,7 +64,7 @@
     <svg viewBox="0 0 100 100"><path d="M8 8L92 92M92 8L8 92" /></svg>
   </div>
 
-  <section class="time time-b" class:vencedor={vencedor === 'B'} class:ultimo={ultimoPonto === 'B'} class:apagado={ultimoPonto === 'A'}>
+  <section class="time time-b" class:vencedor={vencedor === 'B'} class:ultimo={ultimoPonto === 'B'} >
     {#if onEditarEquipe}<button type="button" class="nome editavel" title="Editar jogadores" aria-label="Editar jogadores da {equipeB}" onclick={() => onEditarEquipe('B')}>{equipeB}</button>{:else}<span class="nome" title={equipeB}>{equipeB}</span>{/if}
     <strong class:tres-digitos={tresDigitosB} class:destaque={destaque === 'b' || destaque === 'ambos'}>{pontosB}</strong>
   </section>
@@ -82,8 +82,7 @@
     height: 100%;
     min-height: 250px;
     overflow: hidden;
-    border: 1px solid var(--acao-secundaria);
-    border-radius: clamp(16px, 2.5cqw, 28px);
+    /* Sem moldura arredondada: a borda reta de quem pontuou fica sozinha. */
     background: var(--fundo-superficie);
     box-shadow: var(--sombra-elevada);
   }
@@ -150,7 +149,7 @@
 
   /* Último ponto, o tempo todo: quem pontuou fica com moldura e fundo na cor
      da equipe, uma bolinha (como no relógio) e o número maior e aceso; o
-     outro lado recua. Assim todos conferem se o ponto foi para o lado certo. */
+     outro lado fica como no 0x0. Assim todos conferem se o ponto foi para o lado certo. */
   .time { transition: background .25s ease, box-shadow .25s ease; }
   .time.ultimo {
     background: linear-gradient(180deg, color-mix(in srgb, var(--cor-time) 30%, transparent), color-mix(in srgb, var(--cor-time) 8%, transparent) 80%);
@@ -171,7 +170,6 @@
     transform: scale(1.14);
     text-shadow: 0 0 clamp(20px, 6cqw, 64px) color-mix(in srgb, var(--cor-time) 70%, transparent);
   }
-  .time.apagado strong { opacity: .42; filter: saturate(.55); }
 
   strong.destaque { animation: ponto .6s ease-out; }
   strong.tres-digitos { font-size: clamp(4rem, min(calc(min(27cqw, 54cqh) * var(--escala-numeros, 1)), 48cqw, 92cqh), 40rem); }
