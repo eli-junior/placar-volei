@@ -70,9 +70,9 @@
   // O relógio é um extra: sem ele (ou fora do APK) a quadra local segue igual.
   async function ligarPonte() {
     try {
-      const plugin = await pluginRelogio();
-      if (!plugin || tela !== 'sala') return;
-      ponte = criarPonteRelogio({ plugin, quadra: quadraLocal, aoMudar: (s) => { snapshot = s; } });
+      const alvo = await pluginRelogio();
+      if (!alvo || tela !== 'sala') return;
+      ponte = criarPonteRelogio({ plugin: alvo.plugin, quadra: quadraLocal, aoMudar: (s) => { snapshot = s; } });
       await ponte.iniciar();
     } catch {
       ponte = null;

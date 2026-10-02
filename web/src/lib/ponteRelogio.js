@@ -19,12 +19,24 @@ import { ErroGravacao } from './quadraLocal.js';
  * @property {(args: { json: string }) => Promise<void>} publicarEstado
  */
 
-/** O plugin nativo, ou null fora do APK (navegador, testes). */
+/** @type {PluginRelogio | null} */
+let instancia = null;
+
+/**
+ * O plugin nativo dentro de `{ plugin }`, ou null fora do APK (navegador,
+ * testes). Nunca devolva o proxy do plugin direto de uma função `async`: a
+ * resolução da promessa chama `.then()` nele e o Capacitor responde "not
+ * implemented". E `registerPlugin` só pode rodar uma vez por página.
+ * @returns {Promise<{ plugin: PluginRelogio } | null>}
+ */
 export async function pluginRelogio() {
   const janela = /** @type {any} */ (globalThis.window);
   if (janela?.Capacitor?.getPlatform?.() !== 'android') return null;
-  const { registerPlugin } = await import('@capacitor/core');
-  return /** @type {PluginRelogio} */ (registerPlugin('PlacarRelogio'));
+  if (!instancia) {
+    const { registerPlugin } = await import('@capacitor/core');
+    instancia = /** @type {PluginRelogio} */ (registerPlugin('PlacarRelogio'));
+  }
+  return { plugin: instancia };
 }
 
 /**
