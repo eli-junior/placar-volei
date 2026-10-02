@@ -17,10 +17,14 @@ object CelularCanal {
 
     @Volatile var ultimoEstado: JSONObject? = null
         private set
+    /** Hora do relógio (não a do celular) em que o último estado chegou. */
+    @Volatile var ultimoEstadoEm: Long = 0L
+        private set
     private val ouvintes = java.util.concurrent.CopyOnWriteArrayList<(JSONObject) -> Unit>()
 
-    fun publicarEstado(estado: JSONObject) {
+    fun publicarEstado(estado: JSONObject, agora: Long = System.currentTimeMillis()) {
         ultimoEstado = estado
+        ultimoEstadoEm = agora
         ouvintes.forEach { it(estado) }
     }
 
@@ -30,13 +34,20 @@ object CelularCanal {
     }
 }
 
+/** O que a `CelularSessao` precisa do celular: enviar um lance e pedir o estado. */
+interface CanalCelular {
+    suspend fun enviar(corpo: JSONObject, tempoMs: Long = 8_000): Pair<Int, JSONObject>?
+    /** Pergunta pelo estado agora; o celular responde publicando o DataItem. */
+    suspend fun pedirEstado()
+}
+
 /**
  * Transporte "Celular" do relógio (CV7.TS3): envia o lance ao celular pelo
  * Data Layer e espera o recibo; lê o último estado da quadra local publicado.
  * `null` em `enviar` = sem celular ao alcance ou sem resposta a tempo, o mesmo
  * que "sem rede" para a fila.
  */
-class CelularLink(private val context: Context) {
+class CelularLink(private val context: Context) : CanalCelular {
     /** O celular com o app instalado e ao alcance, se houver. */
     suspend fun celular(): Node? {
         val capacidade = Wearable.getCapabilityClient(context)
@@ -44,7 +55,7 @@ class CelularLink(private val context: Context) {
         return capacidade.nodes.firstOrNull { it.isNearby } ?: capacidade.nodes.firstOrNull()
     }
 
-    suspend fun enviar(corpo: JSONObject, tempoMs: Long = 8_000): Pair<Int, JSONObject>? = try {
+    override suspend fun enviar(corpo: JSONObject, tempoMs: Long): Pair<Int, JSONObject>? = try {
         val no = celular()
         if (no == null) null else CelularCanal.respostas.aguardar(corpo.getString("id"), tempoMs) {
             Wearable.getMessageClient(context)
@@ -55,6 +66,17 @@ class CelularLink(private val context: Context) {
         throw e
     } catch (e: Exception) {
         null
+    }
+
+    override suspend fun pedirEstado() {
+        try {
+            val no = celular() ?: return
+            Wearable.getMessageClient(context).sendMessage(no.id, CelularProtocolo.CAMINHO_PING, ByteArray(0)).await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Sem celular ao alcance: segue no servidor.
+        }
     }
 
     /** Último estado da quadra local que o celular publicou, mesmo de antes de reconectar. */

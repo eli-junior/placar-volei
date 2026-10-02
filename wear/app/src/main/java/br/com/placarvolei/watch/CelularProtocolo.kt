@@ -15,6 +15,8 @@ object CelularProtocolo {
     const val CAMINHO_ESTADO = "/placar/local/estado"
     const val CAMINHO_COMANDO = "/placar/local/comando"
     const val CAMINHO_RECIBO = "/placar/local/recibo"
+    /** Relógio recém-aberto pede o estado agora, sem esperar o sinal de vida do celular. */
+    const val CAMINHO_PING = "/placar/local/ping"
     const val CAPACIDADE_CELULAR = "placar_celular"
 
     /** Participante fixo do relógio na quadra local: o controle é sempre dele. */
@@ -31,6 +33,12 @@ object CelularProtocolo {
         json.remove("status")
         id to (status to json)
     }.getOrNull()
+
+    /**
+     * O celular está com a sala local aberta? Só um celular com a CV7.US2 diz
+     * `sala_aberta`; sem o campo, o relógio não entra na quadra local.
+     */
+    fun salaAberta(estado: JSONObject): Boolean = estado.optBoolean("sala_aberta", false)
 
     /** Estado publicado como DataItem; só vale se for um snapshot legível. */
     fun decodificarEstado(bytes: ByteArray): JSONObject? = runCatching {

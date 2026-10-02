@@ -4,7 +4,35 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo. Próximo da CV7: US2 (relógio controla a quadra local, com a escolha de modo na tela do relógio).
+Nenhum trabalho ativo. A CV7 (APK online e offline, com relógio) está entregue.
+
+## 0.29.0 - 2026-10-02
+
+Boundary: CV7.US2 — relógio na quadra local do celular; fecha a CV7 (minor; backend, web e APK em 0.29.0, APK `versionCode` 4; Wear OS 0.27.0, `versionCode` 15).
+
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ
+
+Git source: merge `--no-ff` de `feature/cv7-us2-relogio-na-quadra-local` em `master`.
+
+### Added
+
+- Relógio na quadra local: com a sala local aberta no celular, o app do relógio a mostra sozinho (tag **LOCAL**), com o mesmo placar, a mesma fila offline durável e o mesmo desfazer de sempre, em fila própria. Marcar no relógio e no celular mantém os dois placares iguais; nova partida pelo relógio.
+- O celular decide o modo (escolha do Navigator): publica `sala_aberta` e um sinal de vida a cada 20 s, e responde ao `ping` do relógio que abre. A quadra local ganha de uma quadra do servidor a que o relógio esteja vinculado.
+
+### Changed
+
+- `ScoreScreen` do relógio depende da interface `PlacarFonte` (servidor ou quadra local); o modo servidor não mudou.
+- **Wear OS 0.27.0.** Continua com o `applicationId` `br.com.placarvolei` da 0.26.0 (desinstalar o antigo e revincular as quadras do servidor).
+
+### Notes
+
+- Sem sinal do celular por 90 s o relógio volta ao servidor, exceto com lances na fila: aí mantém a quadra local com o anel vermelho até enviá-los ou o celular fechar a sala (com a tela do celular apagada o sinal para).
+- Dívida: `debt-relogio-local-sem-servico-em-primeiro-plano` (nova); `debt-quadra-local-so-atende-relogio-com-tela-acesa` atualizada.
+- Para usar no relógio de produção: Wear 0.27.0 de release (assinado com a mesma keystore do celular) e revincular as quadras do servidor.
+
+### Verification
+
+- `npm test` (163), `npm run check`, `npm run test:e2e` (51), `uv run pytest` (225); relógio: 81 testes JVM, lint e APK debug. No Galaxy Z Fold e no Galaxy Watch SM-L330: relógio entra sozinho na quadra local, toques nos dois sentidos, saída e volta da sala, queda do app do celular.
 
 ## 0.28.1 - 2026-10-02
 
