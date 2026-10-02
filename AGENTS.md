@@ -30,6 +30,10 @@ Index files explain where records live. Read the index first, then read only the
 
 If a listed file does not exist, continue with the available context and mention the gap when it matters.
 
+## Aparelhos Físicos
+
+Para qualquer coisa nos aparelhos físicos (celular e relógio: parear, conectar, compilar, instalar, capturar a tela, tocar, ler o log), **use o MCP `dispositivos`** (`tools/mcp-dispositivos/`, registrado em `.mcp.json`; leia o `README.md` dele e a seção "Aparelhos físicos" de `docs/process/development-guide.md`). Não improvise `adb` solto: o MCP já trata as armadilhas do projeto. Nunca contorne o bloqueio de tela e só desinstale um app (apaga os dados dele) com a autorização do Navigator. Atalho para "gerar um APK novo e instalar": `compilar_e_instalar`.
+
 ## Operating Principles
 
 - Read relevant code and documentation before changing files.

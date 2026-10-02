@@ -56,6 +56,12 @@ Desde a `CV5.DS1.TS2`, o `docker compose` recusa subir sem `OWNER_SECRET`, e o a
 
 O banco é efêmero por decisão do Navigator: com `RESET_DB_ON_STARTUP=true` no compose, **todo start do contêiner** (deploy, `restart` ou reinício após falha) apaga salas, participantes e vínculos do relógio. Depois de cada start, é preciso recriar a quadra e parear o relógio de novo. `COOKIE_SECURE=true` (padrão no compose) exige HTTPS; o acesso é pelo túnel.
 
+## Aparelhos físicos (celular e relógio)
+
+Para parear, conectar, compilar, instalar, capturar a tela, tocar e ler o log nos aparelhos físicos, **use o MCP `dispositivos`** (`tools/mcp-dispositivos/`, registrado no `.mcp.json`; ver o README dele), e não comandos de `adb` soltos. Ele já trata as armadilhas deste projeto: celular sempre com `--user 0` (Dual App do Samsung), release que não atualiza debug, porta do `adb` sem fio que muda, relógio que dorme, duas telas do Z Fold. Atalho para "gerar um APK novo e instalar": `compilar_e_instalar`.
+
+Regras que valem com ou sem o MCP: nunca contornar o bloqueio de tela (peça ao Navigator para desbloquear); desinstalar um app apaga os dados dele (quadra local, vínculo), então só com autorização; o release do celular e do relógio precisam da mesma keystore.
+
 ## Verification
 
 Trabalho verificado neste projeto significa as três coisas abaixo, não apenas a primeira.
