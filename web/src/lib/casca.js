@@ -45,18 +45,22 @@ function enderecoLocal(host) {
   return /^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|127\.)/.test(host) || host.endsWith('.local');
 }
 
-/** @param {any} [armazenamento] */
-export function lerServidor(armazenamento = globalThis.localStorage, padrao = '') {
+/**
+ * Testa se o servidor responde. Do WebView embarcado a chamada é de outra
+ * origem, então `no-cors`: só importa se a rede chegou lá (resposta opaca) ou
+ * não (rejeição, tempo esgotado).
+ * @param {string} origem
+ * @param {{ fetchFn?: typeof fetch, tempoMs?: number }} [opcoes]
+ */
+export async function servidorDisponivel(origem, { fetchFn = globalThis.fetch, tempoMs = 5000 } = {}) {
+  const controle = new AbortController();
+  const limite = setTimeout(() => controle.abort(), tempoMs);
   try {
-    return armazenamento?.getItem(CHAVE_SERVIDOR) || padrao;
+    await fetchFn(`${origem}/health`, { mode: 'no-cors', cache: 'no-store', signal: controle.signal });
+    return true;
   } catch {
-    return padrao;
+    return false;
+  } finally {
+    clearTimeout(limite);
   }
-}
-
-/** @param {string} origem @param {any} [armazenamento] */
-export function salvarServidor(origem, armazenamento = globalThis.localStorage) {
-  try {
-    armazenamento?.setItem(CHAVE_SERVIDOR, origem);
-  } catch {}
 }

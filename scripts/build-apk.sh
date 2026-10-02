@@ -5,6 +5,7 @@
 #
 # Precisa de Node, JDK 21 e Android SDK (ANDROID_HOME). O servidor entra no
 # `allowNavigation` do WebView e vira o padrão da tela inicial do app.
+# Instalar: `adb install -r --user 0 <apk>` (sem --user 0, o Samsung também instala no perfil Dual App).
 # Release usa a keystore do Navigator via variáveis do Gradle; ela nunca
 # entra no repositório.
 

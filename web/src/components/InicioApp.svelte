@@ -1,25 +1,28 @@
 <script>
-  // Tela inicial do APK (CV7.TS1): escolhe a quadra online do servidor.
+  // Tela inicial do APK (CV7.TS1): abre a quadra online do servidor fixo do build.
   // A quadra local (sem internet) chega na CV7.US1.
-  import { untrack } from 'svelte';
+  import { onMount, untrack } from 'svelte';
   import Icone from './Icone.svelte';
-  import { lerServidor, normalizarServidor, salvarServidor } from '../lib/casca.js';
+  import { normalizarServidor, servidorDisponivel } from '../lib/casca.js';
 
   let { servidorPadrao = '' } = $props();
 
-  // Só o valor inicial: depois vale o que a pessoa digitar.
-  let endereco = $state(lerServidor(undefined, untrack(() => servidorPadrao)));
-  let erro = $state('');
+  // O servidor é o do build (`PLACAR_SERVIDOR`) e não é editável.
+  const origem = untrack(() => normalizarServidor(servidorPadrao));
+  // 'testando' | 'disponivel' | 'indisponivel'
+  let estado = $state(origem ? 'testando' : 'indisponivel');
+
+  async function testar() {
+    if (!origem) return;
+    estado = 'testando';
+    estado = (await servidorDisponivel(origem)) ? 'disponivel' : 'indisponivel';
+  }
+
+  onMount(testar);
 
   function abrirOnline(evento) {
     evento.preventDefault();
-    const origem = normalizarServidor(endereco);
-    if (!origem) {
-      erro = 'Endereço inválido. Use o domínio do servidor, por exemplo placar.seudominio.com.';
-      return;
-    }
-    erro = '';
-    salvarServidor(origem);
+    if (estado !== 'disponivel') return;
     window.location.href = `${origem}/`;
   }
 </script>
@@ -33,19 +36,16 @@
   <form class="cartao" onsubmit={abrirOnline}>
     <h2>Quadra online</h2>
     <p>Placar compartilhado pelo servidor: espectadores pelo link e relógio pela internet.</p>
-    <label for="servidor">Servidor</label>
-    <input
-      id="servidor"
-      type="url"
-      inputmode="url"
-      autocomplete="url"
-      placeholder="placar.seudominio.com"
-      bind:value={endereco}
-      aria-invalid={erro ? 'true' : undefined}
-      aria-describedby={erro ? 'erro-servidor' : undefined}
-    />
-    {#if erro}<p id="erro-servidor" class="erro" role="alert">{erro}</p>{/if}
-    <button type="submit">Abrir quadras online</button>
+    <p class="servidor">{origem ?? 'Servidor não configurado neste APK.'}</p>
+    <p class="estado" class:erro={estado === 'indisponivel'} role="status">
+      {#if estado === 'testando'}Testando a conexão…
+      {:else if estado === 'disponivel'}Servidor disponível.
+      {:else}Servidor indisponível. Verifique a internet e tente de novo.{/if}
+    </p>
+    <button type="submit" disabled={estado !== 'disponivel'}>Abrir quadras online</button>
+    {#if estado === 'indisponivel' && origem}
+      <button type="button" class="secundario" onclick={testar}>Testar de novo</button>
+    {/if}
   </form>
 
   <section class="cartao em-breve" aria-labelledby="titulo-local">
@@ -79,16 +79,7 @@
     background: var(--fundo-superficie);
     border: 1px solid rgba(var(--veu), 0.12);
   }
-  label { font-weight: 700; font-size: .9rem; }
-  input {
-    min-height: 48px;
-    padding: 0 12px;
-    border-radius: var(--radius-md);
-    border: 1px solid rgba(var(--veu), 0.3);
-    background: var(--fundo-base);
-    color: var(--texto-forte);
-    font-size: 1rem;
-  }
+  .servidor { font-weight: 700; color: var(--texto-forte); word-break: break-all; }
   button {
     min-height: 52px;
     border: 0;
@@ -99,6 +90,8 @@
     font-weight: 800;
     cursor: pointer;
   }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  .secundario { background: transparent; color: var(--texto-forte); border: 1px solid rgba(var(--veu), 0.3); }
   .erro { color: var(--estado-erro); font-weight: 600; }
   .em-breve { border-style: dashed; }
 </style>

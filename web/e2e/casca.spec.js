@@ -23,16 +23,26 @@ for (const tema of [null, 'sol']) {
   });
 }
 
-test('casca: endereço inválido avisa; válido abre o servidor com o app de sempre', async ({ abrir, baseURL }) => {
+test('casca: servidor fixo, testa a conexão e só então libera o botão', async ({ abrir, baseURL }) => {
   const p = await abrir({ viewport: { width: 390, height: 844 } }, comCasca);
   await p.goto(baseURL.replace('127.0.0.1', 'localhost'));
-  await p.getByLabel('Servidor').fill('http://placar.exemplo.com');
-  await p.getByRole('button', { name: 'Abrir quadras online' }).click();
-  await expect(p.getByRole('alert')).toContainText('Endereço inválido');
-
-  await p.getByLabel('Servidor').fill(baseURL);
-  await p.getByRole('button', { name: 'Abrir quadras online' }).click();
+  await expect(p.getByText(baseURL, { exact: true })).toBeVisible();
+  await expect(p.getByLabel('Servidor')).toHaveCount(0);
+  const botao = p.getByRole('button', { name: 'Abrir quadras online' });
+  await expect(botao).toBeEnabled();
+  await botao.click();
   await expect(p).toHaveURL(`${baseURL}/`);
   // No servidor (fora de localhost) volta a home de sempre, mesmo com o Capacitor.
   await expect(p.getByRole('tab', { name: /Acompanhar/ })).toBeVisible();
+});
+
+test('casca: servidor fora do ar mantém o botão bloqueado e permite testar de novo', async ({ abrir, baseURL }) => {
+  const p = await abrir({ viewport: { width: 390, height: 844 } }, comCasca);
+  await p.route('**/health', (rota) => rota.abort());
+  await p.goto(baseURL.replace('127.0.0.1', 'localhost'));
+  await expect(p.getByText(/Servidor indisponível/)).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Abrir quadras online' })).toBeDisabled();
+  await p.unroute('**/health');
+  await p.getByRole('button', { name: 'Testar de novo' }).click();
+  await expect(p.getByRole('button', { name: 'Abrir quadras online' })).toBeEnabled();
 });

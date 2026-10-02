@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { emCascaEmbarcada, normalizarServidor, lerServidor, salvarServidor } from '../src/lib/casca.js';
+import { emCascaEmbarcada, normalizarServidor, servidorDisponivel } from '../src/lib/casca.js';
 
 const nativo = (hostname) => ({ Capacitor: { isNativePlatform: () => true }, location: { hostname } });
 
@@ -21,13 +21,15 @@ test('servidor aceita domínio puro ou URL e devolve a origem https', () => {
   assert.equal(normalizarServidor('não é url'), null);
 });
 
-test('servidor lembrado sobrevive a armazenamento indisponível', () => {
-  const mapa = new Map();
-  const armazenamento = { getItem: (k) => mapa.get(k) ?? null, setItem: (k, v) => mapa.set(k, v) };
-  assert.equal(lerServidor(armazenamento, 'padrao.com'), 'padrao.com');
-  salvarServidor('https://a.com', armazenamento);
-  assert.equal(lerServidor(armazenamento), 'https://a.com');
-  const quebrado = { getItem() { throw new Error(); }, setItem() { throw new Error(); } };
-  assert.equal(lerServidor(quebrado, 'x'), 'x');
-  assert.doesNotThrow(() => salvarServidor('y', quebrado));
+test('servidor disponível quando a rede chega, indisponível se falha ou demora', async () => {
+  const chamadas = [];
+  const ok = async (url, opcoes) => { chamadas.push([url, opcoes.mode]); return {}; };
+  assert.equal(await servidorDisponivel('https://a.com', { fetchFn: ok }), true);
+  assert.deepEqual(chamadas, [['https://a.com/health', 'no-cors']]);
+
+  const falha = async () => { throw new TypeError('Failed to fetch'); };
+  assert.equal(await servidorDisponivel('https://a.com', { fetchFn: falha }), false);
+
+  const demora = (_url, { signal }) => new Promise((_, rejeitar) => signal.addEventListener('abort', () => rejeitar(new Error('abortado'))));
+  assert.equal(await servidorDisponivel('https://a.com', { fetchFn: demora, tempoMs: 20 }), false);
 });
