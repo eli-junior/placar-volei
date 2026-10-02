@@ -1,5 +1,7 @@
 # Placar Vôlei — Wear OS
 
+> **0.27.0 (CV7.US2):** o relógio marca a **quadra local do celular** sem internet. O celular decide o modo: com a sala local aberta nele, o app do relógio mostra a quadra local (tag **LOCAL**, mesmo placar, fila offline e desfazer de sempre, com fila própria); fora disso é o servidor, como antes. Se o celular fecha a sala o relógio volta ao servidor; sem sinal do celular por 90 s também volta, a não ser que haja lances na fila (aí ele mantém a quadra local com o anel vermelho até enviá-los). Para o celular, deixe a tela acesa durante a partida local (`CV7.TS3`, plano B).
+
 > **0.26.0 (CV7.TS3):** o `applicationId` passou de `br.com.placarvolei.watch` para **`br.com.placarvolei`**, o mesmo do app do celular (o Wearable Data Layer exige o mesmo id e a mesma assinatura nos dois). Para atualizar, **desinstale o app antigo do relógio** e instale este; o vínculo com o servidor é zerado e as quadras precisam ser vinculadas de novo. A ponte com a quadra local do celular existe como contrato e transporte (`CelularLink`); a tela do relógio para ela chega na CV7.US2. Nas builds **debug** há um disparador por `adb` para exercitá-la:
 >
 > ```bash
