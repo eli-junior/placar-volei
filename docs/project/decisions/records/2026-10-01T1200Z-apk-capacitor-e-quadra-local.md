@@ -21,6 +21,7 @@ Como levar o placar a um APK Android que funcione com ou sem internet e mantenha
 - **Casca:** Capacitor em volta da web Svelte atual. Kotlin só na ponte com o relógio (Wearable Data Layer).
 - **Modo por quadra:** *quadra online* (servidor, como hoje) ou *quadra local* (o celular guarda o log e é a fonte da verdade). Não se troca de modo no meio da partida.
 - **Online no APK:** o servidor é fixo no build (`PLACAR_SERVIDOR`), sem campo editável; a tela testa `/health` e só então o WebView navega para a URL do servidor (mesma origem). Cookies `SameSite=lax`, URLs relativas e WebSocket seguem iguais; nenhuma mudança de backend.
+- **Quando a local vale (Navigator, 2026-10-02):** é o plano B de quando não há comunicação com o servidor. A tela inicial testa o `/health` pela rede nativa (`200` com `status: ok`); com o servidor no ar só a online habilita, sem ele só a local. Uma quadra local por APK; uma partida local em andamento segue acessível se a conexão voltar.
 - **Local no APK:** interface embarcada; log de eventos append-only no aparelho; projeção e regras portadas para JS com testes de paridade contra o Python (`adr-0001` vale também no celular).
 - **Relógio offline:** transporte "Celular" pelo Data Layer (Bluetooth), com a mesma fila, `base_seq` e descarte com aviso do transporte "Servidor".
 - **Identificador:** celular e relógio passam a usar `br.com.placarvolei` e a mesma chave de assinatura (exigência do Data Layer). A troca no relógio exige reinstalar e revincular.
@@ -45,6 +46,7 @@ Como levar o placar a um APK Android que funcione com ou sem internet e mantenha
 - A keystore do APK fica só com o Navigator; nunca entra no repositório.
 - APK e testes físicos são feitos na máquina do Navigator (Android SDK), como no Wear.
 - Instalar com `adb install --user 0`: sem isso o Samsung duplica o app no perfil Dual App.
+- A quadra local é guardada em `@capacitor/preferences` (SharedPreferences), não em `localStorage`, que o Android pode limpar.
 - Trocar de servidor exige novo build do APK (decisão do Navigator em 2026-10-01).
 
 ## Review Trigger

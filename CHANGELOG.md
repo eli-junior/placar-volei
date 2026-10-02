@@ -4,11 +4,38 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo**: CV7.US1 — quadra local no celular: criar e jogar sem internet, com o log guardado no aparelho.
-- **Branch**: `feature/cv7-us1-quadra-local`
-- **Passo Ariad**: Passo 5 - Revisão (validação do Navigator aprovada; aguardando Checkpoint 3)
-- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-02
-- **Handoff / Próximos Passos**: US1 implementada e APK de debug instalado no Z Fold; Navigator valida pelo roteiro. Regra: quadra local só sem comunicação com o servidor (uma por APK; partida em andamento continua acessível); teste de conexão nativo (200 + status ok). Base: `web/src/lib/partida.js` (CV7.TS2). Depois da US1: CV7.TS3 (ponte Data Layer) e CV7.US2 (relógio na quadra local).
+Nenhum trabalho ativo. Próximo da CV7: TS3 (ponte Data Layer) e US2 (relógio na quadra local).
+
+## 0.28.0 - 2026-10-02
+
+Boundary: CV7.US1 — quadra local no celular (minor; backend, web e APK em 0.28.0, APK versionCode 2). O backend só alinha a versão.
+
+Authors: Eli (Navigator); Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ
+
+Git source: merge `--no-ff` de `feature/cv7-us1-quadra-local` em `master`.
+
+### Added
+
+- Quadra local no APK: plano B quando não há comunicação com o servidor, uma por APK, com o log guardado no aparelho (`@capacitor/preferences`) e as regras da 0.27.1. Marcar, desfazer, duplas e regras, tema do placar, linha do tempo e nova partida, sem relógio, compartilhar nem lista de presentes. "Apagar quadra local" no ⚙.
+- A tela inicial decide o modo pela conexão: servidor no ar libera só a quadra online; sem ele, só a local. Uma partida local em andamento continua acessível se a conexão voltar.
+
+### Changed
+
+- Teste de conexão do APK pela rede nativa (`CapacitorHttp`): só vale `200` com `status: ok` no `/health`. Um 502 do túnel com o backend fora conta como sem comunicação.
+- Áreas seguras do sistema unificadas (`--sa-*`): a folha de ações e as demais ficavam cortadas pela barra de navegação do Android no APK.
+
+### Fixed
+
+- O resumo da quadra local na tela inicial não atualizava ao voltar da sala (Continuar ficava habilitado com a partida encerrada).
+
+### Notes
+
+- Dados ilegíveis da quadra local ficam guardados à parte e a pessoa decide ("Começar do zero"). Erro de leitura do aparelho não é tratado como dado ruim.
+- Dívida: teste de conexão quitada; novas `debt-apk-caminhos-nativos-sem-teste-automatico`; crescimento da `SalaQuadra` registrado.
+
+### Verification
+
+- `npm test` (143), `npm run check`, `npm run test:e2e` (51), `uv run pytest` (225). Navigator validou no Galaxy Z Fold com o servidor de produção fora do ar.
 
 ## 0.27.1 - 2026-10-02
 
