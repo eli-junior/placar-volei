@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo. Próximo da CV7: US2 (relógio controla a quadra local, com a escolha de modo na tela do relógio).
+- **História / Escopo**: CV7.US2 — o relógio controla a quadra local do celular, sem internet, com o mesmo placar e a mesma fila offline do modo servidor.
+- **Branch**: `feature/cv7-us2-relogio-na-quadra-local`
+- **Passo Ariad**: Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-02
+- **Handoff / Próximos Passos**: plano apresentado ao Navigator; nada implementado. Base pronta: ponte Data Layer (CV7.TS3), `CelularLink`, `ScoreSync`. Fecha a CV7.
 
 ## 0.28.1 - 2026-10-02
 
