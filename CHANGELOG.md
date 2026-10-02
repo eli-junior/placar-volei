@@ -6,7 +6,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: CV7.TS2 — regras e projeção da partida em JS, com testes de paridade contra o Python (base do modo offline do APK).
 - **Branch**: `feature/cv7-ts2-regras-e-projecao-em-js`
-- **Passo Ariad**: Passo 4 - Teste e Validação (aguardando Checkpoint 2)
+- **Passo Ariad**: Passo 5 - Revisão (validação do Navigator aprovada; aguardando Checkpoint 3)
 - **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-01
 - **Handoff / Próximos Passos**: TS2 implementada: `web/src/lib/partida.js`, `tests/paridade_fixtures.py`, `web/tests/paridade.test.js`, `tests/test_paridade_fixtures.py`. Navigator valida a paridade (ver roteiro). Depois da TS2: CV7.US1 (quadra local), CV7.TS3 (ponte Data Layer), CV7.US2 (relógio controla a quadra local).
 

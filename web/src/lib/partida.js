@@ -85,6 +85,10 @@ function pontosDesfeitos(eventos) {
   return desfeitos;
 }
 
+/** A chave existe no payload e não é nula (o `x in p and p[x] is not None` do Python). */
+const presente = (/** @type {Record<string, any>} */ payload, /** @type {string} */ chave) =>
+  chave in payload && payload[chave] !== null && payload[chave] !== undefined;
+
 /** @param {any} valor */
 const maiusculo = (valor) => String(valor ?? '').toUpperCase();
 
@@ -118,9 +122,9 @@ export function projetarEstado(eventos) {
     const payload = evento.payload;
 
     if (evento.tipo === TipoEvento.PARTIDA_INICIADA || evento.tipo === TipoEvento.REGRA_ALTERADA) {
-      if ('alvo' in payload && payload.alvo !== null && payload.alvo !== undefined) alvo = Math.trunc(Number(payload.alvo));
-      if ('vantagem' in payload && payload.vantagem !== null && payload.vantagem !== undefined) vantagem = Boolean(payload.vantagem);
-      if ('teto' in payload) teto = payload.teto !== null && payload.teto !== undefined ? Math.trunc(Number(payload.teto)) : null;
+      if (presente(payload, 'alvo')) alvo = Math.trunc(Number(payload.alvo));
+      if (presente(payload, 'vantagem')) vantagem = Boolean(payload.vantagem);
+      if ('teto' in payload) teto = presente(payload, 'teto') ? Math.trunc(Number(payload.teto)) : null;
       if (payload.equipe_a) equipeA = String(payload.equipe_a);
       if (payload.equipe_b) equipeB = String(payload.equipe_b);
       if (Array.isArray(payload.jogadores_a)) jogadoresA = payload.jogadores_a.map(String);
@@ -199,9 +203,9 @@ export function projetarLinhaDoTempo(eventos, apelidosPorAutor = {}) {
     if (evento.tipo === TipoEvento.PARTIDA_INICIADA) {
       if (payload.equipe_a) equipeA = String(payload.equipe_a);
       if (payload.equipe_b) equipeB = String(payload.equipe_b);
-      if ('alvo' in payload && payload.alvo !== null && payload.alvo !== undefined) alvo = Math.trunc(Number(payload.alvo));
-      if ('vantagem' in payload && payload.vantagem !== null && payload.vantagem !== undefined) vantagem = Boolean(payload.vantagem);
-      const teto = 'teto' in payload && payload.teto !== null && payload.teto !== undefined ? Math.trunc(Number(payload.teto)) : null;
+      if (presente(payload, 'alvo')) alvo = Math.trunc(Number(payload.alvo));
+      if (presente(payload, 'vantagem')) vantagem = Boolean(payload.vantagem);
+      const teto = presente(payload, 'teto') ? Math.trunc(Number(payload.teto)) : null;
       const descVantagem = vantagem ? ' com vantagem de 2' : '';
       const descTeto = teto ? ` (teto ${teto})` : '';
       descricao = `Partida iniciada até ${alvo} pts${descVantagem}${descTeto}`;
@@ -234,7 +238,7 @@ export function projetarLinhaDoTempo(eventos, apelidosPorAutor = {}) {
     } else if (evento.tipo === TipoEvento.REGRA_ALTERADA) {
       /** @type {string[]} */
       const partes = [];
-      if ('alvo' in payload && payload.alvo !== null && payload.alvo !== undefined) {
+      if (presente(payload, 'alvo')) {
         alvo = Math.trunc(Number(payload.alvo));
         partes.push(`alvo ${alvo} pts`);
       }
