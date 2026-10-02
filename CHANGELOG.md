@@ -6,6 +6,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo. A CV7 (APK online e offline, com relógio) está entregue.
 
+## 0.30.0 - 2026-10-02
+
+Boundary: Manutenção — reiniciar partida pelo menu ⋯ (minor; backend, web e APK em 0.30.0, APK `versionCode` 5; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) | Sessão: 3e3250cd
+
+Git source: merge `--no-ff` de `feature/reiniciar-partida-menu` em `master`.
+
+### Added
+
+- Botão **Reiniciar partida** no menu ⋯ (web e quadra local do APK), com confirmação: zera pontos e linha do tempo no meio da partida e mantém regras, nomes e tema. Só para admin com o controle.
+- `zerar` no corpo de `POST /quadras/{id}/reiniciar`; sem ele, reiniciar continua exigindo partida encerrada.
+
+### Verification
+
+- `uv run pytest` (226), `npm test` (164), `npm run check`, `npm run test:e2e` (51); validado pelo Navigator na web e no APK.
+
 ## 0.29.0 - 2026-10-02
 
 Boundary: CV7.US2 — relógio na quadra local do celular; fecha a CV7 (minor; backend, web e APK em 0.29.0, APK `versionCode` 4; Wear OS 0.27.0, `versionCode` 15).

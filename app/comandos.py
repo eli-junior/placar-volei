@@ -331,7 +331,7 @@ def executar_sync(
                     403, "Apenas administradores podem iniciar uma nova partida."
                 )
             estado = atual["estado_partida"]
-            if not estado["encerrada"]:
+            if not estado["encerrada"] and not kwargs.get("zerar"):
                 raise HTTPException(400, "A partida atual ainda não foi encerrada.")
 
             tema_placar = kwargs.get("tema_placar")

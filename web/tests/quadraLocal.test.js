@@ -75,6 +75,15 @@ test('partida até o fim, nova partida e tema do placar', async () => {
   assert.equal(quadra.snapshot().quadra.tema_placar, 'classico');
 });
 
+test('zerar reinicia no meio da partida mantendo regras e nomes', async () => {
+  const q = await QuadraLocal.criar(memoria(), opcoes(), { alvo: 15, equipe_a: 'Azuis' });
+  const meio = await q.marcarPonto('A');
+  await assert.rejects(q.reiniciar(), (e) => e instanceof ErroRegra && e.status === 400);
+  const zerada = await q.reiniciar({ zerar: true });
+  assert.deepEqual([zerada.estado_partida.pontos_a, zerada.estado_partida.alvo, zerada.estado_partida.equipe_a], [0, 15, 'Azuis']);
+  assert.notEqual(zerada.partida_id, meio.partida_id);
+});
+
 test('configurar só o tema não cria evento; tema inválido é recusado', async () => {
   const q = await QuadraLocal.criar(memoria(), opcoes());
   const antes = q.snapshot().seq;

@@ -6,7 +6,7 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-APK Android do celular (`0.29.0`, `CV7.TS1–US2`): casca Capacitor que abre a quadra online do servidor fixo do build quando ele responde e, **só sem comunicação com o servidor**, uma quadra local guardada no aparelho (uma por APK). Para gerar e instalar:
+APK Android do celular (`0.30.0`, `CV7.TS1–US2`): casca Capacitor que abre a quadra online do servidor fixo do build quando ele responde e, **só sem comunicação com o servidor**, uma quadra local guardada no aparelho (uma por APK). Para gerar e instalar:
 
 ```bash
 export ANDROID_HOME=/caminho/do/Android/Sdk
