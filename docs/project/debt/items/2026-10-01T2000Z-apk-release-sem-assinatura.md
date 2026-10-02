@@ -20,4 +20,4 @@ Só o APK de debug foi usado, instalado pelo Navigator via `adb`. A keystore fic
 
 ## Notes
 
-O relógio passará a usar o mesmo `applicationId` e a mesma assinatura (CV7.TS3), então a assinatura precisa existir antes disso.
+Desde a CV7.TS3 o relógio e o celular usam o mesmo `applicationId` e o Data Layer só entrega mensagens entre apps assinados com a mesma chave. Em debug as duas builds saem do mesmo `~/.android/debug.keystore`; no uso real (release) o celular precisa ser assinado com a `placar-release.jks`, a mesma do relógio, senão a ponte não funciona.

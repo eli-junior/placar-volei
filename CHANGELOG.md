@@ -6,7 +6,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: CV7.TS3 — ponte Bluetooth (Wearable Data Layer) entre o APK do celular e o app do relógio, com a quadra local como destino.
 - **Branch**: `feature/cv7-ts3-ponte-data-layer`
-- **Passo Ariad**: Passo 4 - Teste e Validação (aguardando Checkpoint 2)
+- **Passo Ariad**: Passo 5 - Revisão (validação do Navigator aprovada; aguardando Checkpoint 3)
 - **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-02
 - **Handoff / Próximos Passos**: spike concluído (JS do WebView para após ~2 min com a tela apagada; Navigator escolheu o plano B, tela acesa). Implementado: `QuadraLocal.aplicarComandoRelogio`, `ponteRelogio.js`, plugin `PlacarRelogio` + `RelogioListenerService` no celular; `CelularLink`/`CelularListenerService`/`DebugCelular` e `applicationId` novo no relógio. Falta validar no relógio via adb (disparador debug). Depois da TS3: CV7.US2 (relógio controla a quadra local, com a escolha de modo na tela do relógio).
 
