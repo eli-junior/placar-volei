@@ -744,10 +744,10 @@
     height: 100dvh;
     min-height: 0;
     gap: 8px;
-    padding: max(8px, env(safe-area-inset-top))
-      max(8px, env(safe-area-inset-right))
-      max(8px, env(safe-area-inset-bottom))
-      max(8px, env(safe-area-inset-left));
+    padding: max(8px, var(--sa-topo))
+      max(8px, var(--sa-direita))
+      max(8px, var(--sa-baixo))
+      max(8px, var(--sa-esquerda));
     overflow: hidden;
   }
 
@@ -973,10 +973,10 @@
   .btn-assumir:disabled { opacity: .5; cursor: not-allowed; }
 
   .sala-container {
-    padding: max(18px, env(safe-area-inset-top))
-      max(20px, env(safe-area-inset-right))
-      max(32px, env(safe-area-inset-bottom))
-      max(20px, env(safe-area-inset-left));
+    padding: max(18px, var(--sa-topo))
+      max(20px, var(--sa-direita))
+      max(32px, var(--sa-baixo))
+      max(20px, var(--sa-esquerda));
     display: flex;
     flex-direction: column;
     gap: 22px;
@@ -1011,10 +1011,10 @@
    */
   .sala-container.em-modo-imersivo {
     position: relative;
-    padding: max(8px, env(safe-area-inset-top))
-      max(6px, env(safe-area-inset-right))
-      max(8px, env(safe-area-inset-bottom))
-      max(6px, env(safe-area-inset-left));
+    padding: max(8px, var(--sa-topo))
+      max(6px, var(--sa-direita))
+      max(8px, var(--sa-baixo))
+      max(6px, var(--sa-esquerda));
     justify-content: center;
     cursor: pointer;
     gap: 0;
@@ -1036,9 +1036,9 @@
   .em-modo-imersivo > .barra-sala {
     position: absolute;
     z-index: 6;
-    top: max(8px, env(safe-area-inset-top));
-    left: max(6px, env(safe-area-inset-left));
-    right: max(6px, env(safe-area-inset-right));
+    top: max(8px, var(--sa-topo));
+    left: max(6px, var(--sa-esquerda));
+    right: max(6px, var(--sa-direita));
     padding: 6px 8px;
     border: 1px solid var(--border-color);
     border-radius: 12px;

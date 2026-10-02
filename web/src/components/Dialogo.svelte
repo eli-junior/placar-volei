@@ -162,8 +162,8 @@
   /* Folha inferior — linha do tempo e listas longas no celular. */
   .dialogo-folha {
     margin: auto auto 0;
-    padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) 0
-      max(12px, env(safe-area-inset-left));
+    padding: max(12px, var(--sa-topo)) max(12px, var(--sa-direita)) 0
+      max(12px, var(--sa-esquerda));
   }
 
   .dialogo-folha .dialogo-caixa {
@@ -174,6 +174,8 @@
     border: 1px solid var(--borda-sutil);
     border-radius: var(--raio-amplo) var(--raio-amplo) 0 0;
     box-shadow: var(--sombra-elevada);
+    /* A folha encosta no fundo da tela: o fundo vai até lá, o conteúdo para antes da barra do sistema. */
+    padding-bottom: var(--sa-baixo);
     max-height: min(88dvh, calc(var(--tela-h, 100dvh) - 16px));
     display: flex;
     flex-direction: column;
@@ -188,6 +190,7 @@
 
     .dialogo-folha .dialogo-caixa {
       border-radius: var(--raio-amplo);
+      padding-bottom: 0;
       max-height: min(82dvh, calc(var(--tela-h, 100dvh) - 24px));
     }
   }

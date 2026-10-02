@@ -43,6 +43,13 @@
 }
 
 :root {
+  /* Áreas seguras (barras do sistema, recorte da tela). `env()` vale no
+     navegador e em WebViews novos; no APK o Capacitor injeta
+     `--safe-area-inset-*` (SystemBars) para os que não o expõem. */
+  --sa-topo: max(env(safe-area-inset-top, 0px), var(--safe-area-inset-top, 0px));
+  --sa-direita: max(env(safe-area-inset-right, 0px), var(--safe-area-inset-right, 0px));
+  --sa-baixo: max(env(safe-area-inset-bottom, 0px), var(--safe-area-inset-bottom, 0px));
+  --sa-esquerda: max(env(safe-area-inset-left, 0px), var(--safe-area-inset-left, 0px));
   /* `color-scheme: dark` NÃO é declarado aqui de propósito. Ele mudaria o
      desenho nativo de barra de rolagem e de caixa de seleção, e esta história
      não pode alterar a aparência atual. Está registrado no plan.md como

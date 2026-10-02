@@ -662,7 +662,7 @@
     position: sticky;
     bottom: 0;
     margin: 0 -24px;
-    padding: 14px 24px max(16px, env(safe-area-inset-bottom));
+    padding: 14px 24px max(16px, var(--sa-baixo));
     border-top: 1px solid var(--border-color);
     background: var(--fundo-superficie);
   }
