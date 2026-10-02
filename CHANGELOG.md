@@ -29,6 +29,7 @@ Git source: merge `--no-ff` de `feature/cv7-us2-relogio-na-quadra-local` em `mas
 - Sem sinal do celular por 90 s o relógio volta ao servidor, exceto com lances na fila: aí mantém a quadra local com o anel vermelho até enviá-los ou o celular fechar a sala (com a tela do celular apagada o sinal para).
 - Dívida: `debt-relogio-local-sem-servico-em-primeiro-plano` (nova); `debt-quadra-local-so-atende-relogio-com-tela-acesa` atualizada.
 - Para usar no relógio de produção: Wear 0.27.0 de release (assinado com a mesma keystore do celular) e revincular as quadras do servidor.
+- `chore/apk-release-assinado`: o `release` do celular passa a ser assinado com a mesma keystore do relógio (fora do repositório). APKs de release 0.29.0 (celular) e 0.27.0 (relógio) gerados e instalados no Galaxy Z Fold e no Galaxy Watch SM-L330.
 
 ### Verification
 

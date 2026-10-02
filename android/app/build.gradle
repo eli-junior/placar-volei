@@ -16,10 +16,26 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    // Assinatura de release fora do repositório: a mesma keystore do relógio,
+    // porque o Data Layer só entrega mensagens entre apps assinados com a mesma
+    // chave. Caminho e senhas vêm de ~/.gradle/gradle.properties (placarKeystore,
+    // placarKeystorePassword, placarKeyAlias, placarKeyPassword).
+    def keystore = project.findProperty('placarKeystore')
+    signingConfigs {
+        if (keystore) {
+            release {
+                storeFile file(keystore)
+                storePassword project.property('placarKeystorePassword')
+                keyAlias project.property('placarKeyAlias')
+                keyPassword project.property('placarKeyPassword')
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            if (keystore) signingConfig signingConfigs.release
         }
     }
 }

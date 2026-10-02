@@ -1,6 +1,6 @@
 ---
 id: debt-apk-release-sem-assinatura
-status: Carried
+status: Paying
 kind: operation
 severity: low
 source: CV7.TS1
@@ -17,6 +17,10 @@ closure_condition: `signingConfigs` lendo a keystore do Navigator por variáveis
 ## Carrying Reason
 
 Só o APK de debug foi usado, instalado pelo Navigator via `adb`. A keystore fica só com o Navigator e a TS1 a deixou fora do escopo.
+
+## Updates
+
+- 2026-10-02 (`chore/apk-release-assinado`): o `release` do celular passou a ser assinado com a mesma keystore do relógio (`placar-release.jks`, lida de `~/.gradle/gradle.properties`, fora do repositório). Os dois APKs de release foram gerados e instalados (celular 0.29.0 e relógio 0.27.0, mesmo certificado). Falta ainda `minifyEnabled`/R8 no celular, a limpeza dos recursos do template e a etapa de APK no CI.
 
 ## Notes
 
