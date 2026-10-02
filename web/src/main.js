@@ -10,10 +10,7 @@ aplicarTema(lerTemaSol());
 
 // No APK a interface embarcada abre a escolha de quadra (CV7.TS1) e a quadra
 // local (CV7.US1); no navegador e nas páginas do servidor, o app de sempre.
-// SPIKE CV7.TS3 (descartável): build de teste com VITE_SPIKE=1.
-const app = import.meta.env.VITE_SPIKE
-  ? import('./Spike.svelte').then(({ default: Spike }) => mount(Spike, { target: document.getElementById('app') }))
-  : emCascaEmbarcada()
+const app = emCascaEmbarcada()
   ? mount(AppCasca, {
       target: document.getElementById('app'),
       props: { servidorPadrao: import.meta.env.VITE_PLACAR_SERVIDOR ?? '' },
