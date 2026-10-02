@@ -35,6 +35,7 @@
       const aberta = await QuadraLocal.abrir(armazenamento, { apelido: apelidoSalvo() });
       quadraLocal = aberta.quadra;
       ilegivel = aberta.ilegivel;
+      atualizarResumo();
     } catch {
       erro = 'Não foi possível ler a quadra local deste aparelho.';
     } finally {
@@ -44,10 +45,12 @@
 
   onMount(carregar);
 
-  const resumoLocal = $derived({
-    existe: Boolean(quadraLocal),
-    emAndamento: Boolean(quadraLocal?.emAndamento),
-  });
+  // A `QuadraLocal` muda por dentro (não é reativa): o resumo da tela inicial é
+  // refeito sempre que a quadra nasce, some ou a pessoa volta da sala.
+  let resumoLocal = $state({ existe: false, emAndamento: false });
+  function atualizarResumo() {
+    resumoLocal = { existe: Boolean(quadraLocal), emAndamento: Boolean(quadraLocal?.emAndamento) };
+  }
 
   async function abrirLocal() {
     erro = '';
@@ -95,10 +98,15 @@
     }
     quadraLocal = null;
     snapshot = null;
+    atualizarResumo();
     tela = 'inicio';
   }
 
-  const voltar = () => { tela = 'inicio'; snapshot = null; };
+  function voltar() {
+    atualizarResumo();
+    tela = 'inicio';
+    snapshot = null;
+  }
 </script>
 
 <main>

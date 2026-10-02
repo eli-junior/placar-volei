@@ -120,6 +120,26 @@ test('duplas, regras e tema se ajustam na quadra local e ficam guardados', async
   await expect(p.locator('.regras-topo')).toContainText(/15 pts/);
 });
 
+test('voltar da sala atualiza a tela inicial sem recarregar o app', async ({ abrir, baseURL }) => {
+  const p = await abrir(VIEWPORT, comCasca);
+  await entrarNaLocal(p, baseURL);
+  await p.unroute('**/health');
+  await servidorNoAr(p);
+  // Sai e volta pela própria interface: o teste de conexão roda de novo ao montar.
+  await p.getByLabel('Voltar ao início').click();
+  await expect(p.getByText('Servidor disponível.')).toBeVisible();
+  await expect(continuar(p)).toBeEnabled();
+  await continuar(p).click();
+  const a = p.getByLabel('Marcar ponto para Equipe A');
+  for (let i = 0; i < 10; i++) await a.click();
+  await expect(p.getByRole('heading', { name: /Venceu!/ })).toBeVisible();
+  await p.getByRole('button', { name: 'Ver Placar e Linha do Tempo' }).click();
+  await p.getByLabel('Voltar ao início').click();
+  await expect(p.getByText('Servidor disponível.')).toBeVisible();
+  await expect(continuar(p)).toBeDisabled();
+  await expect(online(p)).toBeEnabled();
+});
+
 test('apagar a quadra local pede confirmação e volta ao início', async ({ abrir, baseURL }) => {
   const p = await abrir(VIEWPORT, comCasca);
   await entrarNaLocal(p, baseURL);

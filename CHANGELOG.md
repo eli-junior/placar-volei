@@ -6,7 +6,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo**: CV7.US1 — quadra local no celular: criar e jogar sem internet, com o log guardado no aparelho.
 - **Branch**: `feature/cv7-us1-quadra-local`
-- **Passo Ariad**: Passo 4 - Teste e Validação (aguardando Checkpoint 2)
+- **Passo Ariad**: Passo 5 - Revisão (validação do Navigator aprovada; aguardando Checkpoint 3)
 - **Assinatura do Agente**: Agente: Claude Code (Driver) | Sessão: 014YCmLkudLSJamwqvTsmtEJ | Data: 2026-10-02
 - **Handoff / Próximos Passos**: US1 implementada e APK de debug instalado no Z Fold; Navigator valida pelo roteiro. Regra: quadra local só sem comunicação com o servidor (uma por APK; partida em andamento continua acessível); teste de conexão nativo (200 + status ok). Base: `web/src/lib/partida.js` (CV7.TS2). Depois da US1: CV7.TS3 (ponte Data Layer) e CV7.US2 (relógio na quadra local).
 
