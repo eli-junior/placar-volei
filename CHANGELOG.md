@@ -4,14 +4,25 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV8.DS2.US4 — Sortear rodadas seguintes com reequilíbrio
+Nenhum trabalho ativo.
 
-- **Branch:** `feature/cv8-ds2-us4-sortear-rodadas-seguintes`
-- **Passo Ariad:** Passo 5 - Revisão (aguarda o Checkpoint 3)
-- **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: 01KNVAV8TEYj9sk9Gygfvno2 | Data: 2026-10-07
-- **Versão alvo:** 0.40.0 (minor)
-- **Handoff:** backend (`app/reequilibrio.py`, `sorteio.py`, `rodada.py`), tela da proposta e `tests/test_reequilibrio.py` prontos; `uv run pytest` (533), `npm run check` e `npm run test:e2e` (77) verdes. Validada pelo Navigator. Falta a documentação (Passo 6) e o merge (Passo 7).
+## 0.40.0 - 2026-10-07
 
+Boundary: CV8.DS2.US4 — sortear rodadas seguintes com reequilíbrio; fecha a CV8.DS2 (minor; backend, web e APK em 0.40.0, APK `versionCode` 17; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds2-us4-sortear-rodadas-seguintes` em `master`.
+
+### Added
+
+- **Reequilíbrio entre rodadas:** da segunda rodada em diante o sorteio usa a **nota efetiva** (RN-14: ajuste de até ±15 pelo saldo médio por partida, só na sessão; a nota cadastrada não muda) e evita as duplas já formadas na sessão entre as combinações equivalentes (RN-10). A proposta mostra o ajuste ("Ana (68 +8)").
+- A ordem de chegada vale em todas as rodadas (RN-13 revista). Rodada cancelada não entra no saldo nem nas duplas anteriores.
+
+### Verification
+
+- `uv run pytest` (533), `npm run check`, `npm run test:e2e` (77). Validada pelo Navigator.
+- Sem schema novo. Dívida nova: consulta por time em `saldos_da_sessao`; `rodada.py` em 548 linhas.
 
 ## 0.39.0 - 2026-10-07
 
