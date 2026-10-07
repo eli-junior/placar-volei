@@ -47,8 +47,16 @@ def cancelar_sync() -> dict:
     return _rodada_op(regras_rodada.cancelar)
 
 
+def escalar_sync(jogador_id: Any) -> dict:
+    return _rodada_op(lambda conn: regras_rodada.escalar_parceiro(conn, jogador_id))
+
+
 class AlvoBody(BaseModel):
     alvo: Any = None
+
+
+class ParceiroBody(BaseModel):
+    jogador_id: Any = None
 
 
 router = APIRouter(prefix="/api/rodada", tags=["rodada"])
@@ -82,6 +90,12 @@ async def post_descartar(request: Request):
 async def post_cancelar(request: Request):
     autenticar_owner(request)
     return await _responder(cancelar_sync)
+
+
+@router.post("/escalar-parceiro")
+async def post_escalar_parceiro(body: ParceiroBody, request: Request):
+    autenticar_owner(request)
+    return await _responder(escalar_sync, body.jogador_id)
 
 
 @router.post("/chamar-partida", status_code=status.HTTP_201_CREATED)

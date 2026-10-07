@@ -59,7 +59,7 @@ export function primeiraPartida(times) {
 
 /** "Ana (90) + Bia (85)" para a linha de um time. */
 export function descreverTime(time) {
-  return time.jogadores.map((j) => `${j.nome} (${j.nota})`).join(' + ');
+  return time.jogadores.map((j) => `${j.nome} (${j.nota})${j.escalado ? ' · escalado' : ''}`).join(' + ');
 }
 
 /** Qual combinação equivalente está na tela: "2 de 5" (tentativa começa em 0). */

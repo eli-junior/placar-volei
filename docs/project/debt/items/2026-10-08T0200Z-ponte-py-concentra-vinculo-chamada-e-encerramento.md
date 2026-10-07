@@ -18,6 +18,10 @@ closure_condition: Dividir em vínculo, chamada/encerramento e leitura do placar
 
 Ainda legível; a divisão depende do que a US7 e a US8 pedirem.
 
+## Updates
+
+- 2026-10-08 (CV8.DS3.US8, 0.37.0): 381 linhas, sem mudança; a US7 e a US9 devem decidir a divisão.
+
 ## Notes
 
 Decisão: `docs/project/decisions/records/2026-10-08T0200Z-encerramento-lendo-o-placar.md`.

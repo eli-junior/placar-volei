@@ -11,6 +11,8 @@
     erroQuadra = null,
     onChamar = () => {},
     onEncerrar = () => {},
+    onEscalar = () => {},
+    erroEscalacao = null,
     onCriarQuadra = () => {},
     onVincular = () => {},
     onDesvincular = () => {},
@@ -62,6 +64,33 @@
       </form>
     {/if}
   </div>
+
+  {#if conducao.escalacao}
+    {@const esc = conducao.escalacao}
+    <div class="bloco destaque" aria-labelledby="titulo-escalacao">
+      <h3 id="titulo-escalacao">Escolher o parceiro do Time {esc.time}</h3>
+      <p class="ajuda">
+        {esc.jogador} está {esc.origem === 'atrasado' ? 'chegando no meio da rodada' : 'sem dupla'} e escolhe o parceiro na vez dele.
+      </p>
+      {#if erroEscalacao}<p class="erro" role="alert">{erroEscalacao}</p>{/if}
+      {#if esc.ninguem}
+        <p class="ajuda">Ninguém elegível agora: não há jogador eliminado disponível. Cancele a rodada se precisar seguir.</p>
+      {:else}
+        {#each esc.grupos as grupo (grupo.rotulo)}
+          <p class="ajuda"><strong>{grupo.rotulo}</strong></p>
+          {#if esc.aviso_hh}<p class="ajuda">Só há homens elegíveis: a dupla será H+H, por falta de alternativa.</p>{/if}
+          <ul class="times">
+            {#each grupo.jogadores as j (j.id)}
+              <li>
+                <span class="jogadores">{j.nome} <span class="ajuda">({j.genero === 'H' ? 'Homem' : 'Mulher'} · nota {j.nota})</span></span>
+                <button class="secundario" type="button" onclick={() => onEscalar(j.id)} disabled={ocupado} aria-label="Escalar {j.nome} com {esc.jogador}">Escalar</button>
+              </li>
+            {/each}
+          </ul>
+        {/each}
+      {/if}
+    </div>
+  {/if}
 
   <div class="bloco" aria-labelledby="titulo-partida">
     <h3 id="titulo-partida">{temPartida ? 'Partida em quadra' : 'Próxima partida'}</h3>
@@ -146,6 +175,18 @@
     {/if}
   </div>
 
+  {#if conducao.saldos.length}
+    <div class="bloco" aria-labelledby="titulo-saldos">
+      <h3 id="titulo-saldos">Saldo da rodada</h3>
+      <p class="ajuda">Pontos feitos − sofridos; quem foi escalado soma os dois times.</p>
+      <ul class="eliminados">
+        {#each conducao.saldos as s (s.id)}
+          <li>{s.nome} <span class="ajuda">({s.partidas} partida{s.partidas === 1 ? '' : 's'})</span> <strong>{s.saldo > 0 ? '+' : ''}{s.saldo}</strong></li>
+        {/each}
+      </ul>
+    </div>
+  {/if}
+
   <div class="bloco" aria-labelledby="titulo-eliminados">
     <h3 id="titulo-eliminados">Eliminados ({conducao.eliminados.length})</h3>
     {#if !conducao.eliminados.length}
@@ -185,6 +226,7 @@
   .ruim, .erro { color: var(--estado-erro-suave); font-weight: 700; }
   .erro { margin: 0; font-size: var(--texto-apoio); }
   a { color: var(--texto-forte); }
+  .destaque { border-color: var(--borda-ativa); }
   .placar { margin: 0; font-size: var(--texto-destaque); }
   .faixa { margin: 0; padding: .6rem .75rem; border: 1px solid var(--borda-ativa); border-radius: var(--raio-justo); background: var(--fundo-cartao-ativo); font-weight: 700; }
   .confronto { margin: 0; padding: .6rem .75rem; border-radius: var(--raio-justo); background: var(--fundo-cartao-ativo); }

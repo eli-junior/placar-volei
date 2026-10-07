@@ -160,3 +160,8 @@ test('cria a quadra do placar com o apelido e devolve o código', async () => {
   assert.equal(JSON.parse(visto.init.body).apelido, 'Eli');
   await assert.rejects(criarQuadraDoPlacar('x', async () => ({ ok: false, status: 429, json: async () => ({ detail: 'Muitas tentativas.' }) })), (e) => e.status === 429 && e.message === 'Muitas tentativas.');
 });
+
+test('time com escalado mostra a marca ao lado do nome', () => {
+  const time = { jogadores: [{ nome: 'Luca Reis', nota: 64 }, { nome: 'Iris Lima', nota: 61, escalado: true }] };
+  assert.equal(descreverTime(time), 'Luca Reis (64) + Iris Lima (61) · escalado');
+});

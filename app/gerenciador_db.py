@@ -28,7 +28,7 @@ ROTULOS = {
     "codigo": "Código da quadra",
 }
 
-SCHEMA_VERSAO = 5
+SCHEMA_VERSAO = 6
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jogadores (
     id TEXT PRIMARY KEY,
@@ -92,7 +92,10 @@ CREATE TABLE IF NOT EXISTS times (
     id TEXT PRIMARY KEY,
     rodada_id TEXT NOT NULL REFERENCES rodadas(id) ON DELETE CASCADE,
     fila INTEGER NOT NULL,
-    incompleto INTEGER NOT NULL DEFAULT 0
+    incompleto INTEGER NOT NULL DEFAULT 0,
+    -- de onde veio o time incompleto: sobra do sorteio ('impar') ou chegada
+    -- no meio da rodada ('atrasado', US9).
+    origem TEXT NOT NULL DEFAULT 'impar' CHECK (origem IN ('impar', 'atrasado'))
 );
 -- Partidas chamadas na quadra do placar (CV8.DS3.US5). O resultado
 -- (`placar_*`, `vencedor_time_id`, `encerrada_em`) é preenchido pela US6.
@@ -120,6 +123,8 @@ CREATE TABLE IF NOT EXISTS time_jogadores (
     jogador_id TEXT NOT NULL REFERENCES jogadores(id),
     nota INTEGER NOT NULL,
     ordem_chegada INTEGER NOT NULL,
+    -- 1 = veio da lista de escalação (joga por um segundo time, RN-07)
+    escalado INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (time_id, jogador_id)
 );
 """
@@ -187,6 +192,19 @@ def init_gerenciador_sync(caminho: str | None = None) -> None:
         colunas_sessao = [r["name"] for r in conn.execute("PRAGMA table_info(sessoes)")]
         if "quadra_id" not in colunas_sessao:
             conn.execute("ALTER TABLE sessoes ADD COLUMN quadra_id TEXT")
+        # Migração aditiva 5 -> 6: origem do time incompleto e marca de escalado.
+        if "origem" not in [
+            r["name"] for r in conn.execute("PRAGMA table_info(times)")
+        ]:
+            conn.execute(
+                "ALTER TABLE times ADD COLUMN origem TEXT NOT NULL DEFAULT 'impar'"
+            )
+        if "escalado" not in [
+            r["name"] for r in conn.execute("PRAGMA table_info(time_jogadores)")
+        ]:
+            conn.execute(
+                "ALTER TABLE time_jogadores ADD COLUMN escalado INTEGER NOT NULL DEFAULT 0"
+            )
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSAO}")
         conn.commit()
     finally:
