@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from app import atrasados as regras_atrasados
 from app import rodada as regras_rodada
+from app import substituicao as regras_substituicao
 from app.api import autenticar_owner
 from app.gerenciador_db import escrita
 from app.ponte import chamar_partida, encerrar_partida
@@ -58,12 +59,23 @@ def atrasado_sync(jogador_id: Any) -> dict:
     )
 
 
+def substituir_sync(saiu_id: Any, entra_id: Any) -> dict:
+    return _rodada_op(
+        lambda conn: regras_substituicao.substituir(conn, saiu_id, entra_id)
+    )
+
+
 def iniciar_mata_mata_sync() -> dict:
     return _rodada_op(regras_rodada.iniciar_mata_mata)
 
 
 class AlvoBody(BaseModel):
     alvo: Any = None
+
+
+class SubstituicaoBody(BaseModel):
+    saiu_id: Any = None
+    entra_id: Any = None
 
 
 class ParceiroBody(BaseModel):
@@ -113,6 +125,12 @@ async def post_escalar_parceiro(body: ParceiroBody, request: Request):
 async def post_atrasado(body: ParceiroBody, request: Request):
     autenticar_owner(request)
     return await _responder(atrasado_sync, body.jogador_id)
+
+
+@router.post("/substituir")
+async def post_substituir(body: SubstituicaoBody, request: Request):
+    autenticar_owner(request)
+    return await _responder(substituir_sync, body.saiu_id, body.entra_id)
 
 
 @router.post("/iniciar-mata-mata")

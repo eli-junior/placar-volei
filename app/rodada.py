@@ -249,8 +249,12 @@ def _contexto(conn, rodada: dict):
     return por_id, linhas, situacao
 
 
-def _escalacao(rodada: dict, por_id: dict, linhas, situacao, incompleto: dict) -> dict:
-    """Lista de escalação do time incompleto que está em quadra (RN-07)."""
+def elegiveis(
+    por_id: dict, linhas, situacao
+) -> tuple[list[Candidato], list[Candidato]]:
+    """(eliminados, livres): quem pode entrar num time (RN-07). `eliminados` são
+    os jogadores de times que perderam e hoje não jogam por time ativo; `livres`
+    os que ainda não disputaram partida e não estão em time ativo."""
     ativos = [*situacao.em_quadra, *situacao.fila, *situacao.reis]
     em_time_ativo = {j["id"] for t in ativos for j in por_id[t]["jogadores"]}
     jogaram_times = {t for r in linhas for t in (r["time_a_id"], r["time_b_id"])}
@@ -272,6 +276,12 @@ def _escalacao(rodada: dict, por_id: dict, linhas, situacao, incompleto: dict) -
         for j in t["jogadores"]
         if j["id"] not in em_time_ativo and j["id"] not in jogaram
     ]
+    return eliminados, livres
+
+
+def _escalacao(rodada: dict, por_id: dict, linhas, situacao, incompleto: dict) -> dict:
+    """Lista de escalação do time incompleto que está em quadra (RN-07)."""
+    eliminados, livres = elegiveis(por_id, linhas, situacao)
     dono = incompleto["jogadores"][0]
     return lista_de_escalacao(
         genero_do_incompleto=dono["genero"],
@@ -279,6 +289,12 @@ def _escalacao(rodada: dict, por_id: dict, linhas, situacao, incompleto: dict) -
         eliminados=eliminados,
         livres=livres,
     )
+
+
+def _opcoes_substituicao(*args):
+    from app.substituicao import opcoes  # evita import circular
+
+    return opcoes(*args)
 
 
 def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) -> dict:
@@ -434,6 +450,11 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
             else None
         ),
         "pode_iniciar_mata_mata": situacao.fase == "fim_da_fila",
+        "substituicao": (
+            None
+            if chamada or situacao.fase == "campeao"
+            else _opcoes_substituicao(rodada, por_id, linhas, situacao)
+        ),
         "pode_chamar": motivo is None,
         "motivo": motivo,
     }
