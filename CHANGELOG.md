@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+- **História / Escopo:** CV8.DS1.US1 — Cadastrar jogadores (base persistente: nome e gênero; criar, editar, inativar).
+- **Branch:** `feature/cv8-ds1-us1-cadastrar-jogadores`
+- **Passo Ariad:** Passo 2 - Planejamento (aguarda Checkpoint 1)
+- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
+- **Handoff / Próximos Passos:** plano em `plan.md` da história; decidir persistência (banco efêmero) e quem pode escrever; depois implementar.
 
 ## 2026-10-07 — Registro da CV8 (sem versão)
 
