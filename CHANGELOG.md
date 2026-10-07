@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** CV8.DS1.US15 — Nota, sobrenome e foto do jogador (nota 1–100 com padrão 60; nome com ao menos 2 palavras; foto opcional tirada na hora).
 - **Branch:** `feature/cv8-ds1-us15-nota-sobrenome-e-foto`
-- **Passo Ariad:** Passo 4 - Teste e Validação (aguarda Checkpoint 2)
+- **Passo Ariad:** Passo 5 - Revisão (aguarda Checkpoint 3)
 - **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** implementação concluída (nota, nome com 2 palavras, foto; migração 1→2 do `gerenciador.db`; versão 0.32.0); falta o Navigator validar pela rota em `test-guide.md`.
+- **Handoff / Próximos Passos:** implementação concluída (nota, nome com 2 palavras, foto; migração 1→2 do `gerenciador.db`; versão 0.32.0); validada pelo Navigator; revisão apresentada, depois docs (Passo 6) e merge.
 
 ## 0.31.0 - 2026-10-07
 
