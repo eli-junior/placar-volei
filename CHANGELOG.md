@@ -6,6 +6,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.41.0 - 2026-10-07
+
+Boundary: CV8.DS3.US9 — registrar atrasado (minor; backend, web e APK em 0.41.0, APK `versionCode` 18; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds3-us9-registrar-atrasado` em `master`.
+
+### Added
+
+- **Atrasado no meio da rodada (RN-06):** com a rodada em andamento, **Chegou atrasado** (lista de ausentes) marca a presença no fim da ordem e cria um time incompleto só dele no fim da fila (`origem = 'atrasado'`); ele escolhe o parceiro na sua vez pela lista de escalação. Dois atrasados nunca formam dupla entre si. Bloqueado após o início do mata-mata (continua ausente e entra no próximo sorteio).
+- API `POST /api/rodada/atrasado`; sem schema novo (`times.origem` já existia).
+
+### Verification
+
+- `uv run pytest` (537), `npm run check`, `npm run test:e2e` (77). Aguarda validação do Navigator (em lote com US10/US7).
+
 ## 0.40.0 - 2026-10-07
 
 Boundary: CV8.DS2.US4 — sortear rodadas seguintes com reequilíbrio; fecha a CV8.DS2 (minor; backend, web e APK em 0.40.0, APK `versionCode` 17; Wear OS inalterado em 0.27.0).

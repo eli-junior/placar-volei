@@ -32,6 +32,7 @@
   const rodada = $derived(estado?.rodada ?? null);
   // Com rodada em proposta ou em andamento a presença fica travada (RN-15).
   const travada = $derived(Boolean(rodada));
+  const podeAtrasado = $derived(rodada?.estado === 'em_andamento' && !rodada.mata_mata_iniciado);
   const sincronia = $derived(rotuloSincronia(conectado, online));
   const faltam = $derived(faltamParaSortear(presentes.length, estado?.minimo ?? 4));
 
@@ -134,6 +135,7 @@
   const desmarcar = (j) => agir(`/presencas/${j.id}`, { metodo: 'DELETE' });
   const mover = (j, delta) => agir('/ordem', { metodo: 'PUT', corpo: { jogador_ids: moverPosicao(presentes.map(p => p.id), j.id, delta) } });
 
+  const registrarAtrasado = (j) => agir('/atrasado', { metodo: 'POST', corpo: { jogador_id: j.id } }, chamarRodada);
   const sortear = () => agir('/sorteio', { metodo: 'POST', corpo: { alvo } }, chamarRodada);
   const resortear = () => agir('/resortear', { metodo: 'POST', corpo: { alvo } }, chamarRodada);
   const confirmar = () => agir('/confirmar', { metodo: 'POST' }, chamarRodada);
@@ -292,13 +294,20 @@
                 <Avatar {segredo} jogador={j} />
                 <span class="nome">{j.nome}</span>
                 <span class="genero">{j.genero === 'H' ? 'Homem' : 'Mulher'} · nota {j.nota}</span>
-                <button class="secundario" type="button" onclick={() => marcar(j)} disabled={ocupado || travada} aria-label="Marcar {j.nome} como presente">Presente</button>
+                {#if podeAtrasado}
+                  <button class="secundario" type="button" onclick={() => registrarAtrasado(j)} disabled={ocupado} aria-label="Registrar {j.nome} como atrasado">Chegou atrasado</button>
+                {:else}
+                  <button class="secundario" type="button" onclick={() => marcar(j)} disabled={ocupado || travada} aria-label="Marcar {j.nome} como presente">Presente</button>
+                {/if}
               </li>
             {/each}
           </ul>
         {/if}
       </section>
 
+      {#if podeAtrasado}
+        <p class="ajuda">Quem chega agora entra como atrasado, sozinho no fim da fila, e escolhe o parceiro na sua vez. Depois do início do mata-mata, só na próxima rodada.</p>
+      {/if}
       {#if travada}
         <p class="ajuda">Presença travada: há uma rodada {rodada.estado === 'proposta' ? 'em proposta' : 'em andamento'}. Descarte ou cancele a rodada para marcar, desmarcar ou cadastrar.</p>
       {:else}
