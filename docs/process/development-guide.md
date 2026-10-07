@@ -58,6 +58,20 @@ O banco é efêmero por decisão do Navigator: com `RESET_DB_ON_STARTUP=true` no
 
 **Exceção durável (CV8.DS1.US1):** a base de jogadores mora em `gerenciador.db` (`GERENCIADOR_DB_PATH`), no volume nomeado `gerenciador-dados` (`/data-gerenciador`). Ela **sobrevive** ao `RESET_DB_ON_STARTUP`, a mudanças de schema das quadras e a `docker compose up --force-recreate`; só `docker compose down -v` (ou `docker volume rm`) a apaga. Não rode `down -v` sem autorização do Navigator. Mudanças de schema nela são migrações aditivas (`PRAGMA user_version`). A tela `/jogadores` exige o `OWNER_SECRET` e fica oculta no APK. Desde a 0.32.0 o arquivo está na versão de schema 2 (coluna `nota`, tabela `jogador_fotos`); a migração roda sozinha na subida e é idempotente. Fotos são JPEG de até 256 KB, guardadas como BLOB no mesmo arquivo — entram no backup do `gerenciador.db`. Desde a 0.33.0 o schema é a versão 3 (tabelas `sessoes` e `presencas`; uma sessão aberta por vez garantida por índice único parcial); as rotas `/api/sessao` e a tela `/sessao` seguem o mesmo `OWNER_SECRET` e ficam ocultas no APK.
 
+### Backup e restauração do `gerenciador.db` (CV8.TS1)
+
+- **Automático:** o app grava uma cópia verificada na subida e a cada `GERENCIADOR_BACKUP_INTERVALO_HORAS` (6), mantendo as `GERENCIADOR_BACKUP_MANTER` (28) mais recentes. No compose, a pasta é `./backups` do host, montada em `/backups`, **fora** do volume `gerenciador-dados`. Sem `GERENCIADOR_BACKUP_DIR` o backup fica desligado (aviso no log). Falha de backup é logada e não derruba o app; uma cópia que falha na verificação nunca substitui nem faz podar as boas.
+- **Primeira vez no Mini PC:** `mkdir backups && sudo chown 1001:1001 backups` (o contêiner roda como uid 1001). Sem isso o log mostra `Falha no backup do gerenciador: ... Permission denied`.
+- **Sob demanda:** `docker compose exec placar python -m app.backup agora` (e `listar`).
+- **Restaurar (com o app parado):**
+  ```bash
+  docker compose stop placar
+  docker compose run --rm placar python -m app.backup restaurar /backups/<arquivo>.db
+  docker compose up -d placar
+  ```
+  O banco atual fica como `gerenciador.db.antes-<data>` ao lado. Para **ensaiar** sem tocar no real: `... restaurar /backups/<arquivo>.db --destino /tmp/ensaio.db`.
+- **Cuidado:** as cópias guardam fotos e dados dos jogadores; trate a pasta `backups/` como o volume. Ela é ignorada pelo git. Para levar as cópias a outro lugar (nuvem, outro disco), copie a pasta com `rsync`/`rclone`; isso fica fora do app.
+
 ## Aparelhos físicos (celular e relógio)
 
 Para parear, conectar, compilar, instalar, capturar a tela, tocar e ler o log nos aparelhos físicos, **use o MCP `dispositivos`** (`tools/mcp-dispositivos/`, registrado no `.mcp.json`; ver o README dele), e não comandos de `adb` soltos. Ele já trata as armadilhas deste projeto: celular sempre com `--user 0` (Dual App do Samsung), release que não atualiza debug, porta do `adb` sem fio que muda, relógio que dorme, duas telas do Z Fold. Atalho para "gerar um APK novo e instalar": `compilar_e_instalar`.

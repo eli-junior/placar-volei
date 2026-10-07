@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** CV8.TS1 — Backup do `gerenciador.db` (cópia consistente, fora do volume, com retenção, verificação e restauração).
 - **Branch:** `feature/cv8-ts1-backup-do-gerenciador`
-- **Passo Ariad:** Passo 2 - Planejamento (aguarda Checkpoint 1)
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguarda Checkpoint 2)
 - **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** plano em `plan.md` da história; aguardando aprovação para implementar.
+- **Handoff / Próximos Passos:** implementação concluída (`app/backup.py`, rotina no `lifespan`, CLI, compose com `./backups`; versão 0.33.1); falta o Navigator validar pela rota em `test-guide.md`.
 
 ## 0.33.0 - 2026-10-07
 

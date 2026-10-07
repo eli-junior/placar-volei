@@ -62,3 +62,6 @@ web/playwright-report/
 
 # Config local do Mini PC (porta de publish em producao, so existe la)
 compose.override.yml
+
+# Cópias do gerenciador.db (CV8.TS1)
+backups/

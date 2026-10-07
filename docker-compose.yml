@@ -15,6 +15,10 @@ services:
       - PORT=8000
       - DB_PATH=/data/placar.db
       - GERENCIADOR_DB_PATH=/data-gerenciador/gerenciador.db
+      # Backup (CV8.TS1): pasta do host, fora do volume do banco.
+      - GERENCIADOR_BACKUP_DIR=/backups
+      - GERENCIADOR_BACKUP_INTERVALO_HORAS=${GERENCIADOR_BACKUP_INTERVALO_HORAS:-6}
+      - GERENCIADOR_BACKUP_MANTER=${GERENCIADOR_BACKUP_MANTER:-28}
       - DEFAULT_ARENAS_FILE=/srv/fixtures/defaultArenas.json
       - MAX_QUADRAS=${MAX_QUADRAS:-20}
       - QUADRA_TTL_SECONDS=${QUADRA_TTL_SECONDS:-3600}
@@ -34,6 +38,7 @@ services:
       - ./fixtures:/srv/fixtures
       # Dado durável (CV8): não é apagado pelo RESET_DB_ON_STARTUP.
       - gerenciador-dados:/data-gerenciador
+      - ./backups:/backups
     logging:
       driver: json-file
       options:
