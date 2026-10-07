@@ -12,6 +12,7 @@
     onChamar = () => {},
     onEncerrar = () => {},
     onEscalar = () => {},
+    onIniciarMataMata = () => {},
     erroEscalacao = null,
     onCriarQuadra = () => {},
     onVincular = () => {},
@@ -24,6 +25,8 @@
   const temPartida = $derived(Boolean(conducao.partida));
   const placar = $derived(conducao.partida?.placar ?? null);
   const fimDaFila = $derived(conducao.fase === 'fim_da_fila');
+  const mataMata = $derived(conducao.fase === 'mata_mata');
+  const mm = $derived(conducao.mata_mata);
   const timeDa = (fila) => conducao.em_quadra.find((t) => t.fila === fila);
 
   function vincular(evento) {
@@ -93,7 +96,7 @@
   {/if}
 
   <div class="bloco" aria-labelledby="titulo-partida">
-    <h3 id="titulo-partida">{temPartida ? 'Partida em quadra' : 'Próxima partida'}</h3>
+    <h3 id="titulo-partida">{temPartida ? 'Partida em quadra' : mataMata ? 'Próxima partida do mata-mata' : 'Próxima partida'}</h3>
     {#if conducao.em_quadra.length === 2}
       <p class="confronto" role="status">
         <strong>Time {conducao.em_quadra[0].fila}</strong> × <strong>Time {conducao.em_quadra[1].fila}</strong>
@@ -116,11 +119,21 @@
         {#if placar.encerrada}<span class="selo">terminou — Time {placar.vencedor === 'A' ? conducao.partida.time_a : conducao.partida.time_b} venceu</span>{:else}<span class="selo">em jogo</span>{/if}
       </p>
     {/if}
-    {#if fimDaFila}
-      <p class="faixa" role="status">A fase de fila terminou. Próxima fase: mata-mata{#if conducao.finalista} — Time {conducao.finalista.fila} segue{/if}.</p>
+    {#if fimDaFila && mm}
+      <p class="faixa" role="status">
+        A fase de fila terminou. {mm.rivais.length
+          ? `Time ${mm.desafiante.fila} abre o mata-mata contra ${mm.rivais.map((t) => `Time ${t.fila}`).join(', depois ')}.`
+          : `Time ${mm.desafiante.fila} abre o mata-mata e, sem reis, já é o campeão.`}
+        Ao iniciar, ninguém mais entra na rodada.
+      </p>
+    {/if}
+    {#if mataMata && mm}
+      <p class="faixa" role="status">Mata-mata: quem ganha fica, quem perde sai. Time {mm.desafiante.fila} em quadra.{mm.rivais.length > 1 ? ` Depois: ${mm.rivais.slice(1).map((t) => `Time ${t.fila}`).join(', ')}.` : ''}</p>
     {/if}
     <div class="botoes">
-      {#if temPartida}
+      {#if conducao.pode_iniciar_mata_mata}
+        <button class="acao-principal" type="button" onclick={onIniciarMataMata} disabled={ocupado}>{mm && mm.rivais.length ? 'Iniciar mata-mata' : 'Coroar campeão'}</button>
+      {:else if temPartida}
         <button class="acao-principal" type="button" onclick={onEncerrar} disabled={ocupado || !conducao.pode_encerrar}>Encerrar partida</button>
       {:else}
         <button class="acao-principal" type="button" onclick={onChamar} disabled={ocupado || !conducao.pode_chamar}>Chamar partida</button>
@@ -138,6 +151,7 @@
           <li>
             <span class="posicao">{h.ordem}ª</span>
             <span class="jogadores">Time {h.time_a} {h.placar_a} × {h.placar_b} Time {h.time_b}</span>
+            {#if h.fase === 'mata_mata'}<span class="selo">mata-mata</span>{/if}
             <span class="selo">Time {h.vencedor} venceu</span>
           </li>
         {/each}

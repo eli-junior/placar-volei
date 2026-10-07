@@ -207,10 +207,10 @@ test('encerrar partida: placar ao vivo, fila andando, rei e fim da fila', async 
   await pontosNoPlacar(p, codigo, 'B', 10);
   await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeEnabled();
   await p.getByRole('button', { name: 'Encerrar partida' }).click();
-  await expect(p.getByText('A fase de fila terminou. Próxima fase: mata-mata')).toBeVisible();
-  await expect(p.getByText('Time 3 segue')).toBeVisible();
-  await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeDisabled();
-  await expect(b.getByText('A fase de fila terminou. Próxima fase: mata-mata')).toBeVisible();
+  await expect(p.getByText(/A fase de fila terminou\. Time 3 abre o mata-mata/)).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Coroar campeão' })).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Chamar partida' })).toHaveCount(0);
+  await expect(b.getByText(/A fase de fila terminou\. Time 3 abre o mata-mata/)).toBeVisible();
 
   // cancelar com partidas registradas pede confirmação reforçada
   await p.getByRole('button', { name: 'Cancelar rodada' }).click();
@@ -231,7 +231,7 @@ test('dois vencimentos seguidos coroam o rei e o painel mostra a ordem', async (
     await pontosNoPlacar(p, codigo, vencedor, 10);
     await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeEnabled();
     await p.getByRole('button', { name: 'Encerrar partida' }).click();
-    await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeVisible();
+    await expect(p.getByRole('button', { name: 'Chamar partida' }).or(p.getByRole('button', { name: 'Iniciar mata-mata' }))).toBeVisible();
   }
   await expect(p.getByRole('heading', { name: 'Reis (1)' })).toBeVisible();
   await expect(p.getByText(/1º rei · Time 1/)).toBeVisible();
@@ -239,6 +239,41 @@ test('dois vencimentos seguidos coroam o rei e o painel mostra a ordem', async (
   await p.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {}))));
   const { violations } = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
   expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ') + ' ' + (n.any[0]?.message ?? '')).join(' | ')}`)).toEqual([]);
+  await sessaoLimpa(p);
+});
+
+test('mata-mata: iniciar, o rei desafia, ganhou ficou e o campeão aparece nos dois aparelhos', async ({ abrir }) => {
+  const p = await abrir();
+  const b = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, [...SEIS, ['Gabi', 'M', 45], ['Hugo', 'H', 35]]); // 4 times
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  await abrirTela(b);
+  const codigo = await criarEVincular(p);
+  // Time 1 vence duas seguidas (rei); o Time 4 sobra sozinho na quadra
+  for (const vencedor of ['A', 'A']) {
+    await p.getByRole('button', { name: 'Chamar partida' }).click();
+    await pontosNoPlacar(p, codigo, vencedor, 10);
+    await p.getByRole('button', { name: 'Encerrar partida' }).click();
+    await expect(p.getByRole('button', { name: 'Chamar partida' }).or(p.getByRole('button', { name: 'Iniciar mata-mata' }))).toBeVisible();
+  }
+  await expect(p.getByText(/Time 4 abre o mata-mata contra Time 1/)).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Chamar partida' })).toHaveCount(0);
+  await p.getByRole('button', { name: 'Iniciar mata-mata' }).click();
+  await expect(p.getByRole('heading', { name: 'Próxima partida do mata-mata' })).toBeVisible();
+  await expect(b.getByRole('heading', { name: 'Próxima partida do mata-mata' })).toBeVisible();
+  await expect(p.getByRole('status').filter({ hasText: 'Time 4 × Time 1' })).toBeVisible();
+  await p.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {}))));
+  const { violations } = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ') + ' ' + (n.any[0]?.message ?? '')).join(' | ')}`)).toEqual([]);
+
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await pontosNoPlacar(p, codigo, 'B', 10); // o rei (Time 1) vence o desafiante
+  await p.getByRole('button', { name: 'Encerrar partida' }).click();
+  await expect(p.getByRole('heading', { name: 'Campeões da rodada 1' })).toBeVisible();
+  await expect(b.getByRole('heading', { name: 'Campeões da rodada 1' })).toBeVisible();
+  await expect(p.getByText('Já dá para sortear a próxima.')).toBeVisible();
   await sessaoLimpa(p);
 });
 

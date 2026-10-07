@@ -1,8 +1,8 @@
 ---
 code: CV8.DS4.US11
 level: User Story
-status: Planned
-status_reason: registrada em 2026-10-07, ainda não puxada
+status: Active
+status_reason: implementada na branch feature/cv8-ds4-us11-conduzir-o-mata-mata (0.38.0); aguarda validação do Navigator
 updated: 2026-10-07
 ---
 

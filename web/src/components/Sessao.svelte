@@ -158,6 +158,7 @@
     }
   }
   const chamarPartida = () => agirQuadra(() => chamarRodada(segredo, '/chamar-partida', { metodo: 'POST' }));
+  const iniciarMataMata = () => agirQuadra(() => chamarRodada(segredo, '/iniciar-mata-mata', { metodo: 'POST' }));
   const encerrarPartida = () => agirQuadra(() => chamarRodada(segredo, '/encerrar-partida', { metodo: 'POST' }));
   async function escalar(jogadorId) {
     ocupado = true;
@@ -232,7 +233,13 @@
       {#if rodada?.estado === 'proposta'}
         <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} />
       {:else if rodada && estado.conducao}
-        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onEscalar={escalar} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
+        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onEscalar={escalar} onIniciarMataMata={iniciarMataMata} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
+      {:else if estado.ultimo_campeao}
+        <section class="cartao" aria-labelledby="titulo-campeao">
+          <h2 id="titulo-campeao">Campeões da rodada {estado.ultimo_campeao.rodada}</h2>
+          <p role="status"><strong>Time {estado.ultimo_campeao.time}</strong> — {estado.ultimo_campeao.jogadores.join(' e ')}</p>
+          <p class="ajuda">A rodada terminou. Já dá para sortear a próxima.</p>
+        </section>
       {/if}
 
       <section aria-labelledby="titulo-presentes">
