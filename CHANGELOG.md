@@ -6,6 +6,26 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.31.0 - 2026-10-07
+
+Boundary: CV8.DS1.US1 — cadastrar jogadores (minor; backend, web e APK em 0.31.0, APK `versionCode` 7; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds1-us1-cadastrar-jogadores` em `master`.
+
+### Added
+
+- **Base de jogadores** (nome e gênero H/M): criar, editar, inativar e reativar. Nome único entre ativos, sem diferenciar caixa nem acento; inativar libera o nome.
+- **Tela `/jogadores`** na web, com botão na Home. Pede o `OWNER_SECRET` uma vez e o guarda no aparelho; oculta em qualquer página aberta no APK.
+- **API** `/api/jogadores` (listar, criar, editar, inativar, reativar), toda protegida pelo `OWNER_SECRET`.
+- **Armazenamento durável:** `gerenciador.db` (`GERENCIADOR_DB_PATH`) no volume `gerenciador-dados`, fora do reset efêmero do banco das quadras.
+
+### Verification
+
+- `uv run pytest` (274), `npm test` (169), `npm run check`, `npm run test:e2e` (56, com axe). Validada pelo Navigator.
+- Dívidas registradas: segredo no `localStorage`, sem backup do volume, listagem sem paginação.
+
 ## 2026-10-07 — Registro da CV8 (sem versão)
 
 Boundary: documentação — CV8 Gerenciador de times registrada no roadmap (14 User Stories em `Planned`, regras RN-01..RN-12); sem mudança de código nem de versão.

@@ -5,7 +5,7 @@
   import { fade } from 'svelte/transition';
   import Icone from './Icone.svelte';
 
-  let { onCriarQuadra = () => {}, onEntrarQuadra = () => {}, submetendo = false, erro = null } = $props();
+  let { onCriarQuadra = () => {}, onEntrarQuadra = () => {}, onAbrirJogadores = null, submetendo = false, erro = null } = $props();
 
 
   let abaAtiva = $state('acompanhar');
@@ -100,10 +100,15 @@
       <span class="marca-icone"><Icone nome="bola" tamanho="1.35em" /></span>
       <span>PLACAR <strong>VÔLEI</strong></span>
     </a>
+    <div class="topo-acoes">
+    {#if onAbrirJogadores}
+      <button class="tema" type="button" onclick={onAbrirJogadores}><Icone nome="pessoas" tamanho="1.2em" /><span>Jogadores</span></button>
+    {/if}
     <button class="tema" type="button" onclick={alternarTema} aria-label={temaSol ? 'Ativar modo escuro' : 'Ativar modo claro'}>
       <Icone nome={temaSol ? 'lua' : 'sol'} tamanho="1.2em" />
       <span>{temaSol ? 'Escuro' : 'Claro'}</span>
     </button>
+    </div>
   </nav>
 
   <div class="layout">
@@ -192,6 +197,7 @@
 
 <style>
   .home { width: min(1180px, 100%); margin: 0 auto; padding: 1.25rem clamp(1rem, 3vw, 2.5rem) 4rem; box-sizing: border-box; color: var(--texto-forte); }
+  .topo-acoes { display: flex; gap: .5rem; }
   .topo { display: flex; align-items: center; justify-content: space-between; min-height: 48px; }
   .marca { display: inline-flex; align-items: center; gap: .7rem; color: var(--texto-forte); font-size: .78rem; font-weight: 700; letter-spacing: .18em; text-decoration: none; }
   .marca strong { color: var(--acento-info); }
