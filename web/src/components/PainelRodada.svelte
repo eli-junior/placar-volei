@@ -16,7 +16,7 @@
   </h2>
   {#if proposta}
     <p class="ajuda">
-      Confira as duplas e a fila. Combinação {posicao.atual} de {posicao.total} igualmente equilibradas{#if posicao.total === 1}; não há outra para trocar{/if}.
+      {#if rodada.numero > 1}Reequilibrada pelo saldo da sessão (nota ajustada entre parênteses). {/if}Confira as duplas e a fila. Combinação {posicao.atual} de {posicao.total} igualmente equilibradas{#if posicao.total === 1}; não há outra para trocar{/if}.
     </p>
   {/if}
 
