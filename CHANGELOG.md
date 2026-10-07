@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+- **História / Escopo:** CV8.DS3.US6 — Encerrar partida e aplicar rei da quadra (registrar placar e vencedor lendo o placar da quadra; fila anda, reis, eliminados e fim da fila).
+- **Branch:** `feature/cv8-ds3-us6-encerrar-partida-e-rei-da-quadra`
+- **Passo Ariad:** Passo 2 - Planejamento (aguarda Checkpoint 1)
+- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
+- **Handoff / Próximos Passos:** plano em `plan.md` da história; aguardando aprovação para implementar.
 
 ## 0.35.0 - 2026-10-07
 

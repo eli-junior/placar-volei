@@ -1,8 +1,8 @@
 ---
 code: CV8.DS3.US6
 level: User Story
-status: Planned
-status_reason: registrada em 2026-10-07, ainda não puxada
+status: Active
+status_reason: puxada em 2026-10-07; Passo 2 (plano)
 updated: 2026-10-07
 ---
 
