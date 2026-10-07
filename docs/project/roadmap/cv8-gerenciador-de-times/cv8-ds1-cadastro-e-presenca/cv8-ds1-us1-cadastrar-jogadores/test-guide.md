@@ -28,4 +28,4 @@ Abra `http://localhost:8000`.
 
 ## Evidência automatizada
 
-`uv run pytest` (274 + 12 novos da US1), `npm test` (169), `npm run check`, `npm run test:e2e` (56, com 5 novos e axe da tela).
+`uv run pytest` (274, incluindo os 12 da US1), `npm test` (169), `npm run check`, `npm run test:e2e` (56, com 5 novos e axe da tela).
