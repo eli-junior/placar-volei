@@ -4,11 +4,27 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo:** CV8.DS3.US8 — Escalar o parceiro do time incompleto (lista de escalação RN-07, gênero RN-01, saldo das duas participações).
-- **Branch:** `feature/cv8-ds3-us8-escalar-parceiro-do-time-incompleto`
-- **Passo Ariad:** Passo 5 - Revisão (aguarda Checkpoint 3)
-- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** implementação concluída (`POST /api/rodada/escalar-parceiro`, lista de escalação em `app/conducao.py`, saldo da rodada, schema 6; versão 0.37.0); validação aceita pelo Navigator ("siga"); revisão apresentada, depois docs (Passo 6) e merge.
+Nenhum trabalho ativo.
+
+## 0.37.0 - 2026-10-07
+
+Boundary: CV8.DS3.US8 — escalar o parceiro do time incompleto (minor; backend, web e APK em 0.37.0, APK `versionCode` 14; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds3-us8-escalar-parceiro-do-time-incompleto` em `master`.
+
+### Added
+
+- **Escolha do parceiro** do time incompleto quando ele chega à quadra: lista de escalação (eliminados fora de time ativo), com **gênero** (homem incompleto só vê mulheres, salvo falta de alternativa) e **ordem de chegada**; **Chamar partida** fica bloqueado até a escolha. Destrava as rodadas de número ímpar.
+- O escalado joga por um **segundo time** (histórico das duas partidas preservado), sai de "Eliminados" enquanto joga e volta se esse time perder; "· escalado" ao lado do nome.
+- **Saldo da rodada** no painel (pontos feitos − sofridos, somando os dois times do escalado).
+- API `POST /api/rodada/escalar-parceiro`; schema 6 (aditivo): `times.origem` (pronta para os atrasados) e `time_jogadores.escalado`.
+
+### Verification
+
+- `uv run pytest` (507), `npm test` (183), `npm run check`, `npm run test:e2e` (76, com o fluxo do ímpar, dois aparelhos e axe). Validada pelo Navigator.
+- Dívidas novas: `rodada.py` concentra regras/painel/escalação, escalação sem como desfazer, rodada trava sem elegíveis; agravada: `Sessao.svelte` com 362 linhas.
 
 ## 0.36.0 - 2026-10-07
 

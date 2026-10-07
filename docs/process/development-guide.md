@@ -64,6 +64,8 @@ Desde a 0.35.0 o schema é a versão 5 (`sessoes.quadra_id` e a tabela `partidas
 
 Desde a 0.36.0 as rotas da rodada estão todas em `app/rodada_rotas.py`. O encerramento de partida lê o placar da quadra vinculada (`ler_placar` em `app/ponte.py`) e só aceita uma partida terminada; cada evento da quadra vinculada avisa o gerenciador (`avisar_placar` em `app/sincronia.py`, chamado por `transmitir_estado`), o que mantém o placar ao vivo no painel. Não há migração de schema nesta versão (continua a versão 5).
 
+Desde a 0.37.0 o schema é a versão 6 (`times.origem` e `time_jogadores.escalado`). A lista de escalação e o saldo da rodada são funções puras em `app/conducao.py`; `app/rodada.py` monta o painel e valida a escolha do parceiro na transação (`POST /api/rodada/escalar-parceiro`).
+
 ### Backup e restauração do `gerenciador.db` (CV8.TS1)
 
 - **Automático:** o app grava uma cópia verificada na subida e a cada `GERENCIADOR_BACKUP_INTERVALO_HORAS` (6), mantendo as `GERENCIADOR_BACKUP_MANTER` (28) mais recentes. No compose, a pasta é `./backups` do host, montada em `/backups`, **fora** do volume `gerenciador-dados`. Sem `GERENCIADOR_BACKUP_DIR` o backup fica desligado (aviso no log). Falha de backup é logada e não derruba o app; uma cópia que falha na verificação nunca substitui nem faz podar as boas.
