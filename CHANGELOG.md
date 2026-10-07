@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** CV8.DS1.US2 — Abrir sessão e marcar presença (sessão do dia, presença a partir da base, cadastro rápido inline, ordem de chegada editável).
 - **Branch:** `feature/cv8-ds1-us2-abrir-sessao-e-presenca`
-- **Passo Ariad:** Passo 4 - Teste e Validação (aguarda Checkpoint 2)
+- **Passo Ariad:** Passo 5 - Revisão (aguarda Checkpoint 3)
 - **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** implementação concluída (`app/sessao.py`, tela `/sessao`, schema 3 do `gerenciador.db`, versão 0.33.0); falta o Navigator validar pela rota em `test-guide.md`.
+- **Handoff / Próximos Passos:** implementação concluída (`app/sessao.py`, tela `/sessao`, schema 3 do `gerenciador.db`, versão 0.33.0); validada pelo Navigator; revisão apresentada, depois docs (Passo 6) e merge.
 
 ## 0.32.0 - 2026-10-07
 
