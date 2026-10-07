@@ -1,8 +1,8 @@
 ---
 code: CV8.DS4.US12
 level: User Story
-status: Planned
-status_reason: registrada em 2026-10-07, ainda não puxada
+status: Done
+status_reason: implementada na branch feature/cv8-ds4-us12-persistir-sessao (0.39.0); validada pelo Navigator em 2026-10-07 (0.39.0); mergeada em master
 updated: 2026-10-07
 ---
 
@@ -19,7 +19,11 @@ updated: 2026-10-07
 
 ## Validation Route
 
-A definir no plano (Passo 2).
+Plano: [plan.md](plan.md). Rota: [test-guide.md](test-guide.md).
+
+## Entregue
+
+Gravação síncrona (`synchronous=FULL`) e testes que provam a retomada do estado após cada partida, o mata-mata e o campeão, o registro completo para ranking e a preservação das partidas ao cancelar a rodada ou encerrar a sessão. Sem schema nem rota novos.
 
 ## Out of Scope
 

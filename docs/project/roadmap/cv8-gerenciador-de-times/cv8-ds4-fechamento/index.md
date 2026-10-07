@@ -1,8 +1,8 @@
 ---
 code: CV8.DS4
 level: Delivery Story
-status: Planned
-status_reason: registrada em 2026-10-07, ainda não puxada
+status: Validated
+status_reason: US11 e US12 validadas pelo Navigator em 2026-10-07 (0.38.0 e 0.39.0)
 updated: 2026-10-07
 ---
 

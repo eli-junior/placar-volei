@@ -68,6 +68,8 @@ Desde a 0.37.0 o schema é a versão 6 (`times.origem` e `time_jogadores.escalad
 
 Desde a 0.38.0 o schema é a versão 7 (`rodadas.mata_mata_em`, `rodadas.campeao_time_id`, `partidas_rodada.fase`). O mata-mata é derivado em `app/conducao.py` (`derivar(..., mata_mata_iniciado)`); `POST /api/rodada/iniciar-mata-mata` o inicia e `registrar_campeao` (em `app/rodada.py`) encerra a rodada ao fim do último confronto.
 
+Desde a 0.39.0 toda conexão do gerenciador grava com `PRAGMA synchronous=FULL` (o resultado de uma partida não se perde numa queda). **O que fica persistido:** a cada ação, na mesma transação, ficam gravados sessão, presenças, rodada (estado, `mata_mata_em`, `campeao_time_id`), times com os jogadores (nota e chegada do sorteio, marca de escalado) e cada partida (fase, placar, vencedor, horários de chamada e encerramento). Só a proposta de rodada descartada ou resorteada é apagada; cancelar a rodada ou encerrar a sessão mantém as partidas. Não há tela de histórico; `tests/test_persistencia.py` guarda esse contrato para o ranking futuro.
+
 ### Backup e restauração do `gerenciador.db` (CV8.TS1)
 
 - **Automático:** o app grava uma cópia verificada na subida e a cada `GERENCIADOR_BACKUP_INTERVALO_HORAS` (6), mantendo as `GERENCIADOR_BACKUP_MANTER` (28) mais recentes. No compose, a pasta é `./backups` do host, montada em `/backups`, **fora** do volume `gerenciador-dados`. Sem `GERENCIADOR_BACKUP_DIR` o backup fica desligado (aviso no log). Falha de backup é logada e não derruba o app; uma cópia que falha na verificação nunca substitui nem faz podar as boas.

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     admin_timeout_seconds: int = 120
     host: str = "0.0.0.0"
     port: int = 8000
-    version: str = "0.38.0"
+    version: str = "0.39.0"
     reset_db_on_startup: bool = False
     # Apelidos (separados por vírgula, qualquer caixa) que habilitam o vínculo
     # de relógio ao criar ou entrar na sala; são gravados em Title ("eli" -> "Eli").
