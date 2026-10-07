@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo. A CV7 (APK online e offline, com relógio) está entregue.
+- **História / Escopo:** CV8 — Gerenciador de times: registro das 14 User Stories no roadmap (somente documentação, sem versão).
+- **Branch:** `docs/roadmap-gerenciador-de-times`
+- **Passo Ariad:** Passo 6 - Documentação
+- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
+- **Handoff / Próximos Passos:** Navigator revisa o registro; depois escolhe a primeira história a puxar (plano em CV8.DS1).
 
 ## 0.30.1 - 2026-10-02
 

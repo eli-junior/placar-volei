@@ -1,0 +1,41 @@
+---
+code: CV8
+level: Value
+status: Planned
+status_reason: registrada em 2026-10-07, ainda não puxada
+updated: 2026-10-07
+related:
+  - regras-de-negocio.md
+---
+
+# CV8 — Gerenciador de times (vôlei de areia)
+
+## Intent
+
+Conduzir o dia de jogo: cadastrar jogadores, abrir a sessão, sortear duplas equilibradas e tocar a rodada no formato rei da quadra até o campeão, com a fila e os reis visíveis a todos e os nomes das duplas no relógio.
+
+## Escopo do MVP
+
+Web + exibição dos nomes das duplas no relógio. Somente formato **dupla**. Regras de negócio e glossário: [regras-de-negocio.md](regras-de-negocio.md).
+
+## Delivery Stories
+
+- [CV8.DS1 — Cadastro e presença](cv8-ds1-cadastro-e-presenca/index.md): Base de jogadores e sessão do dia com presença marcada.
+- [CV8.DS2 — Sorteio](cv8-ds2-sorteio/index.md): Sorteio das duplas da primeira rodada e das seguintes, com reequilíbrio.
+- [CV8.DS3 — Condução da rodada](cv8-ds3-conducao-da-rodada/index.md): Fila, partidas, rei da quadra, desfazer, time incompleto, atrasados e substituição.
+- [CV8.DS4 — Fechamento](cv8-ds4-fechamento/index.md): Mata-mata, campeão e persistência da sessão.
+- [CV8.DS5 — Exibição](cv8-ds5-exibicao/index.md): Fila e reis para o espectador e nomes das duplas no relógio.
+
+## Acceptance / Done Condition
+
+Com 4 ou mais presentes, o operador sorteia, conduz as partidas até o mata-mata e fecha a rodada com um campeão; sorteia a rodada seguinte reequilibrada pelo saldo; tudo sobrevive a reinício do servidor; espectadores e relógio veem fila, reis e nomes.
+
+## Fora do escopo (fase 2)
+
+- Formato trio (máx. 2 homens; sobra escolhe parceiros por último na fila).
+- Tela de histórico / ranking geral entre sessões.
+- Edição de partidas antigas (além de desfazer a última).
+
+## Notes
+
+Fonte: especificação "Gerenciador de Times" e decisões de refinamento de 2026-10-07. Estado inicial: `Planned`. Sequência e dependências a definir no plano ao puxar a primeira história.
