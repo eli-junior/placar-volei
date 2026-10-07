@@ -1,8 +1,8 @@
 ---
 code: CV8.DS4.US12
 level: User Story
-status: Planned
-status_reason: registrada em 2026-10-07, ainda não puxada
+status: Active
+status_reason: implementada na branch feature/cv8-ds4-us12-persistir-sessao (0.39.0); aguarda validação do Navigator
 updated: 2026-10-07
 ---
 

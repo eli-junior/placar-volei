@@ -152,6 +152,9 @@ def conectar(caminho: str) -> sqlite3.Connection:
     conn = sqlite3.connect(caminho, timeout=5.0)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA busy_timeout=5000;")
+    # Resultado de partida não pode se perder numa queda de energia (US12): no
+    # WAL, `NORMAL` pode perder o último commit; `FULL` o grava antes de responder.
+    conn.execute("PRAGMA synchronous=FULL;")
     return conn
 
 
