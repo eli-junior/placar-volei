@@ -1,8 +1,8 @@
 ---
 code: CV8.DS2
 level: Delivery Story
-status: Active
-status_reason: US3 puxada em 2026-10-07
+status: Validated
+status_reason: US3 e US4 validadas (0.40.0)
 updated: 2026-10-07
 ---
 

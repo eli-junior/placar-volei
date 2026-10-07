@@ -54,6 +54,7 @@ class Sorteio(NamedTuple):
     amplitude: int  # maior soma − menor soma entre os times completos
     duplas_hh: int
     tentativa: int
+    repetidas: int  # duplas já formadas antes na sessão
     distintas: int  # quantas combinações equivalentes existem (≥ 1)
 
 
@@ -80,6 +81,10 @@ def _objetivo(duplas) -> int:
 def _amplitude(duplas) -> int:
     somas = [d[0].nota + d[1].nota for d in duplas]
     return max(somas) - min(somas)
+
+
+def _repetidas(duplas, anteriores: frozenset) -> int:
+    return sum(frozenset(p.id for p in d) in anteriores for d in duplas)
 
 
 def _chave(duplas) -> tuple:
@@ -179,8 +184,11 @@ def _perturbar(duplas, rng: random.Random, passos: int):
 
 
 @lru_cache(maxsize=64)
-def _candidatas(pares: tuple[Participante, ...]) -> list[list[list[Participante]]]:
-    """Combinações equivalentes, da melhor para a pior, sem repetição."""
+def _candidatas(
+    pares: tuple[Participante, ...], anteriores: frozenset = frozenset()
+) -> list[list[list[Participante]]]:
+    """Combinações equivalentes, da melhor para a pior, sem repetição. Entre as
+    equivalentes, as que repetem menos duplas da sessão vêm primeiro (RN-10)."""
     base = _descer(_inicial(pares))
     achadas = {_chave(base): base}
     rng = random.Random(len(pares) * 100003 + sum(p.nota for p in pares))
@@ -198,13 +206,19 @@ def _candidatas(pares: tuple[Participante, ...]) -> list[list[list[Participante]
             if _amplitude(vizinha) <= melhor_amp + TOLERANCIA:
                 achadas.setdefault(_chave(vizinha), vizinha)
     aceitas = [c for c in achadas.values() if _amplitude(c) <= melhor_amp + TOLERANCIA]
-    aceitas.sort(key=lambda c: (_objetivo(c), _chave(c)))
+    aceitas.sort(key=lambda c: (_repetidas(c, anteriores), _objetivo(c), _chave(c)))
     return aceitas[:_MAXIMO_CANDIDATAS]
 
 
-def sortear(participantes: list[Participante], tentativa: int = 0) -> Sorteio:
+def sortear(
+    participantes: list[Participante],
+    tentativa: int = 0,
+    anteriores: frozenset = frozenset(),
+) -> Sorteio:
     """Monta a proposta. `tentativa` 0 é a melhor combinação; as seguintes
-    percorrem as equivalentes (e voltam ao início ao esgotá-las)."""
+    percorrem as equivalentes (e voltam ao início ao esgotá-las). `anteriores`
+    são as duplas já formadas na sessão (conjuntos de ids): evitá-las é
+    preferência, abaixo do gênero e do equilíbrio (RN-10)."""
     if len(participantes) < MINIMO_JOGADORES:
         raise JogadoresInsuficientes(len(participantes))
     if len({p.id for p in participantes}) != len(participantes):
@@ -214,7 +228,7 @@ def sortear(participantes: list[Participante], tentativa: int = 0) -> Sorteio:
     impar = ordenados[-1] if len(ordenados) % 2 else None
     pares = [p for p in ordenados if p is not impar]
 
-    candidatas = _candidatas(tuple(pares))
+    candidatas = _candidatas(tuple(pares), anteriores)
     escolhida = candidatas[tentativa % len(candidatas)]
 
     completos = sorted(escolhida, key=lambda d: min(p.ordem for p in d))
@@ -228,6 +242,7 @@ def sortear(participantes: list[Participante], tentativa: int = 0) -> Sorteio:
         times=tuple(times),
         amplitude=_amplitude(escolhida),
         duplas_hh=sum(_hh(d) for d in escolhida),
+        repetidas=_repetidas(escolhida, anteriores),
         tentativa=tentativa,
         distintas=len(candidatas),
     )

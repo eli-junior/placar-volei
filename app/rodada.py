@@ -19,6 +19,11 @@ from app.conducao import (
     saldos,
 )
 from app.gerenciador_db import agora, erro_de_campo, exigir_sessao_aberta
+from app.reequilibrio import (
+    duplas_anteriores,
+    nota_efetiva,
+    saldos_da_sessao,
+)
 from app.sorteio import JogadoresInsuficientes, Participante, sortear
 
 ALVOS = (10, 12)
@@ -57,12 +62,13 @@ def montar(conn, sessao_id: str) -> dict | None:
                 "nome": j["nome"],
                 "genero": j["genero"],
                 "nota": j["nota"],
+                "nota_base": j["nota_base"],
                 "ordem_chegada": j["ordem_chegada"],
                 "escalado": bool(j["escalado"]),
             }
             for j in conn.execute(
                 "SELECT tj.jogador_id, tj.nota, tj.ordem_chegada, tj.escalado, "
-                "j.nome, j.genero "
+                "j.nome, j.genero, j.nota AS nota_base "
                 "FROM time_jogadores tj JOIN jogadores j ON j.id = tj.jogador_id "
                 "WHERE tj.time_id = ? ORDER BY tj.ordem_chegada",
                 (t["id"],),
@@ -97,8 +103,17 @@ def _alvo_valido(bruto) -> int:
 
 
 def _participantes(conn, sessao_id: str) -> list[Participante]:
+    """Presentes com a nota do sorteio: a cadastrada na primeira rodada; da
+    segunda em diante, a efetiva, ajustada pelo saldo da sessão (RN-14). A
+    ordem de chegada continua valendo em todas as rodadas."""
+    saldos_sessao = saldos_da_sessao(conn, sessao_id)
     return [
-        Participante(r["id"], r["genero"], r["nota"], r["ordem"])
+        Participante(
+            r["id"],
+            r["genero"],
+            nota_efetiva(r["nota"], *saldos_sessao.get(r["id"], (0, 0))),
+            r["ordem"],
+        )
         for r in conn.execute(
             "SELECT j.id, j.genero, j.nota, p.ordem FROM presencas p "
             "JOIN jogadores j ON j.id = p.jogador_id WHERE p.sessao_id = ? "
@@ -108,9 +123,13 @@ def _participantes(conn, sessao_id: str) -> list[Participante]:
     ]
 
 
-def _sortear(participantes: list[Participante], tentativa: int):
+def _sortear(conn, sessao_id: str, tentativa: int):
     try:
-        return sortear(participantes, tentativa)
+        return sortear(
+            _participantes(conn, sessao_id),
+            tentativa,
+            duplas_anteriores(conn, sessao_id),
+        )
     except JogadoresInsuficientes as e:
         raise erro_de_campo(
             409,
@@ -149,7 +168,7 @@ def criar_proposta(conn, alvo) -> None:
     sessao = exigir_sessao_aberta(conn)
     if rodada_ativa(conn, sessao["id"]):
         raise erro_de_campo(409, "rodada", "já existe uma rodada ativa", "rodada_ativa")
-    resultado = _sortear(_participantes(conn, sessao["id"]), 0)
+    resultado = _sortear(conn, sessao["id"], 0)
     numero = conn.execute(
         "SELECT COALESCE(MAX(numero), 0) + 1 FROM rodadas WHERE sessao_id = ?",
         (sessao["id"],),
@@ -177,7 +196,7 @@ def resortear(conn, alvo=None) -> None:
     sessao, r = _exigir_proposta(conn)
     novo_alvo = _alvo_valido(alvo) if alvo is not None else r["alvo"]
     tentativa = r["tentativa"] + 1
-    resultado = _sortear(_participantes(conn, sessao["id"]), tentativa)
+    resultado = _sortear(conn, sessao["id"], tentativa)
     _apagar_times(conn, r["id"])
     _gravar_times(conn, r["id"], resultado)
     conn.execute(

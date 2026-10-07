@@ -57,9 +57,16 @@ export function primeiraPartida(times) {
   return fila.length >= 2 ? [fila[0], fila[1]] : null;
 }
 
+/** Ajuste da nota pelo saldo da sessão: " +8", " −3" ou "" quando não há (RN-14). */
+export function ajusteDaNota(j) {
+  const d = j.nota - (j.nota_base ?? j.nota);
+  if (!d) return '';
+  return d > 0 ? ` +${d}` : ` −${-d}`;
+}
+
 /** "Ana (90) + Bia (85)" para a linha de um time. */
 export function descreverTime(time) {
-  return time.jogadores.map((j) => `${j.nome} (${j.nota})${j.escalado ? ' · escalado' : ''}`).join(' + ');
+  return time.jogadores.map((j) => `${j.nome} (${j.nota}${ajusteDaNota(j)})${j.escalado ? ' · escalado' : ''}`).join(' + ');
 }
 
 /** Qual combinação equivalente está na tela: "2 de 5" (tentativa começa em 0). */
