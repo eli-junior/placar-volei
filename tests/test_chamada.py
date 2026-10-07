@@ -316,9 +316,9 @@ async def test_painel_com_resultados_reis_eliminados_e_fila(ac, placar):
     codigo = await quadra_do_placar(placar)
     c = (await ac.put("/api/sessao/quadra", json={"codigo": codigo})).json()["conducao"]
     assert [t["fila"] for t in c["em_quadra"]] == [4, 6]
-    assert c["pode_chamar"] is False and "Time 6 é incompleto" in c["motivo"]
+    assert c["pode_chamar"] is False and "Escolha o parceiro do Time 6" in c["motivo"]
     r = await ac.post("/api/rodada/chamar-partida")
-    assert r.status_code == 409 and "incompleto" in r.json()["detail"]
+    assert r.status_code == 409 and "Escolha o parceiro" in r.json()["detail"]
 
 
 @pytest.mark.asyncio

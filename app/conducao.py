@@ -104,3 +104,69 @@ def nomes_curtos(jogadores: list[dict]) -> dict[str, str]:
 
 def nome_da_equipe(curtos: list[str]) -> str:
     return " + ".join(curtos)
+
+
+class Candidato(NamedTuple):
+    id: str
+    nome: str
+    genero: str
+    nota: int
+    ordem_chegada: int
+
+
+def _ordenar(candidatos: list[Candidato]) -> list[Candidato]:
+    return sorted(candidatos, key=lambda c: (c.ordem_chegada, c.nome))
+
+
+def lista_de_escalacao(
+    *,
+    genero_do_incompleto: str,
+    origem: str,
+    eliminados: list[Candidato],
+    livres: list[Candidato],
+) -> dict:
+    """Quem pode ser parceiro do time incompleto (RN-05, RN-06, RN-07).
+
+    `eliminados`: jogadores de times que perderam e hoje não jogam por nenhum
+    time ativo. `livres`: jogadores da rodada que ainda não disputaram partida
+    e não estão em time ativo (vazio na prática: o incompleto é o último da fila,
+    então todos à frente dele já jogaram; existe para atrasados e substituições).
+
+    - ímpar: primeiro "ainda não jogaram"; se vazio, a lista de escalação;
+    - atrasado: sempre a lista de escalação.
+    - gênero (RN-01): se o incompleto é homem, só mulheres, a menos que não haja
+      nenhuma elegível; se é mulher, qualquer um. Dentro disso, por chegada.
+    """
+    if origem == "impar" and livres:
+        rotulo, base = "Ainda não jogaram", livres
+    else:
+        rotulo, base = "Lista de escalação (eliminados)", eliminados
+    base = _ordenar(base)
+    evita = [c for c in base if not (genero_do_incompleto == "H" and c.genero == "H")]
+    permitidos = evita or base
+    aviso_hh = bool(base) and not evita and genero_do_incompleto == "H"
+    return {
+        "grupos": [{"rotulo": rotulo, "jogadores": permitidos}] if permitidos else [],
+        "aviso_hh": aviso_hh,
+        "recusados_hh": [c for c in base if c not in permitidos],
+    }
+
+
+def saldos(times: dict[str, list[dict]], partidas: list[dict]) -> list[dict]:
+    """Saldo de cada jogador na rodada: pontos feitos − sofridos, somando todos
+    os times em que atuou (o escalado joga por dois). `times` leva a lista de
+    jogadores de cada time; `partidas` as encerradas com placar."""
+    acumulado: dict[str, dict] = {}
+    for p in partidas:
+        for time_id, feitos, sofridos in (
+            (p["time_a_id"], p["placar_a"], p["placar_b"]),
+            (p["time_b_id"], p["placar_b"], p["placar_a"]),
+        ):
+            for j in times[time_id]:
+                linha = acumulado.setdefault(
+                    j["id"],
+                    {"id": j["id"], "nome": j["nome"], "partidas": 0, "saldo": 0},
+                )
+                linha["partidas"] += 1
+                linha["saldo"] += feitos - sofridos
+    return sorted(acumulado.values(), key=lambda x: (-x["saldo"], x["nome"]))

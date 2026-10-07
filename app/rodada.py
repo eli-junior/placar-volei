@@ -10,7 +10,14 @@ ficam travadas enquanto houver rodada em proposta ou em andamento.
 
 import uuid
 
-from app.conducao import ResultadoEntrada, TimeEntrada, derivar
+from app.conducao import (
+    Candidato,
+    ResultadoEntrada,
+    TimeEntrada,
+    derivar,
+    lista_de_escalacao,
+    saldos,
+)
 from app.gerenciador_db import agora, erro_de_campo, exigir_sessao_aberta
 from app.sorteio import JogadoresInsuficientes, Participante, sortear
 
@@ -51,9 +58,11 @@ def montar(conn, sessao_id: str) -> dict | None:
                 "genero": j["genero"],
                 "nota": j["nota"],
                 "ordem_chegada": j["ordem_chegada"],
+                "escalado": bool(j["escalado"]),
             }
             for j in conn.execute(
-                "SELECT tj.jogador_id, tj.nota, tj.ordem_chegada, j.nome, j.genero "
+                "SELECT tj.jogador_id, tj.nota, tj.ordem_chegada, tj.escalado, "
+                "j.nome, j.genero "
                 "FROM time_jogadores tj JOIN jogadores j ON j.id = tj.jogador_id "
                 "WHERE tj.time_id = ? ORDER BY tj.ordem_chegada",
                 (t["id"],),
@@ -64,6 +73,7 @@ def montar(conn, sessao_id: str) -> dict | None:
                 "id": t["id"],
                 "fila": t["fila"],
                 "incompleto": bool(t["incompleto"]),
+                "origem": t["origem"],
                 "soma": sum(j["nota"] for j in jogadores),
                 "jogadores": jogadores,
             }
@@ -197,22 +207,62 @@ def cancelar(conn) -> None:
     conn.execute("UPDATE rodadas SET estado = 'cancelada' WHERE id = ?", (r["id"],))
 
 
-def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) -> dict:
-    """Painel da condução: em quadra, fila, reis, eliminados e o gate de
-    "Chamar partida". `quadra` é o vínculo com o placar (ou None)."""
+def _contexto(conn, rodada: dict):
+    """Resultados encerrados e a situação do rei da quadra (US5/US6)."""
     por_id = {t["id"]: t for t in rodada["times"]}
+    linhas = conn.execute(
+        "SELECT * FROM partidas_rodada WHERE rodada_id = ? AND estado = 'encerrada' "
+        "ORDER BY ordem",
+        (rodada["id"],),
+    ).fetchall()
     resultados = [
         ResultadoEntrada(r["time_a_id"], r["time_b_id"], r["vencedor_time_id"])
-        for r in conn.execute(
-            "SELECT time_a_id, time_b_id, vencedor_time_id FROM partidas_rodada "
-            "WHERE rodada_id = ? AND estado = 'encerrada' ORDER BY ordem",
-            (rodada["id"],),
-        )
+        for r in linhas
     ]
     situacao = derivar(
         [TimeEntrada(t["id"], t["fila"], t["incompleto"]) for t in rodada["times"]],
         resultados,
     )
+    return por_id, linhas, situacao
+
+
+def _escalacao(rodada: dict, por_id: dict, linhas, situacao, incompleto: dict) -> dict:
+    """Lista de escalação do time incompleto que está em quadra (RN-07)."""
+    ativos = [*situacao.em_quadra, *situacao.fila, *situacao.reis]
+    em_time_ativo = {j["id"] for t in ativos for j in por_id[t]["jogadores"]}
+    jogaram_times = {t for r in linhas for t in (r["time_a_id"], r["time_b_id"])}
+    jogaram = {j["id"] for t in jogaram_times for j in por_id[t]["jogadores"]}
+
+    def candidato(j: dict) -> Candidato:
+        return Candidato(j["id"], j["nome"], j["genero"], j["nota"], j["ordem_chegada"])
+
+    vistos: set[str] = set()
+    eliminados: list[Candidato] = []
+    for t in situacao.eliminados:
+        for j in por_id[t]["jogadores"]:
+            if j["id"] not in em_time_ativo and j["id"] not in vistos:
+                vistos.add(j["id"])
+                eliminados.append(candidato(j))
+    livres = [
+        candidato(j)
+        for t in por_id.values()
+        for j in t["jogadores"]
+        if j["id"] not in em_time_ativo and j["id"] not in jogaram
+    ]
+    dono = incompleto["jogadores"][0]
+    return lista_de_escalacao(
+        genero_do_incompleto=dono["genero"],
+        origem=incompleto["origem"],
+        eliminados=eliminados,
+        livres=livres,
+    )
+
+
+def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) -> dict:
+    """Painel da condução: em quadra, fila, reis, eliminados e o gate de
+    "Chamar partida". `quadra` é o vínculo com o placar (ou None)."""
+    por_id, linhas, situacao = _contexto(conn, rodada)
+    resultados = linhas
 
     def vista(time_id: str) -> dict:
         return {**por_id[time_id], "vitorias": situacao.vitorias[time_id]}
@@ -234,6 +284,12 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
             "placar": placar,
         }
     em_quadra = [vista(t) for t in situacao.em_quadra]
+    ativos_ids = {
+        j["id"]
+        for t in [*situacao.em_quadra, *situacao.fila, *situacao.reis]
+        for j in por_id[t]["jogadores"]
+    }
+    em_time_ativo = ativos_ids
 
     motivo = None
     if quadra is None:
@@ -246,13 +302,38 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
         )
     elif situacao.fase != "fila":
         motivo = "Não há duas equipes para chamar: a fase de fila terminou."
-    else:
+    escalacao = None
+    if not chamada and situacao.fase == "fila":
         for t in em_quadra:
             if t["incompleto"]:
-                motivo = (
-                    f"O Time {t['fila']} é incompleto: escolha o parceiro antes "
-                    "de chamar a partida."
-                )
+                lista = _escalacao(rodada, por_id, linhas, situacao, t)
+                escalacao = {
+                    "time": t["fila"],
+                    "jogador": t["jogadores"][0]["nome"],
+                    "origem": t["origem"],
+                    "grupos": [
+                        {
+                            "rotulo": g["rotulo"],
+                            "jogadores": [
+                                {
+                                    "id": c.id,
+                                    "nome": c.nome,
+                                    "genero": c.genero,
+                                    "nota": c.nota,
+                                }
+                                for c in g["jogadores"]
+                            ],
+                        }
+                        for g in lista["grupos"]
+                    ],
+                    "aviso_hh": lista["aviso_hh"],
+                    "ninguem": not lista["grupos"],
+                }
+                if motivo is None:
+                    motivo = (
+                        f"Escolha o parceiro do Time {t['fila']} antes de chamar a "
+                        "partida."
+                    )
                 break
     encerradas = len(resultados)
     historico = [
@@ -292,11 +373,18 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
         "reis": [
             {**vista(t), "ordem": i} for i, t in enumerate(situacao.reis, start=1)
         ],
+        # Quem foi escalado e joga por outro time não está eliminado agora.
         "eliminados": [
             {**j, "time": por_id[t]["fila"]}
             for t in situacao.eliminados
             for j in por_id[t]["jogadores"]
+            if j["id"] not in em_time_ativo
         ],
+        "escalacao": escalacao,
+        "saldos": saldos(
+            {t: v["jogadores"] for t, v in por_id.items()},
+            [dict(r) for r in linhas],
+        ),
         "partidas_encerradas": encerradas,
         "historico": historico,
         "pode_encerrar": bool(chamada) and motivo_encerrar is None,
@@ -309,3 +397,56 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
         "pode_chamar": motivo is None,
         "motivo": motivo,
     }
+
+
+def escalar_parceiro(conn, jogador_id) -> None:
+    """Completa o time incompleto que está em quadra com um jogador da lista
+    de escalação (RN-05/06/07). Revalida tudo na transação."""
+    sessao = exigir_sessao_aberta(conn)
+    rodada = montar(conn, sessao["id"])
+    if rodada is None or rodada["estado"] != "em_andamento":
+        raise erro_de_campo(409, "rodada", "não está em andamento", "sem_rodada")
+    chamada = conn.execute(
+        "SELECT 1 FROM partidas_rodada WHERE rodada_id = ? AND estado = 'chamada'",
+        (rodada["id"],),
+    ).fetchone()
+    if chamada:
+        raise erro_de_campo(
+            409,
+            "rodada",
+            "tem uma partida chamada: escolha o parceiro antes de chamar",
+            "partida_chamada",
+        )
+    por_id, linhas, situacao = _contexto(conn, rodada)
+    incompleto = next(
+        (por_id[t] for t in situacao.em_quadra if por_id[t]["incompleto"]),
+        None,
+    )
+    if situacao.fase != "fila" or incompleto is None:
+        raise erro_de_campo(
+            409, "rodada", "não há time incompleto esperando parceiro", "sem_incompleto"
+        )
+    lista = _escalacao(rodada, por_id, linhas, situacao, incompleto)
+    permitidos = {c.id for g in lista["grupos"] for c in g["jogadores"]}
+    if not isinstance(jogador_id, str) or jogador_id not in permitidos:
+        if isinstance(jogador_id, str) and jogador_id in {
+            c.id for c in lista["recusados_hh"]
+        }:
+            raise erro_de_campo(
+                409,
+                "jogador",
+                "formaria dupla H+H havendo mulher elegível: escolha uma delas",
+                "hh_com_alternativa",
+            )
+        raise erro_de_campo(
+            409, "jogador", "não está na lista de escalação", "fora_da_lista"
+        )
+    ja = next(
+        j for t in por_id.values() for j in t["jogadores"] if j["id"] == jogador_id
+    )
+    conn.execute(
+        "INSERT INTO time_jogadores (time_id, jogador_id, nota, ordem_chegada, escalado) "
+        "VALUES (?, ?, ?, ?, 1)",
+        (incompleto["id"], jogador_id, ja["nota"], ja["ordem_chegada"]),
+    )
+    conn.execute("UPDATE times SET incompleto = 0 WHERE id = ?", (incompleto["id"],))
