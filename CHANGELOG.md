@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+- **História / Escopo:** CV8.DS1.US15 — Nota, sobrenome e foto do jogador (nota 1–100 com padrão 60; nome com ao menos 2 palavras; foto opcional tirada na hora).
+- **Branch:** `feature/cv8-ds1-us15-nota-sobrenome-e-foto`
+- **Passo Ariad:** Passo 2 - Planejamento (aguarda Checkpoint 1)
+- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
+- **Handoff / Próximos Passos:** plano em `plan.md` da história; aguardando aprovação para implementar.
 
 ## 0.31.0 - 2026-10-07
 

@@ -1,8 +1,8 @@
 ---
 code: CV8.DS1.US15
 level: User Story
-status: Planned
-status_reason: registrada em 2026-10-07 a partir do pedido do Navigator; decisões do Navigator em 2026-10-07
+status: Active
+status_reason: puxada em 2026-10-07; Passo 2 (plano)
 updated: 2026-10-07
 related:
   - ../cv8-ds1-us1-cadastrar-jogadores/index.md
