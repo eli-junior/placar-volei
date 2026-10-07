@@ -42,3 +42,34 @@ test('segredo do dono é guardado e esquecido', () => {
   guardarSegredoDono('', arm);
   assert.equal(lerSegredoDono(arm), '');
 });
+
+import { dimensoesReduzidas, iniciais, enviarFoto } from '../src/lib/jogadores.js';
+
+test('reduz pelo lado maior sem ampliar', () => {
+  assert.deepEqual(dimensoesReduzidas(4000, 3000), { largura: 480, altura: 360 });
+  assert.deepEqual(dimensoesReduzidas(3000, 4000), { largura: 360, altura: 480 });
+  assert.deepEqual(dimensoesReduzidas(200, 100), { largura: 200, altura: 100 });
+  assert.deepEqual(dimensoesReduzidas(10000, 1), { largura: 480, altura: 1 });
+  assert.deepEqual(dimensoesReduzidas(0, 0), { largura: 1, altura: 1 });
+});
+
+test('iniciais do avatar', () => {
+  assert.equal(iniciais('Ana Maria Souza'), 'AS');
+  assert.equal(iniciais('ana'), 'A');
+  assert.equal(iniciais('  '), '?');
+  assert.equal(iniciais(undefined), '?');
+});
+
+test('envia a foto como JPEG cru com o segredo', async () => {
+  let visto;
+  const r = await enviarFoto('seg', 'j1', new Blob(['x']), async (url, init) => {
+    visto = { url, init };
+    return { ok: true, json: async () => ({ id: 'j1' }) };
+  });
+  assert.equal(r.id, 'j1');
+  assert.equal(visto.url, '/api/jogadores/j1/foto');
+  assert.equal(visto.init.method, 'PUT');
+  assert.equal(visto.init.headers['content-type'], 'image/jpeg');
+  assert.equal(visto.init.headers['x-owner-secret'], 'seg');
+  await assert.rejects(enviarFoto('s', 'j', new Blob(['x']), async () => ({ ok: false, status: 413, json: async () => ({ detail: 'Foto grande.' }) })), e => e.status === 413 && e.message === 'Foto grande.');
+});
