@@ -28,4 +28,4 @@ Abra `http://localhost:8000`. Cadastre antes 4 ou 5 jogadores em **Jogadores** (
 
 ## Evidência automatizada
 
-`uv run pytest` (303; 13 novos da US2, com abertura e marcação concorrentes), `npm test` (175), `npm run check`, `npm run test:e2e` (63, com axe na tela da sessão).
+`uv run pytest` (303; 13 novos da US2, com abertura e marcação concorrentes), `npm test` (175), `npm run check`, `npm run test:e2e` (64, com axe na tela da sessão).
