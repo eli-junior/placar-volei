@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+- **História / Escopo:** CV8.DS2.US3 — Sortear a primeira rodada (duplas equilibradas pela nota, gênero prevalece, fila pela ordem de chegada, proposta para confirmar ou resortear).
+- **Branch:** `feature/cv8-ds2-us3-sortear-primeira-rodada`
+- **Passo Ariad:** Passo 2 - Planejamento (aguarda Checkpoint 1)
+- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
+- **Handoff / Próximos Passos:** plano em `plan.md` da história; aguardando aprovação para implementar.
 
 ## 0.33.1 - 2026-10-07
 
