@@ -4,7 +4,15 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo. A CV7 (APK online e offline, com relógio) está entregue.
+Nenhum trabalho ativo.
+
+## 2026-10-07 — Registro da CV8 (sem versão)
+
+Boundary: documentação — CV8 Gerenciador de times registrada no roadmap (14 User Stories em `Planned`, regras RN-01..RN-12); sem mudança de código nem de versão.
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `docs/roadmap-gerenciador-de-times` em `master`.
 
 ## 0.30.1 - 2026-10-02
 
