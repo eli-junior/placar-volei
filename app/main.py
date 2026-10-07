@@ -20,9 +20,9 @@ from app.comandos import snapshot_sync
 from app.config import settings, validar_producao
 from app.db import init_db
 from app.eventos import get_quadra_lock
+from app.gerenciador_db import init_gerenciador_sync
 from app.hub import hub
 from app.identidade import SESSION_COOKIE
-from app.jogadores import init_jogadores_sync
 from app.jogadores import router as jogadores_router
 from app.quadras import (
     atualizar_ultimo_visto,
@@ -32,6 +32,7 @@ from app.quadras import (
     obter_quadra,
 )
 from app.sessao import router as sessao_router
+from app.sessao import router_rodada
 from app.sucessao import verificar_controle_ocioso, verificar_sucessao_quadra
 from app.watch import authenticate_device, bearer, device_active
 from app.watch import router as watch_router
@@ -48,7 +49,7 @@ async def lifespan(app: FastAPI):
     validar_producao(settings)
     # Inicializa o schema e WAL do SQLite na inicialização
     await init_db(settings.db_path)
-    await asyncio.to_thread(init_jogadores_sync)
+    await asyncio.to_thread(init_gerenciador_sync)
 
     async def rotina_limpeza():
         while True:
@@ -122,6 +123,7 @@ app.include_router(api_router)
 app.include_router(watch_router)
 app.include_router(jogadores_router)
 app.include_router(sessao_router)
+app.include_router(router_rodada)
 
 
 @app.exception_handler(RequestValidationError)

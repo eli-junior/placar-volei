@@ -9,61 +9,42 @@ RN-15). Quem decide quando a ordem trava é o sorteio (US-03).
 import asyncio
 import sqlite3
 import uuid
-from contextlib import contextmanager
 from typing import Any
 
 from fastapi import APIRouter, Request, status
 from pydantic import BaseModel
 
+from app import rodada as regras_rodada
 from app.api import autenticar_owner
 from app.config import settings
+from app.gerenciador_db import (
+    agora,
+    conectar,
+    erro_de_campo,
+    escrita,
+    exigir_sessao_aberta,
+    sessao_aberta,
+)
 from app.jogadores import (
     JogadorBody,
-    _agora,
-    _conectar,
-    _erro,
-    _linha,
-    _obter,
     criar_sync,
+    jogador_json,
+    obter_jogador,
     recompactar_presencas,
 )
 
 MINIMO_PARA_SORTEAR = 4
 
 
-@contextmanager
-def _escrita(conn):
-    """Transação que já nasce com a trava de escrita: dois operadores marcando
-    ao mesmo tempo não recebem a mesma posição."""
-    conn.isolation_level = None
-    conn.execute("BEGIN IMMEDIATE")
-    try:
-        yield
-        conn.execute("COMMIT")
-    except BaseException:
-        conn.execute("ROLLBACK")
-        raise
-
-
-def _aberta(conn):
-    return conn.execute("SELECT * FROM sessoes WHERE encerrada_em IS NULL").fetchone()
-
-
-def _exigir_aberta(conn):
-    sessao = _aberta(conn)
-    if sessao is None:
-        raise _erro(409, "sessao", "não está aberta", "sem_sessao")
-    return sessao
-
-
 def _estado(conn) -> dict:
-    sessao = _aberta(conn)
+    sessao = sessao_aberta(conn)
     if sessao is None:
         return {
             "sessao": None,
             "presentes": [],
             "ausentes": [],
             "minimo": MINIMO_PARA_SORTEAR,
+            "rodada": None,
         }
     base = (
         "SELECT j.*, EXISTS(SELECT 1 FROM jogador_fotos f WHERE f.jogador_id = j.id) "
@@ -75,11 +56,11 @@ def _estado(conn) -> dict:
         "ORDER BY p.ordem",
         (sessao["id"],),
     ):
-        presentes.append(_linha(r))
+        presentes.append(jogador_json(r))
     for i, p in enumerate(presentes, start=1):
         p["ordem"] = i
     ausentes = [
-        _linha(r)
+        jogador_json(r)
         for r in conn.execute(
             f"{base} WHERE j.ativo = 1 AND j.id NOT IN "
             "(SELECT jogador_id FROM presencas WHERE sessao_id = ?) "
@@ -92,11 +73,12 @@ def _estado(conn) -> dict:
         "presentes": presentes,
         "ausentes": ausentes,
         "minimo": MINIMO_PARA_SORTEAR,
+        "rodada": regras_rodada.montar(conn, sessao["id"]),
     }
 
 
 def _executar(operacao):
-    conn = _conectar(settings.gerenciador_db_path)
+    conn = conectar(settings.gerenciador_db_path)
     try:
         return operacao(conn)
     finally:
@@ -110,13 +92,13 @@ def estado_sync() -> dict:
 def abrir_sync() -> dict:
     def op(conn):
         try:
-            with _escrita(conn):
+            with escrita(conn):
                 conn.execute(
                     "INSERT INTO sessoes (id, aberta_em) VALUES (?, ?)",
-                    (uuid.uuid4().hex, _agora()),
+                    (uuid.uuid4().hex, agora()),
                 )
         except sqlite3.IntegrityError:
-            raise _erro(
+            raise erro_de_campo(
                 409, "sessao", "já existe uma sessão aberta", "ja_aberta"
             ) from None
         return _estado(conn)
@@ -126,11 +108,18 @@ def abrir_sync() -> dict:
 
 def encerrar_sync() -> dict:
     def op(conn):
-        with _escrita(conn):
-            sessao = _exigir_aberta(conn)
+        with escrita(conn):
+            sessao = exigir_sessao_aberta(conn)
+            if regras_rodada.rodada_ativa(conn, sessao["id"]):
+                raise erro_de_campo(
+                    409,
+                    "rodada",
+                    "ativa: descarte a proposta ou cancele a rodada antes de encerrar a sessão",
+                    "rodada_ativa",
+                )
             conn.execute(
                 "UPDATE sessoes SET encerrada_em = ? WHERE id = ?",
-                (_agora(), sessao["id"]),
+                (agora(), sessao["id"]),
             )
         return _estado(conn)
 
@@ -138,10 +127,11 @@ def encerrar_sync() -> dict:
 
 
 def _marcar(conn, jogador_id: str) -> None:
-    sessao = _exigir_aberta(conn)
-    jogador = _obter(conn, jogador_id)
+    sessao = exigir_sessao_aberta(conn)
+    regras_rodada.exigir_sem_rodada_ativa(conn, sessao["id"])
+    jogador = obter_jogador(conn, jogador_id)
     if not jogador["ativo"]:
-        raise _erro(409, "jogador", "está inativo", "inativo")
+        raise erro_de_campo(409, "jogador", "está inativo", "inativo")
     ja = conn.execute(
         "SELECT 1 FROM presencas WHERE sessao_id = ? AND jogador_id = ?",
         (sessao["id"], jogador_id),
@@ -155,13 +145,13 @@ def _marcar(conn, jogador_id: str) -> None:
     conn.execute(
         "INSERT INTO presencas (sessao_id, jogador_id, ordem, marcado_em) "
         "VALUES (?, ?, ?, ?)",
-        (sessao["id"], jogador_id, proxima, _agora()),
+        (sessao["id"], jogador_id, proxima, agora()),
     )
 
 
 def marcar_sync(jogador_id: str) -> dict:
     def op(conn):
-        with _escrita(conn):
+        with escrita(conn):
             _marcar(conn, jogador_id)
         return _estado(conn)
 
@@ -170,9 +160,10 @@ def marcar_sync(jogador_id: str) -> dict:
 
 def desmarcar_sync(jogador_id: str) -> dict:
     def op(conn):
-        with _escrita(conn):
-            sessao = _exigir_aberta(conn)
-            _obter(conn, jogador_id)
+        with escrita(conn):
+            sessao = exigir_sessao_aberta(conn)
+            regras_rodada.exigir_sem_rodada_ativa(conn, sessao["id"])
+            obter_jogador(conn, jogador_id)
             conn.execute(
                 "DELETE FROM presencas WHERE sessao_id = ? AND jogador_id = ?",
                 (sessao["id"], jogador_id),
@@ -185,8 +176,9 @@ def desmarcar_sync(jogador_id: str) -> dict:
 
 def reordenar_sync(jogador_ids: Any) -> dict:
     def op(conn):
-        with _escrita(conn):
-            sessao = _exigir_aberta(conn)
+        with escrita(conn):
+            sessao = exigir_sessao_aberta(conn)
+            regras_rodada.exigir_sem_rodada_ativa(conn, sessao["id"])
             atuais = {
                 r["jogador_id"]
                 for r in conn.execute(
@@ -200,7 +192,7 @@ def reordenar_sync(jogador_ids: Any) -> dict:
                 or len(set(jogador_ids)) != len(jogador_ids)
                 or set(jogador_ids) != atuais
             ):
-                raise _erro(
+                raise erro_de_campo(
                     422,
                     "jogador_ids",
                     "deve listar exatamente os jogadores presentes, sem repetir",
@@ -218,10 +210,47 @@ def reordenar_sync(jogador_ids: Any) -> dict:
 
 def rapido_sync(nome, genero, nota) -> dict:
     # Confere a sessão antes de criar, para não deixar jogador órfão.
-    _executar(lambda conn: _exigir_aberta(conn))
+    def conferir(conn):
+        sessao = exigir_sessao_aberta(conn)
+        regras_rodada.exigir_sem_rodada_ativa(conn, sessao["id"])
+
+    _executar(conferir)
     jogador = criar_sync(nome, genero, nota)
     estado = marcar_sync(jogador["id"])
     return {"jogador": jogador, **estado}
+
+
+def _rodada_op(acao):
+    def op(conn):
+        with escrita(conn):
+            acao(conn)
+        return _estado(conn)
+
+    return _executar(op)
+
+
+def sortear_sync(alvo: Any) -> dict:
+    return _rodada_op(lambda conn: regras_rodada.criar_proposta(conn, alvo))
+
+
+def resortear_sync(alvo: Any = None) -> dict:
+    return _rodada_op(lambda conn: regras_rodada.resortear(conn, alvo))
+
+
+def confirmar_sync() -> dict:
+    return _rodada_op(regras_rodada.confirmar)
+
+
+def descartar_sync() -> dict:
+    return _rodada_op(regras_rodada.descartar)
+
+
+def cancelar_sync() -> dict:
+    return _rodada_op(regras_rodada.cancelar)
+
+
+class AlvoBody(BaseModel):
+    alvo: Any = None
 
 
 class OrdemBody(BaseModel):
@@ -271,3 +300,36 @@ async def put_ordem(body: OrdemBody, request: Request):
 async def post_rapido(body: JogadorBody, request: Request):
     autenticar_owner(request)
     return await asyncio.to_thread(rapido_sync, body.nome, body.genero, body.nota)
+
+
+router_rodada = APIRouter(prefix="/api/rodada", tags=["rodada"])
+
+
+@router_rodada.post("/sorteio", status_code=status.HTTP_201_CREATED)
+async def post_sorteio(body: AlvoBody, request: Request):
+    autenticar_owner(request)
+    return await asyncio.to_thread(sortear_sync, body.alvo)
+
+
+@router_rodada.post("/resortear")
+async def post_resortear(body: AlvoBody, request: Request):
+    autenticar_owner(request)
+    return await asyncio.to_thread(resortear_sync, body.alvo)
+
+
+@router_rodada.post("/confirmar")
+async def post_confirmar(request: Request):
+    autenticar_owner(request)
+    return await asyncio.to_thread(confirmar_sync)
+
+
+@router_rodada.post("/descartar")
+async def post_descartar(request: Request):
+    autenticar_owner(request)
+    return await asyncio.to_thread(descartar_sync)
+
+
+@router_rodada.post("/cancelar")
+async def post_cancelar(request: Request):
+    autenticar_owner(request)
+    return await asyncio.to_thread(cancelar_sync)

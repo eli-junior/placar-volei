@@ -102,3 +102,33 @@ test('chamarSessao usa /api/sessao com o segredo', async () => {
   assert.equal(visto.init.headers['x-owner-secret'], 'seg');
   await assert.rejects(chamarSessao('s', '', {}, async () => ({ ok: false, status: 409, json: async () => ({ detail: 'Sessão já existe uma sessão aberta.', erros: [{ campo: 'sessao' }] }) })), e => e.status === 409 && e.campo === 'sessao');
 });
+
+import { chamarRodada, descreverTime, posicaoDaCombinacao, primeiraPartida } from '../src/lib/jogadores.js';
+
+test('primeira partida são os dois primeiros da fila', () => {
+  const times = [{ fila: 3 }, { fila: 1 }, { fila: 2 }];
+  assert.deepEqual(primeiraPartida(times).map((t) => t.fila), [1, 2]);
+  assert.equal(primeiraPartida([{ fila: 1 }]), null);
+  assert.equal(primeiraPartida(undefined), null);
+});
+
+test('descreve um time com as notas do sorteio', () => {
+  const time = { jogadores: [{ nome: 'Ana Souza', nota: 90 }, { nome: 'Bia Lima', nota: 85 }] };
+  assert.equal(descreverTime(time), 'Ana Souza (90) + Bia Lima (85)');
+});
+
+test('posição da combinação volta ao início ao esgotar', () => {
+  assert.deepEqual(posicaoDaCombinacao({ tentativa: 0, distintas: 5 }), { atual: 1, total: 5 });
+  assert.deepEqual(posicaoDaCombinacao({ tentativa: 4, distintas: 5 }), { atual: 5, total: 5 });
+  assert.deepEqual(posicaoDaCombinacao({ tentativa: 5, distintas: 5 }), { atual: 1, total: 5 });
+  assert.deepEqual(posicaoDaCombinacao({ tentativa: 3, distintas: 1 }), { atual: 1, total: 1 });
+  assert.deepEqual(posicaoDaCombinacao({ tentativa: 2 }), { atual: 1, total: 1 });
+});
+
+test('chamarRodada usa /api/rodada com o segredo e o corpo', async () => {
+  let visto;
+  await chamarRodada('seg', '/sorteio', { metodo: 'POST', corpo: { alvo: 12 } }, async (url, init) => { visto = { url, init }; return { ok: true, json: async () => ({}) }; });
+  assert.equal(visto.url, '/api/rodada/sorteio');
+  assert.equal(visto.init.body, JSON.stringify({ alvo: 12 }));
+  assert.equal(visto.init.headers['x-owner-secret'], 'seg');
+});

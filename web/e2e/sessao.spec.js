@@ -14,6 +14,9 @@ const CABECALHO = { 'x-owner-secret': SEGREDO };
 
 // A base do e2e é compartilhada: cada teste começa sem sessão aberta.
 async function sessaoLimpa(p) {
+  // Rodada ativa (US3) trava o encerramento: descarta ou cancela antes.
+  await p.request.post('/api/rodada/descartar', { headers: CABECALHO });
+  await p.request.post('/api/rodada/cancelar', { headers: CABECALHO });
   await p.request.post('/api/sessao/encerrar', { headers: CABECALHO });
 }
 
