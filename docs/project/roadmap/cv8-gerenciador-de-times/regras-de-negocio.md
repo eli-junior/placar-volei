@@ -42,7 +42,7 @@ Escopo do MVP: Web + nomes das duplas no relógio; somente formato dupla.
 
 **RN-11 — Rodada mínima.** Mínimo de 4 jogadores presentes para sortear.
 
-**RN-12 — Operação.** Qualquer dispositivo conectado pode operar (sincronia via WebSocket, igual ao placar atual).
+**RN-12 — Operação.** Qualquer aparelho que **conheça o segredo do dono** pode operar o gerenciador, e todos os aparelhos abertos na tela da sessão veem as mudanças sozinhos (WebSocket `/ws/gerenciador`, segredo na primeira mensagem). *Em aberto (US11):* quando a quadra fica vazia porque o último vencedor virou rei com a fila vazia (RN-02/RN-03), quem é o "vencedor da última partida" que vai ao mata-mata.
 
 **RN-13 — Ordem de chegada (só na primeira rodada da sessão).** Os times são ordenados na fila pela **menor ordem de chegada entre seus jogadores**. Assim, os times de quem chegou em 1º e em 2º jogam a primeira partida; se os dois estiverem no mesmo time, entra o time de quem chegou em 3º, e assim por diante. Objetivo: incentivar a chegada no horário. Da segunda rodada em diante vale a regra normal da fila (US-04). O jogador ímpar (RN-05) **continua por último** na fila mesmo que tenha chegado cedo (Navigator, 2026-10-07).
 

@@ -18,6 +18,10 @@ O componente tem ~270 linhas e junta presença, cadastro rápido, sorteio e ence
 
 Ainda legível; a divisão certa depende do que a DS3 pedir da tela.
 
+## Updates
+
+- 2026-10-08 (CV8.DS3.US5, 0.35.0): o componente subiu para 346 linhas (sincronia por WebSocket, vínculo e chamada). Os painéis já saíram (`PainelRodada`, `PainelConducao`); falta dividir presença, sorteio e a camada de conexão. Dividir antes de passar de ~350.
+
 ## Notes
 
 Decisão: `docs/project/decisions/records/2026-10-08T0000Z-sorteio-da-primeira-rodada.md`.

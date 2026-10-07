@@ -4,11 +4,32 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo:** CV8.DS3.US5 — Visualizar e conduzir a fila (painel da partida atual, fila, reis e eliminados; "Chamar partida" carrega as duplas no placar; estado sincronizado entre aparelhos).
-- **Branch:** `feature/cv8-ds3-us5-visualizar-e-conduzir-a-fila`
-- **Passo Ariad:** Passo 5 - Revisão (aguarda Checkpoint 3)
-- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** implementação concluída (`app/conducao.py`, `app/ponte.py`, `app/sincronia.py`, WebSocket `/ws/gerenciador`, schema 5, `PainelConducao.svelte`; versão 0.35.0); validada pelo Navigator; revisão apresentada, depois docs (Passo 6) e merge.
+Nenhum trabalho ativo.
+
+## 0.35.0 - 2026-10-07
+
+Boundary: CV8.DS3.US5 — visualizar e conduzir a fila (minor; backend, web e APK em 0.35.0, APK `versionCode` 12; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds3-us5-visualizar-e-conduzir-a-fila` em `master`.
+
+### Added
+
+- **Vínculo da sessão com a quadra do placar**: "Criar quadra e vincular" ou por código; conferido a cada uso (pode ficar "indisponível").
+- **Chamar partida**: carrega as duplas ("Ana + Gil"), o alvo da rodada e a vantagem de 2 no placar da quadra, zerado; recusada se a quadra tem partida em andamento com pontos; uma partida chamada por rodada.
+- **Painel da condução** em `/sessao`: quadra do placar, partida em quadra ou próxima, fila numerada, reis (com a ordem) e eliminados; bloqueio quando o time incompleto entra em quadra (US8).
+- **Sincronia entre aparelhos** pelo WebSocket `/ws/gerenciador` (segredo na primeira mensagem, nunca na URL), com selo "Ao vivo" e reconexão; todas as mudanças da sessão, da rodada, dos jogadores e do vínculo chegam sem atualizar.
+- Schema 5 do `gerenciador.db` (migração aditiva): `sessoes.quadra_id` e `partidas_rodada`. Módulo puro `app/conducao.py`.
+
+### Changed
+
+- A tela da sessão acompanha os outros aparelhos sozinha; "Atualizar" e a volta de foco ficam como reserva.
+
+### Verification
+
+- `uv run pytest` (552), `npm test` (182), `npm run check`, `npm run test:e2e` (73, com axe e dois aparelhos sincronizando). Validada pelo Navigator.
+- Dívidas registradas: leitura do estado limpa quadras expiradas, difusão do estado completo, WebSocket não fecha ao trocar o segredo; agravadas: rotas da rodada em dois arquivos e `Sessao.svelte` com 346 linhas.
 
 ## 0.34.0 - 2026-10-07
 
