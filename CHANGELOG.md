@@ -4,11 +4,31 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo:** CV8.DS2.US3 — Sortear a primeira rodada (duplas equilibradas pela nota, gênero prevalece, fila pela ordem de chegada, proposta para confirmar ou resortear).
-- **Branch:** `feature/cv8-ds2-us3-sortear-primeira-rodada`
-- **Passo Ariad:** Passo 5 - Revisão (aguarda Checkpoint 3)
-- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** implementação concluída (`app/sorteio.py`, `app/rodada.py`, `app/gerenciador_db.py`; schema 4; painel da proposta em `/sessao`; versão 0.34.0); validada pelo Navigator; revisão apresentada, depois docs (Passo 6) e merge.
+Nenhum trabalho ativo.
+
+## 0.34.0 - 2026-10-07
+
+Boundary: CV8.DS2.US3 — sortear a primeira rodada (minor; backend, web e APK em 0.34.0, APK `versionCode` 11; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds2-us3-sortear-primeira-rodada` em `master`.
+
+### Added
+
+- **Sorteio da primeira rodada** (tela `/sessao`): alvo 10 ou 12, duplas equilibradas pela nota (sem aleatoriedade), gênero com o número mínimo de duplas H+H, ímpar = último a chegar como time incompleto no fim da fila, fila pela ordem de chegada e primeira partida em destaque.
+- **Proposta** persistida para **confirmar**, **resortear** (outra combinação igualmente equilibrada, até 3 pontos pior), **descartar**; rodada em andamento com **cancelar**.
+- **Presença travada** durante a proposta e a rodada em andamento; inativar quem está na rodada e encerrar a sessão com rodada ativa são recusados.
+- API `/api/rodada/{sorteio,resortear,confirmar,descartar,cancelar}`; a rodada também vem no `GET /api/sessao`. Schema 4 do `gerenciador.db` (migração aditiva).
+
+### Changed
+
+- Módulo comum `app/gerenciador_db.py` (conexão, esquema, erros, transação de escrita), usado por jogadores, sessão e rodada.
+
+### Verification
+
+- `uv run pytest` (519), `npm test` (179), `npm run check`, `npm run test:e2e` (68, com axe). Validada pelo Navigator.
+- Dívida `modulo-comum-do-gerenciador-db` quitada; novas: rotas da rodada na `sessao.py`, `Sessao.svelte` grande, sorteio heurístico sem prova de ótimo, cancelar rodada sem checar partidas.
 
 ## 0.33.1 - 2026-10-07
 

@@ -1,6 +1,6 @@
 ---
 id: debt-modulo-comum-do-gerenciador-db
-status: Carried
+status: Closed
 kind: architecture
 severity: low
 source: CV8.DS1.US2
@@ -17,6 +17,10 @@ closure_condition: Mover `_conectar`, `_erro`, `_obter`, `_linha` e `_agora` par
 ## Carrying Reason
 
 Dois módulos ainda são fáceis de ler; extrair agora seria antecipar a forma da DS2.
+
+## Updates
+
+- 2026-10-08 (CV8.DS2.US3, 0.34.0): **quitada.** `app/gerenciador_db.py` reúne conexão, esquema, erros, transação de escrita e sessão aberta; `jogadores.py`, `sessao.py` e `rodada.py` o usam, com nomes públicos.
 
 ## Notes
 
