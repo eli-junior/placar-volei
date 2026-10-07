@@ -1,8 +1,8 @@
 ---
 code: CV8.DS3
 level: Delivery Story
-status: Planned
-status_reason: registrada em 2026-10-07, ainda não puxada
+status: Active
+status_reason: US5 puxada em 2026-10-07
 updated: 2026-10-07
 ---
 

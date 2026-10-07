@@ -10,6 +10,7 @@ ficam travadas enquanto houver rodada em proposta ou em andamento.
 
 import uuid
 
+from app.conducao import ResultadoEntrada, TimeEntrada, derivar
 from app.gerenciador_db import agora, erro_de_campo, exigir_sessao_aberta
 from app.sorteio import JogadoresInsuficientes, Participante, sortear
 
@@ -60,6 +61,7 @@ def montar(conn, sessao_id: str) -> dict | None:
         ]
         times.append(
             {
+                "id": t["id"],
                 "fila": t["fila"],
                 "incompleto": bool(t["incompleto"]),
                 "soma": sum(j["nota"] for j in jogadores),
@@ -193,3 +195,76 @@ def cancelar(conn) -> None:
     if r is None or r["estado"] != "em_andamento":
         raise erro_de_campo(409, "rodada", "não há rodada em andamento", "sem_rodada")
     conn.execute("UPDATE rodadas SET estado = 'cancelada' WHERE id = ?", (r["id"],))
+
+
+def montar_conducao(conn, rodada: dict, quadra: dict | None) -> dict:
+    """Painel da condução: em quadra, fila, reis, eliminados e o gate de
+    "Chamar partida". `quadra` é o vínculo com o placar (ou None)."""
+    por_id = {t["id"]: t for t in rodada["times"]}
+    resultados = [
+        ResultadoEntrada(r["time_a_id"], r["time_b_id"], r["vencedor_time_id"])
+        for r in conn.execute(
+            "SELECT time_a_id, time_b_id, vencedor_time_id FROM partidas_rodada "
+            "WHERE rodada_id = ? AND estado = 'encerrada' ORDER BY ordem",
+            (rodada["id"],),
+        )
+    ]
+    situacao = derivar(
+        [TimeEntrada(t["id"], t["fila"], t["incompleto"]) for t in rodada["times"]],
+        resultados,
+    )
+
+    def vista(time_id: str) -> dict:
+        return {**por_id[time_id], "vitorias": situacao.vitorias[time_id]}
+
+    chamada = conn.execute(
+        "SELECT * FROM partidas_rodada WHERE rodada_id = ? AND estado = 'chamada'",
+        (rodada["id"],),
+    ).fetchone()
+    partida = None
+    if chamada:
+        partida = {
+            "ordem": chamada["ordem"],
+            "time_a": por_id[chamada["time_a_id"]]["fila"],
+            "time_b": por_id[chamada["time_b_id"]]["fila"],
+            "chamada_em": chamada["chamada_em"],
+        }
+    em_quadra = [vista(t) for t in situacao.em_quadra]
+
+    motivo = None
+    if quadra is None:
+        motivo = "Vincule uma quadra do placar para chamar a partida."
+    elif not quadra["disponivel"]:
+        motivo = "A quadra vinculada não está mais disponível. Vincule de novo."
+    elif chamada:
+        motivo = (
+            "Já há uma partida chamada; ela precisa ser encerrada antes da próxima."
+        )
+    elif situacao.fase != "fila":
+        motivo = "Não há duas equipes para chamar: a fase de fila terminou."
+    else:
+        for t in em_quadra:
+            if t["incompleto"]:
+                motivo = (
+                    f"O Time {t['fila']} é incompleto: escolha o parceiro antes "
+                    "de chamar a partida."
+                )
+                break
+    encerradas = len(resultados)
+    return {
+        "fase": situacao.fase,
+        "em_quadra": em_quadra,
+        "partida": partida,
+        "fila": [vista(t) for t in situacao.fila],
+        "reis": [
+            {**vista(t), "ordem": i} for i, t in enumerate(situacao.reis, start=1)
+        ],
+        "eliminados": [
+            {**j, "time": por_id[t]["fila"]}
+            for t in situacao.eliminados
+            for j in por_id[t]["jogadores"]
+        ],
+        "partidas_encerradas": encerradas,
+        "pode_chamar": motivo is None,
+        "motivo": motivo,
+    }

@@ -6,7 +6,7 @@ const SEGREDO = 'segredo-e2e';
 
 async function abrirTela(p) {
   await p.goto('/');
-  await p.getByRole('button', { name: 'Jogadores' }).click();
+  await p.getByRole('button', { name: 'Jogadores', exact: true }).click();
   await p.getByLabel('Segredo do dono').fill(SEGREDO);
   await p.getByRole('button', { name: 'Entrar' }).click();
   await p.getByRole('heading', { name: 'Novo jogador' }).waitFor();
@@ -21,7 +21,7 @@ async function cadastrar(p, nome, genero) {
 test('segredo errado é recusado e nada aparece', async ({ abrir }) => {
   const p = await abrir();
   await p.goto('/');
-  await p.getByRole('button', { name: 'Jogadores' }).click();
+  await p.getByRole('button', { name: 'Jogadores', exact: true }).click();
   await p.getByLabel('Segredo do dono').fill('errado');
   await p.getByRole('button', { name: 'Entrar' }).click();
   await expect(p.getByRole('alert')).toContainText('Segredo recusado');
@@ -114,5 +114,5 @@ test('dentro do APK a entrada de jogadores não aparece', async ({ abrir }) => {
   const p = await abrir({}, { fn: () => { window.Capacitor = { isNativePlatform: () => true }; } });
   await p.goto('/');
   await p.getByRole('tab', { name: 'Criar placar' }).waitFor();
-  await expect(p.getByRole('button', { name: 'Jogadores' })).toHaveCount(0);
+  await expect(p.getByRole('button', { name: 'Jogadores', exact: true })).toHaveCount(0);
 });

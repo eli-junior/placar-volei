@@ -3,12 +3,11 @@
 
   // Apresentação da proposta ou da rodada em andamento (CV8.DS2.US3).
   // As ações vêm de fora; este componente só mostra e dispara.
-  let { rodada, ocupado = false, onResortear = () => {}, onDescartar = () => {}, onConfirmar = () => {}, onCancelar = () => {} } = $props();
+  let { rodada, ocupado = false, onResortear = () => {}, onDescartar = () => {}, onConfirmar = () => {} } = $props();
 
   const proposta = $derived(rodada.estado === 'proposta');
   const primeira = $derived(primeiraPartida(rodada.times));
   const posicao = $derived(posicaoDaCombinacao(rodada));
-  let confirmandoCancelar = $state(false);
 </script>
 
 <section class="rodada" aria-labelledby="titulo-rodada">
@@ -19,8 +18,6 @@
     <p class="ajuda">
       Confira as duplas e a fila. Combinação {posicao.atual} de {posicao.total} igualmente equilibradas{#if posicao.total === 1}; não há outra para trocar{/if}.
     </p>
-  {:else}
-    <p class="ajuda">Rodada em andamento: a fila está fixa. A presença fica travada até cancelar a rodada.</p>
   {/if}
 
   {#if primeira}
@@ -45,12 +42,6 @@
       <button class="acao-principal" type="button" onclick={onConfirmar} disabled={ocupado}>Confirmar e iniciar</button>
       <button class="secundario" type="button" onclick={onResortear} disabled={ocupado || posicao.total === 1}>Resortear</button>
       <button class="secundario" type="button" onclick={onDescartar} disabled={ocupado}>Descartar</button>
-    {:else if confirmandoCancelar}
-      <p class="ajuda">Cancelar a rodada {rodada.numero}? A fila é descartada e a presença volta a ser editável.</p>
-      <button class="perigo" type="button" onclick={() => { confirmandoCancelar = false; onCancelar(); }} disabled={ocupado}>Sim, cancelar rodada</button>
-      <button class="secundario" type="button" onclick={() => confirmandoCancelar = false}>Voltar</button>
-    {:else}
-      <button class="secundario" type="button" onclick={() => confirmandoCancelar = true} disabled={ocupado}>Cancelar rodada</button>
     {/if}
   </div>
 </section>
@@ -70,9 +61,7 @@
   .soma { color: var(--texto-suave); font-size: var(--texto-legenda); }
   .aviso { flex-basis: 100%; color: var(--texto-medio); font-size: var(--texto-legenda); }
   .botoes { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
-  .botoes .ajuda { flex-basis: 100%; }
   .acao-principal { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; padding: 0 1.1rem; border: 0; border-radius: 10px; background: var(--acao-primaria); color: var(--acao-primaria-texto); font: inherit; font-weight: 800; cursor: pointer; }
-  .secundario, .perigo { display: inline-flex; align-items: center; min-height: 44px; padding: 0 .85rem; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); color: var(--texto-medio); font: inherit; font-size: var(--texto-apoio); font-weight: 700; cursor: pointer; }
-  .perigo { border-color: var(--estado-erro); color: var(--estado-erro-suave); }
+  .secundario { display: inline-flex; align-items: center; min-height: 44px; padding: 0 .85rem; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); color: var(--texto-medio); font: inherit; font-size: var(--texto-apoio); font-weight: 700; cursor: pointer; }
   button:disabled { opacity: .45; cursor: not-allowed; }
 </style>

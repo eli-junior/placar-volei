@@ -132,3 +132,31 @@ test('chamarRodada usa /api/rodada com o segredo e o corpo', async () => {
   assert.equal(visto.init.body, JSON.stringify({ alvo: 12 }));
   assert.equal(visto.init.headers['x-owner-secret'], 'seg');
 });
+
+import { criarQuadraDoPlacar, estadoMaisNovo, rotuloSincronia } from '../src/lib/jogadores.js';
+
+test('estado mais velho não sobrescreve o mais novo', () => {
+  const a = { revisao: 10, x: 'a' };
+  const b = { revisao: 20, x: 'b' };
+  assert.equal(estadoMaisNovo(a, b), b);
+  assert.equal(estadoMaisNovo(b, a), b);
+  assert.equal(estadoMaisNovo(null, a), a);
+  assert.equal(estadoMaisNovo(a, null), a);
+  assert.equal(estadoMaisNovo(a, { revisao: 10, x: 'igual' }).x, 'igual');
+  assert.equal(estadoMaisNovo({ x: 1 }, { x: 2 }).x, 2);
+});
+
+test('rótulo da sincronia', () => {
+  assert.deepEqual(rotuloSincronia(true), { chave: 'conectado', rotulo: 'Ao vivo' });
+  assert.deepEqual(rotuloSincronia(false), { chave: 'reconectando', rotulo: 'Reconectando…' });
+  assert.equal(rotuloSincronia(true, false).chave, 'offline');
+});
+
+test('cria a quadra do placar com o apelido e devolve o código', async () => {
+  let visto;
+  const id = await criarQuadraDoPlacar('Eli', async (url, init) => { visto = { url, init }; return { ok: true, json: async () => ({ id: '12345' }) }; });
+  assert.equal(id, '12345');
+  assert.equal(visto.url, '/api/quadras');
+  assert.equal(JSON.parse(visto.init.body).apelido, 'Eli');
+  await assert.rejects(criarQuadraDoPlacar('x', async () => ({ ok: false, status: 429, json: async () => ({ detail: 'Muitas tentativas.' }) })), (e) => e.status === 429 && e.message === 'Muitas tentativas.');
+});

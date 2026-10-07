@@ -4,8 +4,10 @@
   import Avatar from './Avatar.svelte';
   import PortaoSegredo from './PortaoSegredo.svelte';
   import PainelRodada from './PainelRodada.svelte';
-  import { guardarSegredoDono, lerSegredoDono } from '../lib/preferencias.js';
-  import { chamarRodada, chamarSessao, faltamParaSortear, moverPosicao } from '../lib/jogadores.js';
+  import PainelConducao from './PainelConducao.svelte';
+  import { guardarSegredoDono, lerApelido, lerSegredoDono } from '../lib/preferencias.js';
+  import { criarConexao } from '../lib/conexao.js';
+  import { chamarRodada, chamarSessao, criarQuadraDoPlacar, estadoMaisNovo, faltamParaSortear, moverPosicao, rotuloSincronia } from '../lib/jogadores.js';
 
   let { onVoltar = () => {} } = $props();
 
@@ -20,28 +22,69 @@
   let nota = $state('');
   let erroRapido = $state(null);
   let alvo = $state(10);
+  let conectado = $state(false);
+  let online = $state(typeof navigator === 'undefined' ? true : navigator.onLine);
+  let erroQuadra = $state(null);
 
   const presentes = $derived(estado?.presentes ?? []);
   const ausentes = $derived(estado?.ausentes ?? []);
   const rodada = $derived(estado?.rodada ?? null);
   // Com rodada em proposta ou em andamento a presença fica travada (RN-15).
   const travada = $derived(Boolean(rodada));
+  const sincronia = $derived(rotuloSincronia(conectado, online));
   const faltam = $derived(faltamParaSortear(presentes.length, estado?.minimo ?? 4));
 
+  // Estado novo só entra se for mais recente que o mostrado: a resposta HTTP de
+  // quem agiu e a mensagem do WebSocket podem chegar fora de ordem.
+  function aplicar(novo) {
+    estado = estadoMaisNovo(estado, novo);
+  }
+
+  // Sincronia entre aparelhos (US-05): o segredo vai na primeira mensagem,
+  // nunca na URL.
+  const conexao = criarConexao({
+    criarSocket: () => {
+      const protocolo = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+      const socket = new WebSocket(`${protocolo}//${window.location.host}/ws/gerenciador`);
+      socket.addEventListener('open', () => socket.send(JSON.stringify({ tipo: 'AUTENTICAR', segredo })));
+      return socket;
+    },
+    aoMensagem: (mensagem) => {
+      if (mensagem.tipo === 'ESTADO_INICIAL') { conectado = true; conexao.confirmar(); aplicar(mensagem.payload); }
+      else if (mensagem.tipo === 'ESTADO_ATUALIZADO') aplicar(mensagem.payload);
+    },
+    aoCair: () => { conectado = false; },
+    aoFechar: (codigo) => {
+      if (codigo === 4401) { sair(); erro = 'Segredo recusado. Confira e tente de novo.'; return false; }
+      return true;
+    },
+  });
+
   onMount(() => {
-    if (segredo) carregar();
-    // Outro aparelho pode ter mexido: ao voltar o foco, atualiza (a sincronia
-    // automática chega com a US-05).
-    const aoVoltar = () => { if (!document.hidden && segredo && !ocupado) carregar(); };
+    if (segredo) { carregar(); conexao.conectar('gerenciador'); }
+    // Reserva da sincronia: ao voltar o foco ou a rede, reconecta e atualiza.
+    const aoVoltar = () => {
+      if (document.hidden || !segredo) return;
+      conexao.retomar();
+      if (!ocupado) carregar();
+    };
+    const aoMudarRede = () => { online = navigator.onLine; if (online) aoVoltar(); };
     document.addEventListener('visibilitychange', aoVoltar);
-    return () => document.removeEventListener('visibilitychange', aoVoltar);
+    window.addEventListener('online', aoMudarRede);
+    window.addEventListener('offline', aoMudarRede);
+    return () => {
+      document.removeEventListener('visibilitychange', aoVoltar);
+      window.removeEventListener('online', aoMudarRede);
+      window.removeEventListener('offline', aoMudarRede);
+      conexao.desconectar();
+    };
   });
 
   async function carregar() {
     carregando = true;
     erro = null;
     try {
-      estado = await chamarSessao(segredo, '');
+      aplicar(await chamarSessao(segredo, ''));
     } catch (e) {
       if (e.status === 404) sair();
       erro = e.message || 'Não foi possível carregar a sessão.';
@@ -53,10 +96,12 @@
   async function entrar(digitado) {
     segredo = digitado;
     await carregar();
-    if (segredo) guardarSegredoDono(segredo);
+    if (segredo) { guardarSegredoDono(segredo); conexao.conectar('gerenciador'); }
   }
 
   function sair() {
+    conexao.desconectar();
+    conectado = false;
     segredo = '';
     estado = null;
     guardarSegredoDono('');
@@ -68,7 +113,7 @@
     erro = null;
     try {
       const resposta = await chamar(segredo, caminho, opcoes);
-      estado = resposta;
+      aplicar(resposta);
       return resposta;
     } catch (e) {
       if (e.status === 404) { sair(); }
@@ -97,6 +142,28 @@
   // A proposta mostra o alvo gravado; trocar de alvo na tela vale no próximo resortear.
   $effect(() => { if (rodada) alvo = rodada.alvo; });
 
+  // Ações do vínculo e da chamada: o erro aparece no próprio bloco da quadra.
+  async function agirQuadra(acao) {
+    ocupado = true;
+    erroQuadra = null;
+    try {
+      aplicar(await acao());
+    } catch (e) {
+      if (e.status === 404) { sair(); erro = e.message; return; }
+      erroQuadra = e.message;
+      if (e.status === 409) await carregar();
+    } finally {
+      ocupado = false;
+    }
+  }
+  const chamarPartida = () => agirQuadra(() => chamarRodada(segredo, '/chamar-partida', { metodo: 'POST' }));
+  const vincular = (codigo) => agirQuadra(() => chamarSessao(segredo, '/quadra', { metodo: 'PUT', corpo: { codigo } }));
+  const desvincular = () => agirQuadra(() => chamarSessao(segredo, '/quadra', { metodo: 'DELETE' }));
+  const criarEVincular = () => agirQuadra(async () => {
+    const codigo = await criarQuadraDoPlacar(lerApelido() || 'Operador');
+    return chamarSessao(segredo, '/quadra', { metodo: 'PUT', corpo: { codigo } });
+  });
+
   async function encerrar() {
     confirmandoEncerrar = false;
     await agir('/encerrar', { metodo: 'POST' });
@@ -110,7 +177,7 @@
     ocupado = true;
     try {
       const r = await chamarSessao(segredo, '/presencas/rapido', { metodo: 'POST', corpo });
-      estado = { sessao: r.sessao, presentes: r.presentes, ausentes: r.ausentes, minimo: r.minimo };
+      aplicar({ ...r, jogador: undefined });
       nome = ''; genero = ''; nota = '';
     } catch (e) {
       if (e.status === 404) { sair(); erro = e.message; return; }
@@ -124,7 +191,10 @@
 <main class="sessao">
   <nav class="topo" aria-label="Navegação">
     <button class="voltar" type="button" onclick={onVoltar}><span aria-hidden="true">←</span><span>Início</span></button>
-    {#if segredo}<button class="secundario" type="button" onclick={carregar} disabled={carregando}><Icone nome="atualizar" tamanho="1.1em" /><span>Atualizar</span></button>{/if}
+    {#if segredo}
+      <span class="sincronia {sincronia.chave}">{sincronia.rotulo}</span>
+      <button class="secundario" type="button" onclick={carregar} disabled={carregando}><Icone nome="atualizar" tamanho="1.1em" /><span>Atualizar</span></button>
+    {/if}
   </nav>
 
   <h1>Sessão</h1>
@@ -143,8 +213,10 @@
         <button class="acao-principal" type="button" onclick={abrir} disabled={ocupado}>Abrir sessão</button>
       </section>
     {:else}
-      {#if rodada}
-        <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} onCancelar={cancelarRodada} />
+      {#if rodada?.estado === 'proposta'}
+        <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} />
+      {:else if rodada && estado.conducao}
+        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
       {/if}
 
       <section aria-labelledby="titulo-presentes">
@@ -243,6 +315,8 @@
 <style>
   .sessao { box-sizing: border-box; max-width: 640px; margin: 0 auto; padding: calc(var(--sa-topo) + 1rem) 1rem calc(var(--sa-baixo) + 2rem); display: flex; flex-direction: column; gap: 1rem; color: var(--texto-forte); }
   .topo { display: flex; justify-content: space-between; gap: .5rem; }
+  .sincronia { margin-left: auto; align-self: center; padding: .15rem .6rem; border-radius: var(--raio-circular); background: var(--fundo-cartao-ativo); color: var(--texto-medio); font-size: var(--texto-legenda); font-weight: 700; }
+  .sincronia.reconectando, .sincronia.offline { color: var(--estado-erro-suave); }
   h1 { margin: 0; font-size: var(--texto-titulo-forte); }
   h2 { margin: 0 0 .5rem; font-size: var(--texto-destaque); }
   .voltar, .secundario, .perigo { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding: 0 .85rem; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); color: var(--texto-medio); font: inherit; font-size: var(--texto-apoio); font-weight: 700; cursor: pointer; }
