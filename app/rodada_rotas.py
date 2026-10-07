@@ -10,6 +10,7 @@ from typing import Any
 from fastapi import APIRouter, Request, status
 from pydantic import BaseModel
 
+from app import atrasados as regras_atrasados
 from app import rodada as regras_rodada
 from app.api import autenticar_owner
 from app.gerenciador_db import escrita
@@ -49,6 +50,12 @@ def cancelar_sync() -> dict:
 
 def escalar_sync(jogador_id: Any) -> dict:
     return _rodada_op(lambda conn: regras_rodada.escalar_parceiro(conn, jogador_id))
+
+
+def atrasado_sync(jogador_id: Any) -> dict:
+    return _rodada_op(
+        lambda conn: regras_atrasados.registrar_atrasado(conn, jogador_id)
+    )
 
 
 def iniciar_mata_mata_sync() -> dict:
@@ -100,6 +107,12 @@ async def post_cancelar(request: Request):
 async def post_escalar_parceiro(body: ParceiroBody, request: Request):
     autenticar_owner(request)
     return await _responder(escalar_sync, body.jogador_id)
+
+
+@router.post("/atrasado")
+async def post_atrasado(body: ParceiroBody, request: Request):
+    autenticar_owner(request)
+    return await _responder(atrasado_sync, body.jogador_id)
 
 
 @router.post("/iniciar-mata-mata")
