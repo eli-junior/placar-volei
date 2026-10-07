@@ -105,8 +105,9 @@ test('tela de jogadores sem violações axe', async ({ abrir }) => {
   await abrirTela(p);
   await cadastrar(p, `Bia ${Math.random().toString(36).slice(2, 7)}`, 'M');
   await p.getByRole('listitem').first().waitFor();
+  await p.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {}))));
   const { violations } = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
-  expect(violations.map((v) => v.id)).toEqual([]);
+  expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ') + ' ' + (n.any[0]?.message ?? '')).join(' | ')}`)).toEqual([]);
 });
 
 test('dentro do APK a entrada de jogadores não aparece', async ({ abrir }) => {

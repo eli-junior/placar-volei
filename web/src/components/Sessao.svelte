@@ -68,8 +68,9 @@
     } catch (e) {
       if (e.status === 404) { sair(); }
       const mensagem = e.message;
-      // 409: o estado mudou em outro aparelho; recarrega para refletir.
-      if (e.status === 409) await carregar();
+      // 409 ou ordem que não bate com os presentes: o estado mudou em outro
+      // aparelho; recarrega para refletir.
+      if (e.status === 409 || e.campo === 'jogador_ids') await carregar();
       erro = mensagem;
       return null;
     } finally {

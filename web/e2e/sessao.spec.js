@@ -102,6 +102,23 @@ test('só uma sessão aberta: outra aba vê o estado ao atualizar', async ({ abr
   await expect(p.getByRole('heading', { name: /Presentes/ })).toBeVisible();
 });
 
+test('reordenar com a tela desatualizada recarrega a lista', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  const [a, b, c] = [await criarJogador(p, 'Hugo', 'H'), await criarJogador(p, 'Iris'), await criarJogador(p, 'Joao', 'H')];
+  await abrirTela(p);
+  await p.getByRole('button', { name: 'Abrir sessão' }).click();
+  await p.getByRole('button', { name: `Marcar ${a} como presente` }).click();
+  await p.getByRole('button', { name: `Marcar ${b} como presente` }).click();
+  // outro aparelho marca mais um enquanto esta tela segue desatualizada
+  const outro = await p.request.get('/api/sessao', { headers: CABECALHO });
+  const alvo = (await outro.json()).ausentes.find((x) => x.nome === c);
+  expect((await p.request.put(`/api/sessao/presencas/${alvo.id}`, { headers: CABECALHO })).status()).toBe(200);
+  await p.getByRole('button', { name: `Subir ${b}` }).click();
+  await expect(p.getByRole('alert')).toContainText('exatamente os jogadores presentes');
+  await expect(presentes(p)).toHaveText([a, b, c]);
+});
+
 test('tela da sessão sem violações axe', async ({ abrir }) => {
   const p = await abrir({ viewport: { width: 390, height: 844 } });
   await sessaoLimpa(p);

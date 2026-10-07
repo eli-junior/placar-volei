@@ -1,9 +1,11 @@
 ---
 code: CV8.DS1.US2
 level: User Story
-status: Active
-status_reason: puxada em 2026-10-07; Passo 2 (plano)
+status: Validated
+status_reason: validada pelo Navigator em 2026-10-07 (0.33.0); aguarda merge
 updated: 2026-10-07
+related:
+  - ../../../../decisions/records/2026-10-07T2300Z-sessao-unica-presenca-e-ordem-de-chegada.md
 ---
 
 # Abrir sessão e marcar presença
@@ -21,6 +23,10 @@ updated: 2026-10-07
 - **CA5:** O operador pode reordenar a fila de chegada manualmente a qualquer momento antes do sorteio (RN-15).
 
 Regras: RN-11, RN-13, RN-15 (ver [regras-de-negocio.md](../../regras-de-negocio.md)).
+
+## Entregue
+
+Sessão única por índice no banco, presença a partir da base com cadastro rápido, ordem de chegada de 1 a N editável (↑/↓), aviso do mínimo de 4, encerrar sessão e inativar tirando da presença. Plano: [plan.md](plan.md). Validação: [test-guide.md](test-guide.md).
 
 ## Validation Route
 
