@@ -16,7 +16,7 @@ updated: 2026-10-07
 
 - **CA1:** Disponível só após a rodada anterior ter campeão.
 - **CA2:** Aplica RN-10 sobre os presentes atuais.
-- **CA3:** Jogador novo (sem saldo) entra com saldo 0. A ordem de chegada **não** vale da segunda rodada em diante (RN-13). Como nota e saldo se combinam fica em aberto (RN-14).
+- **CA3:** Jogador novo (sem saldo) entra com saldo 0. A ordem de chegada **não** vale da segunda rodada em diante (RN-13). O saldo da sessão ajusta a nota (RN-14); a fórmula do ajuste e se ele persiste na base são definidos no plano.
 - **CA4:** Exibe resultado para confirmar ou resortear.
 
 Regras: RN-01, RN-05, RN-10 (ver [regras-de-negocio.md](../../regras-de-negocio.md)).
