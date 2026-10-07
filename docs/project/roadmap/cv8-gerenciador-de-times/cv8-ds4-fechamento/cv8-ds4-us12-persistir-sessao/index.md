@@ -1,8 +1,8 @@
 ---
 code: CV8.DS4.US12
 level: User Story
-status: Validated
-status_reason: implementada na branch feature/cv8-ds4-us12-persistir-sessao (0.39.0); validada pelo Navigator em 2026-10-07 (0.39.0); aguarda merge
+status: Done
+status_reason: implementada na branch feature/cv8-ds4-us12-persistir-sessao (0.39.0); validada pelo Navigator em 2026-10-07 (0.39.0); mergeada em master
 updated: 2026-10-07
 ---
 

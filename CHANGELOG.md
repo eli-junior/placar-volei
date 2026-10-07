@@ -4,12 +4,24 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV8.DS4.US12 — Persistir sessão
+Nenhum trabalho ativo.
 
-- **Branch:** `feature/cv8-ds4-us12-persistir-sessao`
-- **Passo Ariad:** Passo 6 - Documentação (concluída; aguardando Checkpoint 4)
-- **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: 01KNVAV8TEYj9sk9Gygfvno2 | Data: 2026-10-07
-- **Handoff / Próximos Passos:** implementado (`synchronous=FULL`, `tests/test_persistencia.py`, 521 pytest, versão 0.39.0). Aguarda a rota de `cv8-ds4-us12-persistir-sessao/test-guide.md`.
+## 0.39.0 - 2026-10-07
+
+Boundary: CV8.DS4.US12 — persistir a sessão; fecha a CV8.DS4 (minor; backend, web e APK em 0.39.0, APK `versionCode` 16; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds4-us12-persistir-sessao` em `master`.
+
+### Changed
+
+- Toda conexão do `gerenciador.db` grava com `PRAGMA synchronous=FULL`: o resultado de uma partida não se perde numa queda.
+
+### Verification
+
+- `uv run pytest` (521), com `tests/test_persistencia.py`: o mesmo estado após reiniciar a cada partida, no mata-mata e no campeão; registro completo (placar, vencedor, fase, horários, times, notas, campeão) para o ranking futuro; partidas preservadas ao cancelar a rodada e encerrar a sessão. Validada pelo Navigator com reinício do contêiner.
+- Sem schema nem rota novos. Dívidas carregadas: mata-mata sem como desfazer; concentração em `rodada.py` e `Sessao.svelte`.
 
 ## 0.38.0 - 2026-10-07
 
