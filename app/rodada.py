@@ -85,6 +85,7 @@ def montar(conn, sessao_id: str) -> dict | None:
         "estado": r["estado"],
         "tentativa": r["tentativa"],
         "distintas": r["distintas"],
+        "mata_mata_iniciado": bool(r["mata_mata_em"]),
         "times": times,
     }
 
@@ -216,12 +217,15 @@ def _contexto(conn, rodada: dict):
         (rodada["id"],),
     ).fetchall()
     resultados = [
-        ResultadoEntrada(r["time_a_id"], r["time_b_id"], r["vencedor_time_id"])
+        ResultadoEntrada(
+            r["time_a_id"], r["time_b_id"], r["vencedor_time_id"], r["fase"]
+        )
         for r in linhas
     ]
     situacao = derivar(
         [TimeEntrada(t["id"], t["fila"], t["incompleto"]) for t in rodada["times"]],
         resultados,
+        rodada["mata_mata_iniciado"],
     )
     return por_id, linhas, situacao
 
@@ -300,8 +304,13 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
         motivo = (
             "Já há uma partida chamada; ela precisa ser encerrada antes da próxima."
         )
-    elif situacao.fase != "fila":
-        motivo = "Não há duas equipes para chamar: a fase de fila terminou."
+    elif situacao.fase == "fim_da_fila":
+        motivo = (
+            "Não há duas equipes para chamar: a fase de fila terminou. "
+            "Inicie o mata-mata."
+        )
+    elif situacao.fase == "campeao":
+        motivo = "A rodada já tem campeão."
     escalacao = None
     if not chamada and situacao.fase == "fila":
         for t in em_quadra:
@@ -341,6 +350,7 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
             "ordem": r["ordem"],
             "time_a": por_id[r["time_a_id"]]["fila"],
             "time_b": por_id[r["time_b_id"]]["fila"],
+            "fase": r["fase"],
             "placar_a": r["placar_a"],
             "placar_b": r["placar_b"],
             "vencedor": por_id[r["vencedor_time_id"]]["fila"],
@@ -390,10 +400,21 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
         "pode_encerrar": bool(chamada) and motivo_encerrar is None,
         "motivo_encerrar": motivo_encerrar,
         "finalista": (
-            vista(situacao.em_quadra[0])
-            if situacao.fase == "fim_da_fila" and len(situacao.em_quadra) == 1
+            vista(situacao.desafiante)
+            if situacao.fase == "fim_da_fila" and situacao.desafiante
             else None
         ),
+        "mata_mata": (
+            {
+                "iniciado": situacao.fase in ("mata_mata", "campeao"),
+                "desafiante": vista(situacao.desafiante),
+                "rivais": [vista(t) for t in situacao.rivais],
+                "campeao": vista(situacao.campeao) if situacao.campeao else None,
+            }
+            if situacao.desafiante
+            else None
+        ),
+        "pode_iniciar_mata_mata": situacao.fase == "fim_da_fila",
         "pode_chamar": motivo is None,
         "motivo": motivo,
     }
@@ -450,3 +471,59 @@ def escalar_parceiro(conn, jogador_id) -> None:
         (incompleto["id"], jogador_id, ja["nota"], ja["ordem_chegada"]),
     )
     conn.execute("UPDATE times SET incompleto = 0 WHERE id = ?", (incompleto["id"],))
+
+
+def registrar_campeao(conn, sessao_id: str) -> bool:
+    """Se o mata-mata já definiu o campeão, grava-o e encerra a rodada, o que
+    libera o próximo sorteio (CA5). Devolve se encerrou."""
+    rodada = montar(conn, sessao_id)
+    if rodada is None or rodada["estado"] != "em_andamento":
+        return False
+    _, _, situacao = _contexto(conn, rodada)
+    if situacao.fase != "campeao":
+        return False
+    conn.execute(
+        "UPDATE rodadas SET estado = 'encerrada', campeao_time_id = ? WHERE id = ?",
+        (situacao.campeao, rodada["id"]),
+    )
+    return True
+
+
+def iniciar_mata_mata(conn) -> None:
+    """Fecha a fase de fila e começa o mata-mata (RN-04): daqui em diante
+    ninguém entra. Sem reis a rodada já tem campeão e se encerra."""
+    sessao = exigir_sessao_aberta(conn)
+    rodada = montar(conn, sessao["id"])
+    if rodada is None or rodada["estado"] != "em_andamento":
+        raise erro_de_campo(409, "rodada", "não está em andamento", "sem_rodada")
+    _, _, situacao = _contexto(conn, rodada)
+    if situacao.fase != "fim_da_fila":
+        raise erro_de_campo(
+            409, "rodada", "ainda não está no fim da fila", "fora_do_fim_da_fila"
+        )
+    conn.execute(
+        "UPDATE rodadas SET mata_mata_em = ? WHERE id = ?", (agora(), rodada["id"])
+    )
+    registrar_campeao(conn, sessao["id"])
+
+
+def ultimo_campeao(conn, sessao_id: str) -> dict | None:
+    """O campeão da rodada mais recente da sessão, se ela terminou em mata-mata."""
+    r = conn.execute(
+        "SELECT r.numero, t.fila, t.id AS time_id FROM rodadas r "
+        "JOIN times t ON t.id = r.campeao_time_id "
+        "WHERE r.sessao_id = ? AND r.estado = 'encerrada' "
+        "ORDER BY r.numero DESC LIMIT 1",
+        (sessao_id,),
+    ).fetchone()
+    if r is None:
+        return None
+    nomes = [
+        j["nome"]
+        for j in conn.execute(
+            "SELECT j.nome FROM time_jogadores tj JOIN jogadores j "
+            "ON j.id = tj.jogador_id WHERE tj.time_id = ? ORDER BY tj.ordem_chegada",
+            (r["time_id"],),
+        )
+    ]
+    return {"rodada": r["numero"], "time": r["fila"], "jogadores": nomes}

@@ -6,6 +6,25 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.38.0 - 2026-10-07
+
+Boundary: CV8.DS4.US11 — conduzir o mata-mata (minor; backend, web e APK em 0.38.0, APK `versionCode` 15; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds4-us11-conduzir-o-mata-mata` em `master`.
+
+### Added
+
+- **Mata-mata manual:** no fim da fila, **Iniciar mata-mata** (ou **Coroar campeão**, sem reis) fecha as entradas. O desafiante (o time sozinho na quadra, ou o último rei se a quadra esvaziou) enfrenta os reis na ordem de coroação; partida única, ganhou ficou, perdeu saiu.
+- **Campeão da rodada:** ao encerrar o último confronto a rodada se encerra com o campeão registrado e o próximo sorteio é liberado; o cartão "Campeões da rodada N" aparece em todos os aparelhos.
+- API `POST /api/rodada/iniciar-mata-mata`; schema 7 (aditivo): `rodadas.mata_mata_em`, `rodadas.campeao_time_id`, `partidas_rodada.fase`.
+
+### Verification
+
+- `uv run pytest` (517), `npm run check`, `npm run test:e2e` (77, com mata-mata em dois aparelhos e axe). Validada pelo Navigator.
+- Dívida nova: mata-mata e campeão sem como desfazer; agravadas: `rodada.py` (529 linhas) e `Sessao.svelte` (369).
+
 ## 0.37.0 - 2026-10-07
 
 Boundary: CV8.DS3.US8 — escalar o parceiro do time incompleto (minor; backend, web e APK em 0.37.0, APK `versionCode` 14; Wear OS inalterado em 0.27.0).

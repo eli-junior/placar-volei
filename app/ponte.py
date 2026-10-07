@@ -169,13 +169,14 @@ def _registrar_chamada() -> dict:
             partida_id = uuid.uuid4().hex
             conn.execute(
                 "INSERT INTO partidas_rodada (id, rodada_id, ordem, time_a_id, time_b_id, "
-                "estado, quadra_id, chamada_em) VALUES (?, ?, ?, ?, ?, 'chamada', ?, ?)",
+                "estado, fase, quadra_id, chamada_em) VALUES (?, ?, ?, ?, ?, 'chamada', ?, ?, ?)",
                 (
                     partida_id,
                     rodada["id"],
                     ordem,
                     time_a["id"],
                     time_b["id"],
+                    conducao["fase"],
                     quadra["codigo"],
                     agora(),
                 ),
@@ -341,6 +342,7 @@ def _registrar_encerramento() -> None:
                 "placar_b = ?, vencedor_time_id = ?, encerrada_em = ? WHERE id = ?",
                 (placar["a"], placar["b"], vencedor, agora(), chamada["id"]),
             )
+            regras_rodada.registrar_campeao(conn, sessao["id"])
     finally:
         conn.close()
 

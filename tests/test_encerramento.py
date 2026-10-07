@@ -161,6 +161,7 @@ async def test_encerrar_grava_placar_e_vencedor_dos_dois_lados(ac, placar):
             "ordem": 1,
             "time_a": 1,
             "time_b": 2,
+            "fase": "fila",
             "placar_a": 10,
             "placar_b": 3,
             "vencedor": 1,

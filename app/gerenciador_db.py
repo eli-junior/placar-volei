@@ -28,7 +28,7 @@ ROTULOS = {
     "codigo": "Código da quadra",
 }
 
-SCHEMA_VERSAO = 6
+SCHEMA_VERSAO = 7
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jogadores (
     id TEXT PRIMARY KEY,
@@ -81,7 +81,10 @@ CREATE TABLE IF NOT EXISTS rodadas (
     tentativa INTEGER NOT NULL DEFAULT 0,
     distintas INTEGER NOT NULL DEFAULT 1,
     criado_em TEXT NOT NULL,
-    confirmado_em TEXT
+    confirmado_em TEXT,
+    -- mata-mata (CV8.DS4.US11): quando o operador o iniciou e quem foi campeão
+    mata_mata_em TEXT,
+    campeao_time_id TEXT REFERENCES times(id)
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_rodada_ativa
     ON rodadas (sessao_id) WHERE estado IN ('proposta', 'em_andamento');
@@ -106,6 +109,7 @@ CREATE TABLE IF NOT EXISTS partidas_rodada (
     time_a_id TEXT NOT NULL REFERENCES times(id),
     time_b_id TEXT NOT NULL REFERENCES times(id),
     estado TEXT NOT NULL CHECK (estado IN ('chamada', 'encerrada')),
+    fase TEXT NOT NULL DEFAULT 'fila' CHECK (fase IN ('fila', 'mata_mata')),
     quadra_id TEXT NOT NULL,
     partida_quadra_id TEXT,
     chamada_em TEXT NOT NULL,
@@ -204,6 +208,17 @@ def init_gerenciador_sync(caminho: str | None = None) -> None:
         ]:
             conn.execute(
                 "ALTER TABLE time_jogadores ADD COLUMN escalado INTEGER NOT NULL DEFAULT 0"
+            )
+        # Migração aditiva 6 -> 7: mata-mata e campeão da rodada.
+        colunas_rodada = [r["name"] for r in conn.execute("PRAGMA table_info(rodadas)")]
+        if "mata_mata_em" not in colunas_rodada:
+            conn.execute("ALTER TABLE rodadas ADD COLUMN mata_mata_em TEXT")
+            conn.execute("ALTER TABLE rodadas ADD COLUMN campeao_time_id TEXT")
+        if "fase" not in [
+            r["name"] for r in conn.execute("PRAGMA table_info(partidas_rodada)")
+        ]:
+            conn.execute(
+                "ALTER TABLE partidas_rodada ADD COLUMN fase TEXT NOT NULL DEFAULT 'fila'"
             )
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSAO}")
         conn.commit()

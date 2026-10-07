@@ -50,6 +50,7 @@ def _estado(conn) -> dict:
             "rodada": None,
             "quadra": None,
             "conducao": None,
+            "ultimo_campeao": None,
             "revisao": time.time_ns(),
         }
     base = (
@@ -89,6 +90,7 @@ def _estado(conn) -> dict:
         "rodada": rodada,
         "quadra": quadra,
         "conducao": conducao,
+        "ultimo_campeao": regras_rodada.ultimo_campeao(conn, sessao["id"]),
         # Para o cliente descartar estado mais velho que o já mostrado.
         "revisao": time.time_ns(),
     }

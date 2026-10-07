@@ -1,8 +1,8 @@
 ---
 code: CV8.DS4.US11
 level: User Story
-status: Planned
-status_reason: registrada em 2026-10-07, ainda não puxada
+status: Done
+status_reason: implementada na branch feature/cv8-ds4-us11-conduzir-o-mata-mata (0.38.0); validada pelo Navigator em 2026-10-07 (0.38.0); mergeada em master
 updated: 2026-10-07
 ---
 
@@ -24,7 +24,7 @@ Regras: RN-04 (ver [regras-de-negocio.md](../../regras-de-negocio.md)).
 
 ## Validation Route
 
-A definir no plano (Passo 2).
+Plano: [plan.md](plan.md). Rota: [test-guide.md](test-guide.md).
 
 ## Out of Scope
 

@@ -51,6 +51,10 @@ def escalar_sync(jogador_id: Any) -> dict:
     return _rodada_op(lambda conn: regras_rodada.escalar_parceiro(conn, jogador_id))
 
 
+def iniciar_mata_mata_sync() -> dict:
+    return _rodada_op(regras_rodada.iniciar_mata_mata)
+
+
 class AlvoBody(BaseModel):
     alvo: Any = None
 
@@ -96,6 +100,12 @@ async def post_cancelar(request: Request):
 async def post_escalar_parceiro(body: ParceiroBody, request: Request):
     autenticar_owner(request)
     return await _responder(escalar_sync, body.jogador_id)
+
+
+@router.post("/iniciar-mata-mata")
+async def post_iniciar_mata_mata(request: Request):
+    autenticar_owner(request)
+    return await _responder(iniciar_mata_mata_sync)
 
 
 @router.post("/chamar-partida", status_code=status.HTTP_201_CREATED)
