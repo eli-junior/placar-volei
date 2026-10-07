@@ -4,7 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### CV8.DS4.US12 — Persistir sessão
+
+- **Branch:** `feature/cv8-ds4-us12-persistir-sessao`
+- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: 01KNVAV8TEYj9sk9Gygfvno2 | Data: 2026-10-07
+- **Handoff / Próximos Passos:** plano apresentado ao Navigator; nenhum código alterado.
 
 ## 0.38.0 - 2026-10-07
 
