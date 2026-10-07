@@ -1,8 +1,8 @@
 ---
 code: CV8.DS1.US15
 level: User Story
-status: Planned
-status_reason: registrada em 2026-10-07 a partir do pedido do Navigator; decisões do Navigator em 2026-10-07
+status: Validated
+status_reason: validada pelo Navigator em 2026-10-07 (0.32.0); aguarda merge
 updated: 2026-10-07
 related:
   - ../cv8-ds1-us1-cadastrar-jogadores/index.md
@@ -23,6 +23,10 @@ related:
 - **CA5:** Mesma proteção da US1: tudo pelo `OWNER_SECRET`, tela oculta no APK.
 
 Regras: RN-14 (nota e sorteio), RN-05 e RN-13/RN-15 não mudam por esta história (a nota alimenta o sorteio equilibrado). Ver [regras-de-negocio.md](../../regras-de-negocio.md).
+
+## Entregue
+
+Nota 1–100 (padrão 60), nome com ao menos 2 palavras e foto opcional (câmera, JPEG reduzido, BLOB no `gerenciador.db`). Plano: [plan.md](plan.md). Validação: [test-guide.md](test-guide.md).
 
 ## Validation Route
 

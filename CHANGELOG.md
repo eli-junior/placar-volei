@@ -6,6 +6,30 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.32.0 - 2026-10-07
+
+Boundary: CV8.DS1.US15 — nota, sobrenome e foto do jogador (minor; backend, web e APK em 0.32.0, APK `versionCode` 8; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds1-us15-nota-sobrenome-e-foto` em `master`.
+
+### Added
+
+- **Nota do jogador** de 1 a 100; vazia no cadastro vale 60.
+- **Foto opcional**, tirada na hora pelo botão de câmera (celular) ou escolhida (computador); reduzida no aparelho, JPEG de até 256 KB, guardada no `gerenciador.db`. Trocar e remover.
+- Miniatura (ou iniciais) e nota na lista de jogadores.
+
+### Changed
+
+- **Nome exige ao menos 2 palavras** (criar e editar). Nomes antigos de uma palavra seguem válidos até a edição.
+- `gerenciador.db` passa ao schema 2 por migração aditiva; jogadores da 0.31.0 ficam com nota 60.
+
+### Verification
+
+- `uv run pytest` (290), `npm test` (172), `npm run check`, `npm run test:e2e` (58, com axe). Validada pelo Navigator.
+- Dívidas registradas: corpo da foto sem teto na leitura, fotos sem exclusão em massa, lista baixa fotos uma a uma.
+
 ## 0.31.0 - 2026-10-07
 
 Boundary: CV8.DS1.US1 — cadastrar jogadores (minor; backend, web e APK em 0.31.0, APK `versionCode` 7; Wear OS inalterado em 0.27.0).
