@@ -12,7 +12,7 @@ Nível: User Story. Branch: `feature/cv8-ds1-us1-cadastrar-jogadores`. Versão-a
 
 - **Armazenamento separado:** segundo arquivo SQLite (`GERENCIADOR_DB_PATH`, padrão `data/gerenciador.db`), com migração própria e **sem** reset nem apagar-por-schema. O banco das quadras continua efêmero, como está.
 - **Compose:** volume nomeado `gerenciador-dados` montado em `/data-gerenciador`; `RESET_DB_ON_STARTUP` não toca nesse arquivo.
-- **Tabela `jogadores`:** `id`, `nome`, `gerero`→`genero` (`H`|`M`), `ativo`, `criado_em`, `atualizado_em`.
+- **Tabela `jogadores`:** `id`, `nome`, `genero` (`H`|`M`), `ativo`, `criado_em`, `atualizado_em`.
 - **API** (`/api/jogadores`): `GET` (ativos; `?incluir_inativos=1`), `POST`, `PATCH /{id}` (nome, gênero), `POST /{id}/inativar`, `POST /{id}/reativar`.
 - **Regras:** nome obrigatório (aparado, até 40 caracteres); gênero obrigatório; nome único **entre ativos**, sem diferenciar maiúsculas/acentos (`João` = `joao`); inativar libera o nome; reativar recusa se o nome já estiver em uso por outro ativo.
 - **Web:** tela "Jogadores" acessível pela home: lista, formulário criar/editar, inativar/reativar, erros de validação visíveis.
