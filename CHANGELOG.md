@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+- **História / Escopo:** CV8.DS3.US8 — Escalar o parceiro do time incompleto (lista de escalação RN-07, gênero RN-01, saldo das duas participações).
+- **Branch:** `feature/cv8-ds3-us8-escalar-parceiro-do-time-incompleto`
+- **Passo Ariad:** Passo 2 - Planejamento (aguarda Checkpoint 1)
+- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
+- **Handoff / Próximos Passos:** plano em `plan.md` da história; aguardando aprovação para implementar.
 
 ## 0.36.0 - 2026-10-07
 
