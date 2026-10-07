@@ -26,6 +26,7 @@
   let online = $state(typeof navigator === 'undefined' ? true : navigator.onLine);
   let erroQuadra = $state(null);
   let erroEscalacao = $state(null);
+  let erroSubstituicao = $state(null);
 
   const presentes = $derived(estado?.presentes ?? []);
   const ausentes = $derived(estado?.ausentes ?? []);
@@ -176,6 +177,20 @@
       ocupado = false;
     }
   }
+  async function substituir(saiuId, entraId) {
+    ocupado = true;
+    erroSubstituicao = null;
+    try {
+      aplicar(await chamarRodada(segredo, '/substituir', { metodo: 'POST', corpo: { saiu_id: saiuId, entra_id: entraId } }));
+    } catch (e) {
+      if (e.status === 404) { sair(); erro = e.message; return; }
+      const mensagem = e.message;
+      if (e.status === 409) await carregar();
+      erroSubstituicao = mensagem;
+    } finally {
+      ocupado = false;
+    }
+  }
   const vincular = (codigo) => agirQuadra(() => chamarSessao(segredo, '/quadra', { metodo: 'PUT', corpo: { codigo } }));
   const desvincular = () => agirQuadra(() => chamarSessao(segredo, '/quadra', { metodo: 'DELETE' }));
   const criarEVincular = () => agirQuadra(async () => {
@@ -235,7 +250,7 @@
       {#if rodada?.estado === 'proposta'}
         <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} />
       {:else if rodada && estado.conducao}
-        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onEscalar={escalar} onIniciarMataMata={iniciarMataMata} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
+        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onEscalar={escalar} onSubstituir={substituir} {erroSubstituicao} onIniciarMataMata={iniciarMataMata} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
       {:else if estado.ultimo_campeao}
         <section class="cartao" aria-labelledby="titulo-campeao">
           <h2 id="titulo-campeao">Campeões da rodada {estado.ultimo_campeao.rodada}</h2>

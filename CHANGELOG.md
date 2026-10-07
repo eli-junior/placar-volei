@@ -6,6 +6,25 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.42.0 - 2026-10-07
+
+Boundary: CV8.DS3.US10 — substituir jogador que saiu (minor; backend, web e APK em 0.42.0, APK `versionCode` 19; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds3-us10-substituir-jogador-que-saiu` em `master`.
+
+### Added
+
+- **Substituir quem saiu (RN-08):** no painel da condução, escolha quem saiu de um time ativo (em quadra, fila ou rei) e quem entra: o ímpar/atrasado que aguarda na fila (o time dele deixa de existir) ou um eliminado da lista de escalação (joga por um segundo time, "escalado"). O time mantém vitórias e posição; não forma H+H havendo mulher elegível (RN-01); bloqueado com partida chamada.
+- Quem saiu fica **ausente** na sessão (reversível: "Chegou atrasado" durante a rodada ou "Presente" depois dela).
+- API `POST /api/rodada/substituir`; `conducao.substituicao` com as opções. Sem schema novo.
+
+### Verification
+
+- `uv run pytest` (541), `npm run check`, `npm run test:e2e`. Aguarda validação do Navigator em lote.
+- Dívida nova: o histórico de partidas do time passa a ser creditado ao substituto no saldo (as linhas de `time_jogadores` são trocadas).
+
 ## 0.41.0 - 2026-10-07
 
 Boundary: CV8.DS3.US9 — registrar atrasado (minor; backend, web e APK em 0.41.0, APK `versionCode` 18; Wear OS inalterado em 0.27.0).

@@ -12,6 +12,8 @@
     onChamar = () => {},
     onEncerrar = () => {},
     onEscalar = () => {},
+    onSubstituir = () => {},
+    erroSubstituicao = null,
     onIniciarMataMata = () => {},
     erroEscalacao = null,
     onCriarQuadra = () => {},
@@ -22,6 +24,16 @@
 
   let codigo = $state('');
   let confirmandoCancelar = $state(false);
+  let saiu = $state('');
+  let entra = $state('');
+  const sub = $derived(conducao.substituicao);
+
+  function substituir(evento) {
+    evento.preventDefault();
+    if (saiu && entra) onSubstituir(saiu, entra);
+    saiu = '';
+    entra = '';
+  }
   const temPartida = $derived(Boolean(conducao.partida));
   const placar = $derived(conducao.partida?.placar ?? null);
   const fimDaFila = $derived(conducao.fase === 'fim_da_fila');
@@ -93,6 +105,25 @@
         {/each}
       {/if}
     </div>
+  {/if}
+
+  {#if sub && sub.entram.length}
+    <form class="bloco" onsubmit={substituir} aria-labelledby="titulo-substituir">
+      <h3 id="titulo-substituir">Substituir quem saiu</h3>
+      <p class="ajuda">O time mantém vitórias e posição. Quem sai fica ausente nas próximas rodadas.</p>
+      {#if erroSubstituicao}<p class="erro" role="alert">{erroSubstituicao}</p>{/if}
+      <label for="sub-saiu">Quem saiu</label>
+      <select id="sub-saiu" bind:value={saiu} disabled={ocupado}>
+        <option value="">Escolha…</option>
+        {#each sub.saem as j (j.id)}<option value={j.id}>{j.nome} (Time {j.time})</option>{/each}
+      </select>
+      <label for="sub-entra">Quem entra</label>
+      <select id="sub-entra" bind:value={entra} disabled={ocupado}>
+        <option value="">Escolha…</option>
+        {#each sub.entram as j (j.id)}<option value={j.id}>{j.nome} · {j.genero === 'H' ? 'Homem' : 'Mulher'} · {j.origem === 'aguardando' ? 'aguardando na fila' : 'eliminado'}</option>{/each}
+      </select>
+      <button class="secundario" type="submit" disabled={ocupado || !saiu || !entra}>Substituir</button>
+    </form>
   {/if}
 
   <div class="bloco" aria-labelledby="titulo-partida">
