@@ -3,8 +3,9 @@
   import Icone from './Icone.svelte';
   import Avatar from './Avatar.svelte';
   import PortaoSegredo from './PortaoSegredo.svelte';
+  import PainelRodada from './PainelRodada.svelte';
   import { guardarSegredoDono, lerSegredoDono } from '../lib/preferencias.js';
-  import { chamarSessao, faltamParaSortear, moverPosicao } from '../lib/jogadores.js';
+  import { chamarRodada, chamarSessao, faltamParaSortear, moverPosicao } from '../lib/jogadores.js';
 
   let { onVoltar = () => {} } = $props();
 
@@ -18,9 +19,13 @@
   let genero = $state('');
   let nota = $state('');
   let erroRapido = $state(null);
+  let alvo = $state(10);
 
   const presentes = $derived(estado?.presentes ?? []);
   const ausentes = $derived(estado?.ausentes ?? []);
+  const rodada = $derived(estado?.rodada ?? null);
+  // Com rodada em proposta ou em andamento a presença fica travada (RN-15).
+  const travada = $derived(Boolean(rodada));
   const faltam = $derived(faltamParaSortear(presentes.length, estado?.minimo ?? 4));
 
   onMount(() => {
@@ -58,11 +63,11 @@
   }
 
   // Toda ação devolve o estado novo da sessão.
-  async function agir(caminho, opcoes) {
+  async function agir(caminho, opcoes, chamar = chamarSessao) {
     ocupado = true;
     erro = null;
     try {
-      const resposta = await chamarSessao(segredo, caminho, opcoes);
+      const resposta = await chamar(segredo, caminho, opcoes);
       estado = resposta;
       return resposta;
     } catch (e) {
@@ -82,6 +87,15 @@
   const marcar = (j) => agir(`/presencas/${j.id}`, { metodo: 'PUT' });
   const desmarcar = (j) => agir(`/presencas/${j.id}`, { metodo: 'DELETE' });
   const mover = (j, delta) => agir('/ordem', { metodo: 'PUT', corpo: { jogador_ids: moverPosicao(presentes.map(p => p.id), j.id, delta) } });
+
+  const sortear = () => agir('/sorteio', { metodo: 'POST', corpo: { alvo } }, chamarRodada);
+  const resortear = () => agir('/resortear', { metodo: 'POST', corpo: { alvo } }, chamarRodada);
+  const confirmar = () => agir('/confirmar', { metodo: 'POST' }, chamarRodada);
+  const descartar = () => agir('/descartar', { metodo: 'POST' }, chamarRodada);
+  const cancelarRodada = () => agir('/cancelar', { metodo: 'POST' }, chamarRodada);
+
+  // A proposta mostra o alvo gravado; trocar de alvo na tela vale no próximo resortear.
+  $effect(() => { if (rodada) alvo = rodada.alvo; });
 
   async function encerrar() {
     confirmandoEncerrar = false;
@@ -129,6 +143,10 @@
         <button class="acao-principal" type="button" onclick={abrir} disabled={ocupado}>Abrir sessão</button>
       </section>
     {:else}
+      {#if rodada}
+        <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} onCancelar={cancelarRodada} />
+      {/if}
+
       <section aria-labelledby="titulo-presentes">
         <h2 id="titulo-presentes">Presentes ({presentes.length})</h2>
         <p class="ajuda" role="status">
@@ -145,15 +163,28 @@
                 <span class="nome">{j.nome}</span>
                 <span class="genero">{j.genero === 'H' ? 'Homem' : 'Mulher'} · nota {j.nota}</span>
                 <span class="botoes">
-                  <button class="secundario" type="button" onclick={() => mover(j, -1)} disabled={ocupado || i === 0} aria-label="Subir {j.nome}">↑</button>
-                  <button class="secundario" type="button" onclick={() => mover(j, 1)} disabled={ocupado || i === presentes.length - 1} aria-label="Descer {j.nome}">↓</button>
-                  <button class="secundario" type="button" onclick={() => desmarcar(j)} disabled={ocupado} aria-label="Desmarcar {j.nome}">Desmarcar</button>
+                  <button class="secundario" type="button" onclick={() => mover(j, -1)} disabled={ocupado || travada || i === 0} aria-label="Subir {j.nome}">↑</button>
+                  <button class="secundario" type="button" onclick={() => mover(j, 1)} disabled={ocupado || travada || i === presentes.length - 1} aria-label="Descer {j.nome}">↓</button>
+                  <button class="secundario" type="button" onclick={() => desmarcar(j)} disabled={ocupado || travada} aria-label="Desmarcar {j.nome}">Desmarcar</button>
                 </span>
               </li>
             {/each}
           </ol>
         {/if}
       </section>
+
+      {#if !rodada}
+        <section class="cartao" aria-labelledby="titulo-sorteio">
+          <h2 id="titulo-sorteio">Sortear a rodada</h2>
+          <fieldset>
+            <legend>Pontos da partida</legend>
+            <label class="opcao"><input type="radio" name="alvo" value={10} bind:group={alvo} disabled={ocupado} /> 10 pontos</label>
+            <label class="opcao"><input type="radio" name="alvo" value={12} bind:group={alvo} disabled={ocupado} /> 12 pontos</label>
+          </fieldset>
+          <button class="acao-principal" type="button" onclick={sortear} disabled={ocupado || faltam > 0}>Sortear duplas</button>
+          {#if faltam > 0}<p class="ajuda">Faltam {faltam} presente(s) para sortear.</p>{/if}
+        </section>
+      {/if}
 
       <section aria-labelledby="titulo-ausentes">
         <h2 id="titulo-ausentes">Ausentes ({ausentes.length})</h2>
@@ -166,13 +197,16 @@
                 <Avatar {segredo} jogador={j} />
                 <span class="nome">{j.nome}</span>
                 <span class="genero">{j.genero === 'H' ? 'Homem' : 'Mulher'} · nota {j.nota}</span>
-                <button class="secundario" type="button" onclick={() => marcar(j)} disabled={ocupado} aria-label="Marcar {j.nome} como presente">Presente</button>
+                <button class="secundario" type="button" onclick={() => marcar(j)} disabled={ocupado || travada} aria-label="Marcar {j.nome} como presente">Presente</button>
               </li>
             {/each}
           </ul>
         {/if}
       </section>
 
+      {#if travada}
+        <p class="ajuda">Presença travada: há uma rodada {rodada.estado === 'proposta' ? 'em proposta' : 'em andamento'}. Descarte ou cancele a rodada para marcar, desmarcar ou cadastrar.</p>
+      {:else}
       <form class="cartao" onsubmit={cadastrarRapido} aria-labelledby="titulo-rapido" novalidate>
         <h2 id="titulo-rapido">Cadastro rápido</h2>
         <p class="ajuda">Quem não está na base: cadastra e já marca presente, no fim da ordem.</p>
@@ -188,6 +222,7 @@
         <input id="rapido-nota" type="number" inputmode="numeric" min="1" max="100" step="1" placeholder="60" bind:value={nota} disabled={ocupado} />
         <button class="acao-principal" type="submit" disabled={ocupado}>Cadastrar e marcar presente</button>
       </form>
+      {/if}
 
       <section class="encerrar" aria-label="Encerrar sessão">
         {#if confirmandoEncerrar}
@@ -197,7 +232,8 @@
             <button class="secundario" type="button" onclick={() => confirmandoEncerrar = false}>Cancelar</button>
           </div>
         {:else}
-          <button class="secundario" type="button" onclick={() => confirmandoEncerrar = true} disabled={ocupado}>Encerrar sessão</button>
+          <button class="secundario" type="button" onclick={() => confirmandoEncerrar = true} disabled={ocupado || travada}>Encerrar sessão</button>
+          {#if travada}<p class="ajuda">Descarte a proposta ou cancele a rodada antes de encerrar a sessão.</p>{/if}
         {/if}
       </section>
     {/if}

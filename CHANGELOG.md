@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** CV8.DS2.US3 — Sortear a primeira rodada (duplas equilibradas pela nota, gênero prevalece, fila pela ordem de chegada, proposta para confirmar ou resortear).
 - **Branch:** `feature/cv8-ds2-us3-sortear-primeira-rodada`
-- **Passo Ariad:** Passo 2 - Planejamento (aguarda Checkpoint 1)
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguarda Checkpoint 2)
 - **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** plano em `plan.md` da história; aguardando aprovação para implementar.
+- **Handoff / Próximos Passos:** implementação concluída (`app/sorteio.py`, `app/rodada.py`, `app/gerenciador_db.py`; schema 4; painel da proposta em `/sessao`; versão 0.34.0); falta o Navigator validar pela rota em `test-guide.md`.
 
 ## 0.33.1 - 2026-10-07
 

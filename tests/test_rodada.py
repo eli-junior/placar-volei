@@ -128,6 +128,13 @@ async def test_proposta_com_oito(ac):
     # somas equilibradas dentro da restrição de gênero (cada homem com uma mulher):
     # o melhor casamento possível (conferido por força bruta) dá 100, 125, 130, 140
     assert sorted(t["soma"] for t in rodada["times"]) == [100, 125, 130, 140]
+    # exemplo do guia de validação: a fila segue a chegada (Ana, Bia, Caio, Davi)
+    assert [nomes_time(t) for t in rodada["times"]] == [
+        ["Ana Um", "Gil Sete"],
+        ["Bia Dois", "Fabio Seis"],
+        ["Caio Tres", "Helo Oito"],
+        ["Davi Quatro", "Eva Cinco"],
+    ]
     # idempotente em dois sorteios iguais (outra sessão não há; descarta e refaz)
     await ac.post("/api/rodada/descartar")
     de_novo = (await sortear(ac, 12)).json()["rodada"]

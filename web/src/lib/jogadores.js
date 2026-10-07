@@ -46,6 +46,28 @@ export function chamarSessao(segredo, caminho, opcoes = {}, buscar = globalThis.
   return chamarApi(segredo, `/api/sessao${caminho}`, opcoes, buscar);
 }
 
+/** @param {string} segredo @param {string} caminho @param {{ metodo?: string, corpo?: object }} [opcoes] @param {typeof fetch} [buscar] */
+export function chamarRodada(segredo, caminho, opcoes = {}, buscar = globalThis.fetch) {
+  return chamarApi(segredo, `/api/rodada${caminho}`, opcoes, buscar);
+}
+
+/** Os dois primeiros times da fila (a primeira partida), ou null. */
+export function primeiraPartida(times) {
+  const fila = [...(times ?? [])].sort((a, b) => a.fila - b.fila);
+  return fila.length >= 2 ? [fila[0], fila[1]] : null;
+}
+
+/** "Ana (90) + Bia (85)" para a linha de um time. */
+export function descreverTime(time) {
+  return time.jogadores.map((j) => `${j.nome} (${j.nota})`).join(' + ');
+}
+
+/** Qual combinação equivalente está na tela: "2 de 5" (tentativa começa em 0). */
+export function posicaoDaCombinacao(rodada) {
+  const total = Math.max(1, rodada.distintas ?? 1);
+  return { atual: (rodada.tentativa % total) + 1, total };
+}
+
 /**
  * Nova ordem dos ids depois de mover `id` uma posição (`-1` sobe, `+1` desce).
  * Nos limites devolve a lista como está.
