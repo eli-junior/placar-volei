@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+- **História / Escopo:** CV8.DS1.US2 — Abrir sessão e marcar presença (sessão do dia, presença a partir da base, cadastro rápido inline, ordem de chegada editável).
+- **Branch:** `feature/cv8-ds1-us2-abrir-sessao-e-presenca`
+- **Passo Ariad:** Passo 2 - Planejamento (aguarda Checkpoint 1)
+- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
+- **Handoff / Próximos Passos:** plano em `plan.md` da história; aguardando aprovação para implementar.
 
 ## 0.32.0 - 2026-10-07
 
