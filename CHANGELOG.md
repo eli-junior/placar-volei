@@ -7,7 +7,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV8.DS4.US12 — Persistir sessão
 
 - **Branch:** `feature/cv8-ds4-us12-persistir-sessao`
-- **Passo Ariad:** Passo 5 - Revisão (aguardando Checkpoint 3)
+- **Passo Ariad:** Passo 6 - Documentação (concluída; aguardando Checkpoint 4)
 - **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: 01KNVAV8TEYj9sk9Gygfvno2 | Data: 2026-10-07
 - **Handoff / Próximos Passos:** implementado (`synchronous=FULL`, `tests/test_persistencia.py`, 521 pytest, versão 0.39.0). Aguarda a rota de `cv8-ds4-us12-persistir-sessao/test-guide.md`.
 
