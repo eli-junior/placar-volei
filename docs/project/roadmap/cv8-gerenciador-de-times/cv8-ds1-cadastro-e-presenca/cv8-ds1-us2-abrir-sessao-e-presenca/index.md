@@ -17,8 +17,9 @@ updated: 2026-10-07
 - **CA1:** Só uma sessão aberta por vez.
 - **CA2:** Marcar/desmarcar presença a partir da base; permitir cadastro rápido inline.
 - **CA3:** Entre rodadas, adicionar/remover presentes livremente.
+- **CA4:** A ordem de chegada é registrada: cada presença marcada recebe a próxima posição (1º, 2º, 3º…) e a lista a exibe. Desmarcar e marcar de novo manda o jogador para o fim da ordem *(a confirmar)*.
 
-Regras: RN-11 (ver [regras-de-negocio.md](../../regras-de-negocio.md)).
+Regras: RN-11, RN-13 (ver [regras-de-negocio.md](../../regras-de-negocio.md)).
 
 ## Validation Route
 
