@@ -127,3 +127,40 @@ def test_nomes_curtos_e_homonimos():
     assert c == {"1": "Ana S.", "2": "Gil", "3": "ana L.", "4": "Davi"}
     assert nome_da_equipe([c["1"], c["2"]]) == "Ana S. + Gil"
     assert nome_da_equipe([c["4"]]) == "Davi"
+
+
+def rm(a, b, v):
+    return ResultadoEntrada(f"t{a}", f"t{b}", f"t{v}", "mata_mata")
+
+
+def test_mata_mata_desafiante_enfrenta_os_reis_na_ordem_de_coroacao():
+    # 9 times: t1 e t5 viram reis; t7 fica sozinho e é o desafiante
+    base = [r(1, 2, 1), r(1, 3, 1), r(4, 5, 5), r(5, 6, 5), r(7, 8, 7), r(7, 9, 7)]
+    s = derivar(fila(9), base)
+    assert s.reis == ("t1", "t5", "t7") and s.em_quadra == ()
+    # quadra vazia: o último vencedor (t7, também rei) é o desafiante
+    assert s.fase == "fim_da_fila" and s.desafiante == "t7"
+    assert s.rivais == ("t1", "t5")
+    s = derivar(fila(9), base, True)
+    assert s.fase == "mata_mata" and s.em_quadra == ("t7", "t1")
+    s = derivar(fila(9), [*base, rm(7, 1, 1)], True)  # ganhou ficou
+    assert s.em_quadra == ("t1", "t5") and s.rivais == ("t5",)
+    s = derivar(fila(9), [*base, rm(7, 1, 1), rm(1, 5, 5)], True)
+    assert s.fase == "campeao" and s.campeao == "t5" and s.em_quadra == ()
+
+
+def test_mata_mata_com_time_sozinho_na_quadra_e_sem_reis_ja_tem_campeao():
+    s = derivar(fila(3), [r(1, 2, 1), r(1, 3, 3)])
+    assert s.fase == "fim_da_fila" and s.desafiante == "t3" and s.rivais == ()
+    s = derivar(fila(3), [r(1, 2, 1), r(1, 3, 3)], True)
+    assert s.fase == "campeao" and s.campeao == "t3"
+
+
+def test_mata_mata_so_depois_de_iniciado_e_na_ordem():
+    base = [r(1, 2, 1), r(1, 3, 1), r(4, 5, 4)]  # t1 rei; t4 sozinho
+    with pytest.raises(ValueError):
+        derivar(fila(5), [*base, rm(4, 1, 4)])  # sem iniciar
+    with pytest.raises(ValueError):
+        derivar(fila(5), [r(1, 2, 1)], True)  # a fila ainda não terminou
+    with pytest.raises(ValueError):
+        derivar(fila(5), [*base, rm(4, 2, 4)], True)  # t2 não é rival

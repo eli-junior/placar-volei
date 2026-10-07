@@ -9,7 +9,9 @@ Regras: os dois primeiros da fila jogam; o perdedor sai (eliminado); o vencedor
 fica e enfrenta o próximo; com 2 vitórias seguidas vira rei, sai da quadra e
 entram os 2 próximos. Se a fila esvaziar com um time sozinho na quadra, ou com
 a quadra vazia, a fase de fila termina (`fim_da_fila`). Quem enfrenta quem no
-mata-mata (RN-04) fica para a US11; aqui só se informa o último vencedor.
+mata-mata (RN-04, US11) é derivado aqui também: o desafiante (o time que
+ficou na quadra, ou o último rei se a quadra esvaziou) enfrenta os reis em ordem
+de coroação; ganhou ficou, perdeu saiu; quem sobra no fim é o campeão.
 """
 
 from collections import deque
@@ -26,6 +28,7 @@ class ResultadoEntrada(NamedTuple):
     time_a_id: str
     time_b_id: str
     vencedor_id: str
+    fase: str = "fila"  # "fila" | "mata_mata"
 
 
 class Situacao(NamedTuple):
@@ -36,9 +39,16 @@ class Situacao(NamedTuple):
     eliminados: tuple[str, ...]  # ids de times, na ordem em que perderam
     vitorias: dict[str, int]  # vitórias seguidas de cada time
     ultimo_vencedor: str | None
+    desafiante: str | None = None  # quem abre o mata-mata (só no fim da fila)
+    rivais: tuple[str, ...] = ()  # reis ainda por enfrentar, na ordem
+    campeao: str | None = None
 
 
-def derivar(times: list[TimeEntrada], resultados: list[ResultadoEntrada]) -> Situacao:
+def derivar(
+    times: list[TimeEntrada],
+    resultados: list[ResultadoEntrada],
+    mata_mata_iniciado: bool = False,
+) -> Situacao:
     fila = deque(t.id for t in sorted(times, key=lambda t: t.fila))
     todos = set(fila)
     quadra: list[str] = []
@@ -52,7 +62,9 @@ def derivar(times: list[TimeEntrada], resultados: list[ResultadoEntrada]) -> Sit
             quadra.append(fila.popleft())
 
     encher()
-    for r in resultados:
+    fila_res = [r for r in resultados if r.fase == "fila"]
+    mata_res = [r for r in resultados if r.fase == "mata_mata"]
+    for r in fila_res:
         if r.vencedor_id not in (r.time_a_id, r.time_b_id):
             raise ValueError("vencedor não disputou a partida")
         if sorted((r.time_a_id, r.time_b_id)) != sorted(quadra) or len(quadra) != 2:
@@ -68,6 +80,40 @@ def derivar(times: list[TimeEntrada], resultados: list[ResultadoEntrada]) -> Sit
         encher()
 
     fase = "fila" if len(quadra) == 2 else "fim_da_fila"
+    desafiante: str | None = None
+    rivais: tuple[str, ...] = ()
+    campeao: str | None = None
+    if fase == "fila":
+        if mata_res or mata_mata_iniciado:
+            raise ValueError("mata-mata antes do fim da fila")
+    else:
+        # Quadra vazia: o último vencedor acabou de virar rei e é o desafiante.
+        desafiante = quadra[0] if quadra else ultimo
+        restantes = deque(t for t in reis if t != desafiante)
+        if mata_res and not mata_mata_iniciado:
+            raise ValueError("resultado do mata-mata sem o mata-mata iniciado")
+        if mata_mata_iniciado:
+            atual = desafiante
+            for r in mata_res:
+                if not restantes or sorted((r.time_a_id, r.time_b_id)) != sorted(
+                    (atual, restantes[0])
+                ):
+                    raise ValueError(
+                        "resultado de uma partida fora da ordem do mata-mata"
+                    )
+                if r.vencedor_id not in (r.time_a_id, r.time_b_id):
+                    raise ValueError("vencedor não disputou a partida")
+                restantes.popleft()
+                atual = r.vencedor_id
+            if restantes:
+                fase = "mata_mata"
+                quadra = [atual, restantes[0]]
+            else:
+                fase = "campeao"
+                campeao = atual
+                quadra = []
+            desafiante = atual
+        rivais = tuple(restantes)
     return Situacao(
         fase=fase,
         em_quadra=tuple(quadra),
@@ -76,6 +122,9 @@ def derivar(times: list[TimeEntrada], resultados: list[ResultadoEntrada]) -> Sit
         eliminados=tuple(eliminados),
         vitorias=vitorias,
         ultimo_vencedor=ultimo,
+        desafiante=desafiante,
+        rivais=rivais,
+        campeao=campeao,
     )
 
 
