@@ -191,6 +191,7 @@
       ocupado = false;
     }
   }
+  const desfazerPartida = () => agirQuadra(() => chamarRodada(segredo, '/desfazer-partida', { metodo: 'POST' }));
   const vincular = (codigo) => agirQuadra(() => chamarSessao(segredo, '/quadra', { metodo: 'PUT', corpo: { codigo } }));
   const desvincular = () => agirQuadra(() => chamarSessao(segredo, '/quadra', { metodo: 'DELETE' }));
   const criarEVincular = () => agirQuadra(async () => {
@@ -250,12 +251,16 @@
       {#if rodada?.estado === 'proposta'}
         <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} />
       {:else if rodada && estado.conducao}
-        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onEscalar={escalar} onSubstituir={substituir} {erroSubstituicao} onIniciarMataMata={iniciarMataMata} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
+        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onEscalar={escalar} podeDesfazer={estado.pode_desfazer} onDesfazer={desfazerPartida} onSubstituir={substituir} {erroSubstituicao} onIniciarMataMata={iniciarMataMata} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
       {:else if estado.ultimo_campeao}
         <section class="cartao" aria-labelledby="titulo-campeao">
           <h2 id="titulo-campeao">Campeões da rodada {estado.ultimo_campeao.rodada}</h2>
           <p role="status"><strong>Time {estado.ultimo_campeao.time}</strong> — {estado.ultimo_campeao.jogadores.join(' e ')}</p>
           <p class="ajuda">A rodada terminou. Já dá para sortear a próxima.</p>
+          {#if estado.pode_desfazer}
+            <button class="secundario" type="button" onclick={desfazerPartida} disabled={ocupado}>Desfazer a última partida (reabre a rodada)</button>
+          {/if}
+          {#if erroQuadra}<p class="alerta" role="alert">{erroQuadra}</p>{/if}
         </section>
       {/if}
 

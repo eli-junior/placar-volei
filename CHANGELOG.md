@@ -6,6 +6,25 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.43.0 - 2026-10-07
+
+Boundary: CV8.DS3.US7 — desfazer a última partida; fecha a CV8.DS3 (minor; backend, web e APK em 0.43.0, APK `versionCode` 20; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds3-us7-desfazer-ultima-partida` em `master`.
+
+### Added
+
+- **Desfazer última partida (RN-09):** em "Partidas encerradas", **Desfazer última partida** (com confirmação) apaga a última partida encerrada e devolve fila, reis, eliminados, vitórias e histórico ao instante anterior. Um nível só (até a próxima partida ser encerrada). Uma partida já chamada depois dela é descartada junto.
+- **Mata-mata e campeão agora têm desfazer:** desfazer a partida que deu o campeão reabre a rodada (também pelo cartão "Campeões da rodada", enquanto não há outra rodada ativa); desfazer a última da fila cancela o início do mata-mata.
+- API `POST /api/rodada/desfazer-partida`; `pode_desfazer` no estado da sessão; schema 8 (aditivo): `rodadas.desfeito`.
+
+### Verification
+
+- `uv run pytest` (548, com `tests/test_desfazer_partida.py`), `npm run check`, `npm run test:e2e`. Aguarda validação do Navigator em lote. Fecha a CV8.DS3 (US5 a US10).
+- Paga a dívida "mata-mata e campeão sem como desfazer". Não desfaz a escalação do parceiro nem a substituição feitas depois da partida.
+
 ## 0.42.0 - 2026-10-07
 
 Boundary: CV8.DS3.US10 — substituir jogador que saiu (minor; backend, web e APK em 0.42.0, APK `versionCode` 19; Wear OS inalterado em 0.27.0).

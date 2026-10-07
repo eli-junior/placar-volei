@@ -12,6 +12,8 @@
     onChamar = () => {},
     onEncerrar = () => {},
     onEscalar = () => {},
+    podeDesfazer = false,
+    onDesfazer = () => {},
     onSubstituir = () => {},
     erroSubstituicao = null,
     onIniciarMataMata = () => {},
@@ -24,6 +26,7 @@
 
   let codigo = $state('');
   let confirmandoCancelar = $state(false);
+  let confirmandoDesfazer = $state(false);
   let saiu = $state('');
   let entra = $state('');
   const sub = $derived(conducao.substituicao);
@@ -187,6 +190,17 @@
           </li>
         {/each}
       </ol>
+      {#if podeDesfazer}
+        {#if confirmandoDesfazer}
+          <p class="ajuda">Desfaz a última partida e volta a fila, os reis e as vitórias ao que eram antes dela. Só dá para desfazer uma vez seguida.</p>
+          <div class="botoes">
+            <button class="secundario" type="button" onclick={() => { confirmandoDesfazer = false; onDesfazer(); }} disabled={ocupado}>Sim, desfazer a partida</button>
+            <button class="secundario" type="button" onclick={() => (confirmandoDesfazer = false)}>Manter</button>
+          </div>
+        {:else}
+          <button class="secundario" type="button" onclick={() => (confirmandoDesfazer = true)} disabled={ocupado}>Desfazer última partida</button>
+        {/if}
+      {/if}
     </div>
   {/if}
 

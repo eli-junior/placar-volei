@@ -1,8 +1,8 @@
 ---
 code: CV8.DS3
 level: Delivery Story
-status: Active
-status_reason: US5 puxada em 2026-10-07
+status: Validated
+status_reason: US5 a US10 implementadas (0.43.0); aguardam validação do Navigator em lote
 updated: 2026-10-07
 ---
 

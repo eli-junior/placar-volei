@@ -1,6 +1,6 @@
 ---
 id: debt-mata-mata-sem-como-desfazer
-status: Carried
+status: Paid
 kind: product
 severity: medium
 source: CV8.DS4.US11
@@ -21,3 +21,5 @@ O desfazer é escopo da US7; abrir a rodada de volta exige decidir como tratar o
 ## Notes
 
 Decisão: `docs/project/decisions/records/2026-10-08T0400Z-mata-mata-e-campeao.md`. Agravada: `rodada.py` (529 linhas) e `Sessao.svelte` (369), ver as dívidas de concentração.
+
+**Paga na US7 (0.43.0):** desfazer reabre a rodada com campeão e cancela o início do mata-mata.
