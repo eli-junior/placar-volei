@@ -27,4 +27,4 @@ Use **5 jogadores** (número ímpar), cadastrados e marcados presentes **nesta o
 
 ## Evidência automatizada
 
-`uv run pytest` (506; 23 novos: lista de escalação com gênero e grupos, saldo dobrado, escolha na rodada com placar real, recusas, concorrência, origem atrasado, volta aos eliminados, migração 5→6), `npm test` (183), `npm run check`, `npm run test:e2e` (76, com o fluxo do ímpar completo, dois aparelhos e axe no bloco).
+`uv run pytest` (507; 24 novos: lista de escalação com gênero e grupos, saldo dobrado, escolha na rodada com placar real, recusas, concorrência, origem atrasado, volta aos eliminados, migração 5→6), `npm test` (183), `npm run check`, `npm run test:e2e` (76, com o fluxo do ímpar completo, dois aparelhos e axe no bloco).
