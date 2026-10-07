@@ -4,11 +4,15 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo:** CV8 — Gerenciador de times: registro das 14 User Stories no roadmap (somente documentação, sem versão).
-- **Branch:** `docs/roadmap-gerenciador-de-times`
-- **Passo Ariad:** Passo 6 - Documentação
-- **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** Navigator revisa o registro; depois escolhe a primeira história a puxar (plano em CV8.DS1).
+Nenhum trabalho ativo.
+
+## 2026-10-07 — Registro da CV8 (sem versão)
+
+Boundary: documentação — CV8 Gerenciador de times registrada no roadmap (14 User Stories em `Planned`, regras RN-01..RN-12); sem mudança de código nem de versão.
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `docs/roadmap-gerenciador-de-times` em `master`.
 
 ## 0.30.1 - 2026-10-02
 
