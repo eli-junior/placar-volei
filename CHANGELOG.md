@@ -7,10 +7,10 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV8.DS2.US4 — Sortear rodadas seguintes com reequilíbrio
 
 - **Branch:** `feature/cv8-ds2-us4-sortear-rodadas-seguintes`
-- **Passo Ariad:** Passo 4 - Teste e Validação (aguarda o Checkpoint 2)
+- **Passo Ariad:** Passo 5 - Revisão (aguarda o Checkpoint 3)
 - **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: 01KNVAV8TEYj9sk9Gygfvno2 | Data: 2026-10-07
 - **Versão alvo:** 0.40.0 (minor)
-- **Handoff:** backend (`app/reequilibrio.py`, `sorteio.py`, `rodada.py`), tela da proposta e `tests/test_reequilibrio.py` prontos; `uv run pytest` (533), `npm run check` e `npm run test:e2e` (77) verdes. Falta a validação do Navigator, a revisão (Passo 5) e a documentação (Passo 6).
+- **Handoff:** backend (`app/reequilibrio.py`, `sorteio.py`, `rodada.py`), tela da proposta e `tests/test_reequilibrio.py` prontos; `uv run pytest` (533), `npm run check` e `npm run test:e2e` (77) verdes. Validada pelo Navigator. Falta a documentação (Passo 6) e o merge (Passo 7).
 
 
 ## 0.39.0 - 2026-10-07

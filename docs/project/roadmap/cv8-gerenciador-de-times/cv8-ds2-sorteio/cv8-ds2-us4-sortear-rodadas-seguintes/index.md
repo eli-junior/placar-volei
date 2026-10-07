@@ -2,7 +2,7 @@
 code: CV8.DS2.US4
 level: User Story
 status: Active
-status_reason: puxada em 2026-10-07; implementada, aguarda validação do Navigator
+status_reason: puxada em 2026-10-07; validada pelo Navigator; em revisão
 updated: 2026-10-07
 ---
 
