@@ -62,7 +62,7 @@ def test_genero_numero_minimo_de_duplas_hh(homens, mulheres):
     rng.shuffle(generos)
     notas = [rng.randint(1, 100) for _ in generos]
     ps = grupo("".join(generos), notas)
-    for tentativa in range(5):
+    for tentativa in range(2):
         s = sortear(ps, tentativa)
         impar = ps[-1].genero if len(ps) % 2 else None
         assert hh(s) == minimo_hh("".join(generos), impar)

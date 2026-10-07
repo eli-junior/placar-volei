@@ -157,6 +157,7 @@
     }
   }
   const chamarPartida = () => agirQuadra(() => chamarRodada(segredo, '/chamar-partida', { metodo: 'POST' }));
+  const encerrarPartida = () => agirQuadra(() => chamarRodada(segredo, '/encerrar-partida', { metodo: 'POST' }));
   const vincular = (codigo) => agirQuadra(() => chamarSessao(segredo, '/quadra', { metodo: 'PUT', corpo: { codigo } }));
   const desvincular = () => agirQuadra(() => chamarSessao(segredo, '/quadra', { metodo: 'DELETE' }));
   const criarEVincular = () => agirQuadra(async () => {
@@ -216,7 +217,7 @@
       {#if rodada?.estado === 'proposta'}
         <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} />
       {:else if rodada && estado.conducao}
-        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
+        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
       {/if}
 
       <section aria-labelledby="titulo-presentes">

@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** CV8.DS3.US6 — Encerrar partida e aplicar rei da quadra (registrar placar e vencedor lendo o placar da quadra; fila anda, reis, eliminados e fim da fila).
 - **Branch:** `feature/cv8-ds3-us6-encerrar-partida-e-rei-da-quadra`
-- **Passo Ariad:** Passo 2 - Planejamento (aguarda Checkpoint 1)
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguarda Checkpoint 2)
 - **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** plano em `plan.md` da história; aguardando aprovação para implementar.
+- **Handoff / Próximos Passos:** implementação concluída (`POST /api/rodada/encerrar-partida`, placar ao vivo no painel, histórico, fim da fila, `app/rodada_rotas.py`; versão 0.36.0); falta o Navigator validar pela rota em `test-guide.md`.
 
 ## 0.35.0 - 2026-10-07
 

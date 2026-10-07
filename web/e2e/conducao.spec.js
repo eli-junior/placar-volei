@@ -78,8 +78,9 @@ test('criar quadra, vincular, chamar partida e ver as duplas no placar', async (
   await p.getByRole('button', { name: 'Chamar partida' }).click();
   await expect(p.getByRole('heading', { name: 'Partida em quadra' })).toBeVisible();
   await expect(p.getByText('chamada', { exact: true })).toBeVisible();
-  await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeDisabled();
-  await expect(p.getByText(/Já há uma partida chamada/)).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Chamar partida' })).toHaveCount(0);
+  await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeDisabled();
+  await expect(p.getByText(/Em jogo no placar \(0 × 0\)/)).toBeVisible();
 
   // a primeira a chegar (Ana) joga a primeira partida: o nome dela está no placar
   const primeiro = nomes[0].split(' ')[0];
@@ -141,6 +142,100 @@ test('painel da condução sem violações axe', async ({ abrir }) => {
   await rodadaConfirmada(p);
   await abrirTela(p);
   await p.getByRole('heading', { name: 'Quadra do placar' }).waitFor();
+  await p.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {}))));
+  const { violations } = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ') + ' ' + (n.any[0]?.message ?? '')).join(' | ')}`)).toEqual([]);
+  await sessaoLimpa(p);
+});
+
+// Pontos pelo placar de verdade (mesma API da tela). O cookie do operador é
+// `Secure` e só o navegador o envia por http, então a chamada sai da página.
+async function pontosNoPlacar(p, codigo, equipe, quantos) {
+  const statuses = await p.evaluate(async ([id, eq, n]) => {
+    const quadra = await (await fetch(`/api/quadras/${id}`)).json();
+    const saida = [];
+    for (let i = 0; i < n; i += 1) {
+      const r = await fetch(`/api/quadras/${id}/pontos`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', 'x-control-version': String(quadra.controle_versao) },
+        body: JSON.stringify({ equipe: eq }),
+      });
+      saida.push(r.status);
+    }
+    return saida;
+  }, [codigo, equipe, quantos]);
+  expect(statuses).toEqual(Array(quantos).fill(201));
+}
+
+async function criarEVincular(p) {
+  await p.getByRole('button', { name: 'Criar quadra e vincular' }).click();
+  const href = await p.getByRole('link', { name: 'Abrir o placar' }).getAttribute('href');
+  return href.split('/').pop();
+}
+
+test('encerrar partida: placar ao vivo, fila andando, rei e fim da fila', async ({ abrir }) => {
+  const p = await abrir();
+  const b = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS);
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  await abrirTela(b);
+  const codigo = await criarEVincular(p);
+
+  // partida 1: Time 1 × Time 2
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeDisabled();
+  await pontosNoPlacar(p, codigo, 'A', 4);
+  await expect(p.getByText('Placar: 4 × 0')).toBeVisible(); // ao vivo, sem atualizar
+  await expect(p.getByText('em jogo', { exact: true })).toBeVisible();
+  await expect(p.getByText(/Em jogo no placar \(4 × 0\)/)).toBeVisible();
+  await pontosNoPlacar(p, codigo, 'A', 6);
+  await expect(p.getByText(/terminou — Time 1 venceu/)).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeEnabled();
+  await p.getByRole('button', { name: 'Encerrar partida' }).click();
+
+  await expect(p.getByRole('heading', { name: 'Partidas encerradas (1)' })).toBeVisible();
+  await expect(p.getByText('Time 1 10 × 0 Time 2')).toBeVisible();
+  await expect(p.getByRole('heading', { name: 'Eliminados (2)' })).toBeVisible();
+  await expect(p.getByRole('status').filter({ hasText: 'Time 1 × Time 3' })).toBeVisible();
+  // o outro aparelho acompanhou
+  await expect(b.getByRole('heading', { name: 'Partidas encerradas (1)' })).toBeVisible();
+
+  // partida 2: Time 1 × Time 3, vence o Time 3 (B): sobra um time sozinho → fim da fila
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await pontosNoPlacar(p, codigo, 'B', 10);
+  await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeEnabled();
+  await p.getByRole('button', { name: 'Encerrar partida' }).click();
+  await expect(p.getByText('A fase de fila terminou. Próxima fase: mata-mata')).toBeVisible();
+  await expect(p.getByText('Time 3 segue')).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeDisabled();
+  await expect(b.getByText('A fase de fila terminou. Próxima fase: mata-mata')).toBeVisible();
+
+  // cancelar com partidas registradas pede confirmação reforçada
+  await p.getByRole('button', { name: 'Cancelar rodada' }).click();
+  await expect(p.getByText(/já tem 2 partida\(s\) registrada\(s\)/)).toBeVisible();
+  await p.getByRole('button', { name: 'Voltar' }).click();
+  await sessaoLimpa(p);
+});
+
+test('dois vencimentos seguidos coroam o rei e o painel mostra a ordem', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, [...SEIS, ['Gabi', 'M', 45], ['Hugo', 'H', 35]]); // 4 times
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  const codigo = await criarEVincular(p);
+  for (const vencedor of ['A', 'A']) {
+    await p.getByRole('button', { name: 'Chamar partida' }).click();
+    await pontosNoPlacar(p, codigo, vencedor, 10);
+    await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeEnabled();
+    await p.getByRole('button', { name: 'Encerrar partida' }).click();
+    await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeVisible();
+  }
+  await expect(p.getByRole('heading', { name: 'Reis (1)' })).toBeVisible();
+  await expect(p.getByText(/1º rei · Time 1/)).toBeVisible();
+  await expect(p.getByRole('heading', { name: 'Partidas encerradas (2)' })).toBeVisible();
   await p.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {}))));
   const { violations } = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
   expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ') + ' ' + (n.any[0]?.message ?? '')).join(' | ')}`)).toEqual([]);

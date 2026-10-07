@@ -10,6 +10,7 @@
     ocupado = false,
     erroQuadra = null,
     onChamar = () => {},
+    onEncerrar = () => {},
     onCriarQuadra = () => {},
     onVincular = () => {},
     onDesvincular = () => {},
@@ -19,6 +20,8 @@
   let codigo = $state('');
   let confirmandoCancelar = $state(false);
   const temPartida = $derived(Boolean(conducao.partida));
+  const placar = $derived(conducao.partida?.placar ?? null);
+  const fimDaFila = $derived(conducao.fase === 'fim_da_fila');
   const timeDa = (fila) => conducao.em_quadra.find((t) => t.fila === fila);
 
   function vincular(evento) {
@@ -77,16 +80,41 @@
           </li>
         {/each}
       </ul>
-    {:else if conducao.em_quadra.length === 1}
-      <p class="ajuda">Time {conducao.em_quadra[0].fila} está sozinho na quadra: a fase de fila terminou.</p>
-    {:else}
-      <p class="ajuda">Ninguém em quadra: a fase de fila terminou.</p>
+    {/if}
+    {#if temPartida && placar}
+      <p class="placar" role="status">
+        Placar: <strong>{placar.a} × {placar.b}</strong>
+        {#if placar.encerrada}<span class="selo">terminou — Time {placar.vencedor === 'A' ? conducao.partida.time_a : conducao.partida.time_b} venceu</span>{:else}<span class="selo">em jogo</span>{/if}
+      </p>
+    {/if}
+    {#if fimDaFila}
+      <p class="faixa" role="status">A fase de fila terminou. Próxima fase: mata-mata{#if conducao.finalista} — Time {conducao.finalista.fila} segue{/if}.</p>
     {/if}
     <div class="botoes">
-      <button class="acao-principal" type="button" onclick={onChamar} disabled={ocupado || !conducao.pode_chamar}>Chamar partida</button>
+      {#if temPartida}
+        <button class="acao-principal" type="button" onclick={onEncerrar} disabled={ocupado || !conducao.pode_encerrar}>Encerrar partida</button>
+      {:else}
+        <button class="acao-principal" type="button" onclick={onChamar} disabled={ocupado || !conducao.pode_chamar}>Chamar partida</button>
+      {/if}
     </div>
-    {#if conducao.motivo}<p class="ajuda" role="status">{conducao.motivo}</p>{/if}
+    {#if temPartida && conducao.motivo_encerrar}<p class="ajuda">{conducao.motivo_encerrar}</p>
+    {:else if !temPartida && !fimDaFila && conducao.motivo}<p class="ajuda" role="status">{conducao.motivo}</p>{/if}
   </div>
+
+  {#if conducao.historico.length}
+    <div class="bloco" aria-labelledby="titulo-historico">
+      <h3 id="titulo-historico">Partidas encerradas ({conducao.historico.length})</h3>
+      <ol class="times">
+        {#each conducao.historico as h (h.ordem)}
+          <li>
+            <span class="posicao">{h.ordem}ª</span>
+            <span class="jogadores">Time {h.time_a} {h.placar_a} × {h.placar_b} Time {h.time_b}</span>
+            <span class="selo">Time {h.vencedor} venceu</span>
+          </li>
+        {/each}
+      </ol>
+    </div>
+  {/if}
 
   <div class="bloco" aria-labelledby="titulo-fila">
     <h3 id="titulo-fila">Fila ({conducao.fila.length})</h3>
@@ -133,7 +161,11 @@
 
   <div class="botoes">
     {#if confirmandoCancelar}
-      <p class="ajuda">Cancelar a rodada {rodada.numero}? A fila é descartada e a presença volta a ser editável.</p>
+      {#if conducao.partidas_encerradas > 0}
+        <p class="ajuda">A rodada {rodada.numero} já tem {conducao.partidas_encerradas} partida(s) registrada(s). Cancelar mesmo assim? As partidas ficam gravadas, mas a rodada deixa de contar e a presença volta a ser editável.</p>
+      {:else}
+        <p class="ajuda">Cancelar a rodada {rodada.numero}? A fila é descartada e a presença volta a ser editável.</p>
+      {/if}
       <button class="perigo" type="button" onclick={() => { confirmandoCancelar = false; onCancelar(); }} disabled={ocupado}>Sim, cancelar rodada</button>
       <button class="secundario" type="button" onclick={() => confirmandoCancelar = false}>Voltar</button>
     {:else}
@@ -153,6 +185,8 @@
   .ruim, .erro { color: var(--estado-erro-suave); font-weight: 700; }
   .erro { margin: 0; font-size: var(--texto-apoio); }
   a { color: var(--texto-forte); }
+  .placar { margin: 0; font-size: var(--texto-destaque); }
+  .faixa { margin: 0; padding: .6rem .75rem; border: 1px solid var(--borda-ativa); border-radius: var(--raio-justo); background: var(--fundo-cartao-ativo); font-weight: 700; }
   .confronto { margin: 0; padding: .6rem .75rem; border-radius: var(--raio-justo); background: var(--fundo-cartao-ativo); }
   .times, .eliminados { display: flex; flex-direction: column; gap: .4rem; margin: 0; padding: 0; list-style: none; }
   .times li { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem .75rem; padding: .5rem .65rem; border: 1px solid var(--borda-sutil); border-radius: var(--raio-justo); background: var(--fundo-superficie); }
