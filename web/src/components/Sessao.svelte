@@ -25,6 +25,7 @@
   let conectado = $state(false);
   let online = $state(typeof navigator === 'undefined' ? true : navigator.onLine);
   let erroQuadra = $state(null);
+  let erroEscalacao = $state(null);
 
   const presentes = $derived(estado?.presentes ?? []);
   const ausentes = $derived(estado?.ausentes ?? []);
@@ -158,6 +159,20 @@
   }
   const chamarPartida = () => agirQuadra(() => chamarRodada(segredo, '/chamar-partida', { metodo: 'POST' }));
   const encerrarPartida = () => agirQuadra(() => chamarRodada(segredo, '/encerrar-partida', { metodo: 'POST' }));
+  async function escalar(jogadorId) {
+    ocupado = true;
+    erroEscalacao = null;
+    try {
+      aplicar(await chamarRodada(segredo, '/escalar-parceiro', { metodo: 'POST', corpo: { jogador_id: jogadorId } }));
+    } catch (e) {
+      if (e.status === 404) { sair(); erro = e.message; return; }
+      const mensagem = e.message;
+      if (e.status === 409) await carregar();
+      erroEscalacao = mensagem;
+    } finally {
+      ocupado = false;
+    }
+  }
   const vincular = (codigo) => agirQuadra(() => chamarSessao(segredo, '/quadra', { metodo: 'PUT', corpo: { codigo } }));
   const desvincular = () => agirQuadra(() => chamarSessao(segredo, '/quadra', { metodo: 'DELETE' }));
   const criarEVincular = () => agirQuadra(async () => {
@@ -217,7 +232,7 @@
       {#if rodada?.estado === 'proposta'}
         <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} />
       {:else if rodada && estado.conducao}
-        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
+        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onEscalar={escalar} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
       {/if}
 
       <section aria-labelledby="titulo-presentes">

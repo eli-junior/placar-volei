@@ -241,3 +241,50 @@ test('dois vencimentos seguidos coroam o rei e o painel mostra a ordem', async (
   expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ') + ' ' + (n.any[0]?.message ?? '')).join(' | ')}`)).toEqual([]);
   await sessaoLimpa(p);
 });
+
+const IMPAR = [['Hugo', 'H', 60], ['Iris', 'M', 61], ['Joao', 'H', 62], ['Kely', 'M', 63], ['Luca', 'H', 64]];
+
+test('time incompleto em quadra: escolher o parceiro, chamar e somar o saldo', async ({ abrir }) => {
+  const p = await abrir();
+  const b = await abrir();
+  await sessaoLimpa(p);
+  const nomes = await chegam(p, IMPAR); // Luca, o último a chegar, fica sem dupla
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  await abrirTela(b);
+  const codigo = await criarEVincular(p);
+
+  // 1ª partida: Time 1 vence o Time 2; o Time 3 (incompleto) entra em quadra
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await pontosNoPlacar(p, codigo, 'A', 10);
+  await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeEnabled();
+  await p.getByRole('button', { name: 'Encerrar partida' }).click();
+
+  await expect(p.getByRole('heading', { name: 'Escolher o parceiro do Time 3' })).toBeVisible();
+  await expect(b.getByRole('heading', { name: 'Escolher o parceiro do Time 3' })).toBeVisible();
+  await expect(p.getByText('Escolha o parceiro do Time 3 antes de chamar a partida.')).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeDisabled();
+  // Luca é homem: só mulheres eliminadas aparecem
+  const botoes = p.getByRole('button', { name: /^Escalar / });
+  await expect(botoes).toHaveCount(1);
+  await p.evaluate(() => Promise.all(document.getAnimations().filter((a) => a.effect?.getTiming().iterations !== Infinity).map((a) => a.finished.catch(() => {}))));
+  const { violations } = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ') + ' ' + (n.any[0]?.message ?? '')).join(' | ')}`)).toEqual([]);
+
+  const escolhida = (await botoes.first().getAttribute('aria-label')).replace(/^Escalar (.*) com .*$/, '$1');
+  expect([nomes[1], nomes[3]]).toContain(escolhida); // uma das mulheres
+  await botoes.first().click();
+  await expect(p.getByRole('heading', { name: 'Escolher o parceiro do Time 3' })).toHaveCount(0);
+  await expect(b.getByRole('heading', { name: 'Escolher o parceiro do Time 3' })).toHaveCount(0);
+  await expect(p.getByText(/· escalado/).first()).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeEnabled();
+
+  // 2ª partida: o time 3 (B) vence; a escalada soma as duas participações
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await pontosNoPlacar(p, codigo, 'B', 10);
+  await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeEnabled();
+  await p.getByRole('button', { name: 'Encerrar partida' }).click();
+  await expect(p.getByRole('heading', { name: 'Saldo da rodada' })).toBeVisible();
+  await expect(p.getByText(new RegExp(`${escolhida} \\(2 partidas\\)`))).toBeVisible();
+  await sessaoLimpa(p);
+});
