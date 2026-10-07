@@ -26,6 +26,8 @@ Web + exibição dos nomes das duplas no relógio. Somente formato **dupla**. Re
 - [CV8.DS4 — Fechamento](cv8-ds4-fechamento/index.md): Mata-mata, campeão e persistência da sessão.
 - [CV8.DS5 — Exibição](cv8-ds5-exibicao/index.md): Fila e reis para o espectador e nomes das duplas no relógio.
 
+- [CV8.TS1 — Backup do `gerenciador.db`](cv8-ts1-backup-do-gerenciador/index.md): resiliência da base durável (Technical Story).
+
 ## Acceptance / Done Condition
 
 Com 4 ou mais presentes, o operador sorteia, conduz as partidas até o mata-mata e fecha a rodada com um campeão; sorteia a rodada seguinte reequilibrada pelo saldo; tudo sobrevive a reinício do servidor; espectadores e relógio veem fila, reis e nomes.
