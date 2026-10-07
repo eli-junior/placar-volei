@@ -30,6 +30,7 @@ from app.quadras import (
     obter_participante,
     obter_quadra,
 )
+from app.sessao import router as sessao_router
 from app.sucessao import verificar_controle_ocioso, verificar_sucessao_quadra
 from app.watch import authenticate_device, bearer, device_active
 from app.watch import router as watch_router
@@ -117,6 +118,7 @@ app = FastAPI(
 app.include_router(api_router)
 app.include_router(watch_router)
 app.include_router(jogadores_router)
+app.include_router(sessao_router)
 
 
 @app.exception_handler(RequestValidationError)
