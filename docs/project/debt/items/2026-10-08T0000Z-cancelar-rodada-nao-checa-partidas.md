@@ -1,6 +1,6 @@
 ---
 id: debt-cancelar-rodada-nao-checa-partidas
-status: Carried
+status: Closed
 kind: product
 severity: low
 source: CV8.DS2.US3
@@ -17,6 +17,10 @@ Hoje a rodada em andamento só tem a fila, então cancelar é sempre seguro. Qua
 ## Carrying Reason
 
 A regra depende de a partida existir; é fechamento obrigatório da DS3.
+
+## Updates
+
+- 2026-10-08 (CV8.DS3.US6, 0.36.0): **quitada** — cancelar com partidas registradas passou a pedir confirmação reforçada; nada é apagado (as partidas e a rodada cancelada ficam gravadas).
 
 ## Notes
 

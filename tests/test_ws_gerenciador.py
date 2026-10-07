@@ -6,6 +6,7 @@ from starlette.testclient import TestClient
 from starlette.websockets import WebSocketDisconnect
 
 from app import main
+from app.comandos import snapshot_sync
 from app.config import settings
 from app.main import app
 from app.rate_limit import owner_rate_limiter
@@ -117,3 +118,77 @@ def test_desconectar_nao_atrapalha_as_mudancas_seguintes(cliente):
         ).status_code
         == 201
     )
+
+
+def _rodada_chamada(cliente):
+    """Quatro presentes, rodada confirmada, quadra vinculada e partida chamada."""
+    cliente.post("/api/sessao")
+    for nome, genero in (
+        ("Ana Um", "M"),
+        ("Bia Dois", "M"),
+        ("Caio Tres", "H"),
+        ("Davi Quatro", "H"),
+    ):
+        j = cliente.post("/api/jogadores", json={"nome": nome, "genero": genero}).json()
+        cliente.put(f"/api/sessao/presencas/{j['id']}")
+    cliente.post("/api/rodada/sorteio", json={"alvo": 10})
+    cliente.post("/api/rodada/confirmar")
+    codigo = cliente.post("/api/quadras", json={"apelido": "Operador"}).json()["id"]
+    cliente.put("/api/sessao/quadra", json={"codigo": codigo})
+    assert cliente.post("/api/rodada/chamar-partida").status_code == 201
+    versao = str(snapshot_sync(settings.db_path, codigo)["quadra"]["controle_versao"])
+    return codigo, versao
+
+
+def test_ponto_na_quadra_vinculada_atualiza_o_painel_ao_vivo(cliente):
+    codigo, versao = _rodada_chamada(cliente)
+    with conectar(cliente) as ws:
+        assert ws.receive_json()["tipo"] == "ESTADO_INICIAL"
+        r = cliente.post(
+            f"/api/quadras/{codigo}/pontos",
+            json={"equipe": "A"},
+            headers={"x-control-version": versao},
+        )
+        assert r.status_code == 201
+        msg = ws.receive_json()
+        assert msg["tipo"] == "ESTADO_ATUALIZADO"
+        assert msg["payload"]["conducao"]["partida"]["placar"]["a"] == 1
+
+
+def test_ponto_em_outra_quadra_nao_publica_nada(cliente):
+    _rodada_chamada(cliente)
+    outra = cliente.post("/api/quadras", json={"apelido": "Outro"}).json()["id"]
+    versao = str(snapshot_sync(settings.db_path, outra)["quadra"]["controle_versao"])
+    with conectar(cliente) as ws:
+        ws.receive_json()
+        assert (
+            cliente.post(
+                f"/api/quadras/{outra}/pontos",
+                json={"equipe": "A"},
+                headers={"x-control-version": versao},
+            ).status_code
+            == 201
+        )
+        cliente.post("/api/jogadores", json={"nome": "Zed Zeta", "genero": "H"})
+        msg = (
+            ws.receive_json()
+        )  # a primeira coisa recebida é a do jogador, não a do ponto
+        assert "Zed Zeta" in [x["nome"] for x in msg["payload"]["ausentes"]]
+
+
+def test_falha_na_sincronia_nao_atrapalha_o_placar(cliente, monkeypatch):
+    codigo, versao = _rodada_chamada(cliente)
+    from app import sessao
+
+    def quebra():
+        raise RuntimeError("estado indisponível")
+
+    with conectar(cliente) as ws:
+        ws.receive_json()
+        monkeypatch.setattr(sessao, "estado_sync", quebra)
+        r = cliente.post(
+            f"/api/quadras/{codigo}/pontos",
+            json={"equipe": "A"},
+            headers={"x-control-version": versao},
+        )
+        assert r.status_code == 201  # o ponto entrou mesmo com a sincronia quebrada

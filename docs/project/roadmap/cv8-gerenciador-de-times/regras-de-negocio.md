@@ -36,7 +36,7 @@ Escopo do MVP: Web + nomes das duplas no relógio; somente formato dupla.
 
 **RN-08 — Substituição por saída no meio da rodada.** Se um jogador de time ativo sai, o substituto é (1) o jogador ímpar (time incompleto aguardando) ou (2) alguém da lista de escalação, respeitando RN-01. O time mantém vitórias e posição.
 
-**RN-09 — Placar por partida.** Alvo 10 ou 12 pontos, definido por rodada no sorteio. Vantagem de 2, set único. Ao chamar a partida, o placar ao vivo é carregado automaticamente com as duplas. Encerramento manual (operador confirma). Só é possível desfazer a última partida encerrada.
+**RN-09 — Placar por partida.** Alvo 10 ou 12 pontos, definido por rodada no sorteio. Vantagem de 2, set único. Ao chamar a partida, o placar ao vivo é carregado automaticamente com as duplas. Encerramento manual (operador confirma): só se encerra uma partida que **terminou pelas regras do placar** (alvo com vantagem de 2); o gerenciador lê o placar final da quadra vinculada e grava o resultado, sem encerramento antecipado. Só é possível desfazer a última partida encerrada.
 
 **RN-10 — Reequilíbrio entre rodadas.** Ranking individual por saldo acumulado na sessão (na primeira rodada, pela nota — RN-14). Pareamento em serpentina (1º com último, 2º com penúltimo...). Prioridade: RN-01 > evitar repetir duplas da sessão (preferência) > serpentina pura.
 

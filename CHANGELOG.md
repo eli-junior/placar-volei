@@ -6,6 +6,32 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.36.0 - 2026-10-07
+
+Boundary: CV8.DS3.US6 — encerrar partida e aplicar o rei da quadra (minor; backend, web e APK em 0.36.0, APK `versionCode` 13; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds3-us6-encerrar-partida-e-rei-da-quadra` em `master`.
+
+### Added
+
+- **Encerrar partida**: lê o placar final da quadra vinculada e grava placar e vencedor; só aceita partida terminada pelas regras do placar e que seja a da chamada.
+- **A fila anda**: o perdedor é eliminado, o vencedor segue ou vira rei com 2 vitórias seguidas e entram os 2 próximos; os reis aparecem em ordem.
+- **Painel**: placar ao vivo da partida chamada (sem atualizar), botão **Encerrar partida** que habilita ao terminar, histórico das partidas encerradas e faixa de **fim da fila** (mata-mata é a US11), que bloqueia novas chamadas.
+- Cada evento da quadra vinculada avisa o gerenciador (só com aparelho conectado; nunca derruba o placar).
+
+### Changed
+
+- **Cancelar rodada** com partidas registradas pede confirmação reforçada; nada é apagado.
+- Rotas da rodada reunidas em `app/rodada_rotas.py` (`sessao.py` volta a ser só sessão e presença).
+- Teste de composições de gênero do sorteio enxugado (menos CPU na máquina de desenvolvimento).
+
+### Verification
+
+- `uv run pytest` (483), `npm test` (182), `npm run check`, `npm run test:e2e` (75, com axe e dois aparelhos). Validada pelo Navigator.
+- Dívidas quitadas: `cancelar-rodada-nao-checa-partidas`, `rotas-da-rodada-na-sessao-py`. Novas: `ponte.py` concentra três responsabilidades, o aviso do placar recalcula o estado completo, o erro de encerrar aparece no bloco da quadra.
+
 ## 0.35.0 - 2026-10-07
 
 Boundary: CV8.DS3.US5 — visualizar e conduzir a fila (minor; backend, web e APK em 0.35.0, APK `versionCode` 12; Wear OS inalterado em 0.27.0).

@@ -34,7 +34,8 @@ from app.quadras import (
     obter_quadra,
 )
 from app.rede import ip_do_cliente
-from app.sessao import estado_sync, router_rodada
+from app.rodada_rotas import router as rodada_router
+from app.sessao import estado_sync
 from app.sessao import router as sessao_router
 from app.sincronia import SALA, hub_gerenciador
 from app.sucessao import verificar_controle_ocioso, verificar_sucessao_quadra
@@ -129,7 +130,7 @@ app.include_router(api_router)
 app.include_router(watch_router)
 app.include_router(jogadores_router)
 app.include_router(sessao_router)
-app.include_router(router_rodada)
+app.include_router(rodada_router)
 app.include_router(ponte_router)
 
 

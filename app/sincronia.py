@@ -30,3 +30,21 @@ async def publicar_atual() -> None:
         return
     with contextlib.suppress(Exception):  # sincronia nunca derruba a ação
         await publicar(await asyncio.to_thread(estado_sync))
+
+
+async def avisar_placar(quadra_id: str) -> None:
+    """Um evento da quadra do placar chegou: se for a quadra vinculada à sessão
+    e houver aparelho no gerenciador, publica o painel com o placar novo.
+
+    Fica no caminho quente do placar, por isso sai cedo quando ninguém ouve e
+    nunca levanta: a sincronia do gerenciador não pode atrapalhar o placar.
+    """
+    from app.sessao import estado_sync
+
+    if not await hub_gerenciador.total_conexoes(SALA):
+        return
+    with contextlib.suppress(Exception):
+        estado = await asyncio.to_thread(estado_sync)
+        quadra = estado.get("quadra")
+        if quadra and quadra["codigo"] == quadra_id:
+            await publicar(estado)
