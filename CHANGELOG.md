@@ -7,7 +7,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV8.DS4.US11 — Conduzir o mata-mata
 
 - **Branch:** `feature/cv8-ds4-us11-conduzir-o-mata-mata`
-- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando Checkpoint 2)
+- **Passo Ariad:** Passo 6 - Documentação (concluída; aguardando Checkpoint 4)
 - **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: 01KNVAV8TEYj9sk9Gygfvno2 | Data: 2026-10-07
 - **Handoff / Próximos Passos:** implementado (backend schema 7, painel, 517 pytest, 77 e2e, versão 0.38.0). Aguarda o Navigator seguir a rota em `cv8-ds4-us11-conduzir-o-mata-mata/test-guide.md`. Depois: Passo 5 (revisão) e Passo 6 (docs: RN-04/RN-12, decisão, worklog, guia).
 

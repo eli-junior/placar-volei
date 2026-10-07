@@ -66,6 +66,8 @@ Desde a 0.36.0 as rotas da rodada estão todas em `app/rodada_rotas.py`. O encer
 
 Desde a 0.37.0 o schema é a versão 6 (`times.origem` e `time_jogadores.escalado`). A lista de escalação e o saldo da rodada são funções puras em `app/conducao.py`; `app/rodada.py` monta o painel e valida a escolha do parceiro na transação (`POST /api/rodada/escalar-parceiro`).
 
+Desde a 0.38.0 o schema é a versão 7 (`rodadas.mata_mata_em`, `rodadas.campeao_time_id`, `partidas_rodada.fase`). O mata-mata é derivado em `app/conducao.py` (`derivar(..., mata_mata_iniciado)`); `POST /api/rodada/iniciar-mata-mata` o inicia e `registrar_campeao` (em `app/rodada.py`) encerra a rodada ao fim do último confronto.
+
 ### Backup e restauração do `gerenciador.db` (CV8.TS1)
 
 - **Automático:** o app grava uma cópia verificada na subida e a cada `GERENCIADOR_BACKUP_INTERVALO_HORAS` (6), mantendo as `GERENCIADOR_BACKUP_MANTER` (28) mais recentes. No compose, a pasta é `./backups` do host, montada em `/backups`, **fora** do volume `gerenciador-dados`. Sem `GERENCIADOR_BACKUP_DIR` o backup fica desligado (aviso no log). Falha de backup é logada e não derruba o app; uma cópia que falha na verificação nunca substitui nem faz podar as boas.
