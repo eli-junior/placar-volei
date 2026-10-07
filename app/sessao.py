@@ -8,6 +8,7 @@ RN-15). Quem decide quando a ordem trava é o sorteio (US-03).
 
 import asyncio
 import sqlite3
+import time
 import uuid
 from typing import Any
 
@@ -49,6 +50,7 @@ def _estado(conn) -> dict:
             "rodada": None,
             "quadra": None,
             "conducao": None,
+            "revisao": time.time_ns(),
         }
     base = (
         "SELECT j.*, EXISTS(SELECT 1 FROM jogador_fotos f WHERE f.jogador_id = j.id) "
@@ -87,6 +89,8 @@ def _estado(conn) -> dict:
         "rodada": rodada,
         "quadra": quadra,
         "conducao": conducao,
+        # Para o cliente descartar estado mais velho que o já mostrado.
+        "revisao": time.time_ns(),
     }
 
 

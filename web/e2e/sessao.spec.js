@@ -17,6 +17,7 @@ async function sessaoLimpa(p) {
   // Rodada ativa (US3) trava o encerramento: descarta ou cancela antes.
   await p.request.post('/api/rodada/descartar', { headers: CABECALHO });
   await p.request.post('/api/rodada/cancelar', { headers: CABECALHO });
+  await p.request.delete('/api/sessao/quadra', { headers: CABECALHO });
   await p.request.post('/api/sessao/encerrar', { headers: CABECALHO });
 }
 
@@ -29,7 +30,7 @@ async function criarJogador(p, rotulo, genero = 'M') {
 
 async function abrirTela(p) {
   await p.goto('/');
-  await p.getByRole('button', { name: 'Sessão' }).click();
+  await p.getByRole('button', { name: 'Sessão', exact: true }).click();
   await p.getByLabel('Segredo do dono').fill(SEGREDO);
   await p.getByRole('button', { name: 'Entrar' }).click();
   await p.getByRole('heading', { name: 'Sessão', level: 1 }).waitFor();
@@ -94,18 +95,20 @@ test('cadastro rápido cria o jogador e marca no fim; erros aparecem', async ({ 
   await expect(p.locator('ol li').filter({ hasText: novo })).toContainText('nota 60');
 });
 
-test('só uma sessão aberta: outra aba vê o estado ao atualizar', async ({ abrir }) => {
+test('só uma sessão aberta: o que outro aparelho abre aparece sem atualizar', async ({ abrir }) => {
   const p = await abrir();
   await sessaoLimpa(p);
   await abrirTela(p);
+  await expect(p.getByRole('heading', { name: 'Nenhuma sessão aberta' })).toBeVisible();
+  // outro aparelho abre a sessão: a tela acompanha sozinha
   const r = await p.request.post('/api/sessao', { headers: CABECALHO });
   expect(r.status()).toBe(201);
-  await p.getByRole('button', { name: 'Abrir sessão' }).click();
-  await expect(p.getByRole('alert')).toContainText('já existe uma sessão aberta');
   await expect(p.getByRole('heading', { name: /Presentes/ })).toBeVisible();
+  // e uma segunda abertura continua recusada
+  expect((await p.request.post('/api/sessao', { headers: CABECALHO })).status()).toBe(409);
 });
 
-test('reordenar com a tela desatualizada recarrega a lista', async ({ abrir }) => {
+test('o que outro aparelho marca aparece na lista sem atualizar e a reordenação segue valendo', async ({ abrir }) => {
   const p = await abrir();
   await sessaoLimpa(p);
   const [a, b, c] = [await criarJogador(p, 'Hugo', 'H'), await criarJogador(p, 'Iris'), await criarJogador(p, 'Joao', 'H')];
@@ -113,13 +116,13 @@ test('reordenar com a tela desatualizada recarrega a lista', async ({ abrir }) =
   await p.getByRole('button', { name: 'Abrir sessão' }).click();
   await p.getByRole('button', { name: `Marcar ${a} como presente` }).click();
   await p.getByRole('button', { name: `Marcar ${b} como presente` }).click();
-  // outro aparelho marca mais um enquanto esta tela segue desatualizada
+  // outro aparelho marca mais um
   const outro = await p.request.get('/api/sessao', { headers: CABECALHO });
   const alvo = (await outro.json()).ausentes.find((x) => x.nome === c);
   expect((await p.request.put(`/api/sessao/presencas/${alvo.id}`, { headers: CABECALHO })).status()).toBe(200);
-  await p.getByRole('button', { name: `Subir ${b}` }).click();
-  await expect(p.getByRole('alert')).toContainText('exatamente os jogadores presentes');
   await expect(presentes(p)).toHaveText([a, b, c]);
+  await p.getByRole('button', { name: `Subir ${b}` }).click();
+  await expect(presentes(p)).toHaveText([b, a, c]);
 });
 
 test('tela da sessão sem violações axe', async ({ abrir }) => {
@@ -138,13 +141,13 @@ test('home mostra Sessão no navegador e não mostra no APK', async ({ abrir }) 
   // ele acusa `.contagem` (contraste 4,03:1), defeito anterior a esta história.
   const p = await abrir({ viewport: { width: 360, height: 740 } });
   await p.goto('/');
-  await expect(p.getByRole('button', { name: 'Sessão' })).toBeVisible();
-  await expect(p.getByRole('button', { name: 'Jogadores' })).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Sessão', exact: true })).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Jogadores', exact: true })).toBeVisible();
 
   const apk = await abrir({}, { fn: () => { window.Capacitor = { isNativePlatform: () => true }; } });
   await apk.goto('/');
   await apk.getByRole('tab', { name: 'Criar placar' }).waitFor();
-  await expect(apk.getByRole('button', { name: 'Sessão' })).toHaveCount(0);
+  await expect(apk.getByRole('button', { name: 'Sessão', exact: true })).toHaveCount(0);
   await apk.goto('/sessao');
   await expect(apk.getByRole('heading', { name: 'Sessão', level: 1 })).toHaveCount(0);
 });

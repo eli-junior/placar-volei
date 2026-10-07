@@ -8,6 +8,7 @@ const CABECALHO = { 'x-owner-secret': SEGREDO };
 async function sessaoLimpa(p) {
   await p.request.post('/api/rodada/descartar', { headers: CABECALHO });
   await p.request.post('/api/rodada/cancelar', { headers: CABECALHO });
+  await p.request.delete('/api/sessao/quadra', { headers: CABECALHO });
   await p.request.post('/api/sessao/encerrar', { headers: CABECALHO });
 }
 
@@ -29,7 +30,7 @@ async function chegam(p, lista) {
 
 async function abrirTela(p) {
   await p.goto('/');
-  await p.getByRole('button', { name: 'Sessão' }).click();
+  await p.getByRole('button', { name: 'Sessão', exact: true }).click();
   await p.getByLabel('Segredo do dono').fill(SEGREDO);
   await p.getByRole('button', { name: 'Entrar' }).click();
   await p.getByRole('heading', { name: 'Sessão', level: 1 }).waitFor();

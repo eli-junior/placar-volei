@@ -154,3 +154,28 @@ export async function baixarFoto(segredo, id, buscar = globalThis.fetch) {
   if (!resposta.ok) return null;
   return URL.createObjectURL(await resposta.blob());
 }
+
+/** Ignora estado mais velho que o já mostrado (resposta HTTP × mensagem do WebSocket). */
+export function estadoMaisNovo(atual, novo) {
+  if (!novo) return atual;
+  if (!atual) return novo;
+  return (novo.revisao ?? 0) >= (atual.revisao ?? 0) ? novo : atual;
+}
+
+/** Rótulo curto da sincronia na tela da sessão. */
+export function rotuloSincronia(conectado, online = true) {
+  if (!online) return { chave: 'offline', rotulo: 'Sem rede' };
+  return conectado ? { chave: 'conectado', rotulo: 'Ao vivo' } : { chave: 'reconectando', rotulo: 'Reconectando…' };
+}
+
+/** Cria uma quadra do placar neste navegador (o operador vira o admin dela). */
+export async function criarQuadraDoPlacar(apelido, buscar = globalThis.fetch) {
+  const resposta = await buscar('/api/quadras', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ apelido, nome: 'Quadra do dia' }),
+  });
+  const dados = await resposta.json().catch(() => null);
+  if (!resposta.ok) throw new ErroJogadores(typeof dados?.detail === 'string' ? dados.detail : 'Não foi possível criar a quadra.', resposta.status);
+  return dados.id;
+}
