@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from app import rodada as regras_rodada
 from app.api import autenticar_owner
 from app.config import settings
+from app.desfazer import pode_desfazer
 from app.gerenciador_db import (
     agora,
     conectar,
@@ -51,6 +52,7 @@ def _estado(conn) -> dict:
             "quadra": None,
             "conducao": None,
             "ultimo_campeao": None,
+            "pode_desfazer": False,
             "revisao": time.time_ns(),
         }
     base = (
@@ -91,6 +93,7 @@ def _estado(conn) -> dict:
         "quadra": quadra,
         "conducao": conducao,
         "ultimo_campeao": regras_rodada.ultimo_campeao(conn, sessao["id"]),
+        "pode_desfazer": pode_desfazer(conn, sessao["id"]),
         # Para o cliente descartar estado mais velho que o já mostrado.
         "revisao": time.time_ns(),
     }

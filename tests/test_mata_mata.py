@@ -124,4 +124,4 @@ def test_migra_do_schema_6(tmp_path):
     assert conn.execute("SELECT fase FROM partidas_rodada").fetchone() == ("fila",)
     colunas = [r[1] for r in conn.execute("PRAGMA table_info(rodadas)")]
     assert "mata_mata_em" in colunas and "campeao_time_id" in colunas
-    assert conn.execute("PRAGMA user_version").fetchone() == (7,)
+    assert conn.execute("PRAGMA user_version").fetchone() == (8,)

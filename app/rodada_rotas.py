@@ -11,6 +11,7 @@ from fastapi import APIRouter, Request, status
 from pydantic import BaseModel
 
 from app import atrasados as regras_atrasados
+from app import desfazer as regras_desfazer
 from app import rodada as regras_rodada
 from app import substituicao as regras_substituicao
 from app.api import autenticar_owner
@@ -57,6 +58,10 @@ def atrasado_sync(jogador_id: Any) -> dict:
     return _rodada_op(
         lambda conn: regras_atrasados.registrar_atrasado(conn, jogador_id)
     )
+
+
+def desfazer_sync() -> dict:
+    return _rodada_op(regras_desfazer.desfazer_ultima)
 
 
 def substituir_sync(saiu_id: Any, entra_id: Any) -> dict:
@@ -125,6 +130,12 @@ async def post_escalar_parceiro(body: ParceiroBody, request: Request):
 async def post_atrasado(body: ParceiroBody, request: Request):
     autenticar_owner(request)
     return await _responder(atrasado_sync, body.jogador_id)
+
+
+@router.post("/desfazer-partida")
+async def post_desfazer_partida(request: Request):
+    autenticar_owner(request)
+    return await _responder(desfazer_sync)
 
 
 @router.post("/substituir")
