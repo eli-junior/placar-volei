@@ -56,6 +56,8 @@ Desde a `CV5.DS1.TS2`, o `docker compose` recusa subir sem `OWNER_SECRET`, e o a
 
 O banco é efêmero por decisão do Navigator: com `RESET_DB_ON_STARTUP=true` no compose, **todo start do contêiner** (deploy, `restart` ou reinício após falha) apaga salas, participantes e vínculos do relógio. Depois de cada start, é preciso recriar a quadra e parear o relógio de novo. `COOKIE_SECURE=true` (padrão no compose) exige HTTPS; o acesso é pelo túnel.
 
+**Exceção durável (CV8.DS1.US1):** a base de jogadores mora em `gerenciador.db` (`GERENCIADOR_DB_PATH`), no volume nomeado `gerenciador-dados` (`/data-gerenciador`). Ela **sobrevive** ao `RESET_DB_ON_STARTUP`, a mudanças de schema das quadras e a `docker compose up --force-recreate`; só `docker compose down -v` (ou `docker volume rm`) a apaga. Não rode `down -v` sem autorização do Navigator. Mudanças de schema nela são migrações aditivas (`PRAGMA user_version`). A tela `/jogadores` exige o `OWNER_SECRET` e fica oculta no APK.
+
 ## Aparelhos físicos (celular e relógio)
 
 Para parear, conectar, compilar, instalar, capturar a tela, tocar e ler o log nos aparelhos físicos, **use o MCP `dispositivos`** (`tools/mcp-dispositivos/`, registrado no `.mcp.json`; ver o README dele), e não comandos de `adb` soltos. Ele já trata as armadilhas deste projeto: celular sempre com `--user 0` (Dual App do Samsung), release que não atualiza debug, porta do `adb` sem fio que muda, relógio que dorme, duas telas do Z Fold. Atalho para "gerar um APK novo e instalar": `compilar_e_instalar`.

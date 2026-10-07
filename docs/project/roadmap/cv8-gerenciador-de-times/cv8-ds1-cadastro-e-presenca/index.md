@@ -1,8 +1,8 @@
 ---
 code: CV8.DS1
 level: Delivery Story
-status: Planned
-status_reason: registrada em 2026-10-07, ainda não puxada
+status: Active
+status_reason: US1 validada (0.31.0); US2 ainda planejada
 updated: 2026-10-07
 ---
 

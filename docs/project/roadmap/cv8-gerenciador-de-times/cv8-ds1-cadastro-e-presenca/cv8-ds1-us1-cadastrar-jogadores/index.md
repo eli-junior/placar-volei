@@ -1,9 +1,11 @@
 ---
 code: CV8.DS1.US1
 level: User Story
-status: Active
-status_reason: puxada em 2026-10-07; Passo 2 (plano)
+status: Validated
+status_reason: validada pelo Navigator em 2026-10-07 (0.31.0); aguarda merge
 updated: 2026-10-07
+related:
+  - ../../../../decisions/records/2026-10-07T1800Z-base-de-jogadores-duravel-e-protegida.md
 ---
 
 # Cadastrar jogadores
@@ -21,6 +23,10 @@ updated: 2026-10-07
 ## Validation Route
 
 A definir no plano (Passo 2).
+
+## Entregue
+
+Base em arquivo próprio e durável (volume `gerenciador-dados`), protegida pelo `OWNER_SECRET`, tela `/jogadores` oculta no APK. Plano: [plan.md](plan.md). Validação: [test-guide.md](test-guide.md).
 
 ## Out of Scope
 
