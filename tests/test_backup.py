@@ -1,6 +1,8 @@
 import asyncio
+import os
 import sqlite3
 import threading
+import time
 from pathlib import Path
 
 import pytest
@@ -119,13 +121,19 @@ def test_pasta_sem_permissao_falha_com_erro_claro(tmp_path):
         backup.fazer_backup(pasta=str(arquivo / "dentro"))
 
 
-def test_sobras_parciais_sao_limpas():
+def test_sobras_velhas_sao_limpas_e_a_copia_em_andamento_e_preservada():
     popular()
     pasta = Path(settings.gerenciador_backup_dir)
     pasta.mkdir()
-    (pasta / "gerenciador-20200101T000000000000Z.db.parcial").write_bytes(b"x")
+    velha = pasta / "gerenciador-20200101T000000000000Z.db.parcial"
+    em_andamento = pasta / "gerenciador-20991231T000000000000Z.db.parcial"
+    velha.write_bytes(b"x")
+    em_andamento.write_bytes(b"x")
+    antiga = time.time() - 2 * backup.SOBRA_PARCIAL_SEGUNDOS
+    os.utime(velha, (antiga, antiga))
     backup.fazer_backup()
-    assert [p.suffix for p in pasta.iterdir()] == [".db"]
+    assert not velha.exists()
+    assert em_andamento.exists()  # outro backup ainda gravando
 
 
 def test_restaurar_devolve_tudo_num_banco_novo(tmp_path):

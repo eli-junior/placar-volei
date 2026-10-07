@@ -16,6 +16,7 @@ import asyncio
 import logging
 import sqlite3
 import sys
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -24,6 +25,7 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 PREFIXO = "gerenciador-"
+SOBRA_PARCIAL_SEGUNDOS = 3600
 TABELAS_ESPERADAS = {"jogadores", "jogador_fotos", "sessoes", "presencas"}
 
 
@@ -112,9 +114,16 @@ def fazer_backup(
 
     destino_dir = Path(pasta)
     destino_dir.mkdir(parents=True, exist_ok=True)
-    # Sobras de uma queda no meio de um backup anterior.
+    # Sobras de uma queda no meio de um backup anterior. Só as velhas: uma
+    # cópia em andamento (a rotina do app, ou `agora` na linha de comando)
+    # tem um .parcial recente que não pode ser apagado por baixo dela.
+    limite = time.time() - SOBRA_PARCIAL_SEGUNDOS
     for sobra in destino_dir.glob(f"{PREFIXO}*.parcial"):
-        sobra.unlink(missing_ok=True)
+        try:
+            if sobra.stat().st_mtime < limite:
+                sobra.unlink(missing_ok=True)
+        except FileNotFoundError:
+            pass
 
     final = destino_dir / f"{PREFIXO}{_carimbo()}.db"
     parcial = final.with_name(final.name + ".parcial")

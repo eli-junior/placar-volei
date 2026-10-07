@@ -1,8 +1,8 @@
 ---
 code: CV8.TS1
 level: Technical Story
-status: Active
-status_reason: puxada em 2026-10-07; Passo 2 (plano)
+status: Validated
+status_reason: validada pelo Navigator em 2026-10-07 (0.33.1); aguarda merge
 updated: 2026-10-07
 related:
   - ../../../decisions/records/2026-10-07T2000Z-sqlite-duravel-com-backup-postgres-adiado.md
@@ -31,6 +31,10 @@ When a rotina de backup roda com o app em uso
 Then surge uma cópia íntegra no destino, fora do volume, e as mais antigas além da retenção são removidas
 And restaurar essa cópia num volume novo devolve todos os jogadores, notas e fotos
 And uma cópia que falha na verificação é sinalizada no log e não substitui a última boa.
+
+## Entregue
+
+Backup verificado pela API do SQLite, retenção, rotina no `lifespan` (6 h / 28 cópias), CLI `agora`/`listar`/`restaurar` e pasta `./backups` do host. Plano: [plan.md](plan.md). Validação: [test-guide.md](test-guide.md).
 
 ## Validation Route
 
