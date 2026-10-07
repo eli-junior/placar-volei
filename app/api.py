@@ -669,9 +669,9 @@ async def get_linha_do_tempo(quadra_id: str):
     return {"itens": itens}
 
 
-def autenticar_owner(request: Request) -> None:
-    chave = ip_do_cliente(request)
-
+def validar_segredo_owner(secret: str | None, chave: str) -> None:
+    """Confere o segredo do dono (tempo constante) com a limitação de tentativas
+    por IP. Usado pelo cabeçalho HTTP e pela primeira mensagem do WebSocket."""
     # 1. Verifica se está bloqueado por rate limit
     bloqueado, restante = owner_rate_limiter.esta_bloqueado(chave)
     if bloqueado:
@@ -680,13 +680,6 @@ def autenticar_owner(request: Request) -> None:
             detail="Muitas tentativas incorretas. Tente novamente mais tarde.",
             headers={"Retry-After": str(restante)},
         )
-
-    # 2. Extrai segredo via header x-owner-secret ou Authorization: Bearer
-    secret = request.headers.get("x-owner-secret")
-    if not secret:
-        auth_header = request.headers.get("authorization")
-        if auth_header and auth_header.lower().startswith("bearer "):
-            secret = auth_header[7:].strip()
 
     config_secret = settings.owner_secret
     if (
@@ -705,6 +698,16 @@ def autenticar_owner(request: Request) -> None:
 
     # 3. Sucesso: limpa tentativas falhas acumuladas
     owner_rate_limiter.registrar_sucesso(chave)
+
+
+def autenticar_owner(request: Request) -> None:
+    # Extrai o segredo via header x-owner-secret ou Authorization: Bearer
+    secret = request.headers.get("x-owner-secret")
+    if not secret:
+        auth_header = request.headers.get("authorization")
+        if auth_header and auth_header.lower().startswith("bearer "):
+            secret = auth_header[7:].strip()
+    validar_segredo_owner(secret, ip_do_cliente(request))
 
 
 @router.get("/owner/quadras", status_code=status.HTTP_200_OK)

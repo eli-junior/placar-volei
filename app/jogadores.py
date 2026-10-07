@@ -21,6 +21,7 @@ from app.gerenciador_db import (
     erro_de_campo,
     init_gerenciador_sync,
 )
+from app.sincronia import publicar_atual
 
 # Compatível com quem já importava daqui (testes e backup).
 init_jogadores_sync = init_gerenciador_sync
@@ -304,6 +305,13 @@ class JogadorBody(BaseModel):
 router = APIRouter(prefix="/api/jogadores", tags=["jogadores"])
 
 
+async def _mutar(funcao, *args):
+    """Executa a mudança e avisa os outros aparelhos que a sessão pode ter mudado."""
+    resultado = await asyncio.to_thread(funcao, *args)
+    await publicar_atual()
+    return resultado
+
+
 @router.get("")
 async def get_jogadores(request: Request, incluir_inativos: bool = False):
     autenticar_owner(request)
@@ -313,27 +321,25 @@ async def get_jogadores(request: Request, incluir_inativos: bool = False):
 @router.post("", status_code=status.HTTP_201_CREATED)
 async def post_jogador(body: JogadorBody, request: Request):
     autenticar_owner(request)
-    return await asyncio.to_thread(criar_sync, body.nome, body.genero, body.nota)
+    return await _mutar(criar_sync, body.nome, body.genero, body.nota)
 
 
 @router.patch("/{jogador_id}")
 async def patch_jogador(jogador_id: str, body: JogadorBody, request: Request):
     autenticar_owner(request)
-    return await asyncio.to_thread(
-        editar_sync, jogador_id, body.nome, body.genero, body.nota
-    )
+    return await _mutar(editar_sync, jogador_id, body.nome, body.genero, body.nota)
 
 
 @router.post("/{jogador_id}/inativar")
 async def post_inativar(jogador_id: str, request: Request):
     autenticar_owner(request)
-    return await asyncio.to_thread(definir_ativo_sync, jogador_id, False)
+    return await _mutar(definir_ativo_sync, jogador_id, False)
 
 
 @router.post("/{jogador_id}/reativar")
 async def post_reativar(jogador_id: str, request: Request):
     autenticar_owner(request)
-    return await asyncio.to_thread(definir_ativo_sync, jogador_id, True)
+    return await _mutar(definir_ativo_sync, jogador_id, True)
 
 
 @router.put("/{jogador_id}/foto")
@@ -346,7 +352,7 @@ async def put_foto(jogador_id: str, request: Request):
             413, "foto", f"deve ter no máximo {FOTO_MAXIMA // 1024} KB", "tamanho"
         )
     imagem = await request.body()
-    return await asyncio.to_thread(salvar_foto_sync, jogador_id, imagem)
+    return await _mutar(salvar_foto_sync, jogador_id, imagem)
 
 
 @router.get("/{jogador_id}/foto")
@@ -366,4 +372,4 @@ async def get_foto(jogador_id: str, request: Request):
 @router.delete("/{jogador_id}/foto")
 async def delete_foto(jogador_id: str, request: Request):
     autenticar_owner(request)
-    return await asyncio.to_thread(remover_foto_sync, jogador_id)
+    return await _mutar(remover_foto_sync, jogador_id)

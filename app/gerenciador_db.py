@@ -24,9 +24,11 @@ ROTULOS = {
     "jogador_ids": "Ordem",
     "alvo": "Alvo",
     "rodada": "Rodada",
+    "quadra": "Quadra",
+    "codigo": "Código da quadra",
 }
 
-SCHEMA_VERSAO = 4
+SCHEMA_VERSAO = 5
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jogadores (
     id TEXT PRIMARY KEY,
@@ -53,7 +55,8 @@ CREATE TABLE IF NOT EXISTS jogador_fotos (
 CREATE TABLE IF NOT EXISTS sessoes (
     id TEXT PRIMARY KEY,
     aberta_em TEXT NOT NULL,
-    encerrada_em TEXT
+    encerrada_em TEXT,
+    quadra_id TEXT
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_sessao_aberta
     ON sessoes ((1)) WHERE encerrada_em IS NULL;
@@ -91,6 +94,27 @@ CREATE TABLE IF NOT EXISTS times (
     fila INTEGER NOT NULL,
     incompleto INTEGER NOT NULL DEFAULT 0
 );
+-- Partidas chamadas na quadra do placar (CV8.DS3.US5). O resultado
+-- (`placar_*`, `vencedor_time_id`, `encerrada_em`) é preenchido pela US6.
+CREATE TABLE IF NOT EXISTS partidas_rodada (
+    id TEXT PRIMARY KEY,
+    rodada_id TEXT NOT NULL REFERENCES rodadas(id) ON DELETE CASCADE,
+    ordem INTEGER NOT NULL,
+    time_a_id TEXT NOT NULL REFERENCES times(id),
+    time_b_id TEXT NOT NULL REFERENCES times(id),
+    estado TEXT NOT NULL CHECK (estado IN ('chamada', 'encerrada')),
+    quadra_id TEXT NOT NULL,
+    partida_quadra_id TEXT,
+    chamada_em TEXT NOT NULL,
+    placar_a INTEGER,
+    placar_b INTEGER,
+    vencedor_time_id TEXT REFERENCES times(id),
+    encerrada_em TEXT
+);
+-- No máximo uma partida chamada (em aberto) por rodada.
+CREATE UNIQUE INDEX IF NOT EXISTS idx_partida_chamada
+    ON partidas_rodada (rodada_id) WHERE estado = 'chamada';
+
 CREATE TABLE IF NOT EXISTS time_jogadores (
     time_id TEXT NOT NULL REFERENCES times(id) ON DELETE CASCADE,
     jogador_id TEXT NOT NULL REFERENCES jogadores(id),
@@ -159,6 +183,10 @@ def init_gerenciador_sync(caminho: str | None = None) -> None:
             conn.execute(
                 "ALTER TABLE jogadores ADD COLUMN nota INTEGER NOT NULL DEFAULT 60"
             )
+        # Migração aditiva 4 -> 5: vínculo da sessão com a quadra do placar.
+        colunas_sessao = [r["name"] for r in conn.execute("PRAGMA table_info(sessoes)")]
+        if "quadra_id" not in colunas_sessao:
+            conn.execute("ALTER TABLE sessoes ADD COLUMN quadra_id TEXT")
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSAO}")
         conn.commit()
     finally:

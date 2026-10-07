@@ -24,8 +24,10 @@ class ConnectionHub:
         websocket: WebSocket,
         participante_id: str | None = None,
         watch_device_id: str | None = None,
+        accept: bool = True,
     ) -> None:
-        await websocket.accept()
+        if accept:
+            await websocket.accept()
         async with self._lock:
             if quadra_id not in self._quadras:
                 self._quadras[quadra_id] = set()

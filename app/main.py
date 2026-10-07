@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import logging
 import os
 import re
@@ -13,7 +14,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.websockets import WebSocketDisconnect
 
-from app.api import ErroDeCampo, normalizar_erros_validacao
+from app.api import ErroDeCampo, normalizar_erros_validacao, validar_segredo_owner
 from app.api import router as api_router
 from app.backup import rotina as rotina_backup
 from app.comandos import snapshot_sync
@@ -24,6 +25,7 @@ from app.gerenciador_db import init_gerenciador_sync
 from app.hub import hub
 from app.identidade import SESSION_COOKIE
 from app.jogadores import router as jogadores_router
+from app.ponte import router as ponte_router
 from app.quadras import (
     atualizar_ultimo_visto,
     limpar_quadras_expiradas,
@@ -31,8 +33,10 @@ from app.quadras import (
     obter_participante,
     obter_quadra,
 )
+from app.rede import ip_do_cliente
+from app.sessao import estado_sync, router_rodada
 from app.sessao import router as sessao_router
-from app.sessao import router_rodada
+from app.sincronia import SALA, hub_gerenciador
 from app.sucessao import verificar_controle_ocioso, verificar_sucessao_quadra
 from app.watch import authenticate_device, bearer, device_active
 from app.watch import router as watch_router
@@ -42,6 +46,8 @@ logger = logging.getLogger(__name__)
 CODIGO_QUADRA = re.compile(r"\d{5}")
 # Intervalo do PING do /ws; o navegador desiste após 45 s de silêncio.
 PING_INTERVALO = 20.0
+# Prazo para o cliente do /ws/gerenciador mandar o segredo na primeira mensagem.
+PRAZO_AUTENTICACAO = 5.0
 
 
 @asynccontextmanager
@@ -124,6 +130,7 @@ app.include_router(watch_router)
 app.include_router(jogadores_router)
 app.include_router(sessao_router)
 app.include_router(router_rodada)
+app.include_router(ponte_router)
 
 
 @app.exception_handler(RequestValidationError)
@@ -155,6 +162,45 @@ async def health_check():
         "status": "ok",
         "version": settings.version,
     }
+
+
+@app.websocket("/ws/gerenciador")
+async def websocket_gerenciador(websocket: WebSocket):
+    """Sincronia do gerenciador (CV8.DS3.US5). O segredo do dono vai na primeira
+    mensagem, nunca na URL; sem ele em 5 s a conexão é fechada."""
+    await websocket.accept()
+    try:
+        bruta = await asyncio.wait_for(
+            websocket.receive_json(), timeout=PRAZO_AUTENTICACAO
+        )
+        if not isinstance(bruta, dict) or bruta.get("tipo") != "AUTENTICAR":
+            raise HTTPException(401)
+        segredo = bruta.get("segredo")
+        validar_segredo_owner(
+            segredo if isinstance(segredo, str) else None, ip_do_cliente(websocket)
+        )
+    except (HTTPException, TimeoutError, ValueError, WebSocketDisconnect, RuntimeError):
+        with contextlib.suppress(Exception):
+            await websocket.close(code=4401)
+        return
+    await hub_gerenciador.connect(SALA, websocket, accept=False)
+    try:
+        await websocket.send_json(
+            {"tipo": "ESTADO_INICIAL", "payload": await asyncio.to_thread(estado_sync)}
+        )
+        ultimo_ping = time.monotonic()
+        while True:
+            try:
+                await asyncio.wait_for(websocket.receive_text(), timeout=5)
+            except TimeoutError:
+                pass
+            if time.monotonic() - ultimo_ping >= PING_INTERVALO:
+                await websocket.send_json({"tipo": "PING", "payload": {}})
+                ultimo_ping = time.monotonic()
+    except (WebSocketDisconnect, RuntimeError, OSError):
+        pass
+    finally:
+        await hub_gerenciador.disconnect(SALA, websocket)
 
 
 @app.websocket("/ws/{quadra_id}")
