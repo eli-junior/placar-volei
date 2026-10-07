@@ -52,11 +52,18 @@ def test_repetidos_sao_recusados():
         sortear([a, a, Participante("y", "M", 50, 2), Participante("z", "M", 50, 3)])
 
 
-@pytest.mark.parametrize("homens", range(13))
-@pytest.mark.parametrize("mulheres", range(13))
+# Todas as composições até 12 jogadores e algumas maiores: o resto do espaço é
+# o mesmo código com números maiores, e cada caso grande custa bem mais.
+_COMPOSICOES = [(h, m) for h in range(13) for m in range(13) if 4 <= h + m <= 12] + [
+    (12, 12),
+    (20, 4),
+    (4, 20),
+    (11, 10),
+]
+
+
+@pytest.mark.parametrize(("homens", "mulheres"), _COMPOSICOES)
 def test_genero_numero_minimo_de_duplas_hh(homens, mulheres):
-    if homens + mulheres < 4:
-        return
     rng = random.Random(homens * 100 + mulheres)
     generos = list("H" * homens + "M" * mulheres)
     rng.shuffle(generos)

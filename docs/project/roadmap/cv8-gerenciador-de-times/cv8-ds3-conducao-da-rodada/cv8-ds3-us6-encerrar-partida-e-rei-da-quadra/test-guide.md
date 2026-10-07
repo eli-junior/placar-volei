@@ -27,4 +27,4 @@ Use **8 jogadores** (a tabela da US3) para ter 4 times, ou **10** para ter 5. Ab
 
 ## Evidência automatizada
 
-`uv run pytest` (567; 15 novos: encerrar com placar real em todas as situações — em jogo, vencedor A e B, sequência até rei e fim da fila, partida trocada, quadra sumida, concorrência —, e o aviso do placar ao painel), `npm test` (182), `npm run check`, `npm run test:e2e` (75, com um fluxo completo: placar ao vivo, encerrar, rei, fim da fila, dois aparelhos e axe).
+`uv run pytest` (483, depois de enxugar as composições do teste de gênero do sorteio; 15 novos desta história: encerrar com placar real em todas as situações — em jogo, vencedor A e B, sequência até rei e fim da fila, partida trocada, quadra sumida, concorrência —, e o aviso do placar ao painel), `npm test` (182), `npm run check`, `npm run test:e2e` (75, com um fluxo completo: placar ao vivo, encerrar, rei, fim da fila, dois aparelhos e axe).
