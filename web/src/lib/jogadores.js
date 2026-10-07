@@ -14,14 +14,16 @@ export class ErroJogadores extends Error {
 }
 
 /**
+ * Chamada JSON protegida pelo segredo do dono, para qualquer rota do
+ * gerenciador (`/api/jogadores`, `/api/sessao`).
  * @param {string} segredo
- * @param {string} caminho
+ * @param {string} url
  * @param {{ metodo?: string, corpo?: object }} [opcoes]
  * @param {typeof fetch} [buscar]
  */
-export async function chamarJogadores(segredo, caminho, opcoes = {}, buscar = globalThis.fetch) {
+export async function chamarApi(segredo, url, opcoes = {}, buscar = globalThis.fetch) {
   const { metodo = 'GET', corpo } = opcoes;
-  const resposta = await buscar(`/api/jogadores${caminho}`, {
+  const resposta = await buscar(url, {
     method: metodo,
     headers: { 'x-owner-secret': segredo, ...(corpo ? { 'content-type': 'application/json' } : {}) },
     body: corpo ? JSON.stringify(corpo) : undefined,
@@ -32,6 +34,35 @@ export async function chamarJogadores(segredo, caminho, opcoes = {}, buscar = gl
   const dados = await resposta.json().catch(() => null);
   const detalhe = typeof dados?.detail === 'string' ? dados.detail : 'Não foi possível concluir.';
   throw new ErroJogadores(detalhe, resposta.status, dados?.erros?.[0]?.campo);
+}
+
+/** @param {string} segredo @param {string} caminho @param {{ metodo?: string, corpo?: object }} [opcoes] @param {typeof fetch} [buscar] */
+export function chamarJogadores(segredo, caminho, opcoes = {}, buscar = globalThis.fetch) {
+  return chamarApi(segredo, `/api/jogadores${caminho}`, opcoes, buscar);
+}
+
+/** @param {string} segredo @param {string} caminho @param {{ metodo?: string, corpo?: object }} [opcoes] @param {typeof fetch} [buscar] */
+export function chamarSessao(segredo, caminho, opcoes = {}, buscar = globalThis.fetch) {
+  return chamarApi(segredo, `/api/sessao${caminho}`, opcoes, buscar);
+}
+
+/**
+ * Nova ordem dos ids depois de mover `id` uma posição (`-1` sobe, `+1` desce).
+ * Nos limites devolve a lista como está.
+ * @param {string[]} ids @param {string} id @param {number} delta
+ */
+export function moverPosicao(ids, id, delta) {
+  const de = ids.indexOf(id);
+  const para = de + delta;
+  if (de < 0 || para < 0 || para >= ids.length) return [...ids];
+  const nova = [...ids];
+  [nova[de], nova[para]] = [nova[para], nova[de]];
+  return nova;
+}
+
+/** Quantos presentes faltam para o mínimo do sorteio (0 quando já basta). */
+export function faltamParaSortear(presentes, minimo = 4) {
+  return Math.max(0, minimo - presentes);
 }
 
 /** Ativos primeiro, depois inativos, em ordem alfabética sem acento. */

@@ -6,6 +6,36 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.33.0 - 2026-10-07
+
+Boundary: CV8.DS1.US2 — abrir sessão e marcar presença; fecha a CV8.DS1 (minor; backend, web e APK em 0.33.0, APK `versionCode` 9; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds1-us2-abrir-sessao-e-presenca` em `master`.
+
+### Added
+
+- **Sessão do dia** (tela `/sessao`, botão "Sessão" na Home): abrir, encerrar com confirmação, uma aberta por vez (garantido por índice no banco).
+- **Presença a partir da base** e **cadastro rápido** (nome e sobrenome, gênero, nota opcional) que já marca presente.
+- **Ordem de chegada** de 1 a N: marcar entra no fim, desmarcar renumera, reordenar por ↑/↓. Aviso "faltam N para poder sortear" (mínimo 4).
+- API `/api/sessao`, protegida pelo `OWNER_SECRET`; tabelas `sessoes` e `presencas` (schema 3 do `gerenciador.db`, migração aditiva).
+
+### Changed
+
+- Inativar um jogador presente o tira da presença da sessão aberta e renumera a ordem.
+- Formulário de segredo extraído para um componente compartilhado pelas telas de Jogadores e Sessão.
+
+### Fixed
+
+- Reordenar com a tela desatualizada recarrega a lista em vez de só mostrar o erro.
+- Renumeração da ordem não pode mais empatar posições.
+
+### Verification
+
+- `uv run pytest` (303), `npm test` (175), `npm run check`, `npm run test:e2e` (64, com axe). Validada pelo Navigator.
+- Dívidas registradas: módulo comum do `gerenciador.db`, contraste do contador de quadras na Home, sessões encerradas sem histórico.
+
 ## 0.32.0 - 2026-10-07
 
 Boundary: CV8.DS1.US15 — nota, sobrenome e foto do jogador (minor; backend, web e APK em 0.32.0, APK `versionCode` 8; Wear OS inalterado em 0.27.0).

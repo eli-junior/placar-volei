@@ -3,6 +3,7 @@
   import HomePlacar from './components/HomePlacar.svelte';
   import ModalEntrar from './components/ModalEntrar.svelte';
   import Jogadores from './components/Jogadores.svelte';
+  import Sessao from './components/Sessao.svelte';
   import SalaQuadra from './components/SalaQuadra.svelte';
   import { noAplicativoAndroid } from './lib/casca.js';
   import { aceitarSnapshot, lerJson, mensagemDeErro } from './sync.js';
@@ -11,6 +12,7 @@
   let quadraAtual = $state(null);
   // Base de jogadores (CV8): só no navegador, nunca dentro do APK.
   let telaJogadores = $state(false);
+  let telaSessao = $state(false);
   let eu = $state(null);
   let participantes = $state([]);
   let estadoPartida = $state(null);
@@ -251,7 +253,8 @@
   async function carregarRota() {
     handleVoltarParaHome(false);
     telaJogadores = window.location.pathname === '/jogadores' && !noAplicativoAndroid();
-    if (telaJogadores) return;
+    telaSessao = window.location.pathname === '/sessao' && !noAplicativoAndroid();
+    if (telaJogadores || telaSessao) return;
     const match = window.location.pathname.match(/^\/quadra\/([a-zA-Z0-9_-]+)$/);
     if (!match) return;
     const quadraId = match[1];
@@ -283,7 +286,9 @@
 </script>
 
 <main>
-  {#if telaJogadores}
+  {#if telaSessao}
+    <Sessao onVoltar={() => { window.history.pushState({}, '', '/'); carregarRota(); }} />
+  {:else if telaJogadores}
     <Jogadores onVoltar={() => { window.history.pushState({}, '', '/'); carregarRota(); }} />
   {:else if quadraAtual}
     <!-- Sala da Quadra em Tempo Real -->
@@ -315,6 +320,7 @@
       onCriarQuadra={handleCriarQuadraHome}
       onEntrarQuadra={handleEntrarQuadraHome}
       onAbrirJogadores={noAplicativoAndroid() ? null : () => { window.history.pushState({}, '', '/jogadores'); carregarRota(); }}
+      onAbrirSessao={noAplicativoAndroid() ? null : () => { window.history.pushState({}, '', '/sessao'); carregarRota(); }}
       {submetendo}
       {erro}
     />

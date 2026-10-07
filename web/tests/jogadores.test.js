@@ -73,3 +73,32 @@ test('envia a foto como JPEG cru com o segredo', async () => {
   assert.equal(visto.init.headers['x-owner-secret'], 'seg');
   await assert.rejects(enviarFoto('s', 'j', new Blob(['x']), async () => ({ ok: false, status: 413, json: async () => ({ detail: 'Foto grande.' }) })), e => e.status === 413 && e.message === 'Foto grande.');
 });
+
+import { moverPosicao, faltamParaSortear, chamarSessao } from '../src/lib/jogadores.js';
+
+test('mover posição sobe, desce e respeita os limites', () => {
+  assert.deepEqual(moverPosicao(['a', 'b', 'c'], 'b', -1), ['b', 'a', 'c']);
+  assert.deepEqual(moverPosicao(['a', 'b', 'c'], 'b', 1), ['a', 'c', 'b']);
+  assert.deepEqual(moverPosicao(['a', 'b', 'c'], 'a', -1), ['a', 'b', 'c']);
+  assert.deepEqual(moverPosicao(['a', 'b', 'c'], 'c', 1), ['a', 'b', 'c']);
+  assert.deepEqual(moverPosicao(['a', 'b'], 'x', 1), ['a', 'b']);
+  const original = ['a', 'b'];
+  moverPosicao(original, 'a', 1);
+  assert.deepEqual(original, ['a', 'b']);
+});
+
+test('quantos faltam para sortear', () => {
+  assert.equal(faltamParaSortear(0), 4);
+  assert.equal(faltamParaSortear(3), 1);
+  assert.equal(faltamParaSortear(4), 0);
+  assert.equal(faltamParaSortear(9), 0);
+});
+
+test('chamarSessao usa /api/sessao com o segredo', async () => {
+  let visto;
+  await chamarSessao('seg', '/presencas/j1', { metodo: 'PUT' }, async (url, init) => { visto = { url, init }; return { ok: true, json: async () => ({}) }; });
+  assert.equal(visto.url, '/api/sessao/presencas/j1');
+  assert.equal(visto.init.method, 'PUT');
+  assert.equal(visto.init.headers['x-owner-secret'], 'seg');
+  await assert.rejects(chamarSessao('s', '', {}, async () => ({ ok: false, status: 409, json: async () => ({ detail: 'Sessão já existe uma sessão aberta.', erros: [{ campo: 'sessao' }] }) })), e => e.status === 409 && e.campo === 'sessao');
+});

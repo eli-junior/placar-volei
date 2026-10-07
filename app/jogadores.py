@@ -25,9 +25,17 @@ NOME_MAXIMO = 40
 GENEROS = ("H", "M")
 NOTA_PADRAO = 60
 FOTO_MAXIMA = 256 * 1024
-_ROTULOS = {"nome": "Nome", "genero": "Gênero", "nota": "Nota", "foto": "Foto"}
+_ROTULOS = {
+    "nome": "Nome",
+    "genero": "Gênero",
+    "nota": "Nota",
+    "foto": "Foto",
+    "sessao": "Sessão",
+    "jogador": "Jogador",
+    "jogador_ids": "Ordem",
+}
 
-SCHEMA_VERSAO = 2
+SCHEMA_VERSAO = 3
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jogadores (
     id TEXT PRIMARY KEY,
@@ -47,6 +55,25 @@ CREATE TABLE IF NOT EXISTS jogador_fotos (
     jogador_id TEXT PRIMARY KEY REFERENCES jogadores(id) ON DELETE CASCADE,
     imagem BLOB NOT NULL,
     atualizado_em TEXT NOT NULL
+);
+
+-- Sessão do dia (CV8.DS1.US2). O índice por expressão constante garante, no
+-- banco, no máximo uma sessão aberta, mesmo com aberturas concorrentes.
+CREATE TABLE IF NOT EXISTS sessoes (
+    id TEXT PRIMARY KEY,
+    aberta_em TEXT NOT NULL,
+    encerrada_em TEXT
+);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sessao_aberta
+    ON sessoes ((1)) WHERE encerrada_em IS NULL;
+
+-- Presença e ordem de chegada da sessão (RN-13, RN-15). `ordem` é 1..N.
+CREATE TABLE IF NOT EXISTS presencas (
+    sessao_id TEXT NOT NULL REFERENCES sessoes(id) ON DELETE CASCADE,
+    jogador_id TEXT NOT NULL REFERENCES jogadores(id),
+    ordem INTEGER NOT NULL,
+    marcado_em TEXT NOT NULL,
+    PRIMARY KEY (sessao_id, jogador_id)
 );
 """
 
@@ -231,6 +258,27 @@ def editar_sync(
         conn.close()
 
 
+def recompactar_presencas(conn, sessao_id: str) -> None:
+    """Renumera a ordem de chegada de 1 a N, mantendo a sequência atual.
+
+    Feito linha a linha: um UPDATE com subconsulta enxerga as linhas já
+    renumeradas e pode empatar posições, dependendo da ordem de varredura.
+    """
+    ids = [
+        r["jogador_id"]
+        for r in conn.execute(
+            "SELECT jogador_id FROM presencas WHERE sessao_id = ? "
+            "ORDER BY ordem, jogador_id",
+            (sessao_id,),
+        )
+    ]
+    for ordem, jogador_id in enumerate(ids, start=1):
+        conn.execute(
+            "UPDATE presencas SET ordem = ? WHERE sessao_id = ? AND jogador_id = ?",
+            (ordem, sessao_id, jogador_id),
+        )
+
+
 def definir_ativo_sync(jogador_id: str, ativo: bool) -> dict:
     conn = _conectar(settings.gerenciador_db_path)
     try:
@@ -247,6 +295,17 @@ def definir_ativo_sync(jogador_id: str, ativo: bool) -> dict:
                     "UPDATE jogadores SET ativo = ?, atualizado_em = ? WHERE id = ?",
                     (int(ativo), _agora(), jogador_id),
                 )
+                if not ativo:
+                    # Inativar tira da presença da sessão aberta (CV8.DS1.US2).
+                    aberta = conn.execute(
+                        "SELECT id FROM sessoes WHERE encerrada_em IS NULL"
+                    ).fetchone()
+                    if aberta:
+                        conn.execute(
+                            "DELETE FROM presencas WHERE sessao_id = ? AND jogador_id = ?",
+                            (aberta["id"], jogador_id),
+                        )
+                        recompactar_presencas(conn, aberta["id"])
         except sqlite3.IntegrityError:
             raise _recusar_nome_em_uso(atual["nome"]) from None
         return _linha(_obter(conn, jogador_id))

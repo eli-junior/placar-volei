@@ -5,7 +5,7 @@
   import { fade } from 'svelte/transition';
   import Icone from './Icone.svelte';
 
-  let { onCriarQuadra = () => {}, onEntrarQuadra = () => {}, onAbrirJogadores = null, submetendo = false, erro = null } = $props();
+  let { onCriarQuadra = () => {}, onEntrarQuadra = () => {}, onAbrirJogadores = null, onAbrirSessao = null, submetendo = false, erro = null } = $props();
 
 
   let abaAtiva = $state('acompanhar');
@@ -101,6 +101,9 @@
       <span>PLACAR <strong>VÔLEI</strong></span>
     </a>
     <div class="topo-acoes">
+    {#if onAbrirSessao}
+      <button class="tema" type="button" onclick={onAbrirSessao}><Icone nome="bandeira" tamanho="1.2em" /><span>Sessão</span></button>
+    {/if}
     {#if onAbrirJogadores}
       <button class="tema" type="button" onclick={onAbrirJogadores}><Icone nome="pessoas" tamanho="1.2em" /><span>Jogadores</span></button>
     {/if}
@@ -197,8 +200,8 @@
 
 <style>
   .home { width: min(1180px, 100%); margin: 0 auto; padding: 1.25rem clamp(1rem, 3vw, 2.5rem) 4rem; box-sizing: border-box; color: var(--texto-forte); }
-  .topo-acoes { display: flex; gap: .5rem; }
-  .topo { display: flex; align-items: center; justify-content: space-between; min-height: 48px; }
+  .topo-acoes { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: .5rem; }
+  .topo { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem; min-height: 48px; }
   .marca { display: inline-flex; align-items: center; gap: .7rem; color: var(--texto-forte); font-size: .78rem; font-weight: 700; letter-spacing: .18em; text-decoration: none; }
   .marca strong { color: var(--acento-info); }
   .marca-icone { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--acao-secundaria); border-radius: 10px; }

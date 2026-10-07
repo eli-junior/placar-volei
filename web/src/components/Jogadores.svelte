@@ -1,13 +1,13 @@
 <script>
   import { onMount } from 'svelte';
   import Icone from './Icone.svelte';
+  import PortaoSegredo from './PortaoSegredo.svelte';
   import { guardarSegredoDono, lerSegredoDono } from '../lib/preferencias.js';
   import { baixarFoto, chamarJogadores, enviarFoto, iniciais, ordenarJogadores, reduzirParaJpeg } from '../lib/jogadores.js';
 
   let { onVoltar = () => {} } = $props();
 
   let segredo = $state(lerSegredoDono());
-  let segredoDigitado = $state('');
   let jogadores = $state([]);
   let carregando = $state(false);
   let erro = $state(null);
@@ -70,14 +70,10 @@
     }
   }
 
-  async function entrar(evento) {
-    evento.preventDefault();
-    const digitado = segredoDigitado.trim();
-    if (!digitado) return;
+  async function entrar(digitado) {
     segredo = digitado;
     await carregar();
     if (segredo) guardarSegredoDono(segredo);
-    segredoDigitado = '';
   }
 
   function sair() {
@@ -190,13 +186,7 @@
   <h1>Jogadores</h1>
 
   {#if !segredo}
-    <form class="cartao" onsubmit={entrar}>
-      <p>Esta área é protegida. Digite o segredo do dono; ele fica guardado só neste aparelho.</p>
-      {#if erro}<div class="alerta" role="alert"><Icone nome="alerta" tamanho="1.1em" /><span>{erro}</span></div>{/if}
-      <label for="segredo-dono">Segredo do dono</label>
-      <input id="segredo-dono" type="password" autocomplete="off" bind:value={segredoDigitado} required />
-      <button class="acao-principal" type="submit" disabled={!segredoDigitado.trim() || carregando}>Entrar</button>
-    </form>
+    <PortaoSegredo {erro} ocupado={carregando} onEntrar={entrar} />
   {:else}
     <form class="cartao" onsubmit={salvar} aria-labelledby="titulo-form" novalidate>
       <h2 id="titulo-form">{editandoId ? 'Editar jogador' : 'Novo jogador'}</h2>
@@ -274,9 +264,8 @@
   .voltar, .secundario, .sair { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding: 0 .85rem; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); color: var(--texto-medio); font: inherit; font-size: var(--texto-apoio); font-weight: 700; cursor: pointer; }
   .sair { align-self: flex-start; background: transparent; }
   .cartao { display: flex; flex-direction: column; gap: .6rem; padding: 1rem; border: 1px solid var(--borda-sutil); border-radius: var(--raio-padrao); background: var(--fundo-superficie); }
-  .cartao p { margin: 0; color: var(--texto-suave); font-size: var(--texto-apoio); }
   label, legend { font-size: var(--texto-apoio); color: var(--texto-medio); }
-  input[type='text'], input[type='password'], input[type='number'] { box-sizing: border-box; width: 100%; min-height: 48px; padding: .75rem .9rem; border: 1px solid var(--acao-secundaria); border-radius: 10px; outline: none; background: var(--fundo-base); color: var(--texto-forte); font: inherit; }
+  input[type='text'], input[type='number'] { box-sizing: border-box; width: 100%; min-height: 48px; padding: .75rem .9rem; border: 1px solid var(--acao-secundaria); border-radius: 10px; outline: none; background: var(--fundo-base); color: var(--texto-forte); font: inherit; }
   input[aria-invalid='true'] { border-color: var(--estado-erro); }
   input:focus-visible { border-color: var(--foco-cor); box-shadow: var(--foco-anel); }
   fieldset { display: flex; gap: 1.2rem; margin: 0; padding: 0; border: 0; }
