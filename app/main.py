@@ -15,6 +15,7 @@ from starlette.websockets import WebSocketDisconnect
 
 from app.api import ErroDeCampo, normalizar_erros_validacao
 from app.api import router as api_router
+from app.backup import rotina as rotina_backup
 from app.comandos import snapshot_sync
 from app.config import settings, validar_producao
 from app.db import init_db
@@ -99,11 +100,13 @@ async def lifespan(app: FastAPI):
                 logger.warning("Falha na rotina de sucessao: %s", e)
 
     tarefa_limpeza = asyncio.create_task(rotina_limpeza())
+    tarefa_backup = asyncio.create_task(rotina_backup())
     tarefa_sucessao = asyncio.create_task(rotina_sucessao())
     try:
         yield
     finally:
         tarefa_limpeza.cancel()
+        tarefa_backup.cancel()
         tarefa_sucessao.cancel()
 
 

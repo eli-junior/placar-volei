@@ -38,3 +38,7 @@ A base de jogadores (agora com notas e fotos) precisa de mais resiliência. Migr
 - **Postgres agora:** custo operacional e de código sem necessidade presente.
 - **Só confiar no volume:** mantém a dívida; qualquer perda do volume apaga o cadastro.
 - **Backup na nuvem de imediato:** fora do escopo da TS1; pode ser história própria.
+
+## Updates
+
+- 2026-10-07 (CV8.TS1, 0.33.1): backup entregue (cópia verificada pela API do SQLite, retenção de 28, rotina a cada 6 h, CLI de restauração, pasta `./backups` do host). A decisão se mantém e os gatilhos para reabrir o Postgres continuam os mesmos. Pendências de resiliência registradas como dívida: cópias na mesma máquina, falha de backup só no log e acúmulo de `.antes-*`.

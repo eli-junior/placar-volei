@@ -6,6 +6,31 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.33.1 - 2026-10-07
+
+Boundary: CV8.TS1 — backup e restauração do `gerenciador.db` (patch; backend, web e APK em 0.33.1, APK `versionCode` 10; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ts1-backup-do-gerenciador` em `master`.
+
+### Added
+
+- **Backup automático** do `gerenciador.db`: cópia pela API de backup do SQLite, verificada antes de ganhar o nome final, na subida e a cada 6 h, mantendo as 28 mais recentes. Falha é logada, não derruba o app e nunca substitui nem faz podar cópias boas.
+- **Linha de comando** `python -m app.backup agora | listar | restaurar <arquivo> [--destino <caminho>]`; a restauração verifica a cópia e guarda o banco atual como `.antes-<data>`.
+- **Compose:** pasta do host `./backups` montada em `/backups`, fora do volume do banco; variáveis `GERENCIADOR_BACKUP_DIR`, `GERENCIADOR_BACKUP_INTERVALO_HORAS` e `GERENCIADOR_BACKUP_MANTER`.
+- Procedimento de backup e restauração no `docs/process/development-guide.md`.
+
+### Fixed
+
+- A cópia sai como arquivo único (modo `DELETE`), sem `-wal`/`-shm` soltos na pasta.
+- Um backup não apaga mais a sobra `.parcial` de outro em andamento (só as com mais de 1 h).
+
+### Verification
+
+- `uv run pytest` (316; 13 novos), fumaça com servidor real e restauração de ensaio. Validada pelo Navigator.
+- Dívida `sem-backup-do-volume-de-jogadores` quitada; novas: cópias na mesma máquina, falha de backup só no log, `.antes-*` acumulando.
+
 ## 0.33.0 - 2026-10-07
 
 Boundary: CV8.DS1.US2 — abrir sessão e marcar presença; fecha a CV8.DS1 (minor; backend, web e APK em 0.33.0, APK `versionCode` 9; Wear OS inalterado em 0.27.0).

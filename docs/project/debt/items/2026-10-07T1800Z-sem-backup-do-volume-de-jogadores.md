@@ -1,6 +1,6 @@
 ---
 id: debt-sem-backup-do-volume-de-jogadores
-status: Carried
+status: Closed
 kind: operations
 severity: medium
 source: CV8.DS1.US1
@@ -21,6 +21,7 @@ Hoje o cadastro é pequeno e refazível; o valor cresce com sessões e históric
 ## Updates
 
 - 2026-10-07: tratada pela Technical Story `CV8.TS1` (backup do `gerenciador.db`); Postgres foi considerado e adiado.
+- 2026-10-07 (CV8.TS1, 0.33.1): **quitada.** Rotina de backup verificado, retenção e restauração testada (inclusive com foto e sessão). Restam os riscos novos: cópias na mesma máquina, falha de backup só no log e acúmulo de `.antes-*` (itens próprios).
 
 ## Notes
 
