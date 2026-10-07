@@ -15,7 +15,7 @@ import re
 import uuid
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Request, status
+from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from app import rodada as regras_rodada
@@ -111,6 +111,24 @@ def _exigir_sem_partida_chamada(conn, sessao_id: str) -> None:
             "tem uma partida chamada: encerre-a antes de trocar o vínculo",
             "partida_chamada",
         )
+
+
+def ler_placar(quadra_id: str, partida_quadra_id: str | None) -> dict | None:
+    """Placar atual da quadra vinculada, ou None se ela não está disponível.
+    `mesma_partida` diz se ainda é a partida que a chamada carregou."""
+    try:
+        snap = snapshot_sync(settings.db_path, quadra_id)
+    except HTTPException:
+        return None
+    e = snap["estado_partida"]
+    return {
+        "a": e["pontos_a"],
+        "b": e["pontos_b"],
+        "encerrada": bool(e["encerrada"]),
+        "vencedor": e["vencedor"],
+        "mesma_partida": partida_quadra_id is None
+        or snap["partida_id"] == partida_quadra_id,
+    }
 
 
 def _registrar_chamada() -> dict:
@@ -267,6 +285,73 @@ async def chamar_partida() -> dict:
     return await asyncio.to_thread(estado_sync)
 
 
+def _registrar_encerramento() -> None:
+    """Lê o placar final da quadra e grava o resultado da partida chamada."""
+    conn = conectar(settings.gerenciador_db_path)
+    try:
+        with escrita(conn):
+            sessao = exigir_sessao_aberta(conn)
+            rodada = regras_rodada.montar(conn, sessao["id"])
+            if rodada is None or rodada["estado"] != "em_andamento":
+                raise erro_de_campo(
+                    409, "rodada", "não está em andamento", "sem_rodada"
+                )
+            chamada = conn.execute(
+                "SELECT * FROM partidas_rodada WHERE rodada_id = ? AND estado = 'chamada'",
+                (rodada["id"],),
+            ).fetchone()
+            if chamada is None:
+                raise erro_de_campo(
+                    409,
+                    "rodada",
+                    "não tem partida chamada para encerrar",
+                    "sem_partida",
+                )
+            placar = ler_placar(chamada["quadra_id"], chamada["partida_quadra_id"])
+            if placar is None:
+                raise erro_de_campo(
+                    409,
+                    "quadra",
+                    "não está mais disponível: vincule de novo (a partida chamada "
+                    "continua aguardando o resultado)",
+                    "indisponivel",
+                )
+            if not placar["mesma_partida"]:
+                raise erro_de_campo(
+                    409,
+                    "quadra",
+                    "tem outra partida em andamento: a partida chamada foi trocada "
+                    "no placar e o resultado dela não pode ser lido",
+                    "partida_trocada",
+                )
+            if not placar["encerrada"] or placar["vencedor"] not in ("A", "B"):
+                raise erro_de_campo(
+                    409,
+                    "rodada",
+                    f"A partida ainda não terminou no placar ({placar['a']} × {placar['b']})",
+                    "em_jogo",
+                )
+            vencedor = (
+                chamada["time_a_id"]
+                if placar["vencedor"] == "A"
+                else chamada["time_b_id"]
+            )
+            conn.execute(
+                "UPDATE partidas_rodada SET estado = 'encerrada', placar_a = ?, "
+                "placar_b = ?, vencedor_time_id = ?, encerrada_em = ? WHERE id = ?",
+                (placar["a"], placar["b"], vencedor, agora(), chamada["id"]),
+            )
+    finally:
+        conn.close()
+
+
+async def encerrar_partida() -> dict:
+    from app.sessao import estado_sync
+
+    await asyncio.to_thread(_registrar_encerramento)
+    return await asyncio.to_thread(estado_sync)
+
+
 class CodigoBody(BaseModel):
     codigo: Any = None
 
@@ -292,13 +377,5 @@ async def delete_quadra(request: Request):
     autenticar_owner(request)
     await asyncio.to_thread(desvincular_sync)
     estado = await asyncio.to_thread(estado_sync)
-    await publicar(estado)
-    return estado
-
-
-@router.post("/api/rodada/chamar-partida", status_code=status.HTTP_201_CREATED)
-async def post_chamar_partida(request: Request):
-    autenticar_owner(request)
-    estado = await chamar_partida()
     await publicar(estado)
     return estado

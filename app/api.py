@@ -29,6 +29,7 @@ from app.quadras import (
 )
 from app.rate_limit import entrada_rate_limiter, owner_rate_limiter
 from app.rede import ip_do_cliente
+from app.sincronia import avisar_placar
 
 router = APIRouter(prefix="/api", tags=["quadras"])
 
@@ -492,6 +493,7 @@ async def transmitir_estado(quadra_id: str, resultado: dict | None = None):
     for p in resultado["participantes"]:
         p["online"] = p["id"] in online
     await hub.broadcast(quadra_id, {"tipo": "PLACAR_ATUALIZADO", "payload": resultado})
+    await avisar_placar(quadra_id)
 
 
 @router.post("/quadras/{quadra_id}/pontos", status_code=201)

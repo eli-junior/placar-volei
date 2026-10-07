@@ -33,7 +33,7 @@ from app.jogadores import (
     obter_jogador,
     recompactar_presencas,
 )
-from app.ponte import info_quadra
+from app.ponte import info_quadra, ler_placar
 from app.sincronia import publicar
 
 MINIMO_PARA_SORTEAR = 4
@@ -77,7 +77,7 @@ def _estado(conn) -> dict:
     rodada = regras_rodada.montar(conn, sessao["id"])
     quadra = info_quadra(sessao["quadra_id"])
     conducao = (
-        regras_rodada.montar_conducao(conn, rodada, quadra)
+        regras_rodada.montar_conducao(conn, rodada, quadra, ler_placar)
         if rodada and rodada["estado"] == "em_andamento"
         else None
     )
@@ -237,39 +237,6 @@ def rapido_sync(nome, genero, nota) -> dict:
     return {"jogador": jogador, **estado}
 
 
-def _rodada_op(acao):
-    def op(conn):
-        with escrita(conn):
-            acao(conn)
-        return _estado(conn)
-
-    return _executar(op)
-
-
-def sortear_sync(alvo: Any) -> dict:
-    return _rodada_op(lambda conn: regras_rodada.criar_proposta(conn, alvo))
-
-
-def resortear_sync(alvo: Any = None) -> dict:
-    return _rodada_op(lambda conn: regras_rodada.resortear(conn, alvo))
-
-
-def confirmar_sync() -> dict:
-    return _rodada_op(regras_rodada.confirmar)
-
-
-def descartar_sync() -> dict:
-    return _rodada_op(regras_rodada.descartar)
-
-
-def cancelar_sync() -> dict:
-    return _rodada_op(regras_rodada.cancelar)
-
-
-class AlvoBody(BaseModel):
-    alvo: Any = None
-
-
 class OrdemBody(BaseModel):
     jogador_ids: Any = None
 
@@ -324,36 +291,3 @@ async def put_ordem(body: OrdemBody, request: Request):
 async def post_rapido(body: JogadorBody, request: Request):
     autenticar_owner(request)
     return await _responder(rapido_sync, body.nome, body.genero, body.nota)
-
-
-router_rodada = APIRouter(prefix="/api/rodada", tags=["rodada"])
-
-
-@router_rodada.post("/sorteio", status_code=status.HTTP_201_CREATED)
-async def post_sorteio(body: AlvoBody, request: Request):
-    autenticar_owner(request)
-    return await _responder(sortear_sync, body.alvo)
-
-
-@router_rodada.post("/resortear")
-async def post_resortear(body: AlvoBody, request: Request):
-    autenticar_owner(request)
-    return await _responder(resortear_sync, body.alvo)
-
-
-@router_rodada.post("/confirmar")
-async def post_confirmar(request: Request):
-    autenticar_owner(request)
-    return await _responder(confirmar_sync)
-
-
-@router_rodada.post("/descartar")
-async def post_descartar(request: Request):
-    autenticar_owner(request)
-    return await _responder(descartar_sync)
-
-
-@router_rodada.post("/cancelar")
-async def post_cancelar(request: Request):
-    autenticar_owner(request)
-    return await _responder(cancelar_sync)

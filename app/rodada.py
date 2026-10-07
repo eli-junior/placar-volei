@@ -197,7 +197,7 @@ def cancelar(conn) -> None:
     conn.execute("UPDATE rodadas SET estado = 'cancelada' WHERE id = ?", (r["id"],))
 
 
-def montar_conducao(conn, rodada: dict, quadra: dict | None) -> dict:
+def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) -> dict:
     """Painel da condução: em quadra, fila, reis, eliminados e o gate de
     "Chamar partida". `quadra` é o vínculo com o placar (ou None)."""
     por_id = {t["id"]: t for t in rodada["times"]}
@@ -222,12 +222,16 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None) -> dict:
         (rodada["id"],),
     ).fetchone()
     partida = None
+    placar = None
     if chamada:
+        if ler_placar and quadra and quadra["disponivel"]:
+            placar = ler_placar(chamada["quadra_id"], chamada["partida_quadra_id"])
         partida = {
             "ordem": chamada["ordem"],
             "time_a": por_id[chamada["time_a_id"]]["fila"],
             "time_b": por_id[chamada["time_b_id"]]["fila"],
             "chamada_em": chamada["chamada_em"],
+            "placar": placar,
         }
     em_quadra = [vista(t) for t in situacao.em_quadra]
 
@@ -251,6 +255,35 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None) -> dict:
                 )
                 break
     encerradas = len(resultados)
+    historico = [
+        {
+            "ordem": r["ordem"],
+            "time_a": por_id[r["time_a_id"]]["fila"],
+            "time_b": por_id[r["time_b_id"]]["fila"],
+            "placar_a": r["placar_a"],
+            "placar_b": r["placar_b"],
+            "vencedor": por_id[r["vencedor_time_id"]]["fila"],
+            "encerrada_em": r["encerrada_em"],
+        }
+        for r in conn.execute(
+            "SELECT * FROM partidas_rodada WHERE rodada_id = ? AND estado = 'encerrada' "
+            "ORDER BY ordem",
+            (rodada["id"],),
+        )
+    ]
+    motivo_encerrar = None
+    if chamada:
+        if placar is None:
+            motivo_encerrar = "A quadra vinculada não está disponível: vincule de novo para ler o placar."
+        elif not placar["mesma_partida"]:
+            motivo_encerrar = (
+                "O placar está com outra partida: a chamada foi trocada na quadra."
+            )
+        elif not placar["encerrada"]:
+            motivo_encerrar = (
+                f"Em jogo no placar ({placar['a']} × {placar['b']}): "
+                "encerre quando terminar."
+            )
     return {
         "fase": situacao.fase,
         "em_quadra": em_quadra,
@@ -265,6 +298,14 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None) -> dict:
             for j in por_id[t]["jogadores"]
         ],
         "partidas_encerradas": encerradas,
+        "historico": historico,
+        "pode_encerrar": bool(chamada) and motivo_encerrar is None,
+        "motivo_encerrar": motivo_encerrar,
+        "finalista": (
+            vista(situacao.em_quadra[0])
+            if situacao.fase == "fim_da_fila" and len(situacao.em_quadra) == 1
+            else None
+        ),
         "pode_chamar": motivo is None,
         "motivo": motivo,
     }
