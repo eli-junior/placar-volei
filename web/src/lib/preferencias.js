@@ -74,3 +74,23 @@ export function guardarTamanhoNumeros(tamanho, armazenamento = globalThis.localS
 export function proximoTamanhoNumeros(atual) {
   return { P: 'M', M: 'G', G: 'P' }[atual] || 'M';
 }
+
+/** Segredo do dono, digitado uma vez neste aparelho (CV8.DS1.US1). */
+export const CHAVE_SEGREDO_DONO = 'placar:segredo_dono';
+
+export function lerSegredoDono(armazenamento = globalThis.localStorage) {
+  try {
+    return armazenamento?.getItem(CHAVE_SEGREDO_DONO) || '';
+  } catch {
+    return '';
+  }
+}
+
+export function guardarSegredoDono(segredo, armazenamento = globalThis.localStorage) {
+  try {
+    if (segredo) armazenamento?.setItem(CHAVE_SEGREDO_DONO, segredo);
+    else armazenamento?.removeItem(CHAVE_SEGREDO_DONO);
+  } catch {
+    /* navegação privada: vale só até recarregar */
+  }
+}

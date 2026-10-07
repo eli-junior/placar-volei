@@ -48,8 +48,8 @@ ENV PYTHONUNBUFFERED=1 \
 # Usuário não-root e diretórios de aplicação e dados
 RUN groupadd --system --gid 1001 placar \
  && useradd --system --uid 1001 --gid placar --home-dir /srv --no-create-home placar \
- && mkdir -p /srv /data \
- && chown -R placar:placar /srv /data
+ && mkdir -p /srv /data /data-gerenciador \
+ && chown -R placar:placar /srv /data /data-gerenciador
 
 WORKDIR /srv
 

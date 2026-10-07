@@ -21,6 +21,8 @@ from app.db import init_db
 from app.eventos import get_quadra_lock
 from app.hub import hub
 from app.identidade import SESSION_COOKIE
+from app.jogadores import init_jogadores_sync
+from app.jogadores import router as jogadores_router
 from app.quadras import (
     atualizar_ultimo_visto,
     limpar_quadras_expiradas,
@@ -44,6 +46,7 @@ async def lifespan(app: FastAPI):
     validar_producao(settings)
     # Inicializa o schema e WAL do SQLite na inicialização
     await init_db(settings.db_path)
+    await asyncio.to_thread(init_jogadores_sync)
 
     async def rotina_limpeza():
         while True:
@@ -113,6 +116,7 @@ app = FastAPI(
 # Inclui rotas REST da API
 app.include_router(api_router)
 app.include_router(watch_router)
+app.include_router(jogadores_router)
 
 
 @app.exception_handler(RequestValidationError)

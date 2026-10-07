@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** CV8.DS1.US1 — Cadastrar jogadores (base persistente: nome e gênero; criar, editar, inativar).
 - **Branch:** `feature/cv8-ds1-us1-cadastrar-jogadores`
-- **Passo Ariad:** Passo 2 - Planejamento (aguarda Checkpoint 1)
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguarda Checkpoint 2)
 - **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** plano em `plan.md` da história; decidir persistência (banco efêmero) e quem pode escrever; depois implementar.
+- **Handoff / Próximos Passos:** implementação concluída (backend `app/jogadores.py`, tela `Jogadores.svelte`, volume no compose, versão 0.31.0); falta o Navigator validar pela rota em `test-guide.md`, depois revisão (Passo 5), docs e merge.
 
 ## 2026-10-07 — Registro da CV8 (sem versão)
 

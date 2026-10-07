@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     )
 
     db_path: str = "data/placar.db"
+    # Base de jogadores (CV8): durável, nunca apagada pelo reset do banco das quadras.
+    gerenciador_db_path: str = "data/gerenciador.db"
     owner_secret: str = SEGREDO_PADRAO
     # Em produção o app não sobe com o segredo padrão nem sem segredo.
     producao: bool = False
@@ -19,7 +21,7 @@ class Settings(BaseSettings):
     admin_timeout_seconds: int = 120
     host: str = "0.0.0.0"
     port: int = 8000
-    version: str = "0.30.1"
+    version: str = "0.31.0"
     reset_db_on_startup: bool = False
     # Apelidos (separados por vírgula, qualquer caixa) que habilitam o vínculo
     # de relógio ao criar ou entrar na sala; são gravados em Title ("eli" -> "Eli").

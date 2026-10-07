@@ -26,6 +26,6 @@ export default defineConfig({
     reuseExistingServer: false,
     timeout: 60_000,
     // Cada teste cria a própria sala; o limite de produção (20) não serve aqui.
-    env: { DB_PATH: banco, OWNER_SECRET: 'segredo-e2e', WATCH_AUTO_GRANT: 'eli', MAX_QUADRAS: '500' },
+    env: { DB_PATH: banco, GERENCIADOR_DB_PATH: banco.replace('.db', '-gerenciador.db'), OWNER_SECRET: 'segredo-e2e', WATCH_AUTO_GRANT: 'eli', MAX_QUADRAS: '500' },
   },
 });

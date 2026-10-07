@@ -2,11 +2,15 @@
   import { onMount } from 'svelte';
   import HomePlacar from './components/HomePlacar.svelte';
   import ModalEntrar from './components/ModalEntrar.svelte';
+  import Jogadores from './components/Jogadores.svelte';
   import SalaQuadra from './components/SalaQuadra.svelte';
+  import { noAplicativoAndroid } from './lib/casca.js';
   import { aceitarSnapshot, lerJson, mensagemDeErro } from './sync.js';
   import { criarConexao } from './lib/conexao.js';
 
   let quadraAtual = $state(null);
+  // Base de jogadores (CV8): só no navegador, nunca dentro do APK.
+  let telaJogadores = $state(false);
   let eu = $state(null);
   let participantes = $state([]);
   let estadoPartida = $state(null);
@@ -246,6 +250,8 @@
 
   async function carregarRota() {
     handleVoltarParaHome(false);
+    telaJogadores = window.location.pathname === '/jogadores' && !noAplicativoAndroid();
+    if (telaJogadores) return;
     const match = window.location.pathname.match(/^\/quadra\/([a-zA-Z0-9_-]+)$/);
     if (!match) return;
     const quadraId = match[1];
@@ -277,7 +283,9 @@
 </script>
 
 <main>
-  {#if quadraAtual}
+  {#if telaJogadores}
+    <Jogadores onVoltar={() => { window.history.pushState({}, '', '/'); carregarRota(); }} />
+  {:else if quadraAtual}
     <!-- Sala da Quadra em Tempo Real -->
     <SalaQuadra
       quadra={quadraAtual}
@@ -306,6 +314,7 @@
     <HomePlacar
       onCriarQuadra={handleCriarQuadraHome}
       onEntrarQuadra={handleEntrarQuadraHome}
+      onAbrirJogadores={noAplicativoAndroid() ? null : () => { window.history.pushState({}, '', '/jogadores'); carregarRota(); }}
       {submetendo}
       {erro}
     />

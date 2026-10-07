@@ -19,6 +19,19 @@ export function emCascaEmbarcada(janela = globalThis.window) {
 }
 
 /**
+ * Verdadeiro em qualquer página aberta dentro do APK, inclusive as do servidor
+ * (quadra online). A base de jogadores (CV8) não aparece aí.
+ * @param {any} [janela]
+ */
+export function noAplicativoAndroid(janela = globalThis.window) {
+  try {
+    return Boolean(janela?.Capacitor?.isNativePlatform?.());
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Aceita `placar.exemplo.com`, `https://placar.exemplo.com/` ou com caminho;
  * devolve a origem `https://…` ou `null` se não for um endereço válido.
  * HTTP só é aceito para rede local (IP privado ou `.local`), útil em teste.
