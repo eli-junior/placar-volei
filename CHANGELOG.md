@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** CV8.DS3.US5 — Visualizar e conduzir a fila (painel da partida atual, fila, reis e eliminados; "Chamar partida" carrega as duplas no placar; estado sincronizado entre aparelhos).
 - **Branch:** `feature/cv8-ds3-us5-visualizar-e-conduzir-a-fila`
-- **Passo Ariad:** Passo 4 - Teste e Validação (aguarda Checkpoint 2)
+- **Passo Ariad:** Passo 5 - Revisão (aguarda Checkpoint 3)
 - **Assinatura do Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff / Próximos Passos:** implementação concluída (`app/conducao.py`, `app/ponte.py`, `app/sincronia.py`, WebSocket `/ws/gerenciador`, schema 5, `PainelConducao.svelte`; versão 0.35.0); falta o Navigator validar pela rota em `test-guide.md`.
+- **Handoff / Próximos Passos:** implementação concluída (`app/conducao.py`, `app/ponte.py`, `app/sincronia.py`, WebSocket `/ws/gerenciador`, schema 5, `PainelConducao.svelte`; versão 0.35.0); validada pelo Navigator; revisão apresentada, depois docs (Passo 6) e merge.
 
 ## 0.34.0 - 2026-10-07
 
