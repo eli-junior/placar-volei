@@ -4,7 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### CV8.DS6.US15 — Formato trio (rodada inteira em trios)
+
+- **Branch:** `feature/cv8-ds6-us15-formato-trio`
+- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01KNVAV8TEYj9sk9Gygfvno2 | Data: 2026-10-08
+- **Handoff / Próximos Passos:** plano apresentado ao Navigator; nenhum código alterado. Decisões já tomadas: rodada inteira em trios; trio misto (nunca HHH/MMM, salvo grupo só de um sexo); sobra é time incompleto que escolhe parceiros na sua vez; placar igual.
 
 ## Sem versão - 2026-10-08
 
