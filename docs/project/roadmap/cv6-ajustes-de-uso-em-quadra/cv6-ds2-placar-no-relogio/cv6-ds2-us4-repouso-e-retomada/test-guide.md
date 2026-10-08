@@ -34,3 +34,10 @@ Para coletar o recorte depois dos ciclos: `adb -s <watch> logcat -d -s WatchSess
 Comando: `JAVA_HOME=/home/eli/.sdkman/candidates/java/21.0.7-tem ./wear/gradlew -p wear testDebugUnitTest assembleDebug lintDebug assembleRelease`.
 
 59 testes JVM cobrem fila, reenvio e reconciliação existentes; zero falhas. Debug/release e lint terminaram verdes. Diagnóstico ADB após repouso: `mWakefulness=Dozing`; serviço `WatchSessionService` em primeiro plano; log abriu o WebSocket antes do repouso e não registrou fechamento durante o intervalo observado. O Navigator aceitou essa evidência limitada. Ela não comprova gesto nem mensagem remota durante o repouso. A conexão em ambiente/Doze, reconexão, treino e bateria exigem validação adicional no relógio real.
+
+## Medição no relógio real (2026-10-07, Wear 0.27.0)
+
+- **Pausa no repouso já existe:** com a tela apagada (`Dozing`), nenhum sensor `heart_rate` ficou ativo (`LifecycleStartEffect` desliga o `MeasureClient` em `onStop`, CV5.DS2.TS3) e o contador de quadros do app ficou parado por 10 s. O item "pausar animação e batimento" do plano não exige código.
+- **Placar não ficava ao levantar o pulso:** a causa é o ajuste do Wear OS `wear_activity_auto_resume_timeout_ms` (global), que valia 60000 (1 min); passado esse tempo o sistema devolve o mostrador. O app não consegue contorná-lo.
+- **Solução, por aparelho:** `adb shell settings put global wear_activity_auto_resume_timeout_ms 14400000` (4 h). Validado pelo Navigator no pulso: após mais de 1 min de tela apagada, o placar reaparece direto; só o botão de voltar sai. Para reverter: voltar o valor a 60000.
+- **Ainda sem observação:** ponto remoto com a tela apagada, queda de rede, treino ativo e bateria.
