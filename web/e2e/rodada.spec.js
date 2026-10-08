@@ -44,7 +44,7 @@ test('menos de 4 presentes: sortear desabilitado com o aviso', async ({ abrir })
   await chegam(p, SEIS.slice(0, 3));
   await abrirTela(p);
   await expect(p.getByRole('button', { name: 'Sortear duplas' })).toBeDisabled();
-  await expect(p.getByText('Faltam 1 presente(s) para sortear.')).toBeVisible();
+  await expect(p.getByText('Falta 1 presente para sortear.')).toBeVisible();
 });
 
 // Notas próximas: há várias combinações igualmente equilibradas para resortear.
@@ -56,7 +56,7 @@ test('sortear, resortear, confirmar, presença travada e cancelar', async ({ abr
   const nomes = await chegam(p, PROXIMAS);
   await abrirTela(p);
 
-  await p.getByLabel('12 pontos').check();
+  await p.getByLabel('Pontos da partida').fill('12');
   await p.getByRole('button', { name: 'Sortear duplas' }).click();
   await expect(p.getByRole('heading', { name: /Proposta 1/ })).toContainText('alvo 12');
   await expect(p.getByRole('status').filter({ hasText: 'Primeira partida' })).toContainText('Time 1 × Time 2');
@@ -122,7 +122,7 @@ test('formato trio: sorteia 2 trios mistos com 6 presentes', async ({ abrir }) =
   await chegam(p, SEIS);
   await abrirTela(p);
 
-  await p.getByLabel('Trios (mínimo 6)').check();
+  await p.getByLabel('Trios').check();
   await p.getByRole('button', { name: 'Sortear trios' }).click();
   await expect(p.getByRole('heading', { name: /Proposta 1/ })).toContainText('trios');
   const times = p.locator('ol.fila > li');
@@ -139,7 +139,49 @@ test('formato trio com menos de 6 presentes: sortear desabilitado', async ({ abr
   await sessaoLimpa(p);
   await chegam(p, SEIS.slice(0, 5));
   await abrirTela(p);
-  await p.getByLabel('Trios (mínimo 6)').check();
+  await p.getByLabel('Trios').check();
   await expect(p.getByRole('button', { name: 'Sortear trios' })).toBeDisabled();
-  await expect(p.getByText('Faltam 1 presente(s) para sortear.')).toBeVisible();
+  await expect(p.getByText('Falta 1 presente para sortear.')).toBeVisible();
+});
+
+// Ajustes do Joguinho: mensagem por formato, slider de pontos, arrastar a ordem e gerenciar jogadores.
+test('mínimo acompanha o formato e o slider vai de 6 a 25', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS.slice(0, 3));
+  await abrirTela(p);
+  await expect(p.getByText('Falta 1 presente para sortear.')).toBeVisible();
+  await p.getByLabel('Trios').check();
+  await expect(p.getByText('Faltam 3 presentes para sortear.')).toBeVisible();
+  const slider = p.getByRole('slider', { name: 'Pontos da partida' });
+  await expect(slider).toHaveAttribute('min', '6');
+  await expect(slider).toHaveAttribute('max', '25');
+});
+
+test('arrastar a alça muda a ordem de chegada', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  const nomes = await chegam(p, SEIS.slice(0, 4));
+  await abrirTela(p);
+  const itens = p.locator('ol.lista > li');
+  await expect(itens.nth(0)).toContainText(nomes[0]);
+  const alca = itens.nth(2).getByRole('button', { name: /Arrastar/ });
+  const de = await alca.boundingBox();
+  const topo = await itens.nth(0).boundingBox();
+  await p.mouse.move(de.x + de.width / 2, de.y + de.height / 2);
+  await p.mouse.down();
+  await p.mouse.move(de.x + de.width / 2, topo.y + 4, { steps: 8 });
+  await p.mouse.up();
+  await expect(itens.nth(0)).toContainText(nomes[2]);
+  await expect(itens.nth(1)).toContainText(nomes[0]);
+  await expect(itens.nth(0).locator('.ordem')).toHaveText('1º');
+});
+
+test('gerenciar jogadores abre a tela de jogadores', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS.slice(0, 2));
+  await abrirTela(p);
+  await p.getByRole('button', { name: 'Gerenciar jogadores' }).click();
+  await expect(p).toHaveURL(/\/jogadores$/);
 });

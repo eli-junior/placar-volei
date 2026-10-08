@@ -192,6 +192,35 @@ def test_migra_do_schema_8():
     conn.close()
     init_gerenciador_sync()
     conn = sqlite3.connect(settings.gerenciador_db_path)
-    assert conn.execute("PRAGMA user_version").fetchone()[0] == 9
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == 10
     assert "formato" in [r[1] for r in conn.execute("PRAGMA table_info(rodadas)")]
+    conn.close()
+
+
+def test_migra_do_schema_9_liberando_o_alvo():
+    conn = sqlite3.connect(settings.gerenciador_db_path)
+    sql = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE name = 'rodadas'"
+    ).fetchone()[0]
+    conn.execute("DROP TABLE rodadas")
+    conn.execute(sql.replace("BETWEEN 6 AND 25", "IN (10, 12)"))
+    conn.execute(
+        "INSERT INTO rodadas (id, sessao_id, numero, alvo, estado, criado_em) "
+        "VALUES ('r1', 's1', 1, 12, 'encerrada', 'x')"
+    )
+    conn.execute("PRAGMA user_version = 9")
+    conn.commit()
+    conn.close()
+    init_gerenciador_sync()
+    conn = sqlite3.connect(settings.gerenciador_db_path)
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == 10
+    assert conn.execute("SELECT alvo, formato FROM rodadas").fetchall() == [
+        (12, "dupla")
+    ]
+    conn.execute(
+        "INSERT INTO rodadas (id, sessao_id, numero, alvo, estado, criado_em) "
+        "VALUES ('r2', 's1', 2, 18, 'encerrada', 'x')"
+    )
+    indices = [r[1] for r in conn.execute("PRAGMA index_list(rodadas)")]
+    assert "idx_rodada_ativa" in indices
     conn.close()

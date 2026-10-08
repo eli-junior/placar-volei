@@ -93,11 +93,19 @@ async def test_sem_sessao_e_menos_de_quatro_sao_recusados(ac):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("alvo", [None, 8, "10", True, 11, 0, [10]])
+@pytest.mark.parametrize("alvo", [None, 5, 26, "10", True, 0, [10], 10.5])
 async def test_alvo_invalido(ac, alvo):
     await presentes(ac, OITO)
     r = await sortear(ac, alvo)
     assert r.status_code == 422 and r.json()["erros"][0]["campo"] == "alvo"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("alvo", [6, 8, 15, 25])
+async def test_alvo_de_6_a_25(ac, alvo):
+    await presentes(ac, OITO)
+    r = await sortear(ac, alvo)
+    assert r.status_code == 201 and r.json()["rodada"]["alvo"] == alvo
 
 
 @pytest.mark.asyncio
@@ -183,7 +191,7 @@ async def test_resortear_troca_combinacao_e_alvo(ac):
     # sem alvo no corpo, mantém o atual
     terceira = (await ac.post("/api/rodada/resortear", json={})).json()["rodada"]
     assert terceira["alvo"] == 12 and terceira["tentativa"] == 2
-    assert (await ac.post("/api/rodada/resortear", json={"alvo": 7})).status_code == 422
+    assert (await ac.post("/api/rodada/resortear", json={"alvo": 5})).status_code == 422
     # continua um estado só, com um só conjunto de times
     with sqlite3.connect(settings.gerenciador_db_path) as conn:
         assert conn.execute("SELECT COUNT(*) FROM times").fetchone()[0] == 4

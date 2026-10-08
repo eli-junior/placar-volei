@@ -26,7 +26,7 @@ from app.reequilibrio import (
 )
 from app.sorteio import JogadoresInsuficientes, Participante, sortear
 
-ALVOS = (10, 12)
+ALVO_MINIMO, ALVO_MAXIMO = 6, 25
 FORMATOS = {"dupla": 2, "trio": 3}
 ATIVAS = ("proposta", "em_andamento")
 
@@ -100,8 +100,17 @@ def montar(conn, sessao_id: str) -> dict | None:
 
 
 def _alvo_valido(bruto) -> int:
-    if isinstance(bruto, bool) or bruto not in ALVOS:
-        raise erro_de_campo(422, "alvo", "deve ser 10 ou 12", "valor_invalido")
+    if (
+        isinstance(bruto, bool)
+        or not isinstance(bruto, int)
+        or not ALVO_MINIMO <= bruto <= ALVO_MAXIMO
+    ):
+        raise erro_de_campo(
+            422,
+            "alvo",
+            f"deve ser um número de {ALVO_MINIMO} a {ALVO_MAXIMO}",
+            "valor_invalido",
+        )
     return int(bruto)
 
 

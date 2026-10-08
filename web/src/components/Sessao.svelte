@@ -7,9 +7,9 @@
   import PainelConducao from './PainelConducao.svelte';
   import { guardarSegredoDono, lerApelido, lerSegredoDono } from '../lib/preferencias.js';
   import { criarConexao } from '../lib/conexao.js';
-  import { chamarRodada, chamarSessao, criarQuadraDoPlacar, estadoMaisNovo, faltamParaSortear, moverPosicao, rotuloSincronia } from '../lib/jogadores.js';
+  import { chamarRodada, chamarSessao, criarQuadraDoPlacar, estadoMaisNovo, faltamParaSortear, mensagemFaltam, moverPara, moverPosicao, rotuloSincronia } from '../lib/jogadores.js';
 
-  let { onVoltar = () => {} } = $props();
+  let { onVoltar = () => {}, onGerenciarJogadores = () => {} } = $props();
 
   let segredo = $state(lerSegredoDono());
   let estado = $state(null);
@@ -17,10 +17,6 @@
   let ocupado = $state(false);
   let erro = $state(null);
   let confirmandoEncerrar = $state(false);
-  let nome = $state('');
-  let genero = $state('');
-  let nota = $state('');
-  let erroRapido = $state(null);
   let alvo = $state(10);
   let formato = $state('dupla');
   let conectado = $state(false);
@@ -138,6 +134,38 @@
   const desmarcar = (j) => agir(`/presencas/${j.id}`, { metodo: 'DELETE' });
   const mover = (j, delta) => agir('/ordem', { metodo: 'PUT', corpo: { jogador_ids: moverPosicao(presentes.map(p => p.id), j.id, delta) } });
 
+  // Arrastar pela alça: a lista mostra a nova ordem enquanto o dedo anda e só
+  // grava ao soltar. Os centros dos itens são medidos ao começar (sem tremer).
+  let listaEl = $state(null);
+  let arrasto = $state(null);
+  const idsPresentes = $derived(presentes.map(p => p.id));
+  const listaExibida = $derived(
+    arrasto ? moverPara(idsPresentes, arrasto.id, arrasto.destino).map(id => presentes.find(p => p.id === id)) : presentes
+  );
+  function iniciarArrasto(e, j) {
+    if (ocupado || travada || !listaEl) return;
+    e.preventDefault();
+    const centros = [...listaEl.querySelectorAll(':scope > li')].map(li => {
+      const r = li.getBoundingClientRect();
+      return r.top + r.height / 2;
+    });
+    e.currentTarget.setPointerCapture(e.pointerId);
+    arrasto = { id: j.id, destino: idsPresentes.indexOf(j.id), centros };
+  }
+  function moverArrasto(e) {
+    if (!arrasto) return;
+    const origem = idsPresentes.indexOf(arrasto.id);
+    const destino = arrasto.centros.filter((c, i) => i !== origem && c < e.clientY).length;
+    if (destino !== arrasto.destino) arrasto = { ...arrasto, destino };
+  }
+  async function soltarArrasto() {
+    if (!arrasto) return;
+    const { id, destino } = arrasto;
+    arrasto = null;
+    const nova = moverPara(idsPresentes, id, destino);
+    if (nova.join() !== idsPresentes.join()) await agir('/ordem', { metodo: 'PUT', corpo: { jogador_ids: nova } });
+  }
+
   const registrarAtrasado = (j) => agir('/atrasado', { metodo: 'POST', corpo: { jogador_id: j.id } }, chamarRodada);
   const sortear = () => agir('/sorteio', { metodo: 'POST', corpo: { alvo, formato } }, chamarRodada);
   const resortear = () => agir('/resortear', { metodo: 'POST', corpo: { alvo, formato } }, chamarRodada);
@@ -205,24 +233,6 @@
     confirmandoEncerrar = false;
     await agir('/encerrar', { metodo: 'POST' });
   }
-
-  async function cadastrarRapido(evento) {
-    evento.preventDefault();
-    erroRapido = null;
-    const corpo = { nome, genero };
-    if (nota !== null && nota !== undefined && String(nota).trim() !== '') corpo.nota = Number(nota);
-    ocupado = true;
-    try {
-      const r = await chamarSessao(segredo, '/presencas/rapido', { metodo: 'POST', corpo });
-      aplicar({ ...r, jogador: undefined });
-      nome = ''; genero = ''; nota = '';
-    } catch (e) {
-      if (e.status === 404) { sair(); erro = e.message; return; }
-      erroRapido = e.message;
-    } finally {
-      ocupado = false;
-    }
-  }
 </script>
 
 <main class="sessao">
@@ -268,15 +278,22 @@
 
       <section aria-labelledby="titulo-presentes">
         <h2 id="titulo-presentes">Presentes ({presentes.length})</h2>
-        <p class="ajuda" role="status">
-          {#if faltam > 0}Faltam {faltam} para poder sortear (mínimo {estado.minimo}).{:else}Já dá para sortear (mínimo {estado.minimo}).{/if}
-        </p>
         {#if !presentes.length}
           <p class="vazio">Ninguém marcado ainda. Marque abaixo, na ordem em que chegam.</p>
         {:else}
-          <ol class="lista">
-            {#each presentes as j, i (j.id)}
-              <li>
+          <ol class="lista" bind:this={listaEl}>
+            {#each listaExibida as j, i (j.id)}
+              <li class:arrastando={arrasto?.id === j.id}>
+                <button
+                  class="alca"
+                  type="button"
+                  aria-label="Arrastar {j.nome} para mudar a ordem de chegada"
+                  disabled={ocupado || travada}
+                  onpointerdown={e => iniciarArrasto(e, j)}
+                  onpointermove={moverArrasto}
+                  onpointerup={soltarArrasto}
+                  onpointercancel={() => { arrasto = null; }}
+                >⠿</button>
                 <span class="ordem" aria-label="Chegada nº {j.ordem}">{j.ordem}º</span>
                 <Avatar {segredo} jogador={j} />
                 <span class="nome">{j.nome}</span>
@@ -296,17 +313,16 @@
         <section class="cartao" aria-labelledby="titulo-sorteio">
           <h2 id="titulo-sorteio">Sortear a rodada</h2>
           <fieldset>
-            <legend>Pontos da partida</legend>
-            <label class="opcao"><input type="radio" name="alvo" value={10} bind:group={alvo} disabled={ocupado} /> 10 pontos</label>
-            <label class="opcao"><input type="radio" name="alvo" value={12} bind:group={alvo} disabled={ocupado} /> 12 pontos</label>
+            <legend>Pontos da partida: <strong>{alvo} pts</strong></legend>
+            <input class="slider-alvo" type="range" min="6" max="25" step="1" aria-label="Pontos da partida" bind:value={alvo} disabled={ocupado} />
           </fieldset>
           <fieldset>
             <legend>Formato dos times</legend>
             <label class="opcao"><input type="radio" name="formato" value="dupla" bind:group={formato} disabled={ocupado} /> Duplas</label>
-            <label class="opcao"><input type="radio" name="formato" value="trio" bind:group={formato} disabled={ocupado} /> Trios (mínimo 6)</label>
+            <label class="opcao"><input type="radio" name="formato" value="trio" bind:group={formato} disabled={ocupado} /> Trios</label>
           </fieldset>
           <button class="acao-principal" type="button" onclick={sortear} disabled={ocupado || faltam > 0}>{formato === 'trio' ? 'Sortear trios' : 'Sortear duplas'}</button>
-          {#if faltam > 0}<p class="ajuda">Faltam {faltam} presente(s) para sortear.</p>{/if}
+          {#if faltam > 0}<p class="ajuda" role="status">{mensagemFaltam(faltam)}</p>{/if}
         </section>
       {/if}
 
@@ -338,21 +354,11 @@
       {#if travada}
         <p class="ajuda">Presença travada: há uma rodada {rodada.estado === 'proposta' ? 'em proposta' : 'em andamento'}. Descarte ou cancele a rodada para marcar, desmarcar ou cadastrar.</p>
       {:else}
-      <form class="cartao" onsubmit={cadastrarRapido} aria-labelledby="titulo-rapido" novalidate>
-        <h2 id="titulo-rapido">Cadastro rápido</h2>
-        <p class="ajuda">Quem não está na base: cadastra e já marca presente, no fim da ordem.</p>
-        {#if erroRapido}<div class="alerta" role="alert"><Icone nome="alerta" tamanho="1.1em" /><span>{erroRapido}</span></div>{/if}
-        <label for="rapido-nome">Nome</label>
-        <input id="rapido-nome" type="text" maxlength="40" autocomplete="off" placeholder="Nome e sobrenome" bind:value={nome} disabled={ocupado} />
-        <fieldset>
-          <legend>Gênero</legend>
-          <label class="opcao"><input type="radio" name="rapido-genero" value="H" bind:group={genero} disabled={ocupado} /> Homem</label>
-          <label class="opcao"><input type="radio" name="rapido-genero" value="M" bind:group={genero} disabled={ocupado} /> Mulher</label>
-        </fieldset>
-        <label for="rapido-nota">Nota <span class="ajuda">(1 a 100; vazio = 60)</span></label>
-        <input id="rapido-nota" type="number" inputmode="numeric" min="1" max="100" step="1" placeholder="60" bind:value={nota} disabled={ocupado} />
-        <button class="acao-principal" type="submit" disabled={ocupado}>Cadastrar e marcar presente</button>
-      </form>
+      <section class="cartao" aria-labelledby="titulo-gerenciar">
+        <h2 id="titulo-gerenciar">Jogadores</h2>
+        <p class="ajuda">Cadastre, edite ou inative jogadores na tela de Jogadores e volte aqui para marcar quem chegou.</p>
+        <button class="secundario" type="button" onclick={onGerenciarJogadores} disabled={ocupado}>Gerenciar jogadores</button>
+      </section>
       {/if}
 
       <section class="encerrar" aria-label="Encerrar sessão">
@@ -385,9 +391,9 @@
   .cartao h2 { margin: 0; }
   .ajuda { margin: 0; color: var(--texto-suave); font-size: var(--texto-apoio); }
   label, legend { font-size: var(--texto-apoio); color: var(--texto-medio); }
-  input[type='text'], input[type='number'] { box-sizing: border-box; width: 100%; min-height: 48px; padding: .75rem .9rem; border: 1px solid var(--acao-secundaria); border-radius: 10px; outline: none; background: var(--fundo-base); color: var(--texto-forte); font: inherit; }
   input:focus-visible { border-color: var(--foco-cor); box-shadow: var(--foco-anel); }
-  fieldset { display: flex; gap: 1.2rem; margin: 0; padding: 0; border: 0; }
+  fieldset { display: flex; flex-wrap: wrap; gap: 1.2rem; margin: 0; padding: 0; border: 0; }
+  .slider-alvo { flex: 1 1 100%; min-height: 44px; }
   legend { padding: 0; margin-bottom: .3rem; }
   .opcao { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; }
   .opcao input { width: 1.2rem; height: 1.2rem; }
@@ -396,6 +402,9 @@
   .alerta { display: flex; align-items: flex-start; gap: .6rem; padding: .75rem; border: 1px solid color-mix(in srgb, var(--estado-erro) 45%, transparent); border-radius: 10px; background: color-mix(in srgb, var(--estado-erro) 12%, transparent); color: var(--estado-erro-suave); font-size: .83rem; line-height: 1.4; }
   .lista { display: flex; flex-direction: column; gap: .5rem; margin: 0; padding: 0; list-style: none; }
   li { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; padding: .6rem .75rem; border: 1px solid var(--borda-sutil); border-radius: var(--raio-padrao); background: var(--fundo-cartao); }
+  .alca { touch-action: none; cursor: grab; min-width: 44px; min-height: 44px; border: 0; border-radius: 10px; background: transparent; color: var(--texto-suave); font-size: 1.4rem; line-height: 1; }
+  .alca:disabled { opacity: .4; cursor: not-allowed; }
+  .arrastando { background: var(--fundo-elevado, var(--fundo-base)); box-shadow: var(--foco-anel); }
   .ordem { min-width: 2.2rem; font-family: var(--fonte-numeros); font-size: var(--texto-destaque); font-weight: 700; color: var(--texto-forte); }
   .nome { flex: 1 1 8rem; font-weight: 700; }
   .genero { color: var(--texto-suave); font-size: var(--texto-legenda); }

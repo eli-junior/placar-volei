@@ -292,7 +292,10 @@
 
 <main>
   {#if telaSessao}
-    <Sessao onVoltar={() => { window.history.pushState({}, '', '/'); carregarRota(); }} />
+    <Sessao
+      onVoltar={() => { window.history.pushState({}, '', '/'); carregarRota(); }}
+      onGerenciarJogadores={() => { window.history.pushState({}, '', '/jogadores'); carregarRota(); }}
+    />
   {:else if telaJogadores}
     <Jogadores onVoltar={() => { window.history.pushState({}, '', '/'); carregarRota(); }} />
   {:else if quadraAtual}

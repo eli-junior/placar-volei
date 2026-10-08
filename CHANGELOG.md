@@ -4,7 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### Maintenance CV8 — ajustes da tela "Novo joguinho"
+
+- **Branch:** `feature/cv8-joguinho-ajustes`
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando Checkpoint 2)
+- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01KNVAV8TEYj9sk9Gygfvno2 | Data: 2026-10-08
+- **Handoff / Próximos Passos:** plano confirmado. Itens: (1) slider de pontos 6–25 com migração schema 9→10 (CHECK de `rodadas.alvo`); (2) mensagem "Faltam N presentes" por formato; (3) "Cadastro rápido" vira botão "Gerenciar jogadores"; (4) arrastar e soltar na ordem de chegada. Versão alvo 0.46.0.
 
 ## Sem versão - 2026-10-08
 
