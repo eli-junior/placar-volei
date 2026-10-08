@@ -7,7 +7,7 @@ sessão (reversível: volta como "atrasado" ou na próxima rodada). Respeita a
 RN-01: não forma dupla H+H havendo mulher elegível.
 """
 
-from app.conducao import Candidato
+from app.conducao import Candidato, time_ruim
 from app.gerenciador_db import erro_de_campo, exigir_sessao_aberta
 from app.jogadores import recompactar_presencas
 from app.rodada import _contexto, elegiveis, montar
@@ -100,17 +100,17 @@ def substituir(conn, saiu_id, entra_id) -> None:
         raise erro_de_campo(
             409, "entra_id", "não está entre os substitutos", "fora_da_lista"
         )
-    parceiros = [j for j in time["jogadores"] if j["id"] != saiu_id]
-    if (
-        parceiros
-        and parceiros[0]["genero"] == "H"
-        and candidato["genero"] == "H"
-        and any(c["genero"] == "M" for c in lista["entram"])
+    parceiros = [j["genero"] for j in time["jogadores"] if j["id"] != saiu_id]
+    tamanho = rodada["tamanho"]
+    if time_ruim([*parceiros, candidato["genero"]], tamanho) and any(
+        not time_ruim([*parceiros, c["genero"]], tamanho) for c in lista["entram"]
     ):
         raise erro_de_campo(
             409,
             "entra_id",
-            "formaria dupla H+H havendo mulher elegível: escolha uma delas",
+            "formaria dupla H+H havendo mulher elegível: escolha uma delas"
+            if tamanho == 2
+            else "formaria trio só de um sexo havendo alternativa: escolha outra pessoa",
             "hh_com_alternativa",
         )
     escalado = 1 if candidato["origem"] == "eliminado" else 0

@@ -30,12 +30,12 @@ def _rodada_op(acao):
     return _executar(op)
 
 
-def sortear_sync(alvo: Any) -> dict:
-    return _rodada_op(lambda conn: regras_rodada.criar_proposta(conn, alvo))
+def sortear_sync(alvo: Any, formato: Any = None) -> dict:
+    return _rodada_op(lambda conn: regras_rodada.criar_proposta(conn, alvo, formato))
 
 
-def resortear_sync(alvo: Any = None) -> dict:
-    return _rodada_op(lambda conn: regras_rodada.resortear(conn, alvo))
+def resortear_sync(alvo: Any = None, formato: Any = None) -> dict:
+    return _rodada_op(lambda conn: regras_rodada.resortear(conn, alvo, formato))
 
 
 def confirmar_sync() -> dict:
@@ -76,6 +76,7 @@ def iniciar_mata_mata_sync() -> dict:
 
 class AlvoBody(BaseModel):
     alvo: Any = None
+    formato: Any = None
 
 
 class SubstituicaoBody(BaseModel):
@@ -93,13 +94,13 @@ router = APIRouter(prefix="/api/rodada", tags=["rodada"])
 @router.post("/sorteio", status_code=status.HTTP_201_CREATED)
 async def post_sorteio(body: AlvoBody, request: Request):
     autenticar_owner(request)
-    return await _responder(sortear_sync, body.alvo)
+    return await _responder(sortear_sync, body.alvo, body.formato)
 
 
 @router.post("/resortear")
 async def post_resortear(body: AlvoBody, request: Request):
     autenticar_owner(request)
-    return await _responder(resortear_sync, body.alvo)
+    return await _responder(resortear_sync, body.alvo, body.formato)
 
 
 @router.post("/confirmar")

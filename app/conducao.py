@@ -167,14 +167,37 @@ def _ordenar(candidatos: list[Candidato]) -> list[Candidato]:
     return sorted(candidatos, key=lambda c: (c.ordem_chegada, c.nome))
 
 
+def time_ruim(generos: list[str], tamanho: int) -> bool:
+    """Composição que a regra de gênero evita: dupla H+H (RN-01) ou, no trio,
+    três do mesmo sexo (RN-16)."""
+    if len(generos) < tamanho:
+        return False
+    if tamanho == 2:
+        return all(g == "H" for g in generos)
+    return len(set(generos)) == 1
+
+
+def _completavel(atuais: list[str], base: list[Candidato], tamanho: int) -> bool:
+    """Se o time (com `atuais` já escolhidos) ainda pode ser completado sem
+    cair numa composição ruim, escolhendo entre `base`."""
+    faltam = tamanho - len(atuais)
+    if faltam <= 0:
+        return not time_ruim(atuais, tamanho)
+    if faltam == 1:
+        return any(not time_ruim([*atuais, c.genero], tamanho) for c in base)
+    return True
+
+
 def lista_de_escalacao(
     *,
     genero_do_incompleto: str,
     origem: str,
     eliminados: list[Candidato],
     livres: list[Candidato],
+    atuais: list[str] | None = None,
+    tamanho: int = 2,
 ) -> dict:
-    """Quem pode ser parceiro do time incompleto (RN-05, RN-06, RN-07).
+    """Quem pode ser parceiro do time incompleto (RN-05, RN-06, RN-07, RN-16).
 
     `eliminados`: jogadores de times que perderam e hoje não jogam por nenhum
     time ativo. `livres`: jogadores da rodada que ainda não disputaram partida
@@ -183,22 +206,38 @@ def lista_de_escalacao(
 
     - ímpar: primeiro "ainda não jogaram"; se vazio, a lista de escalação;
     - atrasado: sempre a lista de escalação.
-    - gênero (RN-01): se o incompleto é homem, só mulheres, a menos que não haja
-      nenhuma elegível; se é mulher, qualquer um. Dentro disso, por chegada.
+    - gênero: dupla, se o incompleto é homem, só mulheres, a menos que não haja
+      nenhuma elegível; trio, nunca fecha com os três do mesmo sexo havendo
+      alternativa. Dentro disso, por chegada.
+
+    `atuais` são os gêneros já no time (padrão: só o `genero_do_incompleto`).
     """
+    atuais = atuais or [genero_do_incompleto]
     if origem == "impar" and livres:
         rotulo, base = "Ainda não jogaram", livres
     else:
         rotulo, base = "Lista de escalação (eliminados)", eliminados
     base = _ordenar(base)
-    evita = [c for c in base if not (genero_do_incompleto == "H" and c.genero == "H")]
+    evita = [
+        c
+        for c in base
+        if _completavel([*atuais, c.genero], [o for o in base if o.id != c.id], tamanho)
+    ]
     permitidos = evita or base
-    aviso_hh = bool(base) and not evita and genero_do_incompleto == "H"
+    aviso_hh = bool(base) and not evita and time_ruim_possivel(atuais, base, tamanho)
     return {
         "grupos": [{"rotulo": rotulo, "jogadores": permitidos}] if permitidos else [],
         "aviso_hh": aviso_hh,
         "recusados_hh": [c for c in base if c not in permitidos],
     }
+
+
+def time_ruim_possivel(atuais: list[str], base: list[Candidato], tamanho: int) -> bool:
+    """Não há como evitar a composição ruim: o time fechará assim por falta de
+    alternativa (o aviso da tela)."""
+    if tamanho == 2:
+        return atuais[0] == "H"
+    return len(set(atuais)) == 1 and all(c.genero == atuais[0] for c in base)
 
 
 def saldos(times: dict[str, list[dict]], partidas: list[dict]) -> list[dict]:
