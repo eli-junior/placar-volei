@@ -4,7 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### CV8.DS7.US20 — Joguinho de ontem e mensagens que ensinam a saída
+
+- **Branch:** `fix/cv8-ds7-us20-joguinho-velho-e-saidas`
+- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
+- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-us20-joguinho-velho-e-mensagens-de-saida/plan.md`; nenhum código escrito. Pendente do Navigator: confirmar que "recriar a quadra com as mesmas duplas" fica de fora (anular + criar e vincular já cobre).
 
 ## 0.46.5 - 2026-10-08
 
