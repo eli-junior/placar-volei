@@ -63,7 +63,7 @@
       jogadores = ordenarJogadores(dados.jogadores);
       sincronizarFotos(jogadores);
     } catch (e) {
-      if (e.status === 404) sair();
+      if (e.recusado) sair();
       erro = e.message || 'Não foi possível carregar os jogadores.';
     } finally {
       carregando = false;
@@ -132,7 +132,7 @@
       await carregar();
       if (avisoFoto) erro = avisoFoto;
     } catch (e) {
-      if (e.status === 404 && !editandoId) { sair(); erro = e.message; return; }
+      if (e.recusado) { sair(); erro = e.message; return; }
       erroForm = e.message;
       campoErro = e.campo || null;
       if (e.campo) setTimeout(() => document.getElementById(`jogador-${e.campo}`)?.focus(), 0);

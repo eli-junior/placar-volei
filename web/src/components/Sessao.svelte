@@ -57,6 +57,8 @@
     aoCair: () => { conectado = false; },
     aoFechar: (codigo) => {
       if (codigo === 4401) { sair(); erro = 'Segredo recusado. Confira e tente de novo.'; return false; }
+      // Bloqueio por tentativas: o segredo salvo pode estar certo, então fica (US17).
+      if (codigo === 4429) { erro = 'Muitas tentativas incorretas neste aparelho. Aguarde alguns minutos e recarregue.'; return false; }
       return true;
     },
   });
@@ -87,7 +89,7 @@
     try {
       aplicar(await chamarSessao(segredo, ''));
     } catch (e) {
-      if (e.status === 404) sair();
+      if (e.recusado) sair();
       erro = e.message || 'Não foi possível carregar a sessão.';
     } finally {
       carregando = false;
@@ -117,7 +119,7 @@
       aplicar(resposta);
       return resposta;
     } catch (e) {
-      if (e.status === 404) { sair(); }
+      if (e.recusado) { sair(); }
       const mensagem = e.message;
       // 409 ou ordem que não bate com os presentes: o estado mudou em outro
       // aparelho; recarrega para refletir.
@@ -183,7 +185,7 @@
     try {
       aplicar(await acao());
     } catch (e) {
-      if (e.status === 404) { sair(); erro = e.message; return; }
+      if (e.recusado) { sair(); erro = e.message; return; }
       erroQuadra = e.message;
       if (e.status === 409) await carregar();
     } finally {
@@ -200,7 +202,7 @@
     try {
       aplicar(await chamarRodada(segredo, '/escalar-parceiro', { metodo: 'POST', corpo: { jogador_id: jogadorId } }));
     } catch (e) {
-      if (e.status === 404) { sair(); erro = e.message; return; }
+      if (e.recusado) { sair(); erro = e.message; return; }
       const mensagem = e.message;
       if (e.status === 409) await carregar();
       erroEscalacao = mensagem;
@@ -214,7 +216,7 @@
     try {
       aplicar(await chamarRodada(segredo, '/substituir', { metodo: 'POST', corpo: { saiu_id: saiuId, entra_id: entraId } }));
     } catch (e) {
-      if (e.status === 404) { sair(); erro = e.message; return; }
+      if (e.recusado) { sair(); erro = e.message; return; }
       const mensagem = e.message;
       if (e.status === 409) await carregar();
       erroSubstituicao = mensagem;

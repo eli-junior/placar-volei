@@ -67,11 +67,22 @@ def test_sem_mensagem_no_prazo_fecha(cliente):
 
 
 def test_tentativas_erradas_pelo_ws_contam_no_limite(cliente):
-    for _ in range(12):
+    for _ in range(5):
         with conectar(cliente, "errado") as ws:
             assert fechado(ws) == 4401
-    with conectar(cliente) as ws:  # mesmo IP já bloqueado: nem o segredo certo passa
-        assert fechado(ws) == 4401
+    # mesmo IP já bloqueado: nem o segredo certo passa, e o código é o do
+    # bloqueio (4429), que o cliente não trata como segredo recusado (US17)
+    for segredo in ("errado", "segredo-teste"):
+        with conectar(cliente, segredo) as ws:
+            assert fechado(ws) == 4429
+
+
+def test_sem_segredo_nao_conta_no_limite(cliente):
+    for segredo in ["", None, 123] * 5:
+        with conectar(cliente, segredo) as ws:
+            assert fechado(ws) == 4401
+    with conectar(cliente) as ws:  # o IP não foi bloqueado
+        assert ws.receive_json()["tipo"] == "ESTADO_INICIAL"
 
 
 def test_mudancas_chegam_aos_dois_aparelhos(cliente):

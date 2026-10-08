@@ -199,3 +199,19 @@ def test_rate_limiter_unitario():
     rl.registrar_sucesso(chave)
     bloqueado, _ = rl.esta_bloqueado(chave, agora=109.0)
     assert not bloqueado
+
+
+@pytest.mark.asyncio
+async def test_requisicao_sem_segredo_nao_conta_como_tentativa():
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as ac:
+        for _ in range(10):
+            assert (await ac.get("/api/owner/quadras")).status_code == 404
+            assert (
+                await ac.get("/api/owner/quadras", headers={"x-owner-secret": ""})
+            ).status_code == 404
+        resp = await ac.get(
+            "/api/owner/quadras", headers={"x-owner-secret": settings.owner_secret}
+        )
+        assert resp.status_code == 200

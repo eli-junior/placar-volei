@@ -1,16 +1,27 @@
 // @ts-check
 /**
- * Cliente da base de jogadores (CV8.DS1.US1). O servidor responde 404 para
- * segredo errado (mascara o endpoint); aqui isso vira "segredo recusado".
+ * Cliente da base de jogadores (CV8.DS1.US1). O servidor responde 404 sem
+ * `erros` para segredo errado (mascara o endpoint); aqui isso vira "segredo
+ * recusado" (`recusado`). 404 com `erros` é erro de domínio e não apaga o
+ * segredo (CV8.DS7.US17).
  */
 
 export class ErroJogadores extends Error {
-  /** @param {string} mensagem @param {number} status @param {string} [campo] */
-  constructor(mensagem, status, campo) {
+  /** @param {string} mensagem @param {number} status @param {string} [campo] @param {boolean} [recusado] */
+  constructor(mensagem, status, campo, recusado = false) {
     super(mensagem);
     this.status = status;
     this.campo = campo;
+    /** Só a recusa do segredo autoriza esquecê-lo neste aparelho. */
+    this.recusado = recusado;
   }
+}
+
+/** "Tente de novo em 4 min" a partir do Retry-After (segundos), ou "" se não vier. */
+export function quandoTentarDeNovo(segundos) {
+  const s = Number(segundos);
+  if (!Number.isFinite(s) || s <= 0) return '';
+  return s < 90 ? ` Tente de novo em ${Math.ceil(s)} s.` : ` Tente de novo em ${Math.ceil(s / 60)} min.`;
 }
 
 /**
@@ -29,9 +40,14 @@ export async function chamarApi(segredo, url, opcoes = {}, buscar = globalThis.f
     body: corpo ? JSON.stringify(corpo) : undefined,
   });
   if (resposta.ok) return resposta.json();
-  if (resposta.status === 404) throw new ErroJogadores('Segredo recusado. Confira e tente de novo.', 404);
-  if (resposta.status === 429) throw new ErroJogadores('Muitas tentativas incorretas. Aguarde um pouco.', 429);
+  if (resposta.status === 429) {
+    const espera = quandoTentarDeNovo(resposta.headers?.get?.('retry-after'));
+    throw new ErroJogadores(`Muitas tentativas incorretas.${espera || ' Aguarde um pouco.'}`, 429);
+  }
   const dados = await resposta.json().catch(() => null);
+  if (resposta.status === 404 && !dados?.erros?.length) {
+    throw new ErroJogadores('Segredo recusado. Confira e tente de novo.', 404, undefined, true);
+  }
   const detalhe = typeof dados?.detail === 'string' ? dados.detail : 'Não foi possível concluir.';
   throw new ErroJogadores(detalhe, resposta.status, dados?.erros?.[0]?.campo);
 }

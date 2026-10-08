@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV8.DS7.US17 — Segredo do dono não some por engano
 
 - **Branch:** `fix/cv8-ds7-us17-segredo-nao-some`
-- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Passo Ariad:** Passo 4 - Teste e Validação
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
-- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-us17-segredo-nao-some-por-engano/plan.md`; nenhum código escrito. Depois da confirmação: servidor (sem cabeçalho não conta; 4429 no WS), cliente (`recusado`, `Retry-After`) e testes.
+- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-us17-segredo-nao-some-por-engano/plan.md`; implementação e testes prontos; falta a validação do Navigator (Checkpoint 2), depois revisão, docs e merge.
 
 ## 0.46.3 - 2026-10-08
 
