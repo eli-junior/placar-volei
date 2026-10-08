@@ -4,12 +4,34 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV8.DS7.US20 — Joguinho de ontem e mensagens que ensinam a saída
+Nenhum trabalho ativo.
 
-- **Branch:** `fix/cv8-ds7-us20-joguinho-velho-e-saidas`
-- **Passo Ariad:** Passo 4 - Teste e Validação
-- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
-- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-us20-joguinho-velho-e-mensagens-de-saida/plan.md`; implementação e testes prontos; falta a validação do Navigator (Checkpoint 2), depois revisão, docs e merge.
+## 0.47.0 - 2026-10-08
+
+Boundary: User Story CV8.DS7.US20 — joguinho de outro dia e mensagens que ensinam a saída (minor; backend, web e APK em 0.47.0, APK `versionCode` 29; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
+
+Git source: merge `--no-ff` de `fix/cv8-ds7-us20-joguinho-velho-e-saidas` em `master`.
+
+### Added
+
+- **Aviso de joguinho de outro dia** (QA F5.3): "Joguinho aberto em 05/10 (há 3 dias)" com **Continuar este joguinho** (lembrado por aparelho e por sessão) ou **Encerrar joguinho**. O dia é o do calendário do aparelho.
+- **`POST /api/sessao/encerrar` aceita `{"cancelar_rodada": true}`:** com rodada ativa, descarta a proposta ou cancela a rodada em andamento (e a partida chamada) e fecha o joguinho na mesma transação. Sem o corpo, o 409 de sempre.
+
+### Changed
+
+- **"Encerrar sessão" virou "Encerrar joguinho"** e não fica mais desabilitado com rodada ativa (QA F1/F4): a confirmação diz o que se perde (partidas registradas, partida chamada, fila, reis) e oferece **Cancelar rodada e encerrar**.
+- **Confirmação de "Cancelar rodada"** usa o mesmo resumo e diz que a quadra do placar não é tocada.
+- **Motivo junto do botão:** o aviso de presença travada subiu para o topo de Presentes; o "Resortear" desabilitado explica por quê.
+
+### Decision
+
+- Registro `recriar-quadra-nao-vira-botao`: anular + criar e vincular já recria a quadra com as mesmas duplas.
+
+### Verification
+
+- `ruff`, `npm run check`, `npm test` (197), `npm run test:e2e` (96, 3 novos) e `pytest` (492 sem `test_sorteio.py`, que oscila nesta máquina; 5 testes novos de backend). Validado pelo Navigator em 2026-10-08.
 
 ## 0.46.5 - 2026-10-08
 

@@ -1,8 +1,8 @@
 ---
 code: CV8.DS7.US20
 level: User Story
-status: Planned
-status_reason: puxar depois da US18
+status: Done
+status_reason: validada pelo Navigator em 2026-10-08 (0.47.0); recriar a quadra ficou fora (recriar-quadra-nao-vira-botao)
 updated: 2026-10-08
 ---
 
