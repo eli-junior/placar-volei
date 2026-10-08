@@ -1,8 +1,8 @@
 ---
 code: CV8.DS7.US17
 level: User Story
-status: Planned
-status_reason: puxar depois da TS2
+status: Done
+status_reason: validada pelo Navigator em 2026-10-08 (0.46.4); registro em recusa-do-segredo-e-bloqueio-sem-apagar
 updated: 2026-10-08
 ---
 

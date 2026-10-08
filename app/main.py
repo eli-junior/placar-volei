@@ -197,9 +197,17 @@ async def websocket_gerenciador(websocket: WebSocket):
         validar_segredo_owner(
             segredo if isinstance(segredo, str) else None, ip_do_cliente(websocket)
         )
-    except (HTTPException, TimeoutError, ValueError, WebSocketDisconnect, RuntimeError):
+    except (
+        HTTPException,
+        TimeoutError,
+        ValueError,
+        WebSocketDisconnect,
+        RuntimeError,
+    ) as e:
+        # 4429: bloqueio por tentativas, o segredo salvo pode estar certo (US17).
+        bloqueado = isinstance(e, HTTPException) and e.status_code == 429
         with contextlib.suppress(Exception):
-            await websocket.close(code=4401)
+            await websocket.close(code=4429 if bloqueado else 4401)
         return
     await hub_gerenciador.connect(SALA, websocket, accept=False)
     try:

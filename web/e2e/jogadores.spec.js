@@ -116,3 +116,57 @@ test('dentro do APK a entrada de jogadores não aparece', async ({ abrir }) => {
   await p.getByRole('tab', { name: 'Criar placar' }).waitFor();
   await expect(p.getByRole('button', { name: 'Jogadores', exact: true })).toHaveCount(0);
 });
+
+// CV8.DS7.US17 — o segredo salvo só some quando o servidor o recusa.
+const guardado = (p) => p.evaluate(() => localStorage.getItem('placar:segredo_dono'));
+
+test('404 de domínio não apaga o segredo salvo', async ({ abrir }) => {
+  const nome = `Eva ${Math.random().toString(36).slice(2, 7)}`;
+  const p = await abrir();
+  await abrirTela(p);
+  await cadastrar(p, nome, 'M');
+  await expect(p.getByRole('listitem').filter({ hasText: nome })).toBeVisible();
+
+  await p.route('**/api/jogadores/*', (rota) =>
+    rota.request().method() === 'PATCH'
+      ? rota.fulfill({ status: 404, contentType: 'application/json', body: JSON.stringify({ detail: 'Jogador não encontrado.', erros: [{ campo: 'jogador', tipo: 'not_found' }] }) })
+      : rota.continue());
+  await p.getByRole('button', { name: `Editar ${nome}` }).click();
+  await p.getByLabel('Homem').check();
+  await p.getByRole('button', { name: 'Salvar' }).click();
+  await expect(p.getByRole('alert')).toContainText('não encontrado');
+  expect(await guardado(p)).toBe(SEGREDO);
+  await expect(p.getByRole('button', { name: 'Esquecer segredo neste aparelho' })).toBeVisible();
+});
+
+test('429 não apaga o segredo e diz quanto falta', async ({ abrir }) => {
+  const p = await abrir();
+  await abrirTela(p);
+  await p.route('**/api/jogadores?*', (rota) =>
+    rota.fulfill({ status: 429, headers: { 'retry-after': '240' }, contentType: 'application/json', body: JSON.stringify({ detail: 'Muitas tentativas incorretas.' }) }));
+  await p.reload();
+  await expect(p.getByRole('alert')).toContainText('Tente de novo em 4 min');
+  expect(await guardado(p)).toBe(SEGREDO);
+  await p.unroute('**/api/jogadores?*');
+  await p.reload();
+  await expect(p.getByRole('heading', { name: 'Novo jogador' })).toBeVisible();
+});
+
+test('segredo errado salvo é esquecido', async ({ abrir }) => {
+  const p = await abrir();
+  await p.goto('/');
+  await p.evaluate(() => localStorage.setItem('placar:segredo_dono', 'errado'));
+  await p.getByRole('button', { name: 'Jogadores', exact: true }).click();
+  await expect(p.getByRole('alert')).toContainText('Segredo recusado');
+  expect(await guardado(p)).toBeNull();
+});
+
+test('joguinho: bloqueio no WebSocket (4429) não apaga o segredo', async ({ abrir }) => {
+  const p = await abrir();
+  await p.routeWebSocket('**/ws/gerenciador', (ws) => ws.close({ code: 4429, reason: 'bloqueado' }));
+  await p.goto('/');
+  await p.evaluate((s) => localStorage.setItem('placar:segredo_dono', s), SEGREDO);
+  await p.getByRole('button', { name: 'Joguinho', exact: true }).click();
+  await expect(p.getByRole('alert')).toContainText('Muitas tentativas incorretas');
+  expect(await guardado(p)).toBe(SEGREDO);
+});

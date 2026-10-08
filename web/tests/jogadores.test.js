@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { ordenarJogadores, chamarJogadores, ErroJogadores } from '../src/lib/jogadores.js';
+import { ordenarJogadores, chamarJogadores, ErroJogadores, quandoTentarDeNovo } from '../src/lib/jogadores.js';
 import { noAplicativoAndroid, emCascaEmbarcada } from '../src/lib/casca.js';
 import { guardarSegredoDono, lerSegredoDono } from '../src/lib/preferencias.js';
 
@@ -19,6 +19,31 @@ test('404 vira segredo recusado e 409 traz o campo', async () => {
     chamarJogadores('x', '', { metodo: 'POST', corpo: {} }, resp(409, { detail: 'Nome em uso.', erros: [{ campo: 'nome' }] })),
     e => e.status === 409 && e.campo === 'nome' && e.message === 'Nome em uso.',
   );
+});
+
+test('404 de domínio (com erros) não é recusa do segredo; 404 mascarado é', async () => {
+  const resp = (status, corpo) => async () => ({ ok: false, status, json: async () => corpo });
+  await assert.rejects(
+    chamarJogadores('x', '/abc', { metodo: 'PATCH', corpo: {} }, resp(404, { detail: 'Jogador não encontrado.', erros: [{ campo: 'jogador' }] })),
+    e => e.status === 404 && e.recusado === false && e.campo === 'jogador' && e.message === 'Jogador não encontrado.',
+  );
+  await assert.rejects(
+    chamarJogadores('x', '', {}, resp(404, { detail: 'Não encontrado.' })),
+    e => e.status === 404 && e.recusado === true && /Segredo recusado/.test(e.message),
+  );
+  await assert.rejects(
+    chamarJogadores('x', '', {}, async () => ({ ok: false, status: 404, json: async () => { throw new Error('sem corpo'); } })),
+    e => e.recusado === true,
+  );
+});
+
+test('429 não é recusa e diz quanto falta pelo Retry-After', async () => {
+  const resp = (retry) => async () => ({ ok: false, status: 429, headers: { get: (n) => (n === 'retry-after' ? retry : null) }, json: async () => ({ detail: 'x' }) });
+  await assert.rejects(chamarJogadores('x', '', {}, resp('240')), e => e.status === 429 && e.recusado === false && /Tente de novo em 4 min/.test(e.message));
+  await assert.rejects(chamarJogadores('x', '', {}, resp('30')), e => /Tente de novo em 30 s/.test(e.message));
+  await assert.rejects(chamarJogadores('x', '', {}, async () => ({ ok: false, status: 429, json: async () => null })), e => /Aguarde um pouco/.test(e.message));
+  assert.equal(quandoTentarDeNovo('abc'), '');
+  assert.equal(quandoTentarDeNovo(0), '');
 });
 
 test('envia o segredo no cabeçalho', async () => {

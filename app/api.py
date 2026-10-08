@@ -691,7 +691,10 @@ def validar_segredo_owner(secret: str | None, chave: str) -> None:
             secret.encode("utf-8"), config_secret.encode("utf-8")
         )
     ):
-        owner_rate_limiter.registrar_falha(chave)
+        # Sem segredo não é tentativa de adivinhar (CV8.DS7.US17): uma sondagem
+        # sem cabeçalho não gasta as tentativas do IP nem o bloqueia.
+        if secret:
+            owner_rate_limiter.registrar_falha(chave)
         # Retorna 404 para mascarar a existência do endpoint a não autorizados
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
