@@ -6,7 +6,7 @@ Roda no Mini PC de casa, exposto por Cloudflare Tunnel. Os dados não saem daqui
 
 ## Estado
 
-APK Android do celular (`0.30.0`, `CV7.TS1–US2`): casca Capacitor que abre a quadra online do servidor fixo do build quando ele responde e, **só sem comunicação com o servidor**, uma quadra local guardada no aparelho (uma por APK). Para gerar e instalar:
+APK Android do celular (`0.45.0`; casca desde a `CV7.TS1–US2`): casca Capacitor que abre a quadra online do servidor fixo do build quando ele responde e, **só sem comunicação com o servidor**, uma quadra local guardada no aparelho (uma por APK). Para gerar e instalar:
 
 ```bash
 export ANDROID_HOME=/caminho/do/Android/Sdk
@@ -17,7 +17,7 @@ adb install -r --user 0 android/app/build/outputs/apk/debug/app-debug.apk
 APK de release (`scripts/build-apk.sh release`): assinado com a keystore do Navigator, a mesma do relógio, lida de `~/.gradle/gradle.properties` (`placarKeystore`, `placarKeystorePassword`, `placarKeyAlias`, `placarKeyPassword`); a keystore nunca entra no repositório. Como o Android não atualiza um app de debug por cima de um de release, o primeiro release exige desinstalar o de debug (a quadra local guardada no aparelho se perde). Precisa de Node, JDK 21 e Android SDK. Validado no Galaxy Z Fold. O relógio (Wear OS `0.27.0`) marca a quadra local pelo Bluetooth (CV7.TS3–US2): com a sala local aberta no celular, o app do relógio a mostra sozinho (tag **LOCAL**); fora disso é o servidor. Deixe a tela do celular acesa durante a partida local. O app do relógio tem o `applicationId` `br.com.placarvolei` (o mesmo do celular): exige desinstalar o antigo e revincular as quadras do servidor.
 
 
-Wear OS `0.25.0` entregue: inclui retorno perceptível ao pontuar e acompanhamento em segundo plano para repousar a tela e retomar pelo pulso (`CV6.DS2.US3–US4`). No Galaxy Watch SM-L330/Android 16, serviço e WebSocket permaneceram ativos durante 60 s em repouso via ADB; gesto físico, atualização remota durante repouso, reconexão, treino e bateria não foram validados. Backend e web seguem em `0.24.0`, compatíveis com este APK.
+Wear OS `0.27.0` entregue: inclui retorno perceptível ao pontuar e acompanhamento em segundo plano para repousar a tela e retomar pelo pulso (`CV6.DS2.US3–US4`). No Galaxy Watch SM-L330/Android 16, serviço e WebSocket permaneceram ativos durante 60 s em repouso via ADB; reconexão após queda real de rede, treino e bateria não foram observados. Backend, web e APK seguem em `0.45.0` (gerenciador de times CV8, com formato dupla e trio), compatíveis com este relógio.
 
 O relógio também tem bola animada para o último ponto, Equipe A azul e B laranja, aro de conexão, fila offline durável, desfazer e descarte de conflitos com aviso. O histórico das entregas está no [changelog](CHANGELOG.md).
 
