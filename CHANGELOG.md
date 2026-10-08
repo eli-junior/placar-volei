@@ -6,6 +6,18 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## Sem versão - 2026-10-08 (Placar Web)
+
+Boundary: Maintenance — o app instalado pelo navegador (PWA) passa a se chamar "Placar Web", para conviver com o APK "Placar Vôlei" no mesmo aparelho (sem versão nova).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `chore/nome-placar-web` em `master`.
+
+### Changed
+
+- `web/public/manifest.webmanifest`: `name` e `short_name` = "Placar Web". O APK segue "Placar Vôlei". Quem já instalou o PWA pode precisar reinstalar para o nome novo aparecer.
+
 ## Sem versão - 2026-10-08
 
 Boundary: Maintenance — renomear "Sessão" para "Joguinho" na interface (sem versão nova; backend, web e APK seguem em 0.45.0).

@@ -1,6 +1,6 @@
 {
-  "name": "Placar de Vôlei",
-  "short_name": "Placar Vôlei",
+  "name": "Placar Web",
+  "short_name": "Placar Web",
   "description": "Placar de vôlei em tempo real para peladas de quadra e praia",
   "start_url": "/",
   "display": "standalone",
