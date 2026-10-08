@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV8.DS7.US19 (+ TS3) — Retirar jogador no meio da rodada
 
 - **Branch:** `feature/cv8-ds7-us19-retirar-jogador`
-- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Passo Ariad:** Passo 3 - Implementação
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
-- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-us19-retirar-jogador-no-meio-da-rodada/plan.md`; nenhum código escrito. Pendente do Navigator: (1) relação com a US10, (2) o que "pular" faz com o time, (3) TS3 e US19 na mesma branch.
+- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-us19-retirar-jogador-no-meio-da-rodada/plan.md`; Checkpoint 1 confirmado com as recomendações (US10 convive; pular = fim da fila; TS3 e US19 na mesma branch). Ordem: TS3 (derivar com ajustes, schema 11) → API retirar/pular → escalação no mata-mata → tela. Correção do e2e do CI em `fix/e2e-corrida-chamar-partida` (aguarda merge).
 
 ## 0.47.0 - 2026-10-08
 

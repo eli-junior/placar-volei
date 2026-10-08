@@ -1,8 +1,8 @@
 ---
 code: CV8.DS7.TS3
 level: Technical Story
-status: Planned
-status_reason: base técnica da US19; entra na mesma branch e é validada pela US19
+status: Active
+status_reason: implementando junto da US19 (mesma branch)
 updated: 2026-10-08
 related:
   - ../cv8-ds7-us19-retirar-jogador-no-meio-da-rodada/index.md
