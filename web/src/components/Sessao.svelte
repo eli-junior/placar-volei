@@ -6,7 +6,7 @@
   import PainelRodada from './PainelRodada.svelte';
   import PainelConducao from './PainelConducao.svelte';
   import { guardarJoguinhoVelhoVisto, guardarSegredoDono, lerApelido, lerJoguinhoVelhoVisto, lerSegredoDono } from '../lib/preferencias.js';
-  import { joguinhoVelho, oQueSePerde } from '../lib/joguinho.js';
+  import { efeitoDaRetirada, joguinhoVelho, oQueSePerde } from '../lib/joguinho.js';
   import { criarConexao } from '../lib/conexao.js';
   import { chamarRodada, chamarSessao, criarQuadraDoPlacar, estadoMaisNovo, faltamParaSortear, mensagemFaltam, moverPara, moverPosicao, rotuloSincronia } from '../lib/jogadores.js';
 
@@ -18,6 +18,8 @@
   let ocupado = $state(false);
   let erro = $state(null);
   let confirmandoEncerrar = $state(false);
+  // Jogador que o operador está prestes a retirar da rodada (US19).
+  let retirandoId = $state(null);
   let velhoVisto = $state(lerJoguinhoVelhoVisto());
   let alvo = $state(10);
   let formato = $state('dupla');
@@ -201,6 +203,22 @@
   const iniciarMataMata = () => agirQuadra(() => chamarRodada(segredo, '/iniciar-mata-mata', { metodo: 'POST' }));
   const encerrarPartida = () => agirQuadra(() => chamarRodada(segredo, '/encerrar-partida', { metodo: 'POST' }));
   const anularPartida = () => agirQuadra(() => chamarRodada(segredo, '/anular-partida', { metodo: 'POST' }));
+  const retirar = async (j) => { retirandoId = null; await agir('/retirar', { metodo: 'POST', corpo: { jogador_id: j.id } }, chamarRodada); };
+
+  async function pularTime() {
+    ocupado = true;
+    erroEscalacao = null;
+    try {
+      aplicar(await chamarRodada(segredo, '/pular-time', { metodo: 'POST' }));
+    } catch (e) {
+      if (e.recusado) { sair(); erro = e.message; return; }
+      erroEscalacao = e.message;
+      if (e.status === 409) await carregar();
+    } finally {
+      ocupado = false;
+    }
+  }
+
   async function escalar(jogadorId) {
     ocupado = true;
     erroEscalacao = null;
@@ -306,7 +324,7 @@
       {#if rodada?.estado === 'proposta'}
         <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} />
       {:else if rodada && estado.conducao}
-        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onAnular={anularPartida} onEscalar={escalar} podeDesfazer={estado.pode_desfazer} onDesfazer={desfazerPartida} onSubstituir={substituir} {erroSubstituicao} onIniciarMataMata={iniciarMataMata} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
+        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onAnular={anularPartida} onEscalar={escalar} onPular={pularTime} podeDesfazer={estado.pode_desfazer} onDesfazer={desfazerPartida} onSubstituir={substituir} {erroSubstituicao} onIniciarMataMata={iniciarMataMata} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
       {:else if estado.ultimo_campeao}
         <section class="cartao" aria-labelledby="titulo-campeao">
           <h2 id="titulo-campeao">Campeões da rodada {estado.ultimo_campeao.rodada}</h2>
@@ -348,7 +366,27 @@
                   <button class="secundario" type="button" onclick={() => mover(j, -1)} disabled={ocupado || travada || i === 0} aria-label="Subir {j.nome}">↑</button>
                   <button class="secundario" type="button" onclick={() => mover(j, 1)} disabled={ocupado || travada || i === presentes.length - 1} aria-label="Descer {j.nome}">↓</button>
                   <button class="secundario" type="button" onclick={() => desmarcar(j)} disabled={ocupado || travada} aria-label="Desmarcar {j.nome}">Desmarcar</button>
+                  {#if rodada?.estado === 'em_andamento'}
+                    {@const ef = efeitoDaRetirada(j.id, estado.conducao)}
+                    <button class="secundario" type="button" onclick={() => (retirandoId = j.id)} disabled={ocupado || ef.emJogo} aria-label="Retirar {j.nome} da rodada">Retirar da rodada</button>
+                  {/if}
                 </span>
+                {#if rodada?.estado === 'em_andamento'}
+                  {@const ef = efeitoDaRetirada(j.id, estado.conducao)}
+                  {#if ef.emJogo}
+                    <p class="ajuda motivo">Em jogo na partida chamada: encerre ou anule a partida para retirar.</p>
+                  {:else if retirandoId === j.id}
+                    <div class="confirma">
+                      <p class="ajuda" role="alert">
+                        Retirar {j.nome} da rodada? Ele fica ausente nas próximas rodadas{ef.efeitos.length ? `; ${ef.efeitos.join('; ')}` : ''}. Os resultados já registrados não mudam.
+                      </p>
+                      <div class="botoes">
+                        <button class="perigo" type="button" onclick={() => retirar(j)} disabled={ocupado}>Sim, retirar</button>
+                        <button class="secundario" type="button" onclick={() => (retirandoId = null)}>Voltar</button>
+                      </div>
+                    </div>
+                  {/if}
+                {/if}
               </li>
             {/each}
           </ol>
@@ -450,6 +488,7 @@
   .genero { color: var(--texto-suave); font-size: var(--texto-legenda); }
   .botoes { display: flex; gap: .4rem; flex-wrap: wrap; }
   .vazio { margin: 0; color: var(--texto-suave); }
+  .motivo, .confirma { flex-basis: 100%; }
   .cartao.velho { border-color: var(--borda-ativa); }
   .encerrar { padding-top: .5rem; border-top: 1px solid var(--borda-sutil); display: flex; flex-direction: column; gap: .6rem; }
 </style>

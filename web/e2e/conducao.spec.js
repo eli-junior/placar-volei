@@ -401,3 +401,46 @@ test('controlador: +1 não cobre o placar com a fila visível', async ({ abrir }
   expect(placarB.height).toBeGreaterThan(200);
   await sessaoLimpa(p);
 });
+
+// CV8.DS7.US19 — retirar jogador no meio da rodada.
+test('retirar da rodada: vaga aberta, sem elegível pula o time e a rodada segue', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  const nomes = await chegam(p, SEIS);
+  await rodadaConfirmada(p);
+  await abrirTela(p);
+  await criarEVincular(p);
+  // Ana (1ª a chegar) está na primeira partida; ao sair, o time dela fica com a vaga
+  await p.getByRole('button', { name: `Retirar ${nomes[0]} da rodada` }).click();
+  await expect(p.getByRole('alert').filter({ hasText: /Retirar .* da rodada\?.*fica com a vaga aberta/ })).toBeVisible();
+  const { violations } = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(' | ')}`)).toEqual([]);
+  await p.getByRole('button', { name: 'Sim, retirar' }).click();
+  await expect(p.getByRole('heading', { name: /Escolher o parceiro do Time \d/ })).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeDisabled();
+  await expect(p.getByText(`Presentes (5)`)).toBeVisible();
+
+  // ninguém foi eliminado ainda: o time espera pulado para o fim da fila
+  await p.getByRole('button', { name: /Pular o Time \d \(vai para o fim da fila\)/ }).click();
+  await expect(p.getByRole('heading', { name: /Escolher o parceiro/ })).toHaveCount(0);
+  await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeEnabled();
+  await sessaoLimpa(p);
+});
+
+test('retirar da rodada: quem está em jogo não sai, e o motivo aparece ao lado', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  const nomes = await chegam(p, SEIS);
+  await rodadaConfirmada(p);
+  await abrirTela(p);
+  await criarEVincular(p);
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await p.getByRole('button', { name: 'Encerrar partida' }).waitFor();
+  await expect(p.getByRole('button', { name: `Retirar ${nomes[0]} da rodada` })).toBeDisabled();
+  await expect(p.getByText('Em jogo na partida chamada: encerre ou anule a partida para retirar.').first()).toBeVisible();
+  // quem está na fila pode sair mesmo com a partida chamada
+  const estado = await (await p.request.get('/api/sessao', { headers: CABECALHO })).json();
+  const dafila = estado.conducao.fila[0].jogadores[0].nome;
+  await expect(p.getByRole('button', { name: `Retirar ${dafila} da rodada` })).toBeEnabled();
+  await sessaoLimpa(p);
+});

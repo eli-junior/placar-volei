@@ -13,6 +13,7 @@
     onChamar = () => {},
     onEncerrar = () => {},
     onAnular = () => {},
+    onPular = () => {},
     onEscalar = () => {},
     podeDesfazer = false,
     onDesfazer = () => {},
@@ -96,7 +97,12 @@
       </p>
       {#if erroEscalacao}<p class="erro" role="alert">{erroEscalacao}</p>{/if}
       {#if esc.ninguem}
-        <p class="ajuda">Ninguém elegível agora: não há jogador eliminado disponível. Cancele a rodada se precisar seguir.</p>
+        <p class="ajuda">Ninguém elegível agora: não há jogador eliminado disponível para completar o Time {esc.time}.</p>
+        {#if esc.pode_pular}
+          <button class="secundario" type="button" onclick={onPular} disabled={ocupado}>Pular o Time {esc.time} (vai para o fim da fila)</button>
+        {:else}
+          <p class="ajuda">Não há outro time para entrar no lugar dele: cancele a rodada se precisar seguir.</p>
+        {/if}
       {:else}
         {#each esc.grupos as grupo (grupo.rotulo)}
           <p class="ajuda"><strong>{grupo.rotulo}</strong></p>
