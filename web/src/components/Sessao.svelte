@@ -5,7 +5,8 @@
   import PortaoSegredo from './PortaoSegredo.svelte';
   import PainelRodada from './PainelRodada.svelte';
   import PainelConducao from './PainelConducao.svelte';
-  import { guardarSegredoDono, lerApelido, lerSegredoDono } from '../lib/preferencias.js';
+  import { guardarJoguinhoVelhoVisto, guardarSegredoDono, lerApelido, lerJoguinhoVelhoVisto, lerSegredoDono } from '../lib/preferencias.js';
+  import { joguinhoVelho, oQueSePerde } from '../lib/joguinho.js';
   import { criarConexao } from '../lib/conexao.js';
   import { chamarRodada, chamarSessao, criarQuadraDoPlacar, estadoMaisNovo, faltamParaSortear, mensagemFaltam, moverPara, moverPosicao, rotuloSincronia } from '../lib/jogadores.js';
 
@@ -17,6 +18,7 @@
   let ocupado = $state(false);
   let erro = $state(null);
   let confirmandoEncerrar = $state(false);
+  let velhoVisto = $state(lerJoguinhoVelhoVisto());
   let alvo = $state(10);
   let formato = $state('dupla');
   let conectado = $state(false);
@@ -30,6 +32,9 @@
   const rodada = $derived(estado?.rodada ?? null);
   // Com rodada em proposta ou em andamento a presença fica travada (RN-15).
   const travada = $derived(Boolean(rodada));
+  // Joguinho de outro dia: avisa antes de seguir (some se o operador escolheu continuar).
+  const velho = $derived(estado?.sessao && estado.sessao.id !== velhoVisto ? joguinhoVelho(estado.sessao.aberta_em) : null);
+  const aSePerder = $derived(rodada ? oQueSePerde(rodada, estado?.conducao) : []);
   const podeAtrasado = $derived(rodada?.estado === 'em_andamento' && !rodada.mata_mata_iniciado);
   const sincronia = $derived(rotuloSincronia(conectado, online));
   const minimoSorteio = $derived(formato === 'trio' ? 6 : (estado?.minimo ?? 4));
@@ -232,9 +237,15 @@
     return chamarSessao(segredo, '/quadra', { metodo: 'PUT', corpo: { codigo } });
   });
 
+  // Com rodada ativa, encerrar cancela a rodada na mesma operação (CV8.DS7.US20).
   async function encerrar() {
     confirmandoEncerrar = false;
-    await agir('/encerrar', { metodo: 'POST' });
+    await agir('/encerrar', { metodo: 'POST', ...(rodada ? { corpo: { cancelar_rodada: true } } : {}) });
+  }
+
+  function continuarVelho() {
+    velhoVisto = estado.sessao.id;
+    guardarJoguinhoVelhoVisto(velhoVisto);
   }
 </script>
 
@@ -263,6 +274,35 @@
         <button class="acao-principal" type="button" onclick={abrir} disabled={ocupado}>Novo joguinho</button>
       </section>
     {:else}
+      {#snippet encerrarJoguinho()}
+        {#if confirmandoEncerrar}
+          {#if rodada}
+            <p class="ajuda" role="alert">
+              Há a {rodada.estado === 'proposta' ? 'proposta' : 'rodada'} {rodada.numero} {rodada.estado === 'proposta' ? 'aberta' : 'em andamento'}. Encerrar o joguinho a cancela. Perde-se: {aSePerder.join('; ')}. {rodada.estado === 'em_andamento' ? 'A quadra do placar não é tocada. ' : ''}A lista de presença sai da tela.
+            </p>
+          {:else}
+            <p class="ajuda">Encerrar o joguinho? A lista de presença sai da tela.</p>
+          {/if}
+          <div class="botoes">
+            <button class="perigo" type="button" onclick={encerrar} disabled={ocupado}>{rodada ? 'Cancelar rodada e encerrar' : 'Sim, encerrar'}</button>
+            <button class="secundario" type="button" onclick={() => confirmandoEncerrar = false}>Voltar</button>
+          </div>
+        {:else}
+          <button class="secundario" type="button" onclick={() => confirmandoEncerrar = true} disabled={ocupado}>Encerrar joguinho</button>
+        {/if}
+      {/snippet}
+
+      {#if velho}
+        <section class="cartao velho" aria-labelledby="titulo-velho">
+          <h2 id="titulo-velho">Joguinho aberto em {velho.data} ({velho.quando})</h2>
+          <p class="ajuda">Este joguinho é de outro dia. Continue se a jogatina é a mesma, ou encerre para começar um novo.</p>
+          {#if !confirmandoEncerrar}
+            <button class="secundario" type="button" onclick={continuarVelho} disabled={ocupado}>Continuar este joguinho</button>
+          {/if}
+          {@render encerrarJoguinho()}
+        </section>
+      {/if}
+
       {#if rodada?.estado === 'proposta'}
         <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} />
       {:else if rodada && estado.conducao}
@@ -281,6 +321,9 @@
 
       <section aria-labelledby="titulo-presentes">
         <h2 id="titulo-presentes">Presentes ({presentes.length})</h2>
+        {#if travada}
+          <p class="ajuda" role="status">Presença travada: há uma rodada {rodada.estado === 'proposta' ? 'em proposta' : 'em andamento'}. Para marcar, desmarcar ou reordenar, {rodada.estado === 'proposta' ? 'descarte a proposta' : 'cancele a rodada'} no painel acima.</p>
+        {/if}
         {#if !presentes.length}
           <p class="vazio">Ninguém marcado ainda. Marque abaixo, na ordem em que chegam.</p>
         {:else}
@@ -331,6 +374,9 @@
 
       <section aria-labelledby="titulo-ausentes">
         <h2 id="titulo-ausentes">Ausentes ({ausentes.length})</h2>
+        {#if travada && !podeAtrasado && ausentes.length}
+          <p class="ajuda">Presença travada pela rodada: o motivo está no aviso de Presentes.</p>
+        {/if}
         {#if !ausentes.length}
           <p class="vazio">Todos os jogadores ativos estão presentes.</p>
         {:else}
@@ -354,9 +400,7 @@
       {#if podeAtrasado}
         <p class="ajuda">Quem chega agora entra como atrasado, sozinho no fim da fila, e escolhe o parceiro na sua vez. Depois do início do mata-mata, só na próxima rodada.</p>
       {/if}
-      {#if travada}
-        <p class="ajuda">Presença travada: há uma rodada {rodada.estado === 'proposta' ? 'em proposta' : 'em andamento'}. Descarte ou cancele a rodada para marcar, desmarcar ou cadastrar.</p>
-      {:else}
+      {#if !travada}
       <section class="cartao" aria-labelledby="titulo-gerenciar">
         <h2 id="titulo-gerenciar">Jogadores</h2>
         <p class="ajuda">Cadastre, edite ou inative jogadores na tela de Jogadores e volte aqui para marcar quem chegou.</p>
@@ -364,18 +408,11 @@
       </section>
       {/if}
 
-      <section class="encerrar" aria-label="Encerrar sessão">
-        {#if confirmandoEncerrar}
-          <p class="ajuda">Encerrar a sessão do dia? A lista de presença sai da tela.</p>
-          <div class="botoes">
-            <button class="perigo" type="button" onclick={encerrar} disabled={ocupado}>Sim, encerrar</button>
-            <button class="secundario" type="button" onclick={() => confirmandoEncerrar = false}>Cancelar</button>
-          </div>
-        {:else}
-          <button class="secundario" type="button" onclick={() => confirmandoEncerrar = true} disabled={ocupado || travada}>Encerrar sessão</button>
-          {#if travada}<p class="ajuda">Descarte a proposta ou cancele a rodada antes de encerrar a sessão.</p>{/if}
-        {/if}
-      </section>
+      {#if !velho}
+        <section class="encerrar" aria-label="Encerrar joguinho">
+          {@render encerrarJoguinho()}
+        </section>
+      {/if}
     {/if}
   {/if}
 </main>
@@ -413,5 +450,6 @@
   .genero { color: var(--texto-suave); font-size: var(--texto-legenda); }
   .botoes { display: flex; gap: .4rem; flex-wrap: wrap; }
   .vazio { margin: 0; color: var(--texto-suave); }
+  .cartao.velho { border-color: var(--borda-ativa); }
   .encerrar { padding-top: .5rem; border-top: 1px solid var(--borda-sutil); display: flex; flex-direction: column; gap: .6rem; }
 </style>

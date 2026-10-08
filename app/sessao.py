@@ -131,17 +131,26 @@ def abrir_sync() -> dict:
     return _executar(op)
 
 
-def encerrar_sync() -> dict:
+def encerrar_sync(cancelar_rodada: bool = False) -> dict:
+    """Encerra o joguinho. Com rodada ativa só passa se `cancelar_rodada`: aí a
+    rodada é descartada (proposta) ou cancelada (em andamento) na mesma
+    transação, e o joguinho fecha junto ou nada muda (CV8.DS7.US20)."""
+
     def op(conn):
         with escrita(conn):
             sessao = exigir_sessao_aberta(conn)
-            if regras_rodada.rodada_ativa(conn, sessao["id"]):
+            ativa = regras_rodada.rodada_ativa(conn, sessao["id"])
+            if ativa and not cancelar_rodada:
                 raise erro_de_campo(
                     409,
                     "rodada",
                     "ativa: descarte a proposta ou cancele a rodada antes de encerrar a sessão",
                     "rodada_ativa",
                 )
+            if ativa and ativa["estado"] == "proposta":
+                regras_rodada.descartar(conn)
+            elif ativa:
+                regras_rodada.cancelar(conn)
             conn.execute(
                 "UPDATE sessoes SET encerrada_em = ? WHERE id = ?",
                 (agora(), sessao["id"]),
@@ -245,6 +254,10 @@ def rapido_sync(nome, genero, nota) -> dict:
     return {"jogador": jogador, **estado}
 
 
+class EncerrarBody(BaseModel):
+    cancelar_rodada: bool = False
+
+
 class OrdemBody(BaseModel):
     jogador_ids: Any = None
 
@@ -272,9 +285,9 @@ async def post_abrir(request: Request):
 
 
 @router.post("/encerrar")
-async def post_encerrar(request: Request):
+async def post_encerrar(request: Request, body: EncerrarBody | None = None):
     autenticar_owner(request)
-    return await _responder(encerrar_sync)
+    return await _responder(encerrar_sync, bool(body and body.cancelar_rodada))
 
 
 @router.put("/presencas/{jogador_id}")

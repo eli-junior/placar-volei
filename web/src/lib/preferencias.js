@@ -94,3 +94,22 @@ export function guardarSegredoDono(segredo, armazenamento = globalThis.localStor
     /* navegação privada: vale só até recarregar */
   }
 }
+
+/** Joguinho aberto em dia anterior em que o operador escolheu "Continuar" (CV8.DS7.US20). */
+export const CHAVE_JOGUINHO_VELHO_VISTO = 'placar:joguinho_velho_visto';
+
+export function lerJoguinhoVelhoVisto(armazenamento = globalThis.localStorage) {
+  try {
+    return armazenamento?.getItem(CHAVE_JOGUINHO_VELHO_VISTO) || '';
+  } catch {
+    return '';
+  }
+}
+
+export function guardarJoguinhoVelhoVisto(sessaoId, armazenamento = globalThis.localStorage) {
+  try {
+    armazenamento?.setItem(CHAVE_JOGUINHO_VELHO_VISTO, sessaoId);
+  } catch {
+    /* navegação privada: o aviso volta ao recarregar */
+  }
+}

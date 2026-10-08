@@ -79,7 +79,10 @@ test('sortear, resortear, confirmar, presença travada e cancelar', async ({ abr
   await expect(p.getByRole('heading', { name: /Rodada 1/ })).toContainText('alvo 12');
   await expect(p.getByText('Presença travada')).toBeVisible();
   await expect(p.getByRole('button', { name: `Desmarcar ${nomes[0]}` })).toBeDisabled();
-  await expect(p.getByRole('button', { name: 'Encerrar sessão' })).toBeDisabled();
+  // encerrar não é mais um beco: abre a confirmação que diz o que se perde
+  await p.getByRole('button', { name: 'Encerrar joguinho' }).click();
+  await expect(p.getByText(/Encerrar o joguinho a cancela\. Perde-se:/)).toBeVisible();
+  await p.getByRole('button', { name: 'Voltar', exact: true }).click();
   await p.reload();
   await expect(p.getByRole('heading', { name: /Rodada 1/ })).toBeVisible();
 
@@ -184,4 +187,35 @@ test('gerenciar jogadores abre a tela de jogadores', async ({ abrir }) => {
   await abrirTela(p);
   await p.getByRole('button', { name: 'Gerenciar jogadores' }).click();
   await expect(p).toHaveURL(/\/jogadores$/);
+});
+
+
+// CV8.DS7.US20 — encerrar o joguinho com rodada ativa cancela a rodada de uma vez.
+test('encerrar joguinho com rodada em andamento cancela a rodada e encerra', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS);
+  expect((await p.request.post('/api/rodada/sorteio', { headers: CABECALHO, data: { alvo: 10 } })).status()).toBe(201);
+  expect((await p.request.post('/api/rodada/confirmar', { headers: CABECALHO })).status()).toBe(200);
+  await abrirTela(p);
+  await expect(p.getByRole('heading', { name: /Rodada 1/ })).toBeVisible();
+  await p.getByRole('button', { name: 'Encerrar joguinho' }).click();
+  await expect(p.getByText(/Perde-se: .*a fila \(1 time\)/)).toBeVisible();
+  await p.getByRole('button', { name: 'Cancelar rodada e encerrar' }).click();
+  await expect(p.getByRole('heading', { name: 'Nenhum joguinho rolando' })).toBeVisible();
+  const estado = await (await p.request.get('/api/sessao', { headers: CABECALHO })).json();
+  expect(estado.sessao).toBeNull();
+});
+
+test('proposta aberta: encerrar descarta a proposta', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS);
+  expect((await p.request.post('/api/rodada/sorteio', { headers: CABECALHO, data: { alvo: 10 } })).status()).toBe(201);
+  await abrirTela(p);
+  await expect(p.getByRole('heading', { name: /Proposta 1/ })).toBeVisible();
+  await p.getByRole('button', { name: 'Encerrar joguinho' }).click();
+  await expect(p.getByText(/Perde-se: a proposta 1 \(os times sorteados\)/)).toBeVisible();
+  await p.getByRole('button', { name: 'Cancelar rodada e encerrar' }).click();
+  await expect(p.getByRole('heading', { name: 'Nenhum joguinho rolando' })).toBeVisible();
 });
