@@ -41,6 +41,9 @@ MINIMO_PARA_SORTEAR = 4
 
 
 def _estado(conn) -> dict:
+    # Todo estado devolvido, de leitura ou de operação, já vem reconciliado
+    # (CV8.DS7.TS2). Nunca é chamado dentro de uma transação.
+    reconciliar_vinculo(conn)
     sessao = sessao_aberta(conn)
     if sessao is None:
         return {
@@ -108,11 +111,7 @@ def _executar(operacao):
 
 
 def estado_sync() -> dict:
-    def op(conn):
-        reconciliar_vinculo(conn)
-        return _estado(conn)
-
-    return _executar(op)
+    return _executar(_estado)
 
 
 def abrir_sync() -> dict:

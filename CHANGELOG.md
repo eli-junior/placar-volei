@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV8.DS7.TS2 — Quadra do joguinho não some no meio da rodada
 
 - **Branch:** `fix/cv8-ds7-ts2-quadra-do-joguinho`
-- **Passo Ariad:** Passo 4 - Teste e Validação
+- **Passo Ariad:** Passo 5 - Revisão
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
-- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-ts2-quadra-do-joguinho-nao-some/plan.md`; implementação e testes prontos (586 passam; ruff ok); falta apenas a validação do Navigator (Checkpoint 2) e depois revisão, docs e merge.
+- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-ts2-quadra-do-joguinho-nao-some/plan.md`; implementação e testes prontos (586 passam; ruff ok); validado pelo Navigator (Checkpoint 2); em revisão (Checkpoint 3), depois docs e merge.
 
 ## 0.46.2 - 2026-10-08
 
@@ -1789,7 +1789,7 @@ Git source: master
 ### <nome-da-branch>
 - **História / Escopo**: <Código da história e resumo do objetivo>
 - **Branch**: `<nome-da-branch>`
-- **Passo Ariad**: Passo <N> - <Nome do Passo> (ex: Passo 4 - Teste e Validação)
+- **Passo Ariad**: Passo <N> - <Nome do Passo> (ex: Passo 5 - Revisão)
 - **Assinatura do Agente**: Agente: <Nome> (Driver) | Sessão: <ID> | Data: YYYY-MM-DD HH:mm
 - **Handoff / Próximos Passos**: <O que já foi feito e o que o próximo agente deve executar>
 ```

@@ -417,9 +417,10 @@ async def test_reinicio_com_partida_chamada_mantem_a_saida_de_anular(ac, placar)
     assert estado["quadra"]["codigo"] == codigo
     assert estado["quadra"]["disponivel"] is False
     assert estado["conducao"]["partida"] is not None
-    assert (await ac.post("/api/rodada/anular-partida")).status_code == 200
-    estado = (await ac.get("/api/sessao")).json()
-    assert estado["quadra"] is None and estado["conducao"]["partida"] is None
+    r = await ac.post("/api/rodada/anular-partida")
+    assert r.status_code == 200
+    # a própria resposta da operação já vem reconciliada
+    assert r.json()["quadra"] is None and r.json()["conducao"]["partida"] is None
 
 
 @pytest.mark.asyncio
