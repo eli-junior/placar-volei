@@ -13,6 +13,7 @@ são efêmeras (banco apagado a cada subida, sala expira após 1 h parada). A po
 import asyncio
 import re
 import uuid
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
@@ -31,6 +32,7 @@ from app.gerenciador_db import (
     erro_de_campo,
     escrita,
     exigir_sessao_aberta,
+    sessao_aberta,
 )
 from app.quadras import obter_quadra_sync
 from app.sincronia import publicar
@@ -58,6 +60,59 @@ def _admin_da_quadra(quadra_id: str) -> str | None:
             (quadra_id,),
         ).fetchone()
     return linha["id"] if linha else None
+
+
+def manter_quadras_da_rodada() -> int:
+    """Renova o `atualizado_em` da quadra de uma rodada em andamento (CV8.DS7.TS2).
+
+    O TTL de 1 h vale para sala esquecida, não para um joguinho no meio: a regra
+    do TTL fica intacta e esta é a única exceção. Devolve quantas quadras renovou."""
+    conn = conectar(settings.gerenciador_db_path)
+    try:
+        codigos = [
+            r["quadra_id"]
+            for r in conn.execute(
+                "SELECT DISTINCT s.quadra_id FROM sessoes s "
+                "JOIN rodadas r ON r.sessao_id = s.id "
+                "WHERE s.encerrada_em IS NULL AND s.quadra_id IS NOT NULL "
+                "AND r.estado = 'em_andamento'"
+            )
+        ]
+    finally:
+        conn.close()
+    if not codigos:
+        return 0
+    with get_db(settings.db_path) as db:
+        db.execute("BEGIN IMMEDIATE")
+        marcas = ",".join("?" for _ in codigos)
+        renovadas = db.execute(
+            f"UPDATE quadras SET atualizado_em = ? WHERE id IN ({marcas})",
+            (datetime.now(UTC).isoformat(), *codigos),
+        ).rowcount
+        db.commit()
+    return renovadas
+
+
+def reconciliar_vinculo(conn) -> None:
+    """Desfaz o vínculo da sessão com uma quadra que não existe mais (CV8.DS7.TS2).
+
+    Com partida chamada o código fica: a tela mostra a quadra indisponível e a
+    saída é anular a partida; no estado seguinte o vínculo é limpo."""
+    sessao = sessao_aberta(conn)
+    if sessao is None or not sessao["quadra_id"]:
+        return
+    if obter_quadra_sync(settings.db_path, sessao["quadra_id"]) is not None:
+        return
+    with escrita(conn):
+        if conn.execute(
+            "SELECT 1 FROM partidas_rodada p JOIN rodadas r ON r.id = p.rodada_id "
+            "WHERE r.sessao_id = ? AND r.estado = 'em_andamento' AND p.estado = 'chamada'",
+            (sessao["id"],),
+        ).fetchone():
+            return
+        conn.execute(
+            "UPDATE sessoes SET quadra_id = NULL WHERE id = ?", (sessao["id"],)
+        )
 
 
 def vincular_sync(codigo) -> None:

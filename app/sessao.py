@@ -34,13 +34,16 @@ from app.jogadores import (
     obter_jogador,
     recompactar_presencas,
 )
-from app.ponte import info_quadra, ler_placar
+from app.ponte import info_quadra, ler_placar, reconciliar_vinculo
 from app.sincronia import publicar
 
 MINIMO_PARA_SORTEAR = 4
 
 
 def _estado(conn) -> dict:
+    # Todo estado devolvido, de leitura ou de operação, já vem reconciliado
+    # (CV8.DS7.TS2). Nunca é chamado dentro de uma transação.
+    reconciliar_vinculo(conn)
     sessao = sessao_aberta(conn)
     if sessao is None:
         return {

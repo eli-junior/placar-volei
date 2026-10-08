@@ -1,8 +1,8 @@
 ---
 code: CV8.DS7.TS2
 level: Technical Story
-status: Planned
-status_reason: decisão B fechada (opção a); pronta para puxar
+status: Done
+status_reason: validada pelo Navigator em 2026-10-08 (0.46.3); registro em quadra-da-rodada-renovada-pelo-servidor
 updated: 2026-10-08
 ---
 
