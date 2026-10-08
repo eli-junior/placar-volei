@@ -33,7 +33,7 @@ Ordem sugerida: US16 → TS2 → US17 → US18 → US20 → US19 → US21.
 
 - **A — Partida abandonada (2026-10-08, Navigator):** por ora só **anular** (US16). Placar manual ou W.O. ficam na US21, adiada.
 - **B — Banco das quadras (2026-10-08, Navigator):** opção (a). O banco das quadras continua efêmero (a decisão de 2026-09-27 fica de pé); o joguinho se reconcilia com as quadras que existem e a quadra vinculada a uma rodada em andamento não expira por TTL (TS2).
-- **C — Retirar jogador (2026-10-08, Navigator):** quem sai deixa a **vaga vazia** enquanto o time está na fila; o substituto só é **obrigatório na hora de entrar em quadra**. Time sem nenhum jogador **deixa de existir** (sai da fila). Detalhes na US19.
+- **C — Retirar jogador (2026-10-08, Navigator):** quem sai deixa a **vaga vazia** enquanto o time está na fila; o substituto só é **obrigatório na hora de entrar em quadra**. Time sem nenhum jogador **deixa de existir** (sai da fila). Em jogo não sai; rei segue a mesma regra; sem elegível, o time é pulado. Em aberto: relação com a US10 (substituir). Detalhes na US19.
 
 ## Done Condition
 
