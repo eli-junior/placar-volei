@@ -6,6 +6,24 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.44.0 - 2026-10-07
+
+Boundary: CV8.DS5.US13 e CV8.DS5.US14 — exibição; fecha a CV8.DS5 e a CV8 (minor; backend, web e APK em 0.44.0, APK `versionCode` 21; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds5-exibicao` em `master`.
+
+### Added
+
+- **Fila e reis para o espectador (US13):** quem está na sala da quadra vinculada à sessão vê, além do placar, quem joga, a fila de espera e os reis (só nomes curtos e vitórias; sem notas, ids nem saldo). No modo imersivo aparece uma faixa ("Fila: … · Reis: …"); fora dele, um cartão completo. Atualiza sozinho a cada mudança do gerenciador (`EXIBICAO_ATUALIZADA`) e já vem no `ESTADO_INICIAL`; ao fim da rodada mostra os campeões.
+- **Nomes das duplas no relógio (US14):** já entregue pela chamada de partida (CV8.DS3.US5): o `estado_partida` do WebSocket leva `equipe_a`/`jogadores_a` e o relógio (Wear 0.27.0) mostra os nomes em linhas. Coberto por `tests/test_chamada.py`; nenhum código novo.
+
+### Verification
+
+- `uv run pytest` (552, com `tests/test_exibicao.py`), `npm run check`, `npm run test:e2e` (com o teste novo do espectador). Aguarda validação do Navigator em lote, incluindo o relógio físico (US14).
+- Dívida nova: ao desvincular a quadra, a sala antiga mantém a última fila até reconectar.
+
 ## 0.43.0 - 2026-10-07
 
 Boundary: CV8.DS3.US7 — desfazer a última partida; fecha a CV8.DS3 (minor; backend, web e APK em 0.43.0, APK `versionCode` 20; Wear OS inalterado em 0.27.0).

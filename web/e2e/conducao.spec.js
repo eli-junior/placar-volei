@@ -1,6 +1,6 @@
 // CV8.DS3.US5 — painel da condução, chamar partida no placar e sincronia.
 import AxeBuilder from '@axe-core/playwright';
-import { test, expect } from './apoio.js';
+import { test, expect, entrarNaSala } from './apoio.js';
 
 const SEGREDO = 'segredo-e2e';
 const CABECALHO = { 'x-owner-secret': SEGREDO };
@@ -321,5 +321,30 @@ test('time incompleto em quadra: escolher o parceiro, chamar e somar o saldo', a
   await p.getByRole('button', { name: 'Encerrar partida' }).click();
   await expect(p.getByRole('heading', { name: 'Saldo da rodada' })).toBeVisible();
   await expect(p.getByText(new RegExp(`${escolhida} \\(2 partidas\\)`))).toBeVisible();
+  await sessaoLimpa(p);
+});
+
+// CV8.DS5.US13 — quem acompanha a quadra vê a fila e os reis ao vivo.
+test('espectador vê a fila e os reis, e eles andam com as partidas', async ({ abrir }) => {
+  const p = await abrir();
+  const esp = await abrir();
+  await sessaoLimpa(p);
+  const nomes = await chegam(p, [...SEIS, ['Gabi', 'M', 45], ['Hugo', 'H', 35]]); // 4 times
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  const codigo = await criarEVincular(p);
+  await entrarNaSala(esp, codigo);
+  const faixa = esp.getByLabel('Fila e reis');
+  await expect(faixa).toContainText('Fila:');
+  await expect(faixa).toContainText('Reis: nenhum');
+  for (let i = 0; i < 2; i++) {
+    await p.getByRole('button', { name: 'Chamar partida' }).click();
+    await pontosNoPlacar(p, codigo, 'A', 10);
+    await p.getByRole('button', { name: 'Encerrar partida' }).click();
+    await expect(p.getByRole('button', { name: 'Chamar partida' }).or(p.getByRole('button', { name: 'Iniciar mata-mata' }))).toBeVisible();
+  }
+  await expect(faixa).not.toContainText('Reis: nenhum');
+  const primeiro = nomes[0].split(' ')[0];
+  await expect(faixa).toContainText(primeiro);
   await sessaoLimpa(p);
 });

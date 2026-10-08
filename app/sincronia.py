@@ -9,7 +9,8 @@ import asyncio
 import contextlib
 from typing import Any
 
-from app.hub import ConnectionHub
+from app.exibicao import projetar
+from app.hub import ConnectionHub, hub
 
 hub_gerenciador = ConnectionHub()
 SALA = "gerenciador"
@@ -19,6 +20,14 @@ async def publicar(estado: dict[str, Any]) -> None:
     await hub_gerenciador.broadcast(
         SALA, {"tipo": "ESTADO_ATUALIZADO", "payload": estado}
     )
+    # Fila e reis também vão para quem está na quadra vinculada (US13).
+    quadra = estado.get("quadra")
+    if quadra and quadra.get("codigo"):
+        with contextlib.suppress(Exception):
+            await hub.broadcast(
+                quadra["codigo"],
+                {"tipo": "EXIBICAO_ATUALIZADA", "payload": projetar(estado)},
+            )
 
 
 async def publicar_atual() -> None:
