@@ -348,3 +348,22 @@ test('espectador vê a fila e os reis, e eles andam com as partidas', async ({ a
   await expect(faixa).toContainText(primeiro);
   await sessaoLimpa(p);
 });
+
+// Regressão: no celular, a fila e os reis do controlador ficam numa faixa e não
+// tomam a altura do placar (os +1 não podem cobrir o placar do time de baixo).
+test('controlador: +1 não cobre o placar com a fila visível', async ({ abrir }) => {
+  const p = await abrir({ viewport: { width: 360, height: 700 } });
+  await sessaoLimpa(p);
+  await chegam(p, [...SEIS, ['Gabi', 'M', 45], ['Hugo', 'H', 35]]);
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  const codigo = await criarEVincular(p);
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await p.goto(`/quadra/${codigo}`);
+  await expect(p.getByLabel('Fila e reis')).toContainText('Fila:');
+  const placarB = await p.locator('.palco .resultado').first().boundingBox();
+  const maisUm = await p.locator('.btn-marcar').first().boundingBox();
+  expect(placarB.y + placarB.height).toBeLessThanOrEqual(maisUm.y + 1);
+  expect(placarB.height).toBeGreaterThan(200);
+  await sessaoLimpa(p);
+});
