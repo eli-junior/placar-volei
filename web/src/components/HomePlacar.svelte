@@ -102,7 +102,7 @@
     </a>
     <div class="topo-acoes">
     {#if onAbrirSessao}
-      <button class="tema" type="button" onclick={onAbrirSessao}><Icone nome="bandeira" tamanho="1.2em" /><span>Sessão</span></button>
+      <button class="tema" type="button" onclick={onAbrirSessao}><Icone nome="bandeira" tamanho="1.2em" /><span>Joguinho</span></button>
     {/if}
     {#if onAbrirJogadores}
       <button class="tema" type="button" onclick={onAbrirJogadores}><Icone nome="pessoas" tamanho="1.2em" /><span>Jogadores</span></button>

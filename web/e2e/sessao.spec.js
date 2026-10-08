@@ -30,10 +30,10 @@ async function criarJogador(p, rotulo, genero = 'M') {
 
 async function abrirTela(p) {
   await p.goto('/');
-  await p.getByRole('button', { name: 'Sessão', exact: true }).click();
+  await p.getByRole('button', { name: 'Joguinho', exact: true }).click();
   await p.getByLabel('Segredo do dono').fill(SEGREDO);
   await p.getByRole('button', { name: 'Entrar' }).click();
-  await p.getByRole('heading', { name: 'Sessão', level: 1 }).waitFor();
+  await p.getByRole('heading', { name: 'Joguinho', level: 1 }).waitFor();
 }
 
 const presentes = (p) => p.locator('ol li .nome');
@@ -141,13 +141,13 @@ test('home mostra Sessão no navegador e não mostra no APK', async ({ abrir }) 
   // ele acusa `.contagem` (contraste 4,03:1), defeito anterior a esta história.
   const p = await abrir({ viewport: { width: 360, height: 740 } });
   await p.goto('/');
-  await expect(p.getByRole('button', { name: 'Sessão', exact: true })).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Joguinho', exact: true })).toBeVisible();
   await expect(p.getByRole('button', { name: 'Jogadores', exact: true })).toBeVisible();
 
   const apk = await abrir({}, { fn: () => { window.Capacitor = { isNativePlatform: () => true }; } });
   await apk.goto('/');
   await apk.getByRole('tab', { name: 'Criar placar' }).waitFor();
-  await expect(apk.getByRole('button', { name: 'Sessão', exact: true })).toHaveCount(0);
+  await expect(apk.getByRole('button', { name: 'Joguinho', exact: true })).toHaveCount(0);
   await apk.goto('/sessao');
-  await expect(apk.getByRole('heading', { name: 'Sessão', level: 1 })).toHaveCount(0);
+  await expect(apk.getByRole('heading', { name: 'Joguinho', level: 1 })).toHaveCount(0);
 });
