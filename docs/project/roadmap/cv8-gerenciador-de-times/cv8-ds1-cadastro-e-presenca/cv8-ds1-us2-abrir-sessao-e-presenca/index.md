@@ -17,7 +17,7 @@ related:
 ## Acceptance / Done Condition
 
 - **CA1:** Só uma sessão aberta por vez.
-- **CA2:** Marcar/desmarcar presença a partir da base; permitir cadastro rápido inline.
+- **CA2:** Marcar/desmarcar presença a partir da base; permitir cadastro rápido inline (substituído, na 0.46.0, pelo botão Gerenciar jogadores).
 - **CA3:** Entre rodadas, adicionar/remover presentes livremente.
 - **CA4:** A ordem de chegada é registrada: cada presença marcada recebe a próxima posição (1º, 2º, 3º…) e a lista a exibe. Ao marcar presença (inclusive desmarcar e marcar de novo) o jogador vai automaticamente para o fim da ordem.
 - **CA5:** O operador pode reordenar a fila de chegada manualmente a qualquer momento antes do sorteio (RN-15).

@@ -6,6 +6,26 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.46.0 - 2026-10-08
+
+Boundary: Maintenance CV8 — ajustes da tela "Novo joguinho" (minor; backend, web e APK em 0.46.0, APK `versionCode` 23; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-joguinho-ajustes` em `master`.
+
+### Changed
+
+- **Pontos da partida:** slider de 6 a 25 (padrão 10), no lugar de 10 ou 12. Schema 10: a tabela `rodadas` é recriada preservando as linhas (o CHECK do alvo mudou).
+- **Mínimo para sortear:** a mensagem acompanha o formato ("Faltam 6 presentes para sortear" no trio); o rótulo é só "Trios".
+- **Cadastro rápido** saiu: entrou o botão "Gerenciar jogadores" (abre a tela de Jogadores; o jogador cadastrado não é marcado presente sozinho).
+- **Ordem de chegada:** arrastar pela alça ⠿ (pointer events), além dos botões ↑ ↓.
+
+### Verification
+
+- `uv run pytest` (575), `npm run check`, `npm test` (185), `npm run test:e2e` (82). Validado pelo Navigator no celular.
+- Dívida nova: endpoint `/presencas/rapido` sem uso na tela; arrastar sem rolagem automática.
+
 ## Sem versão - 2026-10-08 (Placar Web)
 
 Boundary: Maintenance — o app instalado pelo navegador (PWA) passa a se chamar "Placar Web", para conviver com o APK "Placar Vôlei" no mesmo aparelho (sem versão nova).

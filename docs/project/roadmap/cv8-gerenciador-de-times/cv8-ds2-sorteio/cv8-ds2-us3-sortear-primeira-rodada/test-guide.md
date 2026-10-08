@@ -24,7 +24,7 @@ Depois vá em **Sessão**, abra a sessão e marque **Presente** na mesma ordem (
 
 ## Passos e observações
 
-1. **Mínimo de 4:** desmarque até sobrarem 3 → **Passa:** "Sortear duplas" fica desabilitado com "Faltam 1 presente(s) para sortear". Volte aos 8.
+1. **Mínimo de 4:** desmarque até sobrarem 3 → **Passa:** "Sortear duplas" fica desabilitado com "Falta 1 presente para sortear". Volte aos 8.
 2. **Sortear (alvo 10):** toque **Sortear duplas** → **Passa:** aparece "Proposta 1 · alvo 10" com 4 times, em quadra os Times 1 e 2, e "Primeira partida: Time 1 × Time 2". **O resultado esperado, na ordem da fila:**
    - Time 1: Ana Um (90) + Gil Sete (40), soma 130
    - Time 2: Bia Dois (85) + Fabio Seis (55), soma 140
@@ -35,7 +35,7 @@ Depois vá em **Sessão**, abra a sessão e marque **Presente** na mesma ordem (
 4. **Resortear:** com as notas atuais só há uma combinação ótima e a tela mostra "Combinação 1 de 1; não há outra para trocar" (o botão **Resortear** fica desabilitado). Para ver a troca, edite as notas dos 8, na ordem da tabela, para 60, 61, 60, 59, 62, 61, 60, 59, descarte e sorteie de novo → **Passa:** "Combinação 1 de 10"; toque **Resortear** → "Combinação 2 de 10", com duplas diferentes (todas mistas), a fila ainda pela chegada e a diferença entre a maior e a menor soma dentro de 3 pontos da melhor.
 5. **Ímpar:** desmarque o Helo (8º) e sorteie → **Passa:** 3 duplas + um time incompleto, **por último**, com o jogador que chegou por último (Gil), marcado "Incompleto: escolhe o parceiro na sua vez".
 6. **Excedente de homens:** com 6 homens e 2 mulheres presentes → **Passa:** exatamente 2 duplas H+H e as 2 mulheres cada uma com um homem.
-7. **Confirmar:** toque **Confirmar e iniciar** → **Passa:** "Rodada 1 · alvo 10", "Presença travada", "Desmarcar", "↑/↓", "Presente" e "Encerrar sessão" desabilitados, sem o cadastro rápido. Recarregue → a rodada continua.
+7. **Confirmar:** toque **Confirmar e iniciar** → **Passa:** "Rodada 1 · alvo 10", "Presença travada", "Desmarcar", "↑/↓", "Presente" e "Encerrar sessão" desabilitados, sem o botão Gerenciar jogadores habilitado para mexer na presença. Recarregue → a rodada continua.
 8. **Cancelar:** **Cancelar rodada** → confirme → **Passa:** volta o bloco "Sortear a rodada" e a presença fica editável.
 9. **Persistência:** com uma rodada confirmada, pare e suba o servidor (também com `RESET_DB_ON_STARTUP=true`) → **Passa:** a rodada continua.
 10. **Inativar:** em **Jogadores**, tente inativar quem está na rodada → **Passa:** recusado ("está numa rodada ativa").

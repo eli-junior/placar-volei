@@ -50,7 +50,7 @@ test('abrir, marcar na ordem de chegada, reordenar, desmarcar e encerrar', async
 
   for (const n of [a, b, c]) await p.getByRole('button', { name: `Marcar ${n} como presente` }).click();
   await expect(presentes(p)).toHaveText([a, b, c]);
-  await expect(p.getByRole('status')).toContainText('Faltam 1');
+  await expect(p.getByRole('status')).toContainText('Falta 1 presente');
 
   await p.getByRole('button', { name: `Descer ${a}` }).click();
   await expect(presentes(p)).toHaveText([b, a, c]);
@@ -64,7 +64,7 @@ test('abrir, marcar na ordem de chegada, reordenar, desmarcar e encerrar', async
   await p.getByRole('button', { name: `Marcar ${b} como presente` }).click();
   await expect(presentes(p)).toHaveText([c, a, b]);
   await p.getByRole('button', { name: `Marcar ${d} como presente` }).click();
-  await expect(p.getByRole('status')).toContainText('Já dá para sortear');
+  await expect(p.getByRole('button', { name: 'Sortear duplas' })).toBeEnabled();
 
   // a ordem persiste ao recarregar
   await p.reload();
@@ -73,26 +73,6 @@ test('abrir, marcar na ordem de chegada, reordenar, desmarcar e encerrar', async
   await p.getByRole('button', { name: 'Encerrar sessão' }).click();
   await p.getByRole('button', { name: 'Sim, encerrar' }).click();
   await expect(p.getByRole('heading', { name: 'Nenhum joguinho rolando' })).toBeVisible();
-});
-
-test('cadastro rápido cria o jogador e marca no fim; erros aparecem', async ({ abrir }) => {
-  const p = await abrir();
-  await sessaoLimpa(p);
-  const a = await criarJogador(p, 'Eva');
-  await abrirTela(p);
-  await p.getByRole('button', { name: 'Novo joguinho' }).click();
-  await p.getByRole('button', { name: `Marcar ${a} como presente` }).click();
-
-  const novo = `Fabi ${Math.random().toString(36).slice(2, 7)}`;
-  await p.getByLabel('Nome', { exact: true }).fill('Fabi');
-  await p.getByLabel('Mulher').check();
-  await p.getByRole('button', { name: 'Cadastrar e marcar presente' }).click();
-  await expect(p.getByRole('alert')).toContainText('nome e sobrenome');
-
-  await p.getByLabel('Nome', { exact: true }).fill(novo);
-  await p.getByRole('button', { name: 'Cadastrar e marcar presente' }).click();
-  await expect(presentes(p)).toHaveText([a, novo]);
-  await expect(p.locator('ol li').filter({ hasText: novo })).toContainText('nota 60');
 });
 
 test('só uma sessão aberta: o que outro aparelho abre aparece sem atualizar', async ({ abrir }) => {

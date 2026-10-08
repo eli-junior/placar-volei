@@ -7,6 +7,7 @@ guiadas por `PRAGMA user_version`. Jogadores, sessão e rodada usam este módulo
 """
 
 import os
+import re
 import sqlite3
 from contextlib import contextmanager
 from datetime import UTC, datetime
@@ -28,7 +29,7 @@ ROTULOS = {
     "codigo": "Código da quadra",
 }
 
-SCHEMA_VERSAO = 9
+SCHEMA_VERSAO = 10
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jogadores (
     id TEXT PRIMARY KEY,
@@ -76,7 +77,7 @@ CREATE TABLE IF NOT EXISTS rodadas (
     id TEXT PRIMARY KEY,
     sessao_id TEXT NOT NULL REFERENCES sessoes(id) ON DELETE CASCADE,
     numero INTEGER NOT NULL,
-    alvo INTEGER NOT NULL CHECK (alvo IN (10, 12)),
+    alvo INTEGER NOT NULL CHECK (alvo BETWEEN 6 AND 25),
     estado TEXT NOT NULL CHECK (estado IN ('proposta', 'em_andamento', 'cancelada', 'encerrada')),
     tentativa INTEGER NOT NULL DEFAULT 0,
     distintas INTEGER NOT NULL DEFAULT 1,
@@ -237,7 +238,46 @@ def init_gerenciador_sync(caminho: str | None = None) -> None:
             conn.execute(
                 "ALTER TABLE partidas_rodada ADD COLUMN fase TEXT NOT NULL DEFAULT 'fila'"
             )
+        # Migração 9 -> 10: o alvo da rodada deixa de ser só 10 ou 12 (6 a 25).
+        # O SQLite não altera um CHECK: recria a tabela, copiando as linhas.
+        _liberar_alvo_da_rodada(conn)
         conn.execute(f"PRAGMA user_version = {SCHEMA_VERSAO}")
         conn.commit()
     finally:
         conn.close()
+
+
+def _liberar_alvo_da_rodada(conn) -> None:
+    antigo = conn.execute(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'rodadas'"
+    ).fetchone()
+    if antigo is None or "alvo IN (10, 12)" not in antigo["sql"]:
+        return
+    novo = re.search(
+        r"CREATE TABLE IF NOT EXISTS rodadas \(.*?\n\);", SCHEMA_SQL, re.DOTALL
+    ).group(0)
+    novo = novo.replace("IF NOT EXISTS rodadas (", "rodadas_nova (", 1)
+    colunas = ", ".join(
+        r["name"]
+        for r in conn.execute("PRAGMA table_info(rodadas)")
+        if r["name"] != "formato" or "formato" in novo
+    )
+    conn.isolation_level = None
+    conn.execute("BEGIN IMMEDIATE")
+    try:
+        conn.execute(novo)
+        conn.execute(
+            f"INSERT INTO rodadas_nova ({colunas}) SELECT {colunas} FROM rodadas"
+        )
+        conn.execute("DROP TABLE rodadas")
+        conn.execute("ALTER TABLE rodadas_nova RENAME TO rodadas")
+        conn.execute(
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_rodada_ativa "
+            "ON rodadas (sessao_id) WHERE estado IN ('proposta', 'em_andamento')"
+        )
+        conn.execute("COMMIT")
+    except BaseException:
+        conn.execute("ROLLBACK")
+        raise
+    finally:
+        conn.isolation_level = ""

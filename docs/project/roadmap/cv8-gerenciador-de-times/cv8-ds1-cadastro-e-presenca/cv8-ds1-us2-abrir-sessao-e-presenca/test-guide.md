@@ -7,7 +7,7 @@ cd web && npm run build && cd ..
 OWNER_SECRET=meu-segredo GERENCIADOR_DB_PATH=/tmp/gerenciador-teste.db uv run uvicorn app.main:app --host 0.0.0.0 --port 8000
 ```
 
-Abra `http://localhost:8000`. Cadastre antes 4 ou 5 jogadores em **Jogadores** (nome e sobrenome, gênero), ou use o cadastro rápido no passo 7. Para testar com dois aparelhos, abra a mesma URL no celular (rede local).
+Abra `http://localhost:8000`. Cadastre antes 4 ou 5 jogadores em **Jogadores** (nome e sobrenome, gênero), ou use o botão **Gerenciar jogadores** no passo 7. Para testar com dois aparelhos, abra a mesma URL no celular (rede local).
 
 ## Passos e observações
 
@@ -17,7 +17,7 @@ Abra `http://localhost:8000`. Cadastre antes 4 ou 5 jogadores em **Jogadores** (
 4. Use **↓** na Ana e **↑** no Caio → **Passa:** a ordem muda (Bia, Caio, Ana); os botões dos extremos ficam desabilitados. Recarregue a página → a ordem se mantém.
 5. **Desmarcar** a Bia e marcá-la de novo → **Passa:** ela vai para o fim (Caio, Ana, Bia) e as posições são renumeradas 1º, 2º, 3º.
 6. Marque o quarto jogador → **Passa:** o aviso vira "Já dá para sortear".
-7. **Cadastro rápido:** cadastre "Duda" sem sobrenome → erro "nome e sobrenome"; cadastre "Duda Lima" (Mulher, nota vazia) → **Passa:** ela entra presente no fim, com nota 60.
+7. **Gerenciar jogadores:** toque o botão → **Passa:** abre a tela de Jogadores (o cadastro rápido saiu na 0.46.0). Cadastre "Duda Lima" (Mulher), volte e marque-a presente → ela entra no fim, com nota 60.
 8. Com a sessão aberta, tente abrir outra (pela API ou em outro aparelho) → **Passa:** recusa "já existe uma sessão aberta".
 9. Em **Jogadores**, inative um jogador presente → **Passa:** ele some da presença e as posições se recompactam; reativar não o recoloca.
 10. Reinicie o servidor (também com `RESET_DB_ON_STARTUP=true`) → **Passa:** a sessão aberta, as presenças e a ordem continuam.

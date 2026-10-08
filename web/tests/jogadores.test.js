@@ -74,7 +74,7 @@ test('envia a foto como JPEG cru com o segredo', async () => {
   await assert.rejects(enviarFoto('s', 'j', new Blob(['x']), async () => ({ ok: false, status: 413, json: async () => ({ detail: 'Foto grande.' }) })), e => e.status === 413 && e.message === 'Foto grande.');
 });
 
-import { moverPosicao, faltamParaSortear, chamarSessao } from '../src/lib/jogadores.js';
+import { moverPosicao, moverPara, mensagemFaltam, faltamParaSortear, chamarSessao } from '../src/lib/jogadores.js';
 
 test('mover posição sobe, desce e respeita os limites', () => {
   assert.deepEqual(moverPosicao(['a', 'b', 'c'], 'b', -1), ['b', 'a', 'c']);
@@ -164,4 +164,18 @@ test('cria a quadra do placar com o apelido e devolve o código', async () => {
 test('time com escalado mostra a marca ao lado do nome', () => {
   const time = { jogadores: [{ nome: 'Luca Reis', nota: 64 }, { nome: 'Iris Lima', nota: 61, escalado: true }] };
   assert.equal(descreverTime(time), 'Luca Reis (64) + Iris Lima (61) · escalado');
+});
+
+test('moverPara leva o jogador à posição e limita à faixa', () => {
+  assert.deepEqual(moverPara(['a', 'b', 'c', 'd'], 'c', 0), ['c', 'a', 'b', 'd']);
+  assert.deepEqual(moverPara(['a', 'b', 'c', 'd'], 'a', 2), ['b', 'c', 'a', 'd']);
+  assert.deepEqual(moverPara(['a', 'b', 'c'], 'a', 99), ['b', 'c', 'a']);
+  assert.deepEqual(moverPara(['a', 'b', 'c'], 'b', -5), ['b', 'a', 'c']);
+  assert.deepEqual(moverPara(['a', 'b'], 'x', 0), ['a', 'b']);
+});
+
+test('mensagemFaltam acompanha o mínimo do formato', () => {
+  assert.equal(mensagemFaltam(6), 'Faltam 6 presentes para sortear.');
+  assert.equal(mensagemFaltam(1), 'Falta 1 presente para sortear.');
+  assert.equal(mensagemFaltam(0), 'Já dá para sortear.');
 });

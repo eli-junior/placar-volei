@@ -89,6 +89,19 @@ export function moverPosicao(ids, id, delta) {
   return nova;
 }
 
+/**
+ * Nova ordem dos ids depois de levar `id` para a posição `destino` (0 = primeiro).
+ * Os demais mantêm a ordem relativa. Fora da faixa, a posição é limitada.
+ * @param {string[]} ids @param {string} id @param {number} destino
+ */
+export function moverPara(ids, id, destino) {
+  const de = ids.indexOf(id);
+  if (de < 0) return [...ids];
+  const nova = ids.filter(x => x !== id);
+  nova.splice(Math.max(0, Math.min(nova.length, destino)), 0, id);
+  return nova;
+}
+
 /** Quantos presentes faltam para o mínimo do sorteio (0 quando já basta). */
 export function faltamParaSortear(presentes, minimo = 4) {
   return Math.max(0, minimo - presentes);
@@ -185,4 +198,10 @@ export async function criarQuadraDoPlacar(apelido, buscar = globalThis.fetch) {
   const dados = await resposta.json().catch(() => null);
   if (!resposta.ok) throw new ErroJogadores(typeof dados?.detail === 'string' ? dados.detail : 'Não foi possível criar a quadra.', resposta.status);
   return dados.id;
+}
+
+/** Texto do que falta para sortear ("Faltam 6 presentes"), ou o aviso de que já dá. */
+export function mensagemFaltam(faltam) {
+  if (faltam <= 0) return 'Já dá para sortear.';
+  return faltam === 1 ? 'Falta 1 presente para sortear.' : `Faltam ${faltam} presentes para sortear.`;
 }

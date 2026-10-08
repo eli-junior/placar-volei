@@ -39,7 +39,9 @@ def preparar(client):
     )
     dono = {"headers": CABECALHO}
     client.post("/api/sessao", **dono)
-    for i, nome in enumerate(["Ana", "Bia", "Caio", "Davi", "Eva", "Fabio", "Gabi", "Hugo"]):
+    for i, nome in enumerate(
+        ["Ana", "Bia", "Caio", "Davi", "Eva", "Fabio", "Gabi", "Hugo"]
+    ):
         j = client.post(
             "/api/jogadores",
             json={
