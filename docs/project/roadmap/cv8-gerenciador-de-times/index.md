@@ -1,8 +1,8 @@
 ---
 code: CV8
 level: Value
-status: Planned
-status_reason: registrada em 2026-10-07, ainda não puxada
+status: Validated
+status_reason: DS1 a DS5 entregues até a 0.44.0; aguarda a validação do Navigator em lote
 updated: 2026-10-07
 related:
   - regras-de-negocio.md
@@ -41,3 +41,7 @@ Com 4 ou mais presentes, o operador sorteia, conduz as partidas até o mata-mata
 ## Notes
 
 Fonte: especificação "Gerenciador de Times" e decisões de refinamento de 2026-10-07. Estado inicial: `Planned`. Sequência e dependências a definir no plano ao puxar a primeira história.
+
+## Estado em 0.44.0
+
+Todas as Delivery Stories (DS1 a DS5) e a CV8.TS1 estão entregues e na `master`; falta a validação do Navigator em lote (guias em cada `test-guide.md`). O que ficou fora, por decisão da especificação: formato trio, histórico/ranking entre sessões e edição de partidas antigas (fase 2); nenhuma dessas tem regra de negócio fechada ainda.
