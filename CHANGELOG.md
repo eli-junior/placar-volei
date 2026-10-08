@@ -6,6 +6,19 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.46.1 - 2026-10-08
+
+Boundary: fix — placar do controlador coberto pelos botões +1 (patch; backend, web e APK em 0.46.1, APK `versionCode` 24; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `fix/placar-controlador-com-fila` em `master`.
+
+### Fixed
+
+- Na tela do controlador (altura fixa, sem rolagem), o cartão "Rodada / Fila / Reis" da US13 (0.44.0) tomava a altura do placar e os botões +1 ficavam sobre o placar do time de baixo. O controlador passa a ver a faixa compacta de uma linha; o cartão completo segue para quem só acompanha.
+- Teste de regressão em `e2e/conducao.spec.js` (placar com mais de 200 px e acima dos botões, em 360×700).
+
 ## 0.46.0 - 2026-10-08
 
 Boundary: Maintenance CV8 — ajustes da tela "Novo joguinho" (minor; backend, web e APK em 0.46.0, APK `versionCode` 23; Wear OS inalterado em 0.27.0).

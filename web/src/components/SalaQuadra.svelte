@@ -656,7 +656,7 @@
     </div>
   {/if}
 
-  <FilaEReis {exibicao} compacto={modoImersivo} />
+  <FilaEReis {exibicao} compacto={modoImersivo || podeControlar} />
 
   <!-- Modal/Gaveta da Linha do Tempo (CV1.DS4.US1) -->
   {#if modalLinhaDoTempoAberto}
