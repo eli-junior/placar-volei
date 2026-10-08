@@ -26,7 +26,7 @@ Git source: merge `--no-ff` de `fix/joguinho-sempre-encerravel` em `master`.
 
 ### Verification
 
-- `uv run pytest` (581), `npm run check`, `npm test` (185), `npm run test:e2e` (84). Validação do Navigator em produção pendente (ver `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/`).
+- `uv run pytest` (581), `npm run check`, `npm test` (185), `npm run test:e2e` (84). Validado pelo Navigator em produção (2026-10-08): anulou a partida presa e revinculou a quadra.
 
 ## 0.46.1 - 2026-10-08
 
