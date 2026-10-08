@@ -6,6 +6,25 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.45.0 - 2026-10-08
+
+Boundary: CV8.DS6.US15 — formato trio (minor; backend, web e APK em 0.45.0, APK `versionCode` 22; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-ds6-us15-formato-trio` em `master`.
+
+### Added
+
+- **Rodada em trios (RN-16):** ao sortear, o operador escolhe Duplas ou Trios (mínimo 6 presentes). Trios equilibrados pela nota e mistos: nenhum fecha só de um sexo havendo alternativa; sem sexo suficiente, o sorteio minimiza os trios de um sexo.
+- **Sobra:** 1 jogador sobrando escolhe 2 parceiros; 2 sobrando escolhem 1; um por vez, e a partida só é chamada com o time completo. Fila, rei da quadra, mata-mata, desfazer, substituição, atrasado e espectador funcionam com 3 nomes.
+- Schema 9 (aditivo): `rodadas.formato`. API: `formato` em `/api/rodada/sorteio` e `/resortear`.
+
+### Verification
+
+- `uv run pytest` (569, com `tests/test_trio.py`), `npm run check`, `npm test`, `npm run test:e2e` (80). Aguarda validação do Navigator, incluindo 3 nomes no relógio físico.
+- Dívida nova: dois algoritmos de sorteio (dupla e N); sem teste do relógio com 3 nomes.
+
 ## Sem versão - 2026-10-08
 
 Boundary: CV6.DS2.US4 (follow-up) — medição de repouso no relógio; só documentação, sem versão nova (Wear em 0.27.0).

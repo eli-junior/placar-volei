@@ -111,6 +111,6 @@ async def test_migra_do_schema_7(ac, tmp_path):
     conn.close()
     init_gerenciador_sync()
     conn = sqlite3.connect(settings.gerenciador_db_path)
-    assert conn.execute("PRAGMA user_version").fetchone()[0] == 8
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == 9
     assert "desfeito" in [r[1] for r in conn.execute("PRAGMA table_info(rodadas)")]
     conn.close()

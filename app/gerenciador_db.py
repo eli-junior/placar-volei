@@ -28,7 +28,7 @@ ROTULOS = {
     "codigo": "Código da quadra",
 }
 
-SCHEMA_VERSAO = 8
+SCHEMA_VERSAO = 9
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jogadores (
     id TEXT PRIMARY KEY,
@@ -86,7 +86,9 @@ CREATE TABLE IF NOT EXISTS rodadas (
     mata_mata_em TEXT,
     campeao_time_id TEXT REFERENCES times(id),
     -- desfazer a última partida (CV8.DS3.US7): 1 nível só
-    desfeito INTEGER NOT NULL DEFAULT 0
+    desfeito INTEGER NOT NULL DEFAULT 0,
+    -- formato do time (CV8.DS6.US15): 'dupla' (2 jogadores) ou 'trio' (3)
+    formato TEXT NOT NULL DEFAULT 'dupla' CHECK (formato IN ('dupla', 'trio'))
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_rodada_ativa
     ON rodadas (sessao_id) WHERE estado IN ('proposta', 'em_andamento');
@@ -223,6 +225,11 @@ def init_gerenciador_sync(caminho: str | None = None) -> None:
         if "desfeito" not in colunas_rodada:
             conn.execute(
                 "ALTER TABLE rodadas ADD COLUMN desfeito INTEGER NOT NULL DEFAULT 0"
+            )
+        # Migração aditiva 8 -> 9: formato da rodada (dupla ou trio).
+        if "formato" not in colunas_rodada:
+            conn.execute(
+                "ALTER TABLE rodadas ADD COLUMN formato TEXT NOT NULL DEFAULT 'dupla'"
             )
         if "fase" not in [
             r["name"] for r in conn.execute("PRAGMA table_info(partidas_rodada)")

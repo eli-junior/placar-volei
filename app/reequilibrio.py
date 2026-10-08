@@ -40,8 +40,9 @@ def saldos_da_sessao(conn, sessao_id: str) -> dict[str, tuple[int, int]]:
     return {k: (v[0], v[1]) for k, v in acumulado.items()}
 
 
-def duplas_anteriores(conn, sessao_id: str) -> frozenset:
-    """Duplas já formadas nas rodadas encerradas da sessão (conjuntos de ids)."""
+def duplas_anteriores(conn, sessao_id: str, tamanho: int = 2) -> frozenset:
+    """Times de `tamanho` já formados nas rodadas encerradas da sessão (conjuntos
+    de ids): duplas por padrão, trios no formato trio."""
     por_time: dict[str, set[str]] = {}
     for r in conn.execute(
         "SELECT tj.time_id, tj.jogador_id FROM time_jogadores tj "
@@ -50,7 +51,7 @@ def duplas_anteriores(conn, sessao_id: str) -> frozenset:
         (sessao_id,),
     ):
         por_time.setdefault(r["time_id"], set()).add(r["jogador_id"])
-    return frozenset(frozenset(ids) for ids in por_time.values() if len(ids) == 2)
+    return frozenset(frozenset(ids) for ids in por_time.values() if len(ids) == tamanho)
 
 
 def tem_rodada_anterior(conn, sessao_id: str) -> bool:

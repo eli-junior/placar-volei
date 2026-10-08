@@ -27,6 +27,7 @@ from app.reequilibrio import (
 from app.sorteio import JogadoresInsuficientes, Participante, sortear
 
 ALVOS = (10, 12)
+FORMATOS = {"dupla": 2, "trio": 3}
 ATIVAS = ("proposta", "em_andamento")
 
 
@@ -88,6 +89,8 @@ def montar(conn, sessao_id: str) -> dict | None:
         "id": r["id"],
         "numero": r["numero"],
         "alvo": r["alvo"],
+        "formato": r["formato"],
+        "tamanho": FORMATOS[r["formato"]],
         "estado": r["estado"],
         "tentativa": r["tentativa"],
         "distintas": r["distintas"],
@@ -100,6 +103,14 @@ def _alvo_valido(bruto) -> int:
     if isinstance(bruto, bool) or bruto not in ALVOS:
         raise erro_de_campo(422, "alvo", "deve ser 10 ou 12", "valor_invalido")
     return int(bruto)
+
+
+def _formato_valido(bruto) -> str:
+    if bruto is None:
+        return "dupla"
+    if not isinstance(bruto, str) or bruto not in FORMATOS:
+        raise erro_de_campo(422, "formato", "deve ser dupla ou trio", "valor_invalido")
+    return bruto
 
 
 def _participantes(conn, sessao_id: str) -> list[Participante]:
@@ -123,18 +134,20 @@ def _participantes(conn, sessao_id: str) -> list[Participante]:
     ]
 
 
-def _sortear(conn, sessao_id: str, tentativa: int):
+def _sortear(conn, sessao_id: str, tentativa: int, formato: str = "dupla"):
+    tamanho = FORMATOS[formato]
     try:
         return sortear(
             _participantes(conn, sessao_id),
             tentativa,
-            duplas_anteriores(conn, sessao_id),
+            duplas_anteriores(conn, sessao_id, tamanho),
+            tamanho,
         )
     except JogadoresInsuficientes as e:
         raise erro_de_campo(
             409,
             "rodada",
-            f"precisa de ao menos 4 presentes: {e}",
+            f"precisa de ao menos {e.minimo} presentes: {e}",
             "minimo",
         ) from None
 
@@ -163,21 +176,23 @@ def _apagar_times(conn, rodada_id: str) -> None:
     conn.execute("DELETE FROM times WHERE rodada_id = ?", (rodada_id,))
 
 
-def criar_proposta(conn, alvo) -> None:
+def criar_proposta(conn, alvo, formato=None) -> None:
     alvo = _alvo_valido(alvo)
+    formato = _formato_valido(formato)
     sessao = exigir_sessao_aberta(conn)
     if rodada_ativa(conn, sessao["id"]):
         raise erro_de_campo(409, "rodada", "já existe uma rodada ativa", "rodada_ativa")
-    resultado = _sortear(conn, sessao["id"], 0)
+    resultado = _sortear(conn, sessao["id"], 0, formato)
     numero = conn.execute(
         "SELECT COALESCE(MAX(numero), 0) + 1 FROM rodadas WHERE sessao_id = ?",
         (sessao["id"],),
     ).fetchone()[0]
     rodada_id = uuid.uuid4().hex
     conn.execute(
-        "INSERT INTO rodadas (id, sessao_id, numero, alvo, estado, tentativa, "
-        "distintas, criado_em) VALUES (?, ?, ?, ?, 'proposta', 0, ?, ?)",
-        (rodada_id, sessao["id"], numero, alvo, resultado.distintas, agora()),
+        "INSERT INTO rodadas (id, sessao_id, numero, alvo, formato, estado, "
+        "tentativa, distintas, criado_em) "
+        "VALUES (?, ?, ?, ?, ?, 'proposta', 0, ?, ?)",
+        (rodada_id, sessao["id"], numero, alvo, formato, resultado.distintas, agora()),
     )
     _gravar_times(conn, rodada_id, resultado)
 
@@ -192,16 +207,19 @@ def _exigir_proposta(conn):
     return sessao, r
 
 
-def resortear(conn, alvo=None) -> None:
+def resortear(conn, alvo=None, formato=None) -> None:
     sessao, r = _exigir_proposta(conn)
     novo_alvo = _alvo_valido(alvo) if alvo is not None else r["alvo"]
-    tentativa = r["tentativa"] + 1
-    resultado = _sortear(conn, sessao["id"], tentativa)
+    novo_formato = _formato_valido(formato) if formato is not None else r["formato"]
+    # Trocar de formato recomeça as combinações; no mesmo formato, a próxima.
+    tentativa = r["tentativa"] + 1 if novo_formato == r["formato"] else 0
+    resultado = _sortear(conn, sessao["id"], tentativa, novo_formato)
     _apagar_times(conn, r["id"])
     _gravar_times(conn, r["id"], resultado)
     conn.execute(
-        "UPDATE rodadas SET alvo = ?, tentativa = ?, distintas = ? WHERE id = ?",
-        (novo_alvo, tentativa, resultado.distintas, r["id"]),
+        "UPDATE rodadas SET alvo = ?, formato = ?, tentativa = ?, distintas = ? "
+        "WHERE id = ?",
+        (novo_alvo, novo_formato, tentativa, resultado.distintas, r["id"]),
     )
 
 
@@ -288,6 +306,8 @@ def _escalacao(rodada: dict, por_id: dict, linhas, situacao, incompleto: dict) -
         origem=incompleto["origem"],
         eliminados=eliminados,
         livres=livres,
+        atuais=[j["genero"] for j in incompleto["jogadores"]],
+        tamanho=rodada["tamanho"],
     )
 
 
@@ -354,6 +374,8 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
                 escalacao = {
                     "time": t["fila"],
                     "jogador": t["jogadores"][0]["nome"],
+                    "jogadores": [j["nome"] for j in t["jogadores"]],
+                    "faltam": rodada["tamanho"] - len(t["jogadores"]),
                     "origem": t["origem"],
                     "grupos": [
                         {
@@ -460,6 +482,12 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
     }
 
 
+def _mensagem_hh(tamanho: int) -> str:
+    if tamanho == 3:
+        return "formaria trio só de um sexo havendo alternativa: escolha outra pessoa"
+    return "formaria dupla H+H havendo mulher elegível: escolha uma delas"
+
+
 def escalar_parceiro(conn, jogador_id) -> None:
     """Completa o time incompleto que está em quadra com um jogador da lista
     de escalação (RN-05/06/07). Revalida tudo na transação."""
@@ -496,7 +524,7 @@ def escalar_parceiro(conn, jogador_id) -> None:
             raise erro_de_campo(
                 409,
                 "jogador",
-                "formaria dupla H+H havendo mulher elegível: escolha uma delas",
+                _mensagem_hh(rodada["tamanho"]),
                 "hh_com_alternativa",
             )
         raise erro_de_campo(
@@ -510,7 +538,10 @@ def escalar_parceiro(conn, jogador_id) -> None:
         "VALUES (?, ?, ?, ?, 1)",
         (incompleto["id"], jogador_id, ja["nota"], ja["ordem_chegada"]),
     )
-    conn.execute("UPDATE times SET incompleto = 0 WHERE id = ?", (incompleto["id"],))
+    if len(incompleto["jogadores"]) + 1 >= rodada["tamanho"]:
+        conn.execute(
+            "UPDATE times SET incompleto = 0 WHERE id = ?", (incompleto["id"],)
+        )
 
 
 def registrar_campeao(conn, sessao_id: str) -> bool:

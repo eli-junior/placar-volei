@@ -7,6 +7,10 @@ Regras (ver `docs/project/roadmap/cv8-gerenciador-de-times/regras-de-negocio.md`
   por último na fila.
 - RN-01: o número de duplas H+H é o mínimo possível, `max(0, (H − M) / 2)`
   entre os que formam dupla. O gênero prevalece sobre o equilíbrio.
+- RN-16 (trio): rodada inteira em trios; mínimo de 6 jogadores; a sobra
+  (1 ou 2 últimos a chegar) forma um time incompleto por último na fila; com
+  homens e mulheres presentes, o número de trios só de um sexo é o mínimo
+  possível (o gênero prevalece sobre o equilíbrio).
 - RN-14: duplas equilibradas pela nota (somas de nota o mais parecidas
   possível), sem aleatoriedade na combinação-base.
 - RN-13: a fila ordena os times pela menor ordem de chegada entre seus
@@ -21,6 +25,7 @@ from functools import lru_cache
 from typing import NamedTuple
 
 MINIMO_JOGADORES = 4
+MINIMO_POR_TAMANHO = {2: 4, 3: 6}
 # Resortear aceita combinações cuja amplitude (maior soma − menor soma) seja,
 # no máximo, esta quantidade de pontos pior que a da melhor combinação.
 TOLERANCIA = 3
@@ -59,10 +64,11 @@ class Sorteio(NamedTuple):
 
 
 class JogadoresInsuficientes(ValueError):
-    def __init__(self, presentes: int) -> None:
+    def __init__(self, presentes: int, minimo: int = MINIMO_JOGADORES) -> None:
         self.presentes = presentes
-        self.faltam = MINIMO_JOGADORES - presentes
-        super().__init__(f"faltam {self.faltam} para o mínimo de {MINIMO_JOGADORES}")
+        self.minimo = minimo
+        self.faltam = minimo - presentes
+        super().__init__(f"faltam {self.faltam} para o mínimo de {minimo}")
 
 
 def _hh(dupla) -> int:
@@ -210,19 +216,178 @@ def _candidatas(
     return aceitas[:_MAXIMO_CANDIDATAS]
 
 
+# --- Formato trio (CV8.DS6.US15, RN-16) ---------------------------------------
+
+_PESO_GENERO = 10**7  # um trio só de um sexo pesa mais que qualquer equilíbrio
+
+
+def _unisex(trio) -> int:
+    return int(len({p.genero for p in trio}) == 1)
+
+
+def _soma(time) -> int:
+    return sum(p.nota for p in time)
+
+
+def _custo_time(time, misto: bool) -> int:
+    return _soma(time) ** 2 + (_PESO_GENERO * _unisex(time) if misto else 0)
+
+
+def _amplitude_n(times) -> int:
+    somas = [_soma(t) for t in times]
+    return max(somas) - min(somas)
+
+
+def _violacoes(times, misto: bool) -> int:
+    return sum(_unisex(t) for t in times) if misto else 0
+
+
+def _inicial_n(grupo: list[Participante]) -> list[list[Participante]]:
+    """Distribuição em serpentina: o mais forte no 1º time, o seguinte no 2º...,
+    voltando no sentido contrário a cada rodada de distribuição."""
+    n_times = len(grupo) // 3
+    ordenado = sorted(grupo, key=lambda p: (-p.nota, p.ordem))
+    times: list[list[Participante]] = [[] for _ in range(n_times)]
+    for i, p in enumerate(ordenado):
+        volta, pos = divmod(i, n_times)
+        times[pos if volta % 2 == 0 else n_times - 1 - pos].append(p)
+    return times
+
+
+def _trocas_n(times) -> list[tuple[int, int, int, int]]:
+    return [
+        (a, i, b, j)
+        for a in range(len(times))
+        for b in range(a + 1, len(times))
+        for i in range(len(times[a]))
+        for j in range(len(times[b]))
+    ]
+
+
+def _delta_n(times, troca, misto: bool) -> int:
+    a, i, b, j = troca
+    na, nb = list(times[a]), list(times[b])
+    na[i], nb[j] = times[b][j], times[a][i]
+    return (
+        _custo_time(na, misto)
+        + _custo_time(nb, misto)
+        - _custo_time(times[a], misto)
+        - _custo_time(times[b], misto)
+    )
+
+
+def _descer_n(times, misto: bool):
+    atual = [list(t) for t in times]
+    while True:
+        melhor, melhor_delta = None, 0
+        for troca in _trocas_n(atual):
+            d = _delta_n(atual, troca, misto)
+            if d < melhor_delta:
+                melhor, melhor_delta = troca, d
+        if melhor is None:
+            return atual
+        atual = _aplicar(atual, melhor)
+
+
+def _perturbar_n(times, rng: random.Random, passos: int):
+    atual = [list(t) for t in times]
+    for _passo in range(passos):
+        atual = _aplicar(atual, rng.choice(_trocas_n(atual)))
+    return atual
+
+
+def _repetidos_n(times, anteriores: frozenset) -> int:
+    return sum(frozenset(p.id for p in t) in anteriores for t in times)
+
+
+@lru_cache(maxsize=64)
+def _candidatas_n(
+    grupo: tuple[Participante, ...], anteriores: frozenset = frozenset()
+) -> list[list[list[Participante]]]:
+    """Como `_candidatas`, para times de 3: primeiro o menor número de trios só
+    de um sexo (se há os dois sexos), depois a amplitude de notas."""
+    misto = len({p.genero for p in grupo}) == 2
+    base = _descer_n(_inicial_n(list(grupo)), misto)
+    achadas = {_chave(base): base}
+    rng = random.Random(len(grupo) * 100003 + sum(p.nota for p in grupo))
+    for _ in range(_PARTIDAS_ALEATORIAS):
+        passos = rng.randint(1, min(len(grupo), _PASSOS_MAXIMOS))
+        candidata = _descer_n(_perturbar_n(base, rng, passos), misto)
+        achadas.setdefault(_chave(candidata), candidata)
+    minimo = min(_violacoes(c, misto) for c in achadas.values())
+    melhor_amp = min(
+        _amplitude_n(c) for c in achadas.values() if _violacoes(c, misto) == minimo
+    )
+    for c in list(achadas.values()):
+        if _violacoes(c, misto) != minimo:
+            continue
+        for troca in _trocas_n(c):
+            vizinha = _aplicar(c, troca)
+            if (
+                _violacoes(vizinha, misto) == minimo
+                and _amplitude_n(vizinha) <= melhor_amp + TOLERANCIA
+            ):
+                achadas.setdefault(_chave(vizinha), vizinha)
+    aceitas = [
+        c
+        for c in achadas.values()
+        if _violacoes(c, misto) == minimo and _amplitude_n(c) <= melhor_amp + TOLERANCIA
+    ]
+    aceitas.sort(
+        key=lambda c: (
+            _repetidos_n(c, anteriores),
+            sum(_soma(t) ** 2 for t in c),
+            _chave(c),
+        )
+    )
+    return aceitas[:_MAXIMO_CANDIDATAS]
+
+
+def _sortear_trios(
+    participantes: list[Participante], tentativa: int, anteriores: frozenset
+) -> Sorteio:
+    ordenados = sorted(participantes, key=lambda p: p.ordem)
+    sobra = ordenados[len(ordenados) - len(ordenados) % 3 :]
+    grupo = [p for p in ordenados if p not in sobra]
+    candidatas = _candidatas_n(tuple(grupo), anteriores)
+    escolhida = candidatas[tentativa % len(candidatas)]
+    misto = len({p.genero for p in grupo}) == 2
+    completos = sorted(escolhida, key=lambda t: min(p.ordem for p in t))
+    times = [
+        Time(tuple(sorted(t, key=lambda p: p.ordem)), fila=i, incompleto=False)
+        for i, t in enumerate(completos, start=1)
+    ]
+    if sobra:
+        times.append(Time(tuple(sobra), fila=len(times) + 1, incompleto=True))
+    return Sorteio(
+        times=tuple(times),
+        amplitude=_amplitude_n(escolhida),
+        duplas_hh=_violacoes(escolhida, misto),  # trios só de um sexo
+        repetidas=_repetidos_n(escolhida, anteriores),
+        tentativa=tentativa,
+        distintas=len(candidatas),
+    )
+
+
 def sortear(
     participantes: list[Participante],
     tentativa: int = 0,
     anteriores: frozenset = frozenset(),
+    tamanho: int = 2,
 ) -> Sorteio:
     """Monta a proposta. `tentativa` 0 é a melhor combinação; as seguintes
     percorrem as equivalentes (e voltam ao início ao esgotá-las). `anteriores`
     são as duplas já formadas na sessão (conjuntos de ids): evitá-las é
     preferência, abaixo do gênero e do equilíbrio (RN-10)."""
-    if len(participantes) < MINIMO_JOGADORES:
-        raise JogadoresInsuficientes(len(participantes))
+    if tamanho not in MINIMO_POR_TAMANHO:
+        raise ValueError("tamanho de time inválido")
+    minimo = MINIMO_POR_TAMANHO[tamanho]
+    if len(participantes) < minimo:
+        raise JogadoresInsuficientes(len(participantes), minimo)
     if len({p.id for p in participantes}) != len(participantes):
         raise ValueError("jogadores repetidos")
+    if tamanho == 3:
+        return _sortear_trios(participantes, tentativa, anteriores)
 
     ordenados = sorted(participantes, key=lambda p: p.ordem)
     impar = ordenados[-1] if len(ordenados) % 2 else None
