@@ -12,7 +12,7 @@ Use **5 jogadores** (número ímpar), cadastrados e marcados presentes **nesta o
 ## Passos e observações
 
 1. **Painel inicial:** → **Passa:** Time 3 aparece na fila como incompleto ("escolhe o parceiro na sua vez").
-2. **1ª partida:** **Chamar partida**, marque 10 pontos para o time A no placar, **Encerrar partida** → o Time 1 segue em quadra e o **Time 3 (incompleto) entra**.
+2. **1ª partida:** **Chamar partida**, marque os pontos do alvo (10 por padrão) para o time A no placar, **Encerrar partida** → o Time 1 segue em quadra e o **Time 3 (incompleto) entra**.
 3. **Lista de escalação:** → **Passa:** aparece o bloco **Escolher o parceiro do Time 3** ("Luca Cinco está sem dupla…") com a lista **"Lista de escalação (eliminados)"**. Como Luca é **homem**, só aparecem as **mulheres** do Time 2 eliminado (uma ou duas, conforme o sorteio); nenhum jogador do Time 1 (em quadra) aparece. **Chamar partida** está desabilitado com "Escolha o parceiro do Time 3 antes de chamar a partida."
 4. **Escolher:** toque **Escalar** numa delas → **Passa:** o bloco some, o Time 3 aparece completo com "· escalado" ao lado do nome dela, ela **sai de "Eliminados"** e **Chamar partida** habilita. Em outro aparelho a escolha aparece sozinha.
 5. **Recusa de H+H:** (via API, ou numa rodada com um homem eliminado no mesmo caso) escolher um homem havendo mulher elegível é recusado ("formaria dupla H+H…").

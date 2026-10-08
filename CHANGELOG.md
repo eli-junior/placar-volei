@@ -4,12 +4,27 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### Maintenance CV8 — ajustes da tela "Novo joguinho"
+Nenhum trabalho ativo.
 
-- **Branch:** `feature/cv8-joguinho-ajustes`
-- **Passo Ariad:** Passo 5 - Revisão (aguardando Checkpoint 3)
-- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01KNVAV8TEYj9sk9Gygfvno2 | Data: 2026-10-08
-- **Handoff / Próximos Passos:** plano confirmado. Itens: (1) slider de pontos 6–25 com migração schema 9→10 (CHECK de `rodadas.alvo`); (2) mensagem "Faltam N presentes" por formato; (3) "Cadastro rápido" vira botão "Gerenciar jogadores"; (4) arrastar e soltar na ordem de chegada. Versão alvo 0.46.0.
+## 0.46.0 - 2026-10-08
+
+Boundary: Maintenance CV8 — ajustes da tela "Novo joguinho" (minor; backend, web e APK em 0.46.0, APK `versionCode` 23; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv8-joguinho-ajustes` em `master`.
+
+### Changed
+
+- **Pontos da partida:** slider de 6 a 25 (padrão 10), no lugar de 10 ou 12. Schema 10: a tabela `rodadas` é recriada preservando as linhas (o CHECK do alvo mudou).
+- **Mínimo para sortear:** a mensagem acompanha o formato ("Faltam 6 presentes para sortear" no trio); o rótulo é só "Trios".
+- **Cadastro rápido** saiu: entrou o botão "Gerenciar jogadores" (abre a tela de Jogadores; o jogador cadastrado não é marcado presente sozinho).
+- **Ordem de chegada:** arrastar pela alça ⠿ (pointer events), além dos botões ↑ ↓.
+
+### Verification
+
+- `uv run pytest` (575), `npm run check`, `npm test` (185), `npm run test:e2e` (82). Validado pelo Navigator no celular.
+- Dívida nova: endpoint `/presencas/rapido` sem uso na tela; arrastar sem rolagem automática.
 
 ## Sem versão - 2026-10-08 (Placar Web)
 
