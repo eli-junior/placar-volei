@@ -4,7 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### CV8.DS7.TS2 — Quadra do joguinho não some no meio da rodada
+
+- **Branch:** `fix/cv8-ds7-ts2-quadra-do-joguinho`
+- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
+- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-ts2-quadra-do-joguinho-nao-some/plan.md`; nenhum código escrito ainda. Depois da confirmação: implementar (batimento + reconciliação) e testes.
 
 ## 0.46.2 - 2026-10-08
 
