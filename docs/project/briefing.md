@@ -12,11 +12,11 @@ Audiência: o grupo de vôlei do Navigator. Escala esperada: dezenas de pessoas,
 
 ## Current State
 
-Wear OS `0.25.0` entregue em `master`, com retorno perceptível ao pontuar e acompanhamento em segundo plano para repouso/retomada (`CV6.DS2.US3–US4`). O Galaxy Watch SM-L330/Android 16 manteve serviço e WebSocket durante 60 s em Dozing via ADB; os limites dos cenários físicos ainda não observados estão no roteiro da US4. Backend e web continuam em `0.24.0`. CV6.DS2.US1–US4 estão concluídas; a resolução de conflitos da fila foi entregue na `CV3.DS1.US4`, com descarte e aviso.
+Backend, web e APK em `0.45.0` e Wear OS em `0.27.0`, todos em `master`. Entregues: placar compartilhado, relógio (CV3, CV6), APK online/offline (CV7) e gerenciador de times (CV8: cadastro, sorteio em duplas ou trios, rei da quadra, mata-mata, persistência e exibição). A validação do Navigator em lote da CV8 e dos 3 nomes no relógio físico (US15) está pendente.
 
 Repositório publicado e sincronizado em `github.com/eli-junior/placar-volei`.
 
-Próximo trabalho: seguir o roadmap CV6. Débito de testes ponta a ponta do relógio e validação física ampliada da US4 continuam em aberto.
+Próximo trabalho: validar a CV8 em lote; a fase 2 (histórico e ranking entre sessões, edição de partidas antigas) ainda não tem regra de negócio fechada. Dívidas abertas em `docs/project/debt/`.
 
 ## Architecture Premises
 
