@@ -151,6 +151,10 @@ test('painel da condução sem violações axe', async ({ abrir }) => {
 // Pontos pelo placar de verdade (mesma API da tela). O cookie do operador é
 // `Secure` e só o navegador o envia por http, então a chamada sai da página.
 async function pontosNoPlacar(p, codigo, equipe, quantos) {
+  // "Chamar partida" só devolve o controle depois que o servidor zerou o placar:
+  // pontuar antes disso cai na partida anterior (encerrada) e volta 400. O botão
+  // "Encerrar partida" só existe depois da chamada concluída.
+  await p.getByRole('button', { name: 'Encerrar partida' }).waitFor();
   const statuses = await p.evaluate(async ([id, eq, n]) => {
     const quadra = await (await fetch(`/api/quadras/${id}`)).json();
     const saida = [];
