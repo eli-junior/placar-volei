@@ -12,11 +12,11 @@
 
 <section class="rodada" aria-labelledby="titulo-rodada">
   <h2 id="titulo-rodada">
-    {proposta ? 'Proposta' : 'Rodada'} {rodada.numero} <span class="alvo">· alvo {rodada.alvo}</span>
+    {proposta ? 'Proposta' : 'Rodada'} {rodada.numero} <span class="alvo">· {rodada.formato === 'trio' ? 'trios' : 'duplas'} · alvo {rodada.alvo}</span>
   </h2>
   {#if proposta}
     <p class="ajuda">
-      {#if rodada.numero > 1}Reequilibrada pelo saldo da sessão (nota ajustada entre parênteses). {/if}Confira as duplas e a fila. Combinação {posicao.atual} de {posicao.total} igualmente equilibradas{#if posicao.total === 1}; não há outra para trocar{/if}.
+      {#if rodada.numero > 1}Reequilibrada pelo saldo da sessão (nota ajustada entre parênteses). {/if}Confira {rodada.formato === 'trio' ? 'os trios' : 'as duplas'} e a fila. Combinação {posicao.atual} de {posicao.total} igualmente equilibradas{#if posicao.total === 1}; não há outra para trocar{/if}.
     </p>
   {/if}
 
@@ -32,7 +32,7 @@
         <span class="posicao">Time {time.fila}{#if time.fila <= 2} <span class="selo">em quadra</span>{/if}</span>
         <span class="jogadores">{descreverTime(time)}</span>
         <span class="soma">soma {time.soma}</span>
-        {#if time.incompleto}<span class="aviso">Incompleto: escolhe o parceiro na sua vez.</span>{/if}
+        {#if time.incompleto}<span class="aviso">Incompleto: escolhe {rodada.tamanho - time.jogadores.length === 1 ? 'o parceiro' : 'os parceiros'} na sua vez.</span>{/if}
       </li>
     {/each}
   </ol>

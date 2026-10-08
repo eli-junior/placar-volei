@@ -114,3 +114,32 @@ test('proposta sem violações axe', async ({ abrir }) => {
   expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ') + ' ' + (n.any[0]?.message ?? '')).join(' | ')}`)).toEqual([]);
   await sessaoLimpa(p);
 });
+
+// CV8.DS6.US15 — formato trio.
+test('formato trio: sorteia 2 trios mistos com 6 presentes', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS);
+  await abrirTela(p);
+
+  await p.getByLabel('Trios (mínimo 6)').check();
+  await p.getByRole('button', { name: 'Sortear trios' }).click();
+  await expect(p.getByRole('heading', { name: /Proposta 1/ })).toContainText('trios');
+  const times = p.locator('ol.fila > li');
+  await expect(times).toHaveCount(2);
+  for (const i of [0, 1]) {
+    // cada trio tem 3 nomes (separados por " + ") e mistura os sexos
+    await expect(times.nth(i).locator('.jogadores')).toContainText(/.+ \+ .+ \+ .+/);
+  }
+  await p.getByRole('button', { name: 'Descartar' }).click();
+});
+
+test('formato trio com menos de 6 presentes: sortear desabilitado', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS.slice(0, 5));
+  await abrirTela(p);
+  await p.getByLabel('Trios (mínimo 6)').check();
+  await expect(p.getByRole('button', { name: 'Sortear trios' })).toBeDisabled();
+  await expect(p.getByText('Faltam 1 presente(s) para sortear.')).toBeVisible();
+});

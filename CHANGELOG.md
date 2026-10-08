@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV8.DS6.US15 — Formato trio (rodada inteira em trios)
 
 - **Branch:** `feature/cv8-ds6-us15-formato-trio`
-- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando Checkpoint 2)
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01KNVAV8TEYj9sk9Gygfvno2 | Data: 2026-10-08
-- **Handoff / Próximos Passos:** plano apresentado ao Navigator; nenhum código alterado. Decisões já tomadas: rodada inteira em trios; trio misto (nunca HHH/MMM, salvo grupo só de um sexo); sobra é time incompleto que escolhe parceiros na sua vez; placar igual.
+- **Handoff / Próximos Passos:** plano confirmado (Checkpoint 1). Backend, web e testes prontos (pytest 569, svelte-check, e2e 80). Falta a validação do Navigator (`test-guide.md` da US15) e a versão 0.45.0 na documentação. Decisões já tomadas: rodada inteira em trios; trio misto (nunca HHH/MMM, salvo grupo só de um sexo); sobra é time incompleto que escolhe parceiros na sua vez; placar igual.
 
 ## Sem versão - 2026-10-08
 

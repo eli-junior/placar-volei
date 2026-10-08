@@ -86,9 +86,9 @@
   {#if conducao.escalacao}
     {@const esc = conducao.escalacao}
     <div class="bloco destaque" aria-labelledby="titulo-escalacao">
-      <h3 id="titulo-escalacao">Escolher o parceiro do Time {esc.time}</h3>
+      <h3 id="titulo-escalacao">Escolher {esc.faltam > 1 ? `os ${esc.faltam} parceiros` : 'o parceiro'} do Time {esc.time}</h3>
       <p class="ajuda">
-        {esc.jogador} está {esc.origem === 'atrasado' ? 'chegando no meio da rodada' : 'sem dupla'} e escolhe o parceiro na vez dele.
+        {esc.jogadores?.join(' e ') ?? esc.jogador} {esc.jogadores?.length > 1 ? 'estão' : 'está'} {esc.origem === 'atrasado' ? 'chegando no meio da rodada' : 'sem time completo'} e {esc.jogadores?.length > 1 ? 'escolhem' : 'escolhe'} {esc.faltam > 1 ? `${esc.faltam} parceiros` : 'o parceiro'} na vez.
       </p>
       {#if erroEscalacao}<p class="erro" role="alert">{erroEscalacao}</p>{/if}
       {#if esc.ninguem}
@@ -96,7 +96,7 @@
       {:else}
         {#each esc.grupos as grupo (grupo.rotulo)}
           <p class="ajuda"><strong>{grupo.rotulo}</strong></p>
-          {#if esc.aviso_hh}<p class="ajuda">Só há homens elegíveis: a dupla será H+H, por falta de alternativa.</p>{/if}
+          {#if esc.aviso_hh}<p class="ajuda">Não há alternativa de gênero: o time fechará só de um sexo, por falta de opção.</p>{/if}
           <ul class="times">
             {#each grupo.jogadores as j (j.id)}
               <li>

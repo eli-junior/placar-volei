@@ -22,6 +22,7 @@
   let nota = $state('');
   let erroRapido = $state(null);
   let alvo = $state(10);
+  let formato = $state('dupla');
   let conectado = $state(false);
   let online = $state(typeof navigator === 'undefined' ? true : navigator.onLine);
   let erroQuadra = $state(null);
@@ -35,7 +36,8 @@
   const travada = $derived(Boolean(rodada));
   const podeAtrasado = $derived(rodada?.estado === 'em_andamento' && !rodada.mata_mata_iniciado);
   const sincronia = $derived(rotuloSincronia(conectado, online));
-  const faltam = $derived(faltamParaSortear(presentes.length, estado?.minimo ?? 4));
+  const minimoSorteio = $derived(formato === 'trio' ? 6 : (estado?.minimo ?? 4));
+  const faltam = $derived(faltamParaSortear(presentes.length, minimoSorteio));
 
   // Estado novo só entra se for mais recente que o mostrado: a resposta HTTP de
   // quem agiu e a mensagem do WebSocket podem chegar fora de ordem.
@@ -137,14 +139,14 @@
   const mover = (j, delta) => agir('/ordem', { metodo: 'PUT', corpo: { jogador_ids: moverPosicao(presentes.map(p => p.id), j.id, delta) } });
 
   const registrarAtrasado = (j) => agir('/atrasado', { metodo: 'POST', corpo: { jogador_id: j.id } }, chamarRodada);
-  const sortear = () => agir('/sorteio', { metodo: 'POST', corpo: { alvo } }, chamarRodada);
-  const resortear = () => agir('/resortear', { metodo: 'POST', corpo: { alvo } }, chamarRodada);
+  const sortear = () => agir('/sorteio', { metodo: 'POST', corpo: { alvo, formato } }, chamarRodada);
+  const resortear = () => agir('/resortear', { metodo: 'POST', corpo: { alvo, formato } }, chamarRodada);
   const confirmar = () => agir('/confirmar', { metodo: 'POST' }, chamarRodada);
   const descartar = () => agir('/descartar', { metodo: 'POST' }, chamarRodada);
   const cancelarRodada = () => agir('/cancelar', { metodo: 'POST' }, chamarRodada);
 
   // A proposta mostra o alvo gravado; trocar de alvo na tela vale no próximo resortear.
-  $effect(() => { if (rodada) alvo = rodada.alvo; });
+  $effect(() => { if (rodada) { alvo = rodada.alvo; formato = rodada.formato ?? 'dupla'; } });
 
   // Ações do vínculo e da chamada: o erro aparece no próprio bloco da quadra.
   async function agirQuadra(acao) {
@@ -298,7 +300,12 @@
             <label class="opcao"><input type="radio" name="alvo" value={10} bind:group={alvo} disabled={ocupado} /> 10 pontos</label>
             <label class="opcao"><input type="radio" name="alvo" value={12} bind:group={alvo} disabled={ocupado} /> 12 pontos</label>
           </fieldset>
-          <button class="acao-principal" type="button" onclick={sortear} disabled={ocupado || faltam > 0}>Sortear duplas</button>
+          <fieldset>
+            <legend>Formato dos times</legend>
+            <label class="opcao"><input type="radio" name="formato" value="dupla" bind:group={formato} disabled={ocupado} /> Duplas</label>
+            <label class="opcao"><input type="radio" name="formato" value="trio" bind:group={formato} disabled={ocupado} /> Trios (mínimo 6)</label>
+          </fieldset>
+          <button class="acao-principal" type="button" onclick={sortear} disabled={ocupado || faltam > 0}>{formato === 'trio' ? 'Sortear trios' : 'Sortear duplas'}</button>
           {#if faltam > 0}<p class="ajuda">Faltam {faltam} presente(s) para sortear.</p>{/if}
         </section>
       {/if}
