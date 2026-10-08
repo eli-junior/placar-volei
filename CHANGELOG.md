@@ -4,7 +4,11 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### CV6.DS2.US4 (follow-up) — pausa de animação e batimento no repouso
+- **Branch:** `feature/cv6-ds2-us4-pausa-no-repouso`
+- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
+- **Handoff:** o código do relógio já desliga o batimento em `onStop` (`HeartRate.kt`, CV5.DS2.TS3); falta confirmar no aparelho se a animação da bola e o sensor realmente param em repouso antes de mudar código.
 
 ## 0.44.0 - 2026-10-07
 
