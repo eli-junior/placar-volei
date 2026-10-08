@@ -101,14 +101,14 @@ def desvincular_sync() -> None:
 def _exigir_sem_partida_chamada(conn, sessao_id: str) -> None:
     aberta = conn.execute(
         "SELECT 1 FROM partidas_rodada p JOIN rodadas r ON r.id = p.rodada_id "
-        "WHERE r.sessao_id = ? AND p.estado = 'chamada'",
+        "WHERE r.sessao_id = ? AND r.estado = 'em_andamento' AND p.estado = 'chamada'",
         (sessao_id,),
     ).fetchone()
     if aberta:
         raise erro_de_campo(
             409,
             "quadra",
-            "tem uma partida chamada: encerre-a antes de trocar o vínculo",
+            "tem uma partida chamada: encerre-a ou anule-a antes de trocar o vínculo",
             "partida_chamada",
         )
 
@@ -313,8 +313,8 @@ def _registrar_encerramento() -> None:
                 raise erro_de_campo(
                     409,
                     "quadra",
-                    "não está mais disponível: vincule de novo (a partida chamada "
-                    "continua aguardando o resultado)",
+                    "não está mais disponível: anule a partida chamada para trocar "
+                    "de quadra (ela continua aguardando o resultado)",
                     "indisponivel",
                 )
             if not placar["mesma_partida"]:

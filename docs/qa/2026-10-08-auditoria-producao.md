@@ -94,3 +94,9 @@ Para investigar, fiz GETs sem o cabeçalho de segredo em `/api/sessao`, `/api/jo
 - Criar/entrar em quadra, pontuar, desfazer, relógio e celular (criam dados em produção; posso rodar com sua autorização).
 - Comportamento do Joguinho depois do P1 (precisa do segredo; ações como "Cancelar rodada" são destrutivas).
 - Layout em celular real e `prefers-reduced-motion`.
+
+---
+
+## Encaminhamento (2026-10-08)
+
+Os achados viraram a [CV8.DS7](../project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/index.md). O deadlock da partida chamada foi corrigido na 0.46.2 (US16, "Anular partida").

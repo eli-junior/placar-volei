@@ -2,7 +2,7 @@
 code: CV8
 level: Value
 status: Active
-status_reason: DS1 a DS5 entregues até a 0.44.0 (validação em lote pendente); DS6 (trio) na 0.45.0
+status_reason: DS1 a DS5 entregues até a 0.44.0 (validação em lote pendente); DS6 (trio) na 0.45.0; DS7 (auditoria do QA) em andamento
 updated: 2026-10-08
 related:
   - regras-de-negocio.md
@@ -26,6 +26,7 @@ Web + exibição dos nomes das duplas no relógio. Somente formato **dupla**. Re
 - [CV8.DS4 — Fechamento](cv8-ds4-fechamento/index.md): Mata-mata, campeão e persistência da sessão.
 - [CV8.DS5 — Exibição](cv8-ds5-exibicao/index.md): Fila e reis para o espectador e nomes das duplas no relógio.
 - [CV8.DS6 — Formato trio](cv8-ds6-formato-trio/index.md): Rodada inteira em trios (RN-16).
+- [CV8.DS7 — Joguinho sem becos sem saída](cv8-ds7-joguinho-sem-becos/index.md): Correções da auditoria do QA de 2026-10-08 (anular partida, quadra que some, segredo, rotas, retirar jogador).
 
 - [CV8.TS1 — Backup do `gerenciador.db`](cv8-ts1-backup-do-gerenciador/index.md): resiliência da base durável (Technical Story).
 
@@ -49,3 +50,7 @@ Todas as Delivery Stories (DS1 a DS5) e a CV8.TS1 estão entregues e na `master`
 ## Estado em 0.45.0
 
 O formato trio (CV8.DS6.US15) está entregue: rodada inteira em trios, mistos, com a sobra escolhendo parceiros (RN-16). Continuam fora: histórico/ranking entre sessões e edição de partidas antigas.
+
+## Estado em 0.46.2
+
+A auditoria do QA em produção (2026-10-08, `docs/qa/`) virou a CV8.DS7. A US16 (anular partida chamada) está entregue; TS2, US17 a US20 estão planejadas e a US21 adiada.

@@ -6,6 +6,28 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.46.2 - 2026-10-08
+
+Boundary: fix CV8.DS7.US16 — anular partida chamada, primeira correção da auditoria do QA de 2026-10-08 (patch; backend, web e APK em 0.46.2, APK `versionCode` 25; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) — Agente: Claude Opus 5.5 (Driver) | Sessão: ae33f4a8 | Data: 2026-10-08
+
+Git source: merge `--no-ff` de `fix/joguinho-sempre-encerravel` em `master`.
+
+### Fixed
+
+- **Joguinho preso com partida chamada numa quadra que sumiu** (QA P1/P6/F1): não dava para encerrar a partida, trocar ou desvincular a quadra, nem encerrar o joguinho sem cancelar a rodada. Agora há **Anular partida** (sempre disponível com partida chamada, com confirmação): a partida não conta, os times voltam a ser a próxima partida e a rodada segue. O placar da quadra não é tocado.
+- **Cancelar rodada** apaga a partida chamada; antes ela ficava pendurada e travava o vínculo da quadra para sempre. A trava passou a olhar só a rodada em andamento, o que destrava bancos já presos.
+- Mensagens que mandavam "vincular de novo" (impossível com partida chamada) agora apontam a saída: anular.
+
+### Planned
+
+- O restante da auditoria virou a CV8.DS7 no roadmap: TS2 (quadra não some no meio da rodada), US17 (segredo não some por engano), US18 (rota `/joguinho` e 404), US19 (retirar jogador), US20 (joguinho de ontem e mensagens), US21 (resultado de partida abandonada, adiada).
+
+### Verification
+
+- `uv run pytest` (581), `npm run check`, `npm test` (185), `npm run test:e2e` (84). Validação do Navigator em produção pendente (ver `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/`).
+
 ## 0.46.1 - 2026-10-08
 
 Boundary: fix — placar do controlador coberto pelos botões +1 (patch; backend, web e APK em 0.46.1, APK `versionCode` 24; Wear OS inalterado em 0.27.0).

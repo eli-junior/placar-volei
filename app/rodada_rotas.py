@@ -50,6 +50,10 @@ def cancelar_sync() -> dict:
     return _rodada_op(regras_rodada.cancelar)
 
 
+def anular_partida_sync() -> dict:
+    return _rodada_op(regras_rodada.anular_partida)
+
+
 def escalar_sync(jogador_id: Any) -> dict:
     return _rodada_op(lambda conn: regras_rodada.escalar_parceiro(conn, jogador_id))
 
@@ -119,6 +123,12 @@ async def post_descartar(request: Request):
 async def post_cancelar(request: Request):
     autenticar_owner(request)
     return await _responder(cancelar_sync)
+
+
+@router.post("/anular-partida")
+async def post_anular_partida(request: Request):
+    autenticar_owner(request)
+    return await _responder(anular_partida_sync)
 
 
 @router.post("/escalar-parceiro")

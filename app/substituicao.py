@@ -66,7 +66,7 @@ def substituir(conn, saiu_id, entra_id) -> None:
         raise erro_de_campo(
             409,
             "rodada",
-            "tem uma partida chamada: encerre-a antes de substituir",
+            "tem uma partida chamada: encerre-a ou anule-a antes de substituir",
             "partida_chamada",
         )
     for campo, valor in (("saiu_id", saiu_id), ("entra_id", entra_id)):

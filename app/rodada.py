@@ -251,7 +251,30 @@ def cancelar(conn) -> None:
     r = rodada_ativa(conn, sessao["id"])
     if r is None or r["estado"] != "em_andamento":
         raise erro_de_campo(409, "rodada", "não há rodada em andamento", "sem_rodada")
+    # A partida chamada não sobrevive à rodada: senão trava o vínculo da quadra.
+    conn.execute(
+        "DELETE FROM partidas_rodada WHERE rodada_id = ? AND estado = 'chamada'",
+        (r["id"],),
+    )
     conn.execute("UPDATE rodadas SET estado = 'cancelada' WHERE id = ?", (r["id"],))
+
+
+def anular_partida(conn) -> None:
+    """Anula a partida chamada: ela não conta, os dois times voltam a ser a
+    próxima partida e a rodada segue. É a saída quando a quadra sumiu ou o
+    jogo parou no meio; o placar da quadra não é tocado."""
+    sessao = exigir_sessao_aberta(conn)
+    r = rodada_ativa(conn, sessao["id"])
+    if r is None or r["estado"] != "em_andamento":
+        raise erro_de_campo(409, "rodada", "não há rodada em andamento", "sem_rodada")
+    apagada = conn.execute(
+        "DELETE FROM partidas_rodada WHERE rodada_id = ? AND estado = 'chamada'",
+        (r["id"],),
+    ).rowcount
+    if not apagada:
+        raise erro_de_campo(
+            409, "rodada", "não tem partida chamada para anular", "sem_partida"
+        )
 
 
 def _contexto(conn, rodada: dict):
@@ -431,7 +454,10 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
     motivo_encerrar = None
     if chamada:
         if placar is None:
-            motivo_encerrar = "A quadra vinculada não está disponível: vincule de novo para ler o placar."
+            motivo_encerrar = (
+                "A quadra vinculada não está disponível: anule a partida para "
+                "trocar de quadra e chamar de novo."
+            )
         elif not placar["mesma_partida"]:
             motivo_encerrar = (
                 "O placar está com outra partida: a chamada foi trocada na quadra."
@@ -464,6 +490,7 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
         "partidas_encerradas": encerradas,
         "historico": historico,
         "pode_encerrar": bool(chamada) and motivo_encerrar is None,
+        "pode_anular": bool(chamada),
         "motivo_encerrar": motivo_encerrar,
         "finalista": (
             vista(situacao.desafiante)
