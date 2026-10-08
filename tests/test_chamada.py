@@ -430,3 +430,84 @@ async def test_reconciliar_nao_mexe_em_quadra_viva(ac, placar):
     await ac.put("/api/sessao/quadra", json={"codigo": codigo})
     estado = (await ac.get("/api/sessao")).json()
     assert estado["quadra"]["codigo"] == codigo and estado["quadra"]["disponivel"]
+
+
+def _sql(banco, consulta, *args):
+    with sqlite3.connect(banco) as conn:
+        return conn.execute(consulta, args).fetchall()
+
+
+@pytest.mark.asyncio
+async def test_encerrar_sem_pedir_continua_recusado_com_rodada_ativa(ac):
+    await rodada_em_andamento(ac)
+    for corpo in (None, {}, {"cancelar_rodada": False}):
+        r = await ac.post("/api/sessao/encerrar", json=corpo)
+        assert r.status_code == 409 and r.json()["erros"][0]["tipo"] == "rodada_ativa"
+    assert (await ac.get("/api/sessao")).json()["rodada"]["estado"] == "em_andamento"
+
+
+@pytest.mark.asyncio
+async def test_encerrar_cancelando_a_rodada_em_andamento_com_partida_chamada(
+    ac, placar
+):
+    await rodada_em_andamento(ac)
+    codigo = await quadra_do_placar(placar)
+    await ac.put("/api/sessao/quadra", json={"codigo": codigo})
+    assert (await ac.post("/api/rodada/chamar-partida")).status_code == 201
+    r = await ac.post("/api/sessao/encerrar", json={"cancelar_rodada": True})
+    assert r.status_code == 200
+    assert r.json()["sessao"] is None and r.json()["rodada"] is None
+    banco = settings.gerenciador_db_path
+    assert _sql(banco, "SELECT estado FROM rodadas") == [("cancelada",)]
+    assert _sql(
+        banco, "SELECT COUNT(*) FROM partidas_rodada WHERE estado = 'chamada'"
+    ) == [(0,)]
+    assert _sql(banco, "SELECT COUNT(*) FROM sessoes WHERE encerrada_em IS NULL") == [
+        (0,)
+    ]
+    assert (await ac.post("/api/sessao")).status_code == 201  # já dá para abrir outro
+
+
+@pytest.mark.asyncio
+async def test_encerrar_cancelando_descarta_a_proposta(ac):
+    await ac.post("/api/sessao")
+    for nome, genero, nota in OITO:
+        j = (
+            await ac.post(
+                "/api/jogadores", json={"nome": nome, "genero": genero, "nota": nota}
+            )
+        ).json()
+        await ac.put(f"/api/sessao/presencas/{j['id']}")
+    assert (await ac.post("/api/rodada/sorteio", json={"alvo": 10})).status_code in (
+        200,
+        201,
+    )
+    r = await ac.post("/api/sessao/encerrar", json={"cancelar_rodada": True})
+    assert r.status_code == 200 and r.json()["sessao"] is None
+    assert _sql(settings.gerenciador_db_path, "SELECT COUNT(*) FROM rodadas") == [(0,)]
+
+
+@pytest.mark.asyncio
+async def test_encerrar_cancelando_sem_rodada_ativa_apenas_encerra(ac):
+    await ac.post("/api/sessao")
+    r = await ac.post("/api/sessao/encerrar", json={"cancelar_rodada": True})
+    assert r.status_code == 200 and r.json()["sessao"] is None
+
+
+@pytest.mark.asyncio
+async def test_encerrar_cancelando_e_tudo_ou_nada(ac, monkeypatch):
+    from app import sessao as modulo_sessao
+
+    await rodada_em_andamento(ac)
+
+    def quebra(conn):
+        raise RuntimeError("falha no meio")
+
+    monkeypatch.setattr(modulo_sessao.regras_rodada, "cancelar", quebra)
+    with pytest.raises(RuntimeError):
+        await ac.post("/api/sessao/encerrar", json={"cancelar_rodada": True})
+    banco = settings.gerenciador_db_path
+    assert _sql(banco, "SELECT estado FROM rodadas") == [("em_andamento",)]
+    assert _sql(banco, "SELECT COUNT(*) FROM sessoes WHERE encerrada_em IS NULL") == [
+        (1,)
+    ]

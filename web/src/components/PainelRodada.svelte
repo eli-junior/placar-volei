@@ -44,6 +44,9 @@
       <button class="secundario" type="button" onclick={onDescartar} disabled={ocupado}>Descartar</button>
     {/if}
   </div>
+  {#if proposta && posicao.total === 1}
+    <p class="ajuda">Resortear está desabilitado: só há uma combinação possível com esses presentes.</p>
+  {/if}
 </section>
 
 <style>

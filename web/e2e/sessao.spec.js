@@ -70,7 +70,7 @@ test('abrir, marcar na ordem de chegada, reordenar, desmarcar e encerrar', async
   await p.reload();
   await expect(presentes(p)).toHaveText([c, a, b, d]);
 
-  await p.getByRole('button', { name: 'Encerrar sessão' }).click();
+  await p.getByRole('button', { name: 'Encerrar joguinho' }).click();
   await p.getByRole('button', { name: 'Sim, encerrar' }).click();
   await expect(p.getByRole('heading', { name: 'Nenhum joguinho rolando' })).toBeVisible();
 });
@@ -171,4 +171,32 @@ test('APK não abre /joguinho: Página não encontrada', async ({ abrir }) => {
   const apk = await abrir({}, { fn: () => { window.Capacitor = { isNativePlatform: () => true }; } });
   await apk.goto('/joguinho');
   await expect(apk.getByRole('heading', { name: 'Página não encontrada', level: 1 })).toBeVisible();
+});
+
+
+// CV8.DS7.US20 — joguinho aberto em dia anterior avisa e deixa escolher.
+test('joguinho de outro dia: aviso com continuar ou encerrar', async ({ abrir }) => {
+  const p = await abrir();
+  await p.request.post('/api/sessao/encerrar', { headers: CABECALHO });
+  expect((await p.request.post('/api/sessao', { headers: CABECALHO })).status()).toBe(201);
+  // o relógio do aparelho anda 3 dias: o joguinho passa a ser de outro dia
+  await p.clock.setFixedTime(new Date(Date.now() + 72 * 3600 * 1000));
+  await abrirTela(p);
+  await expect(p.getByRole('heading', { name: /Joguinho aberto em \d\d\/\d\d \(há 3 dias\)/ })).toBeVisible();
+
+  await p.getByRole('button', { name: 'Continuar este joguinho' }).click();
+  await expect(p.getByRole('heading', { name: /Joguinho aberto em/ })).toHaveCount(0);
+  await p.reload();
+  await expect(p.getByRole('heading', { name: 'Presentes (0)' })).toBeVisible();
+  await expect(p.getByRole('heading', { name: /Joguinho aberto em/ })).toHaveCount(0);
+  await expect(p.getByRole('button', { name: 'Encerrar joguinho' })).toBeVisible();
+
+  // outro aparelho (storage limpo) volta a ver o aviso e encerra por ele
+  const q = await abrir();
+  await q.clock.setFixedTime(new Date(Date.now() + 72 * 3600 * 1000));
+  await abrirTela(q);
+  await expect(q.getByRole('heading', { name: /Joguinho aberto em/ })).toBeVisible();
+  await q.getByRole('button', { name: 'Encerrar joguinho' }).click();
+  await q.getByRole('button', { name: 'Sim, encerrar' }).click();
+  await expect(q.getByRole('heading', { name: 'Nenhum joguinho rolando' })).toBeVisible();
 });

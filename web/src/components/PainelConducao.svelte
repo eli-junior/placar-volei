@@ -1,5 +1,6 @@
 <script>
   import { descreverTime } from '../lib/jogadores.js';
+  import { oQueSePerde } from '../lib/joguinho.js';
 
   // Condução da rodada em andamento (CV8.DS3.US5): quadra do placar, partida,
   // fila, reis e eliminados. As ações vêm de fora.
@@ -277,11 +278,7 @@
 
   <div class="botoes">
     {#if confirmandoCancelar}
-      {#if conducao.partidas_encerradas > 0}
-        <p class="ajuda">A rodada {rodada.numero} já tem {conducao.partidas_encerradas} partida(s) registrada(s). Cancelar mesmo assim? As partidas ficam gravadas, mas a rodada deixa de contar e a presença volta a ser editável.</p>
-      {:else}
-        <p class="ajuda">Cancelar a rodada {rodada.numero}? A fila é descartada e a presença volta a ser editável.</p>
-      {/if}
+      <p class="ajuda">Cancelar a rodada {rodada.numero}? Perde-se: {oQueSePerde(rodada, conducao).join('; ')}. Os registros ficam gravados, mas a rodada deixa de contar e a presença volta a ser editável. A quadra do placar não é tocada.</p>
       <button class="perigo" type="button" onclick={() => { confirmandoCancelar = false; onCancelar(); }} disabled={ocupado}>Sim, cancelar rodada</button>
       <button class="secundario" type="button" onclick={() => confirmandoCancelar = false}>Voltar</button>
     {:else}

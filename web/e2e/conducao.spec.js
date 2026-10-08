@@ -214,7 +214,7 @@ test('encerrar partida: placar ao vivo, fila andando, rei e fim da fila', async 
 
   // cancelar com partidas registradas pede confirmação reforçada
   await p.getByRole('button', { name: 'Cancelar rodada' }).click();
-  await expect(p.getByText(/já tem 2 partida\(s\) registrada\(s\)/)).toBeVisible();
+  await expect(p.getByText(/Perde-se: 2 partidas registradas \(deixam de contar\)/)).toBeVisible();
   await p.getByRole('button', { name: 'Voltar' }).click();
   await sessaoLimpa(p);
 });
