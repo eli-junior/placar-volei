@@ -1,8 +1,8 @@
 ---
 code: CV8.DS5.US14
 level: User Story
-status: Planned
-status_reason: registrada em 2026-10-07, ainda não puxada
+status: Validated
+status_reason: implementada em 0.44.0; aguarda validação do Navigator em lote
 updated: 2026-10-07
 ---
 

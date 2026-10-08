@@ -21,6 +21,7 @@ from app.comandos import snapshot_sync
 from app.config import settings, validar_producao
 from app.db import init_db
 from app.eventos import get_quadra_lock
+from app.exibicao import projetar as projetar_exibicao
 from app.gerenciador_db import init_gerenciador_sync
 from app.hub import hub
 from app.identidade import SESSION_COOKIE
@@ -165,6 +166,16 @@ async def health_check():
     }
 
 
+async def _exibicao_da_quadra(quadra_id: str) -> dict | None:
+    """Fila e reis, se a sessão do gerenciador estiver vinculada a esta quadra."""
+    with contextlib.suppress(Exception):  # o placar nunca depende do gerenciador
+        estado = await asyncio.to_thread(estado_sync)
+        quadra = estado.get("quadra")
+        if quadra and quadra["codigo"] == quadra_id:
+            return projetar_exibicao(estado)
+    return None
+
+
 @app.websocket("/ws/gerenciador")
 async def websocket_gerenciador(websocket: WebSocket):
     """Sincronia do gerenciador (CV8.DS3.US5). O segredo do dono vai na primeira
@@ -250,6 +261,7 @@ async def websocket_quadra(websocket: WebSocket, quadra_id: str):
             online = await hub.participantes_online(quadra_id)
             for p in inicial["participantes"]:
                 p["online"] = p["id"] in online
+            inicial["exibicao"] = await _exibicao_da_quadra(quadra_id)
             await websocket.send_json({"tipo": "ESTADO_INICIAL", "payload": inicial})
             await hub.broadcast(
                 quadra_id,
