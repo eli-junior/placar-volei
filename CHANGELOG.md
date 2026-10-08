@@ -7,9 +7,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV8.DS7.US18 — Rota `/joguinho` e página não encontrada
 
 - **Branch:** `fix/cv8-ds7-us18-rota-joguinho`
-- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Passo Ariad:** Passo 4 - Teste e Validação
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
-- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-us18-rota-joguinho-e-pagina-nao-encontrada/plan.md`; nenhum código escrito. Depois da confirmação: `web/src/lib/rotas.js`, `PaginaNaoEncontrada.svelte`, `App.svelte` e testes.
+- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-us18-rota-joguinho-e-pagina-nao-encontrada/plan.md`; implementação e testes prontos; falta a validação do Navigator (Checkpoint 2), depois revisão, docs e merge.
 
 ## 0.46.4 - 2026-10-08
 

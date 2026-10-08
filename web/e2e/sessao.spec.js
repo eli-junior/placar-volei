@@ -128,6 +128,47 @@ test('home mostra Sessão no navegador e não mostra no APK', async ({ abrir }) 
   await apk.goto('/');
   await apk.getByRole('tab', { name: 'Criar placar' }).waitFor();
   await expect(apk.getByRole('button', { name: 'Joguinho', exact: true })).toHaveCount(0);
-  await apk.goto('/sessao');
-  await expect(apk.getByRole('heading', { name: 'Joguinho', level: 1 })).toHaveCount(0);
+  for (const caminho of ['/sessao', '/joguinho']) {
+    await apk.goto(caminho);
+    await expect(apk.getByRole('heading', { name: 'Joguinho', level: 1 })).toHaveCount(0);
+  }
+});
+
+// CV8.DS7.US18 — o endereço da tela é /joguinho e endereço errado diz que não existe.
+test('botão leva a /joguinho e /sessao antigo vira /joguinho', async ({ abrir }) => {
+  const p = await abrir();
+  await p.goto('/');
+  await p.getByRole('button', { name: 'Joguinho', exact: true }).click();
+  await expect(p).toHaveURL(/\/joguinho$/);
+  await expect(p.getByLabel('Segredo do dono')).toBeVisible();
+
+  // favorito antigo: a URL é trocada sem criar entrada no histórico
+  await p.goto('/');
+  const antes = await p.evaluate(() => history.length);
+  await p.goto('/sessao?x=1#y');
+  await expect(p).toHaveURL(/\/joguinho\?x=1#y$/);
+  await expect(p.getByLabel('Segredo do dono')).toBeVisible();
+  expect(await p.evaluate(() => history.length)).toBe(antes + 1);
+
+  await p.goto('/joguinho');
+  await expect(p.getByLabel('Segredo do dono')).toBeVisible();
+});
+
+test('endereço que não existe mostra Página não encontrada', async ({ abrir }) => {
+  const p = await abrir();
+  for (const caminho of ['/rota-inexistente', '/quadra/1/2', '/joguinho/x']) {
+    await p.goto(caminho);
+    await expect(p.getByRole('heading', { name: 'Página não encontrada', level: 1 })).toBeVisible();
+    await expect(p.getByText(caminho)).toBeVisible();
+  }
+  await p.getByRole('link', { name: 'Voltar ao início' }).click();
+  await expect(p).toHaveURL(/\/$/);
+  await expect(p.getByRole('tab', { name: 'Criar placar' })).toBeVisible();
+  await expect(p.getByRole('heading', { name: 'Página não encontrada' })).toHaveCount(0);
+});
+
+test('APK não abre /joguinho: Página não encontrada', async ({ abrir }) => {
+  const apk = await abrir({}, { fn: () => { window.Capacitor = { isNativePlatform: () => true }; } });
+  await apk.goto('/joguinho');
+  await expect(apk.getByRole('heading', { name: 'Página não encontrada', level: 1 })).toBeVisible();
 });
