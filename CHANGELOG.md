@@ -6,6 +6,18 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## Sem versão - 2026-10-08
+
+Boundary: Maintenance — renomear "Sessão" para "Joguinho" na interface (sem versão nova; backend, web e APK seguem em 0.45.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `chore/renomear-sessao-joguinho` em `master`.
+
+### Changed
+
+- O botão da tela inicial e o título da tela passam a dizer "Joguinho". Textos internos ("Abrir sessão"), mensagens e API não mudaram.
+
 ## 0.45.0 - 2026-10-08
 
 Boundary: CV8.DS6.US15 — formato trio (minor; backend, web e APK em 0.45.0, APK `versionCode` 22; Wear OS inalterado em 0.27.0).

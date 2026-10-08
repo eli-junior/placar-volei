@@ -234,7 +234,7 @@
     {/if}
   </nav>
 
-  <h1>Sessão</h1>
+  <h1>Joguinho</h1>
 
   {#if !segredo}
     <PortaoSegredo {erro} ocupado={carregando} onEntrar={entrar} />

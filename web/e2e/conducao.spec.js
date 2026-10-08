@@ -32,10 +32,10 @@ async function rodadaConfirmada(p, alvo = 12) {
 
 async function abrirTela(p) {
   await p.goto('/');
-  await p.getByRole('button', { name: 'Sessão', exact: true }).click();
+  await p.getByRole('button', { name: 'Joguinho', exact: true }).click();
   await p.getByLabel('Segredo do dono').fill(SEGREDO);
   await p.getByRole('button', { name: 'Entrar' }).click();
-  await p.getByRole('heading', { name: 'Sessão', level: 1 }).waitFor();
+  await p.getByRole('heading', { name: 'Joguinho', level: 1 }).waitFor();
 }
 
 const SEIS = [['Ana', 'M', 90], ['Bia', 'M', 80], ['Caio', 'H', 70], ['Davi', 'H', 60], ['Eva', 'M', 50], ['Fabio', 'H', 40]];
