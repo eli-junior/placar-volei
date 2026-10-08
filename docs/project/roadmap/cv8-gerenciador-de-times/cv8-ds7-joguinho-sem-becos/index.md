@@ -23,6 +23,7 @@ A auditoria do QA em produção (2026-10-08) achou estados do Joguinho dos quais
 | [TS2](cv8-ds7-ts2-quadra-do-joguinho-nao-some/index.md) | Quadra do joguinho não some no meio da rodada | P2, F3 | Done (0.46.3) |
 | [US17](cv8-ds7-us17-segredo-nao-some-por-engano/index.md) | Segredo do dono não some por engano | P5, F5.2 | Done (0.46.4) |
 | [US18](cv8-ds7-us18-rota-joguinho-e-pagina-nao-encontrada/index.md) | Rota `/joguinho` e página não encontrada | P3, P4 | Done (0.46.5) |
+| [TS3](cv8-ds7-ts3-ajustes-da-fila/index.md) | Ajustes da fila: remover e pular time na derivação | base da F2 | Planned |
 | [US19](cv8-ds7-us19-retirar-jogador-no-meio-da-rodada/index.md) | Retirar jogador no meio da rodada | F2 | Planned |
 | [US20](cv8-ds7-us20-joguinho-velho-e-mensagens-de-saida/index.md) | Joguinho de ontem e mensagens que ensinam a saída | F1.5, F4, F5.1, F5.3 | Done (0.47.0) |
 | [US21](cv8-ds7-us21-resultado-de-partida-abandonada/index.md) | Resultado de partida abandonada (placar manual ou W.O.) | F1.2, F1.3 | Deferred (decisão A) |
