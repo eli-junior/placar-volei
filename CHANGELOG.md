@@ -16,6 +16,7 @@ Git source: merge `--no-ff` de `chore/renomear-sessao-joguinho` em `master`.
 
 ### Changed
 
+- Textos da tela vazia: "Nenhum joguinho rolando", "Comece um novo joguinho para marcar quem chegou." e botão "Novo joguinho" (branch `chore/textos-joguinho`).
 - O botão da tela inicial e o título da tela passam a dizer "Joguinho". Textos internos ("Abrir sessão"), mensagens e API não mudaram.
 
 ## 0.45.0 - 2026-10-08

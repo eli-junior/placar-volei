@@ -245,9 +245,9 @@
       <p class="vazio">Carregando…</p>
     {:else if !estado.sessao}
       <section class="cartao" aria-labelledby="titulo-sem-sessao">
-        <h2 id="titulo-sem-sessao">Nenhuma sessão aberta</h2>
-        <p class="ajuda">Abra a sessão do dia para marcar quem chegou.</p>
-        <button class="acao-principal" type="button" onclick={abrir} disabled={ocupado}>Abrir sessão</button>
+        <h2 id="titulo-sem-sessao">Nenhum joguinho rolando</h2>
+        <p class="ajuda">Comece um novo joguinho para marcar quem chegou.</p>
+        <button class="acao-principal" type="button" onclick={abrir} disabled={ocupado}>Novo joguinho</button>
       </section>
     {:else}
       {#if rodada?.estado === 'proposta'}

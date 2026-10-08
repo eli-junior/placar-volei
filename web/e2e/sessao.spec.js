@@ -44,8 +44,8 @@ test('abrir, marcar na ordem de chegada, reordenar, desmarcar e encerrar', async
   const [a, b, c, d] = [await criarJogador(p, 'Ana'), await criarJogador(p, 'Bia'), await criarJogador(p, 'Caio', 'H'), await criarJogador(p, 'Davi', 'H')];
   await abrirTela(p);
 
-  await expect(p.getByRole('heading', { name: 'Nenhuma sessão aberta' })).toBeVisible();
-  await p.getByRole('button', { name: 'Abrir sessão' }).click();
+  await expect(p.getByRole('heading', { name: 'Nenhum joguinho rolando' })).toBeVisible();
+  await p.getByRole('button', { name: 'Novo joguinho' }).click();
   await expect(p.getByRole('status')).toContainText('Faltam 4');
 
   for (const n of [a, b, c]) await p.getByRole('button', { name: `Marcar ${n} como presente` }).click();
@@ -72,7 +72,7 @@ test('abrir, marcar na ordem de chegada, reordenar, desmarcar e encerrar', async
 
   await p.getByRole('button', { name: 'Encerrar sessão' }).click();
   await p.getByRole('button', { name: 'Sim, encerrar' }).click();
-  await expect(p.getByRole('heading', { name: 'Nenhuma sessão aberta' })).toBeVisible();
+  await expect(p.getByRole('heading', { name: 'Nenhum joguinho rolando' })).toBeVisible();
 });
 
 test('cadastro rápido cria o jogador e marca no fim; erros aparecem', async ({ abrir }) => {
@@ -80,7 +80,7 @@ test('cadastro rápido cria o jogador e marca no fim; erros aparecem', async ({ 
   await sessaoLimpa(p);
   const a = await criarJogador(p, 'Eva');
   await abrirTela(p);
-  await p.getByRole('button', { name: 'Abrir sessão' }).click();
+  await p.getByRole('button', { name: 'Novo joguinho' }).click();
   await p.getByRole('button', { name: `Marcar ${a} como presente` }).click();
 
   const novo = `Fabi ${Math.random().toString(36).slice(2, 7)}`;
@@ -99,7 +99,7 @@ test('só uma sessão aberta: o que outro aparelho abre aparece sem atualizar', 
   const p = await abrir();
   await sessaoLimpa(p);
   await abrirTela(p);
-  await expect(p.getByRole('heading', { name: 'Nenhuma sessão aberta' })).toBeVisible();
+  await expect(p.getByRole('heading', { name: 'Nenhum joguinho rolando' })).toBeVisible();
   // outro aparelho abre a sessão: a tela acompanha sozinha
   const r = await p.request.post('/api/sessao', { headers: CABECALHO });
   expect(r.status()).toBe(201);
@@ -113,7 +113,7 @@ test('o que outro aparelho marca aparece na lista sem atualizar e a reordenaçã
   await sessaoLimpa(p);
   const [a, b, c] = [await criarJogador(p, 'Hugo', 'H'), await criarJogador(p, 'Iris'), await criarJogador(p, 'Joao', 'H')];
   await abrirTela(p);
-  await p.getByRole('button', { name: 'Abrir sessão' }).click();
+  await p.getByRole('button', { name: 'Novo joguinho' }).click();
   await p.getByRole('button', { name: `Marcar ${a} como presente` }).click();
   await p.getByRole('button', { name: `Marcar ${b} como presente` }).click();
   // outro aparelho marca mais um
@@ -130,7 +130,7 @@ test('tela da sessão sem violações axe', async ({ abrir }) => {
   await sessaoLimpa(p);
   const a = await criarJogador(p, 'Gabi');
   await abrirTela(p);
-  await p.getByRole('button', { name: 'Abrir sessão' }).click();
+  await p.getByRole('button', { name: 'Novo joguinho' }).click();
   await p.getByRole('button', { name: `Marcar ${a} como presente` }).click();
   await p.locator('ol li').first().waitFor();
   expect(await violacoes(p)).toEqual([]);
