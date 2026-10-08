@@ -4,11 +4,21 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV6.DS2.US4 (follow-up) — pausa de animação e batimento no repouso
-- **Branch:** `feature/cv6-ds2-us4-pausa-no-repouso`
-- **Passo Ariad:** Passo 4 - Teste e Validação
-- **Agente:** Claude Sonnet 5.5 (Driver) | Data: 2026-10-07
-- **Handoff:** medido: a pausa de sensor e animação em repouso já existe (sem código). Placar fora da tela ao levantar o pulso era o `wear_activity_auto_resume_timeout_ms` (60 s); ajustado via ADB para 4 h e validado. Faltam ponto remoto em repouso e queda de rede.
+Nenhum trabalho ativo.
+
+## Sem versão - 2026-10-08
+
+Boundary: CV6.DS2.US4 (follow-up) — medição de repouso no relógio; só documentação, sem versão nova (Wear em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv6-ds2-us4-pausa-no-repouso` em `master`.
+
+### Documented
+
+- Pausa de sensor e animação em repouso já existia (medido); ponto remoto com a tela apagada validado.
+- Placar sair ao levantar o pulso vinha do `wear_activity_auto_resume_timeout_ms` do Wear OS (60 s); ajuste por aparelho via ADB, validado.
+- Não observados: reconexão após queda real de rede, treino ativo e bateria. CV6.DS2 marcada como `Done`.
 
 ## 0.44.0 - 2026-10-07
 
