@@ -234,8 +234,9 @@ async def test_quadra_sumida_fica_indisponivel_e_a_chamada_e_recusada(ac, placar
     with sqlite3.connect(settings.db_path) as conn:  # a quadra do placar é efêmera
         conn.execute("DELETE FROM quadras WHERE id = ?", (codigo,))
     estado = (await ac.get("/api/sessao")).json()
-    assert estado["quadra"]["disponivel"] is False
-    assert "não está mais disponível" in estado["conducao"]["motivo"]
+    # CV8.DS7.TS2: sem partida chamada o vínculo morto é limpo
+    assert estado["quadra"] is None
+    assert "Vincule uma quadra" in estado["conducao"]["motivo"]
     r = await ac.post("/api/rodada/chamar-partida")
     assert r.status_code == 409
     with sqlite3.connect(settings.gerenciador_db_path) as conn:
@@ -345,3 +346,86 @@ async def test_migra_do_schema_4_preservando_dados(ac):
     assert estado["sessao"]["id"] == "s1" and estado["quadra"] is None
     with sqlite3.connect(antigo) as c:
         assert c.execute("SELECT COUNT(*) FROM partidas_rodada").fetchone()[0] == 0
+
+
+def _envelhecer_quadra(codigo, segundos=7200):
+    from datetime import UTC, datetime, timedelta
+
+    velho = (datetime.now(UTC) - timedelta(seconds=segundos)).isoformat()
+    with sqlite3.connect(settings.db_path) as conn:
+        conn.execute(
+            "UPDATE quadras SET atualizado_em = ? WHERE id = ?", (velho, codigo)
+        )
+
+
+def _quadras_no_banco():
+    with sqlite3.connect(settings.db_path) as conn:
+        return [r[0] for r in conn.execute("SELECT id FROM quadras")]
+
+
+@pytest.mark.asyncio
+async def test_quadra_da_rodada_em_andamento_nao_expira_por_ttl(ac, placar):
+    from app.quadras import limpar_quadras_expiradas_sync, listar_quadras_sync
+
+    await rodada_em_andamento(ac)
+    codigo = await quadra_do_placar(placar)
+    await ac.put("/api/sessao/quadra", json={"codigo": codigo})
+    _envelhecer_quadra(codigo)
+    assert ponte.manter_quadras_da_rodada() == 1  # o batimento da rotina
+    limpar_quadras_expiradas_sync(settings.db_path)
+    assert codigo in _quadras_no_banco()
+    assert codigo in [q["id"] for q in listar_quadras_sync(settings.db_path)]
+    assert (await ac.get("/api/sessao")).json()["quadra"]["disponivel"] is True
+
+
+@pytest.mark.asyncio
+async def test_quadra_sem_rodada_em_andamento_expira_como_antes(ac, placar):
+    from app.quadras import limpar_quadras_expiradas_sync
+
+    await ac.post("/api/sessao")  # sessão aberta, sem rodada
+    codigo = await quadra_do_placar(placar)
+    await ac.put("/api/sessao/quadra", json={"codigo": codigo})
+    _envelhecer_quadra(codigo)
+    assert ponte.manter_quadras_da_rodada() == 0
+    limpar_quadras_expiradas_sync(settings.db_path)
+    assert codigo not in _quadras_no_banco()
+
+
+@pytest.mark.asyncio
+async def test_rodada_cancelada_volta_a_deixar_a_quadra_expirar(ac, placar):
+    from app.quadras import limpar_quadras_expiradas_sync
+
+    await rodada_em_andamento(ac)
+    codigo = await quadra_do_placar(placar)
+    await ac.put("/api/sessao/quadra", json={"codigo": codigo})
+    await ac.post("/api/rodada/cancelar")
+    _envelhecer_quadra(codigo)
+    assert ponte.manter_quadras_da_rodada() == 0
+    limpar_quadras_expiradas_sync(settings.db_path)
+    assert codigo not in _quadras_no_banco()
+
+
+@pytest.mark.asyncio
+async def test_reinicio_com_partida_chamada_mantem_a_saida_de_anular(ac, placar):
+    await rodada_em_andamento(ac)
+    codigo = await quadra_do_placar(placar)
+    await ac.put("/api/sessao/quadra", json={"codigo": codigo})
+    assert (await ac.post("/api/rodada/chamar-partida")).status_code == 201
+    with sqlite3.connect(settings.db_path) as conn:  # o reinício zera as quadras
+        conn.execute("DELETE FROM quadras WHERE id = ?", (codigo,))
+    estado = (await ac.get("/api/sessao")).json()
+    assert estado["quadra"]["codigo"] == codigo
+    assert estado["quadra"]["disponivel"] is False
+    assert estado["conducao"]["partida"] is not None
+    assert (await ac.post("/api/rodada/anular-partida")).status_code == 200
+    estado = (await ac.get("/api/sessao")).json()
+    assert estado["quadra"] is None and estado["conducao"]["partida"] is None
+
+
+@pytest.mark.asyncio
+async def test_reconciliar_nao_mexe_em_quadra_viva(ac, placar):
+    await rodada_em_andamento(ac)
+    codigo = await quadra_do_placar(placar)
+    await ac.put("/api/sessao/quadra", json={"codigo": codigo})
+    estado = (await ac.get("/api/sessao")).json()
+    assert estado["quadra"]["codigo"] == codigo and estado["quadra"]["disponivel"]

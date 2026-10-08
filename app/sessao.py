@@ -34,7 +34,7 @@ from app.jogadores import (
     obter_jogador,
     recompactar_presencas,
 )
-from app.ponte import info_quadra, ler_placar
+from app.ponte import info_quadra, ler_placar, reconciliar_vinculo
 from app.sincronia import publicar
 
 MINIMO_PARA_SORTEAR = 4
@@ -108,7 +108,11 @@ def _executar(operacao):
 
 
 def estado_sync() -> dict:
-    return _executar(_estado)
+    def op(conn):
+        reconciliar_vinculo(conn)
+        return _estado(conn)
+
+    return _executar(op)
 
 
 def abrir_sync() -> dict:

@@ -26,6 +26,7 @@ from app.gerenciador_db import init_gerenciador_sync
 from app.hub import hub
 from app.identidade import SESSION_COOKIE
 from app.jogadores import router as jogadores_router
+from app.ponte import manter_quadras_da_rodada
 from app.ponte import router as ponte_router
 from app.quadras import (
     atualizar_ultimo_visto,
@@ -59,10 +60,15 @@ async def lifespan(app: FastAPI):
     await init_db(settings.db_path)
     await asyncio.to_thread(init_gerenciador_sync)
 
+    # A quadra de uma rodada em andamento é renovada antes de cada limpeza e logo
+    # na subida (CV8.DS7.TS2); o ciclo é menor que o TTL para o batimento vencê-lo.
+    await asyncio.to_thread(manter_quadras_da_rodada)
+
     async def rotina_limpeza():
         while True:
             try:
-                await asyncio.sleep(300)
+                await asyncio.sleep(min(300, max(1, settings.quadra_ttl_seconds / 2)))
+                await asyncio.to_thread(manter_quadras_da_rodada)
                 await limpar_quadras_expiradas(settings.db_path)
             except asyncio.CancelledError:
                 break
