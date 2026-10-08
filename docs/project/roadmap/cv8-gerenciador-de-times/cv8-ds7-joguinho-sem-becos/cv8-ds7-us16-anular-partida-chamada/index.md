@@ -1,8 +1,8 @@
 ---
 code: CV8.DS7.US16
 level: User Story
-status: Validated
-status_reason: entregue em 0.46.2 (branch fix/joguinho-sempre-encerravel); validação do Navigator em produção pendente
+status: Done
+status_reason: validada pelo Navigator em produção em 2026-10-08 (anulou a partida presa e revinculou a quadra)
 updated: 2026-10-08
 ---
 
