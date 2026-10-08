@@ -1,9 +1,9 @@
 ---
 code: CV6.DS2
 level: Delivery Story
-status: Active
-status_reason: US1–US4 entregues; Wear 0.25.0 inclui repouso e sessão em segundo plano (validação limitada documentada)
-updated: 2026-09-28
+status: Done
+status_reason: US1–US4 entregues e aceitas; follow-up de repouso medido no relógio real em 2026-10-08 (queda de rede, treino e bateria seguem sem observação)
+updated: 2026-10-08
 ---
 
 # CV6.DS2 — Consulta e operação no relógio

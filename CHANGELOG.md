@@ -6,6 +6,20 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## Sem versão - 2026-10-08
+
+Boundary: CV6.DS2.US4 (follow-up) — medição de repouso no relógio; só documentação, sem versão nova (Wear em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver)
+
+Git source: merge `--no-ff` de `feature/cv6-ds2-us4-pausa-no-repouso` em `master`.
+
+### Documented
+
+- Pausa de sensor e animação em repouso já existia (medido); ponto remoto com a tela apagada validado.
+- Placar sair ao levantar o pulso vinha do `wear_activity_auto_resume_timeout_ms` do Wear OS (60 s); ajuste por aparelho via ADB, validado.
+- Não observados: reconexão após queda real de rede, treino ativo e bateria. CV6.DS2 marcada como `Done`.
+
 ## 0.44.0 - 2026-10-07
 
 Boundary: CV8.DS5.US13 e CV8.DS5.US14 — exibição; fecha a CV8.DS5 e a CV8 (minor; backend, web e APK em 0.44.0, APK `versionCode` 21; Wear OS inalterado em 0.27.0).
