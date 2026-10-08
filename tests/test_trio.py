@@ -7,7 +7,7 @@ import pytest
 
 from app.conducao import Candidato, lista_de_escalacao
 from app.config import settings
-from app.gerenciador_db import init_gerenciador_sync
+from app.gerenciador_db import SCHEMA_VERSAO, init_gerenciador_sync
 from app.sorteio import JogadoresInsuficientes, Participante, sortear
 from tests.test_escalar_parceiro import Jogo, ac, base, placar  # noqa: F401
 
@@ -192,7 +192,7 @@ def test_migra_do_schema_8():
     conn.close()
     init_gerenciador_sync()
     conn = sqlite3.connect(settings.gerenciador_db_path)
-    assert conn.execute("PRAGMA user_version").fetchone()[0] == 10
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSAO
     assert "formato" in [r[1] for r in conn.execute("PRAGMA table_info(rodadas)")]
     conn.close()
 
@@ -213,7 +213,7 @@ def test_migra_do_schema_9_liberando_o_alvo():
     conn.close()
     init_gerenciador_sync()
     conn = sqlite3.connect(settings.gerenciador_db_path)
-    assert conn.execute("PRAGMA user_version").fetchone()[0] == 10
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSAO
     assert conn.execute("SELECT alvo, formato FROM rodadas").fetchall() == [
         (12, "dupla")
     ]

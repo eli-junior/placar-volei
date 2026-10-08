@@ -99,7 +99,7 @@ async def test_mata_mata_com_dois_reis_ganhou_ficou(ac, placar):
 def test_migra_do_schema_6(tmp_path):
     import sqlite3
 
-    from app.gerenciador_db import init_gerenciador_sync
+    from app.gerenciador_db import SCHEMA_VERSAO, init_gerenciador_sync
 
     antigo = str(tmp_path / "v6.db")
     conn = sqlite3.connect(antigo)
@@ -124,4 +124,4 @@ def test_migra_do_schema_6(tmp_path):
     assert conn.execute("SELECT fase FROM partidas_rodada").fetchone() == ("fila",)
     colunas = [r[1] for r in conn.execute("PRAGMA table_info(rodadas)")]
     assert "mata_mata_em" in colunas and "campeao_time_id" in colunas
-    assert conn.execute("PRAGMA user_version").fetchone() == (10,)
+    assert conn.execute("PRAGMA user_version").fetchone() == (SCHEMA_VERSAO,)

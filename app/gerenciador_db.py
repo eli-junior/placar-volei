@@ -29,7 +29,7 @@ ROTULOS = {
     "codigo": "Código da quadra",
 }
 
-SCHEMA_VERSAO = 10
+SCHEMA_VERSAO = 11
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jogadores (
     id TEXT PRIMARY KEY,
@@ -126,6 +126,18 @@ CREATE TABLE IF NOT EXISTS partidas_rodada (
 -- No máximo uma partida chamada (em aberto) por rodada.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_partida_chamada
     ON partidas_rodada (rodada_id) WHERE estado = 'chamada';
+
+-- Mudanças da fila no meio da rodada (CV8.DS7.TS3): time que ficou sem
+-- jogadores ("remover") ou sem substituto na vez de entrar ("pular").
+-- `apos_partidas` é quantas partidas encerradas existiam; ver `conducao.Ajuste`.
+CREATE TABLE IF NOT EXISTS ajustes_fila (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    rodada_id TEXT NOT NULL REFERENCES rodadas(id) ON DELETE CASCADE,
+    apos_partidas INTEGER NOT NULL,
+    tipo TEXT NOT NULL CHECK (tipo IN ('remover', 'pular')),
+    time_id TEXT NOT NULL REFERENCES times(id),
+    criado_em TEXT NOT NULL
+);
 
 CREATE TABLE IF NOT EXISTS time_jogadores (
     time_id TEXT NOT NULL REFERENCES times(id) ON DELETE CASCADE,

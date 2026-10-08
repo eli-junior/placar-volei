@@ -11,6 +11,7 @@ ficam travadas enquanto houver rodada em proposta ou em andamento.
 import uuid
 
 from app.conducao import (
+    Ajuste,
     Candidato,
     ResultadoEntrada,
     TimeEntrada,
@@ -291,10 +292,19 @@ def _contexto(conn, rodada: dict):
         )
         for r in linhas
     ]
+    ajustes = [
+        Ajuste(a["apos_partidas"], a["tipo"], a["time_id"])
+        for a in conn.execute(
+            "SELECT apos_partidas, tipo, time_id FROM ajustes_fila "
+            "WHERE rodada_id = ? ORDER BY id",
+            (rodada["id"],),
+        )
+    ]
     situacao = derivar(
         [TimeEntrada(t["id"], t["fila"], t["incompleto"]) for t in rodada["times"]],
         resultados,
         rodada["mata_mata_iniciado"],
+        ajustes,
     )
     return por_id, linhas, situacao
 

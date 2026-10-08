@@ -4,7 +4,7 @@ import sqlite3
 import pytest
 
 from app.config import settings
-from app.gerenciador_db import init_gerenciador_sync
+from app.gerenciador_db import SCHEMA_VERSAO, init_gerenciador_sync
 from tests.test_encerramento import Jogo, ac, base, placar  # noqa: F401
 
 
@@ -111,6 +111,6 @@ async def test_migra_do_schema_7(ac, tmp_path):
     conn.close()
     init_gerenciador_sync()
     conn = sqlite3.connect(settings.gerenciador_db_path)
-    assert conn.execute("PRAGMA user_version").fetchone()[0] == 10
+    assert conn.execute("PRAGMA user_version").fetchone()[0] == SCHEMA_VERSAO
     assert "desfeito" in [r[1] for r in conn.execute("PRAGMA table_info(rodadas)")]
     conn.close()

@@ -164,3 +164,144 @@ def test_mata_mata_so_depois_de_iniciado_e_na_ordem():
         derivar(fila(5), [r(1, 2, 1)], True)  # a fila ainda não terminou
     with pytest.raises(ValueError):
         derivar(fila(5), [*base, rm(4, 2, 4)], True)  # t2 não é rival
+
+
+# --- CV8.DS7.TS3: ajustes da fila (remover e pular time) -----------------------
+
+from app.conducao import Ajuste
+
+
+def remover(t, apos=0):
+    return Ajuste(apos, "remover", t)
+
+
+def pular(t, apos=0):
+    return Ajuste(apos, "pular", t)
+
+
+def test_sem_ajustes_a_saida_e_a_mesma():
+    res = [r(1, 2, 1), r(1, 3, 1)]
+    assert derivar(fila(5), res) == derivar(fila(5), res, False, ())
+    assert derivar(fila(5), res, False, [pular("t9", 0)]) == derivar(fila(5), res)
+
+
+def test_remover_time_da_fila_antes_de_jogar():
+    s = derivar(fila(4), [], False, [remover("t3")])
+    assert s.em_quadra == ("t1", "t2") and s.fila == ("t4",)
+
+
+def test_remover_time_da_quadra_traz_o_proximo():
+    s = derivar(fila(4), [], False, [remover("t2")])
+    assert s.em_quadra == ("t1", "t3") and s.fila == ("t4",)
+
+
+def test_remover_vencedor_que_ficou_na_quadra_nao_quebra_os_resultados():
+    # t1 vence t2 e fica; depois seus jogadores saem (apos=1); t3 e t4 entram
+    res = [r(1, 2, 1), r(3, 4, 3)]
+    s = derivar(fila(5), res, False, [remover("t1", apos=1)])
+    assert s.em_quadra == ("t3", "t5") or s.em_quadra == ("t3", "t4")
+    # a segunda partida foi entre t3 e t4, o que só é possível se t1 saiu da quadra
+    assert "t1" not in (*s.em_quadra, *s.fila, *s.reis, *s.eliminados)
+
+
+def test_remover_rei_tira_da_lista_de_reis_e_do_mata_mata():
+    res = [r(1, 2, 1), r(1, 3, 1)]  # t1 é rei
+    s = derivar(fila(4), res, False, [remover("t1", apos=2)])
+    assert s.reis == () and "t1" not in (*s.em_quadra, *s.fila)
+
+
+def test_remover_desafiante_promove_o_ultimo_rei():
+    # 3 times: t1 vence t2 e t3 (rei, fila vazia -> fim da fila, desafiante t1)
+    res = [r(1, 2, 1), r(1, 3, 1)]
+    s = derivar(fila(3), res)
+    assert s.fase == "fim_da_fila" and s.desafiante == "t1"
+    s = derivar(fila(3), res, False, [remover("t1", apos=2)])
+    assert s.desafiante is None and s.reis == ()
+
+
+def test_pular_time_da_fila_manda_para_o_fim():
+    s = derivar(fila(5), [], False, [pular("t3")])
+    assert s.em_quadra == ("t1", "t2") and s.fila == ("t4", "t5", "t3")
+
+
+def test_pular_time_em_quadra_traz_o_proximo_e_ele_vai_para_o_fim():
+    # t1 vence t2; t3 entra, mas está sem elegível e é pulado (apos=1)
+    res = [r(1, 2, 1)]
+    s = derivar(fila(5), res, False, [pular("t3", apos=1)])
+    assert s.em_quadra == ("t1", "t4") and s.fila == ("t5", "t3")
+
+
+def test_pular_com_a_fila_vazia_nao_muda_nada():
+    assert derivar(fila(2), [], False, [pular("t2")]) == derivar(fila(2), [])
+
+
+def test_ajuste_depois_da_ultima_partida_vale_no_fim():
+    # apos=9 com uma única partida: aplicado depois dela (um desfazer a tirou)
+    res = [r(1, 2, 1)]
+    assert derivar(fila(5), res, False, [pular("t3", apos=9)]) == derivar(
+        fila(5), res, False, [pular("t3", apos=1)]
+    )
+
+
+def test_mata_mata_rival_removido_e_rival_pulado():
+    # 5 times: t1 e t3 viram reis; t5 sobra sozinho e abre o mata-mata
+    res = [r(1, 2, 1), r(1, 3, 1), r(4, 5, 4), r(4, 6, 4)]
+    base = derivar(fila(6), res)
+    assert base.reis == ("t1", "t4")
+    s = derivar(fila(6), res, True, [pular("t1", apos=4)])
+    assert s.fase == "mata_mata" and s.rivais[-1] == "t1"
+    s = derivar(fila(6), res, True, [remover("t4", apos=4)])
+    assert "t4" not in (*s.em_quadra, *s.reis, *s.rivais)
+
+
+def test_mata_mata_remover_o_campeao_de_entao_promove_o_proximo_rival():
+    res = [r(1, 2, 1), r(1, 3, 1), r(4, 5, 4), r(4, 6, 4)]
+    # t6 desafia (sobra sozinho? não: t4 virou rei), depois o desafiante perde ou sai
+    s = derivar(fila(6), res, True)
+    assert s.fase == "mata_mata"
+    desafiante = s.desafiante
+    s2 = derivar(fila(6), res, True, [remover(desafiante, apos=4)])
+    assert desafiante not in (*s2.em_quadra, *s2.rivais) and s2.campeao != desafiante
+
+
+def test_invariantes_em_simulacoes_aleatorias():
+    import random
+
+    for semente in range(300):
+        rng = random.Random(semente)
+        n = rng.randint(2, 8)
+        times = fila(n)
+        resultados, ajustes, removidos = [], [], set()
+        iniciado = False
+        for _ in range(rng.randint(0, 40)):
+            s = derivar(times, resultados, iniciado, ajustes)
+            ativos = {*s.em_quadra, *s.fila, *s.reis}
+            sorte = rng.random()
+            if sorte < 0.25 and ativos:
+                alvo = rng.choice(sorted(ativos))
+                tipo = rng.choice(["remover", "pular"])
+                ajustes.append(Ajuste(len(resultados), tipo, alvo))
+                if tipo == "remover":
+                    removidos.add(alvo)
+            elif s.fase in ("fila", "mata_mata") and len(s.em_quadra) == 2:
+                a, b = s.em_quadra
+                resultados.append(
+                    ResultadoEntrada(
+                        a,
+                        b,
+                        rng.choice([a, b]),
+                        "fila" if s.fase == "fila" else "mata_mata",
+                    )
+                )
+            elif s.fase == "fim_da_fila" and not iniciado and s.desafiante:
+                iniciado = True
+            else:
+                break
+            s = derivar(times, resultados, iniciado, ajustes)  # nunca levanta
+            lugares = [*s.em_quadra, *s.fila, *s.reis]
+            assert not (set(lugares) | set(s.rivais) | set(s.eliminados)) & removidos
+            if s.fase in ("fila", "fim_da_fila") and not iniciado:
+                todos = [*s.em_quadra, *s.fila, *s.reis, *s.eliminados]
+                assert len(todos) == len(set(todos))
+                assert set(todos) | removidos == {t.id for t in times}
+            assert s.campeao not in removidos

@@ -14,7 +14,8 @@ ficou na quadra, ou o último rei se a quadra esvaziou) enfrenta os reis em orde
 de coroação; ganhou ficou, perdeu saiu; quem sobra no fim é o campeão.
 """
 
-from collections import deque
+from collections import defaultdict, deque
+from collections.abc import Sequence
 from typing import NamedTuple
 
 
@@ -29,6 +30,21 @@ class ResultadoEntrada(NamedTuple):
     time_b_id: str
     vencedor_id: str
     fase: str = "fila"  # "fila" | "mata_mata"
+
+
+class Ajuste(NamedTuple):
+    """Mudança da fila no meio da rodada (CV8.DS7.TS3). `apos` é quantas partidas
+    encerradas (fila e mata-mata, juntas) já existiam quando valeu: `derivar`
+    aplica o ajuste logo depois dessa partida, para que os resultados já
+    gravados continuem batendo com a quadra de então.
+
+    - `remover`: o time ficou sem nenhum jogador e deixa de existir;
+    - `pular`: o time vai para o fim da fila (ou do rol de reis/rivais).
+    """
+
+    apos: int
+    tipo: str  # "remover" | "pular"
+    time_id: str
 
 
 class Situacao(NamedTuple):
@@ -48,6 +64,7 @@ def derivar(
     times: list[TimeEntrada],
     resultados: list[ResultadoEntrada],
     mata_mata_iniciado: bool = False,
+    ajustes: Sequence[Ajuste] = (),
 ) -> Situacao:
     fila = deque(t.id for t in sorted(times, key=lambda t: t.fila))
     todos = set(fila)
@@ -61,10 +78,37 @@ def derivar(
         while len(quadra) < 2 and fila:
             quadra.append(fila.popleft())
 
-    encher()
     fila_res = [r for r in resultados if r.fase == "fila"]
     mata_res = [r for r in resultados if r.fase == "mata_mata"]
-    for r in fila_res:
+    total = len(fila_res) + len(mata_res)
+    # Ajustes por momento; os de depois da última partida (um "desfazer" tirou
+    # a partida que eles seguiam) valem no fim da sequência.
+    por_momento: dict[int, list[Ajuste]] = defaultdict(list)
+    for a in ajustes:
+        por_momento[min(a.apos, total)].append(a)
+
+    def ajustar_fila(k: int) -> None:
+        nonlocal ultimo
+        for a in por_momento.get(k, ()):
+            if a.tipo == "remover":
+                for lugar in (quadra, fila, reis, eliminados):
+                    if a.time_id in lugar:
+                        lugar.remove(a.time_id)
+                if ultimo == a.time_id:
+                    ultimo = None
+            elif a.tipo == "pular":
+                for lugar in (fila, reis):
+                    if a.time_id in lugar:
+                        lugar.remove(a.time_id)
+                        lugar.append(a.time_id)
+                if a.time_id in quadra:
+                    quadra.remove(a.time_id)
+                    fila.append(a.time_id)
+        encher()
+
+    encher()
+    ajustar_fila(0)
+    for i, r in enumerate(fila_res, start=1):
         if r.vencedor_id not in (r.time_a_id, r.time_b_id):
             raise ValueError("vencedor não disputou a partida")
         if sorted((r.time_a_id, r.time_b_id)) != sorted(quadra) or len(quadra) != 2:
@@ -78,25 +122,31 @@ def derivar(
             quadra.remove(r.vencedor_id)
             reis.append(r.vencedor_id)
         encher()
+        ajustar_fila(i)
 
     fase = "fila" if len(quadra) == 2 else "fim_da_fila"
     desafiante: str | None = None
     rivais: tuple[str, ...] = ()
     campeao: str | None = None
+    saidos: set[str] = set()  # removidos durante o mata-mata
     if fase == "fila":
         if mata_res or mata_mata_iniciado:
             raise ValueError("mata-mata antes do fim da fila")
     else:
-        # Quadra vazia: o último vencedor acabou de virar rei e é o desafiante.
-        desafiante = quadra[0] if quadra else ultimo
+        # Quadra vazia: o último vencedor acabou de virar rei e é o desafiante
+        # (se ele deixou de existir, o último rei que sobrou).
+        desafiante = quadra[0] if quadra else (ultimo or (reis[-1] if reis else None))
         restantes = deque(t for t in reis if t != desafiante)
         if mata_res and not mata_mata_iniciado:
             raise ValueError("resultado do mata-mata sem o mata-mata iniciado")
         if mata_mata_iniciado:
             atual = desafiante
-            for r in mata_res:
-                if not restantes or sorted((r.time_a_id, r.time_b_id)) != sorted(
-                    (atual, restantes[0])
+            for j, r in enumerate(mata_res, start=1):
+                if (
+                    atual is None
+                    or not restantes
+                    or sorted((r.time_a_id, r.time_b_id))
+                    != sorted((atual, restantes[0]))
                 ):
                     raise ValueError(
                         "resultado de uma partida fora da ordem do mata-mata"
@@ -105,7 +155,14 @@ def derivar(
                     raise ValueError("vencedor não disputou a partida")
                 restantes.popleft()
                 atual = r.vencedor_id
-            if restantes:
+                atual = _ajustar_mata(
+                    por_momento.get(len(fila_res) + j, ()), atual, restantes, saidos
+                )
+            if atual is None and restantes:  # o campeão de então deixou de existir
+                atual = restantes.popleft()
+            if atual is None:
+                fase, quadra = "fim_da_fila", []
+            elif restantes:
                 fase = "mata_mata"
                 quadra = [atual, restantes[0]]
             else:
@@ -118,14 +175,32 @@ def derivar(
         fase=fase,
         em_quadra=tuple(quadra),
         fila=tuple(fila),
-        reis=tuple(reis),
-        eliminados=tuple(eliminados),
+        reis=tuple(t for t in reis if t not in saidos),
+        eliminados=tuple(t for t in eliminados if t not in saidos),
         vitorias=vitorias,
         ultimo_vencedor=ultimo,
         desafiante=desafiante,
         rivais=rivais,
         campeao=campeao,
     )
+
+
+def _ajustar_mata(
+    ajustes: Sequence[Ajuste], atual: str | None, restantes: deque, saidos: set[str]
+):
+    """Aplica ajustes durante o mata-mata e devolve quem está no lugar do
+    campeão de então: se ele deixou de existir, o próximo rival ocupa o lugar."""
+    for a in ajustes:
+        if a.tipo == "remover":
+            saidos.add(a.time_id)
+            if a.time_id == atual:
+                atual = restantes.popleft() if restantes else None
+            elif a.time_id in restantes:
+                restantes.remove(a.time_id)
+        elif a.tipo == "pular" and a.time_id in restantes:
+            restantes.remove(a.time_id)
+            restantes.append(a.time_id)
+    return atual
 
 
 def nomes_curtos(jogadores: list[dict]) -> dict[str, str]:
