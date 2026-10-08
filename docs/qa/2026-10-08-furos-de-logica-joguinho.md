@@ -102,3 +102,9 @@ Uma sessão/rodada deve poder **sempre** ser encerrada por quem a opera, em qual
 ## Não testado
 
 Qualquer ação de escrita no Joguinho (cancelar, substituir, marcar ausente, encerrar sessão, criar partida) e os fluxos da quadra em si. Posso executar o roteiro acima no ambiente de produção se você me passar o segredo do dono na sua sessão do navegador e autorizar cada passo destrutivo, ou preferir rodar contra uma cópia local.
+
+---
+
+## Encaminhamento (2026-10-08)
+
+Os achados viraram a [CV8.DS7](../project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/index.md). O deadlock da partida chamada foi corrigido na 0.46.2 (US16, "Anular partida").
