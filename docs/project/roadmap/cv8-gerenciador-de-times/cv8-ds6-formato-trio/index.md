@@ -1,8 +1,8 @@
 ---
 code: CV8.DS6
 level: Delivery Story
-status: Active
-status_reason: US15 em andamento (formato trio, fase 2 da CV8)
+status: Validated
+status_reason: US15 implementada (0.45.0); aguarda validação do Navigator
 updated: 2026-10-08
 ---
 

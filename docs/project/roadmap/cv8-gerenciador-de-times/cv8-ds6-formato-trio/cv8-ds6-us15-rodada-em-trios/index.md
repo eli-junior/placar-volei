@@ -1,8 +1,8 @@
 ---
 code: CV8.DS6.US15
 level: User Story
-status: Active
-status_reason: implementada na branch feature/cv8-ds6-us15-formato-trio; aguarda validação
+status: Validated
+status_reason: implementada (0.45.0); aguarda validação do Navigator
 updated: 2026-10-08
 related:
   - ../../regras-de-negocio.md
