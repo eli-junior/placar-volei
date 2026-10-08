@@ -4,12 +4,28 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV8.DS7.TS2 — Quadra do joguinho não some no meio da rodada
+Nenhum trabalho ativo.
 
-- **Branch:** `fix/cv8-ds7-ts2-quadra-do-joguinho`
-- **Passo Ariad:** Passo 5 - Revisão
-- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
-- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-ts2-quadra-do-joguinho-nao-some/plan.md`; implementação e testes prontos (586 passam; ruff ok); validado pelo Navigator (Checkpoint 2); em revisão (Checkpoint 3), depois docs e merge.
+## 0.46.3 - 2026-10-08
+
+Boundary: Technical Story CV8.DS7.TS2 — quadra do joguinho não some no meio da rodada (patch; backend, web e APK em 0.46.3, APK `versionCode` 26; só o backend muda de comportamento; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
+
+Git source: merge `--no-ff` de `fix/cv8-ds7-ts2-quadra-do-joguinho` em `master`.
+
+### Fixed
+
+- **Quadra de uma rodada em andamento não expira por TTL** (QA P2/F3): o servidor renova a quadra vinculada na subida e a cada ciclo da limpeza (`min(300 s, TTL/2)`). A regra do TTL não mudou; fora de rodada em andamento a quadra expira como antes.
+- **Vínculo com quadra que sumiu** (reinício, por exemplo): sem partida chamada o joguinho passa a mostrar "Nenhuma quadra vinculada"; com partida chamada mostra "indisponível — anule a partida", e depois de anular o vínculo é limpo. Vale também para a resposta das operações, não só para a leitura.
+
+### Decision
+
+- Registro `quadra-da-rodada-renovada-pelo-servidor`: o banco das quadras segue efêmero (decisão de 2026-09-27); o joguinho se reconcilia com ele.
+
+### Verification
+
+- `uv run pytest` (586 numa rodada completa; `tests/test_sorteio.py` oscila nesta máquina, também no `master`, e 485 passam sem ele), `ruff` limpo, e2e da condução (12). Validado pelo Navigator em 2026-10-08.
 
 ## 0.46.2 - 2026-10-08
 
@@ -1789,7 +1805,7 @@ Git source: master
 ### <nome-da-branch>
 - **História / Escopo**: <Código da história e resumo do objetivo>
 - **Branch**: `<nome-da-branch>`
-- **Passo Ariad**: Passo <N> - <Nome do Passo> (ex: Passo 5 - Revisão)
+- **Passo Ariad**: Passo <N> - <Nome do Passo> (ex: Passo 6 - Documentação)
 - **Assinatura do Agente**: Agente: <Nome> (Driver) | Sessão: <ID> | Data: YYYY-MM-DD HH:mm
 - **Handoff / Próximos Passos**: <O que já foi feito e o que o próximo agente deve executar>
 ```
