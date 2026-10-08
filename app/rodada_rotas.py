@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from app import atrasados as regras_atrasados
 from app import desfazer as regras_desfazer
+from app import retirada as regras_retirada
 from app import rodada as regras_rodada
 from app import substituicao as regras_substituicao
 from app.api import autenticar_owner
@@ -52,6 +53,14 @@ def cancelar_sync() -> dict:
 
 def anular_partida_sync() -> dict:
     return _rodada_op(regras_rodada.anular_partida)
+
+
+def retirar_sync(jogador_id: Any) -> dict:
+    return _rodada_op(lambda conn: regras_retirada.retirar(conn, jogador_id))
+
+
+def pular_time_sync() -> dict:
+    return _rodada_op(regras_retirada.pular_time)
 
 
 def escalar_sync(jogador_id: Any) -> dict:
@@ -135,6 +144,18 @@ async def post_anular_partida(request: Request):
 async def post_escalar_parceiro(body: ParceiroBody, request: Request):
     autenticar_owner(request)
     return await _responder(escalar_sync, body.jogador_id)
+
+
+@router.post("/retirar")
+async def post_retirar(body: ParceiroBody, request: Request):
+    autenticar_owner(request)
+    return await _responder(retirar_sync, body.jogador_id)
+
+
+@router.post("/pular-time")
+async def post_pular_time(request: Request):
+    autenticar_owner(request)
+    return await _responder(pular_time_sync)
 
 
 @router.post("/atrasado")
