@@ -4,12 +4,29 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV8.DS7.US17 — Segredo do dono não some por engano
+Nenhum trabalho ativo.
 
-- **Branch:** `fix/cv8-ds7-us17-segredo-nao-some`
-- **Passo Ariad:** Passo 4 - Teste e Validação
-- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
-- **Handoff / Próximos Passos:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/cv8-ds7-us17-segredo-nao-some-por-engano/plan.md`; implementação e testes prontos; falta a validação do Navigator (Checkpoint 2), depois revisão, docs e merge.
+## 0.46.4 - 2026-10-08
+
+Boundary: fix CV8.DS7.US17 — segredo do dono não some por engano (patch; backend, web e APK em 0.46.4, APK `versionCode` 27; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
+
+Git source: merge `--no-ff` de `fix/cv8-ds7-us17-segredo-nao-some` em `master`.
+
+### Fixed
+
+- **Erro de domínio não apaga o segredo** (QA P5): o cliente lia todo 404 como "segredo recusado". Agora só o 404 sem `erros` (o mascarado) é recusa; "jogador não encontrado" e afins aparecem como erro no lugar e o segredo fica.
+- **Bloqueio por tentativas não apaga o segredo**: o 429 em HTTP mostra "Tente de novo em N min" (pelo `Retry-After`); no WebSocket do gerenciador o bloqueio fecha com o código novo **4429** (antes 4401, igual à recusa) e a tela de sessão mantém o segredo.
+- **Requisição sem segredo não conta como tentativa** no bloqueio por IP (cabeçalho ausente ou vazio, ou WebSocket sem segredo): sondar a API não bloqueia mais o dono. Segredo errado continua contando e sendo esquecido.
+
+### Decision
+
+- Registro `recusa-do-segredo-e-bloqueio-sem-apagar`.
+
+### Verification
+
+- `uv run pytest` (588), `ruff` limpo, `npm run check`, `npm test` (187), `npm run test:e2e` (88, 4 novos). Validado pelo Navigator em 2026-10-08.
 
 ## 0.46.3 - 2026-10-08
 
