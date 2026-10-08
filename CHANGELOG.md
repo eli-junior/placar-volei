@@ -6,6 +6,24 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 Nenhum trabalho ativo.
 
+## 0.46.5 - 2026-10-08
+
+Boundary: fix CV8.DS7.US18 — rota `/joguinho` e página não encontrada (patch; backend, web e APK em 0.46.5, APK `versionCode` 28; só a web muda de comportamento; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-08
+
+Git source: merge `--no-ff` de `fix/cv8-ds7-us18-rota-joguinho` em `master`.
+
+### Changed
+
+- **A tela do Joguinho passa a ser `/joguinho`** (QA P3). O endereço antigo `/sessao` segue valendo: a URL é trocada por `/joguinho` sem criar entrada no histórico, preservando `?query` e `#hash`. A API continua em `/api/sessao/*`.
+- **Endereço que não existe mostra "Página não encontrada"** (QA P4), com o endereço digitado e o link "Voltar ao início", em vez de cair na home sem aviso. O servidor segue devolvendo o app para qualquer caminho fora de `/api/*`. No APK só o início e a sala existem.
+- `/quadra/<id>/` com barra final também abre a sala.
+
+### Verification
+
+- `npm run check`, `npm test` (192) e `npm run test:e2e` (93, 5 novos, incluindo axe da página nova nos dois temas). Backend inalterado. Validado pelo Navigator em 2026-10-08.
+
 ## 0.46.4 - 2026-10-08
 
 Boundary: fix CV8.DS7.US17 — segredo do dono não some por engano (patch; backend, web e APK em 0.46.4, APK `versionCode` 27; Wear OS inalterado em 0.27.0).

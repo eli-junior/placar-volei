@@ -4,6 +4,8 @@
   import ModalEntrar from './components/ModalEntrar.svelte';
   import Jogadores from './components/Jogadores.svelte';
   import Sessao from './components/Sessao.svelte';
+  import PaginaNaoEncontrada from './components/PaginaNaoEncontrada.svelte';
+  import { resolverRota } from './lib/rotas.js';
   import SalaQuadra from './components/SalaQuadra.svelte';
   import { noAplicativoAndroid } from './lib/casca.js';
   import { aceitarSnapshot, lerJson, mensagemDeErro } from './sync.js';
@@ -13,6 +15,8 @@
   // Base de jogadores (CV8): só no navegador, nunca dentro do APK.
   let telaJogadores = $state(false);
   let telaSessao = $state(false);
+  // Caminho que não existe: mostra a página de aviso (CV8.DS7.US18).
+  let caminhoInexistente = $state(null);
   let eu = $state(null);
   let participantes = $state([]);
   let estadoPartida = $state(null);
@@ -257,19 +261,25 @@
 
   async function carregarRota() {
     handleVoltarParaHome(false);
-    telaJogadores = window.location.pathname === '/jogadores' && !noAplicativoAndroid();
-    telaSessao = window.location.pathname === '/sessao' && !noAplicativoAndroid();
-    if (telaJogadores || telaSessao) return;
-    const match = window.location.pathname.match(/^\/quadra\/([a-zA-Z0-9_-]+)$/);
-    if (!match) return;
-    const quadraId = match[1];
+    const rota = resolverRota(window.location.pathname, { apk: noAplicativoAndroid() });
+    if (rota.canonico) {
+      const { search, hash } = window.location;
+      window.history.replaceState({}, '', rota.canonico + search + hash);
+    }
+    telaJogadores = rota.tela === 'jogadores';
+    telaSessao = rota.tela === 'joguinho';
+    caminhoInexistente = rota.tela === 'nao_encontrada' ? window.location.pathname : null;
+    if (rota.tela !== 'quadra') return;
+    const quadraId = rota.quadraId;
+    // O usuário pode navegar enquanto a sala carrega (a barra final conta como a mesma sala).
+    const aindaNaSala = () => resolverRota(window.location.pathname).quadraId === quadraId;
     try {
       const res = await fetch(`/api/quadras/${quadraId}/eu`);
       const data = (await lerJson(res)) || {};
-      if (window.location.pathname !== `/quadra/${quadraId}`) return;
+      if (!aindaNaSala()) return;
       if (data.participante && data.quadra) return abrirSala(data.quadra, data.participante);
       const sala = await fetch(`/api/quadras/${quadraId}`);
-      if (window.location.pathname !== `/quadra/${quadraId}`) return;
+      if (!aindaNaSala()) return;
       if (!sala.ok) return salaExpirada();
       quadraSelecionadaParaEntrar = await sala.json();
       modalEntrarAberto = true;
@@ -298,6 +308,8 @@
     />
   {:else if telaJogadores}
     <Jogadores onVoltar={() => { window.history.pushState({}, '', '/'); carregarRota(); }} />
+  {:else if caminhoInexistente}
+    <PaginaNaoEncontrada caminho={caminhoInexistente} />
   {:else if quadraAtual}
     <!-- Sala da Quadra em Tempo Real -->
     <SalaQuadra
@@ -329,7 +341,7 @@
       onCriarQuadra={handleCriarQuadraHome}
       onEntrarQuadra={handleEntrarQuadraHome}
       onAbrirJogadores={noAplicativoAndroid() ? null : () => { window.history.pushState({}, '', '/jogadores'); carregarRota(); }}
-      onAbrirSessao={noAplicativoAndroid() ? null : () => { window.history.pushState({}, '', '/sessao'); carregarRota(); }}
+      onAbrirSessao={noAplicativoAndroid() ? null : () => { window.history.pushState({}, '', '/joguinho'); carregarRota(); }}
       {submetendo}
       {erro}
     />

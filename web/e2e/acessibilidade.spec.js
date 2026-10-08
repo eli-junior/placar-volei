@@ -25,6 +25,13 @@ for (const [nome, tema] of Object.entries(TEMAS)) {
     expect(await analisar(p)).toEqual([]);
   });
 
+  test(`página não encontrada sem violações axe — tema ${nome}`, async ({ abrir }) => {
+    const p = await comTema(abrir, tema);
+    await p.goto('/rota-inexistente');
+    await expect(p.getByRole('heading', { name: 'Página não encontrada' })).toBeVisible();
+    expect(await analisar(p)).toEqual([]);
+  });
+
   test(`operação sem violações axe — tema ${nome}`, async ({ abrir }) => {
     const p = await comTema(abrir, tema);
     await criarSala(p);

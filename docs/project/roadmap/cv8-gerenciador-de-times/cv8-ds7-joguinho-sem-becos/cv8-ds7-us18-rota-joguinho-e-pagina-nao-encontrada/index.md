@@ -1,8 +1,8 @@
 ---
 code: CV8.DS7.US18
 level: User Story
-status: Planned
-status_reason: Maintenance curta; pode ir junto de outra história
+status: Done
+status_reason: validada pelo Navigator em 2026-10-08 (0.46.5)
 updated: 2026-10-08
 ---
 
