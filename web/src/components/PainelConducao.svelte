@@ -11,6 +11,7 @@
     erroQuadra = null,
     onChamar = () => {},
     onEncerrar = () => {},
+    onAnular = () => {},
     onEscalar = () => {},
     podeDesfazer = false,
     onDesfazer = () => {},
@@ -27,6 +28,7 @@
   let codigo = $state('');
   let confirmandoCancelar = $state(false);
   let confirmandoDesfazer = $state(false);
+  let confirmandoAnular = $state(false);
   let saiu = $state('');
   let entra = $state('');
   const sub = $derived(conducao.substituicao);
@@ -63,6 +65,7 @@
         Quadra <strong>{quadra.codigo}</strong>{#if quadra.nome} ({quadra.nome}){/if}:
         {#if quadra.disponivel}<span class="ok">disponível</span> ·
           <a href="/quadra/{quadra.codigo}" target="_blank" rel="noopener">Abrir o placar</a>
+        {:else if temPartida}<span class="ruim">indisponível — anule a partida para trocar de quadra</span>
         {:else}<span class="ruim">indisponível — vincule de novo</span>{/if}
       </p>
     {:else}
@@ -175,6 +178,19 @@
     </div>
     {#if temPartida && conducao.motivo_encerrar}<p class="ajuda">{conducao.motivo_encerrar}</p>
     {:else if !temPartida && !fimDaFila && conducao.motivo}<p class="ajuda" role="status">{conducao.motivo}</p>{/if}
+    {#if temPartida && conducao.pode_anular}
+      {#if confirmandoAnular}
+        <p class="ajuda">Anular a partida Time {conducao.partida.time_a} × Time {conducao.partida.time_b}? Ela não conta: os dois times voltam a ser a próxima partida e a rodada segue. O placar da quadra não é apagado.</p>
+        <div class="botoes">
+          <button class="perigo" type="button" onclick={() => { confirmandoAnular = false; onAnular(); }} disabled={ocupado}>Sim, anular a partida</button>
+          <button class="secundario" type="button" onclick={() => (confirmandoAnular = false)}>Manter</button>
+        </div>
+      {:else}
+        <div class="botoes">
+          <button class="secundario" type="button" onclick={() => (confirmandoAnular = true)} disabled={ocupado}>Anular partida</button>
+        </div>
+      {/if}
+    {/if}
   </div>
 
   {#if conducao.historico.length}

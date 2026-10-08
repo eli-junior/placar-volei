@@ -298,3 +298,99 @@ async def test_painel_conta_as_partidas_registradas(ac, placar):
     assert (await jogo.estado())["conducao"]["partidas_encerradas"] == 0
     estado = await jogo.jogar("A")
     assert estado["conducao"]["partidas_encerradas"] == 1
+
+
+# Anular a partida chamada (fix: joguinho sempre encerrável, QA 2026-10-08).
+
+
+async def anular(ac):
+    return await ac.post("/api/rodada/anular-partida")
+
+
+@pytest.mark.asyncio
+async def test_anular_sem_segredo_retorna_404():
+    async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as c:
+        assert (await c.post("/api/rodada/anular-partida")).status_code == 404
+
+
+@pytest.mark.asyncio
+async def test_anular_sem_partida_chamada_e_recusado(ac, placar):
+    await Jogo(ac, placar).preparar()
+    r = await anular(ac)
+    assert r.status_code == 409 and "não tem partida chamada" in r.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_quadra_sumiu_anular_trocar_de_quadra_e_chamar_de_novo(ac, placar):
+    jogo = await Jogo(ac, placar).preparar()
+    await jogo.chamar()
+    await jogo.pontos("A", 4)
+    with sqlite3.connect(settings.db_path) as conn:
+        conn.execute("DELETE FROM quadras WHERE id = ?", (jogo.codigo,))
+    c = (await jogo.estado())["conducao"]
+    assert c["pode_encerrar"] is False and c["pode_anular"] is True
+    assert "anule a partida" in c["motivo_encerrar"]
+
+    r = await anular(ac)
+    assert r.status_code == 200, r.text
+    estado = r.json()
+    assert estado["rodada"]["estado"] == "em_andamento"
+    c = estado["conducao"]
+    assert c["partida"] is None and c["pode_anular"] is False
+    assert filas(c["em_quadra"]) == [1, 2] and c["historico"] == []
+
+    nova = await placar.post("/api/quadras", json={"apelido": "Operador"})
+    jogo.codigo = nova.json()["id"]
+    r = await ac.put("/api/sessao/quadra", json={"codigo": jogo.codigo})
+    assert r.status_code == 200, r.text
+    estado = await jogo.jogar("B")
+    assert estado["conducao"]["historico"][0]["vencedor"] == 2
+
+
+@pytest.mark.asyncio
+async def test_anular_jogo_parado_no_meio_nao_conta_e_nao_mexe_no_placar(ac, placar):
+    jogo = await Jogo(ac, placar).preparar()
+    await jogo.jogar("A")
+    await jogo.chamar()
+    await jogo.pontos("A", 3)
+    r = await anular(ac)
+    assert r.status_code == 200, r.text
+    c = r.json()["conducao"]
+    assert c["partida"] is None and c["partidas_encerradas"] == 1
+    assert filas(c["em_quadra"]) == [1, 3]
+    e = snapshot_sync(settings.db_path, jogo.codigo)["estado_partida"]
+    assert (e["pontos_a"], e["pontos_b"]) == (3, 0)
+    with sqlite3.connect(settings.gerenciador_db_path) as conn:
+        assert conn.execute("SELECT COUNT(*) FROM partidas_rodada").fetchone()[0] == 1
+
+
+@pytest.mark.asyncio
+async def test_cancelar_com_partida_chamada_libera_o_vinculo(ac, placar):
+    jogo = await Jogo(ac, placar).preparar()
+    await jogo.chamar()
+    with sqlite3.connect(settings.db_path) as conn:
+        conn.execute("DELETE FROM quadras WHERE id = ?", (jogo.codigo,))
+    assert (await ac.post("/api/rodada/cancelar")).status_code == 200
+    with sqlite3.connect(settings.gerenciador_db_path) as conn:
+        assert (
+            conn.execute(
+                "SELECT COUNT(*) FROM partidas_rodada WHERE estado = 'chamada'"
+            ).fetchone()[0]
+            == 0
+        )
+    nova = await placar.post("/api/quadras", json={"apelido": "Operador"})
+    r = await ac.put("/api/sessao/quadra", json={"codigo": nova.json()["id"]})
+    assert r.status_code == 200, r.text
+    assert (await ac.delete("/api/sessao/quadra")).status_code == 200
+    assert (await ac.post("/api/sessao/encerrar")).status_code == 200
+
+
+@pytest.mark.asyncio
+async def test_chamada_orfa_de_rodada_cancelada_nao_trava_o_vinculo(ac, placar):
+    """Bancos de antes da correção: a rodada foi cancelada com a chamada aberta."""
+    jogo = await Jogo(ac, placar).preparar()
+    await jogo.chamar()
+    with sqlite3.connect(settings.gerenciador_db_path) as conn:
+        conn.execute("UPDATE rodadas SET estado = 'cancelada'")
+    r = await ac.delete("/api/sessao/quadra")
+    assert r.status_code == 200, r.text

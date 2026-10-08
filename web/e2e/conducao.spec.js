@@ -219,6 +219,40 @@ test('encerrar partida: placar ao vivo, fila andando, rei e fim da fila', async 
   await sessaoLimpa(p);
 });
 
+test('quadra some com partida chamada: anular, criar outra quadra e chamar de novo', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS);
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  const codigo = await criarEVincular(p);
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await pontosNoPlacar(p, codigo, 'A', 3);
+  await expect(p.getByText('Placar: 3 × 0')).toBeVisible();
+
+  // o admin libera a quadra (o mesmo efeito de um restart ou da validade de 1 h)
+  const liberou = await p.evaluate(async (id) => (await fetch(`/api/quadras/${id}/liberar`, { method: 'POST' })).status, codigo);
+  expect(liberou).toBe(204);
+  await p.reload();
+  await p.getByRole('heading', { name: 'Joguinho', level: 1 }).waitFor();
+  await expect(p.getByText('indisponível — anule a partida para trocar de quadra')).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeDisabled();
+
+  await p.getByRole('button', { name: 'Anular partida' }).click();
+  await expect(p.getByText(/Anular a partida Time 1 × Time 2\?/)).toBeVisible();
+  await p.getByRole('button', { name: 'Sim, anular a partida' }).click();
+  await expect(p.getByRole('heading', { name: 'Próxima partida' })).toBeVisible();
+  await expect(p.getByRole('status').filter({ hasText: 'Time 1 × Time 2' })).toBeVisible();
+
+  const nova = await criarEVincular(p);
+  expect(nova).not.toBe(codigo);
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await pontosNoPlacar(p, nova, 'B', 10);
+  await p.getByRole('button', { name: 'Encerrar partida' }).click();
+  await expect(p.getByText('Time 1 0 × 10 Time 2')).toBeVisible();
+  await sessaoLimpa(p);
+});
+
 test('dois vencimentos seguidos coroam o rei e o painel mostra a ordem', async ({ abrir }) => {
   const p = await abrir();
   await sessaoLimpa(p);

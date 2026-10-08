@@ -4,7 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+### fix — joguinho sempre encerrável (entrega 1 da auditoria QA de 2026-10-08)
+
+- **História / Escopo:** P1/P6/F1/F4 de `docs/qa/2026-10-08-*.md`. Ação "Anular partida" (a chamada não conta, os times voltam a ser a próxima partida, a rodada segue); Cancelar rodada apaga a partida chamada; a trava do vínculo só olha a rodada em andamento (destrava bancos já presos). Decisão do Navigator: partida abandonada é só anulada (sem placar manual nem W.O. por ora).
+- **Branch:** `fix/joguinho-sempre-encerravel`
+- **Passo Ariad:** Passo 4 - Teste e Validação
+- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: ae33f4a8 | Data: 2026-10-08
+- **Handoff / Próximos Passos:** pytest e e2e escritos (`tests/test_encerramento.py`, `web/e2e/conducao.spec.js`); aguardando validação do Navigator (Checkpoint 2). Versão alvo: 0.46.2 (patch).
 
 ## 0.46.1 - 2026-10-08
 
