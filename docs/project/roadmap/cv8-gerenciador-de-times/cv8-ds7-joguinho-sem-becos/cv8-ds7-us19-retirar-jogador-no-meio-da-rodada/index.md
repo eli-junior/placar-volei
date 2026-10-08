@@ -28,9 +28,12 @@ Presença travada com rodada ativa; inativar é recusado; a substituição (US10
 - **Dado** um time **quando** todos os seus jogadores são retirados **então** o time sai da fila e a próxima partida é recalculada.
 - **E** os botões "Desmarcar" travados dizem o motivo ao lado, não só no fim da página.
 
-## Em aberto (decidir no plano)
+## Decisões complementares (Navigator, 2026-10-08)
 
-- Jogador de time **em quadra com partida chamada**: retirar exige anular a partida antes (US16) ou fica bloqueado até ela encerrar?
-- Rei aguardando o mata-mata que perde um jogador: mesma regra (vaga vazia, preencher ao entrar)?
-- Na vez de entrar, ninguém elegível na lista de escalação: o time é pulado ou a rodada fica travada como hoje?
-- Relação com a US10 (substituir): a retirada substitui a US10 ou convive com ela?
+- **Em jogo não sai:** não é possível retirar jogador de um time que está em quadra com partida chamada. A ação fica bloqueada (com o motivo) até a partida ser encerrada ou anulada (US16).
+- **Rei aguardando o mata-mata:** mesma regra. A vaga fica vazia e, na hora de entrar, o substituto é escolhido entre os eliminados, preservando o critério de time misto (RN-01, RN-07).
+- **Ninguém elegível na vez de entrar:** o time é **pulado** (a próxima partida usa o time seguinte da fila).
+
+## Em aberto
+
+- **Relação com a US10 (substituir):** a retirada substitui a US10 ou as duas convivem? O Navigator quer pensar mais; decidir antes de puxar a história.
