@@ -269,7 +269,7 @@
 
 <main class="sessao">
   <nav class="topo" aria-label="Navegação">
-    <button class="voltar" type="button" onclick={onVoltar}><span aria-hidden="true">←</span><span>Início</span></button>
+    <button class="voltar" type="button" onclick={onVoltar}><Icone nome="voltar" tamanho="1.2em" traco={2.6} /><span>Início</span></button>
     {#if segredo}
       <span class="sincronia {sincronia.chave}">{sincronia.rotulo}</span>
       <button class="secundario" type="button" onclick={carregar} disabled={carregando}><Icone nome="atualizar" tamanho="1.1em" /><span>Atualizar</span></button>

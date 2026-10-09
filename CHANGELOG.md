@@ -4,6 +4,22 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.48.2 - 2026-10-09
+
+Boundary: fix — seta do botão "Início" no `/joguinho` e em Jogadores (patch; backend, web e APK em 0.48.2, APK `versionCode` 32; só a web muda de comportamento; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
+
+Git source: merge `--no-ff` de `fix/joguinho-botao-inicio` em `master`.
+
+### Fixed
+
+- **Seta do "Início" feia** no `/joguinho` e em Jogadores: era o caractere de texto "←", que cada aparelho desenha com uma fonte. Passa a usar o chevron vetorial da sala da quadra, pelo novo ícone `voltar` (`web/src/lib/icones.js`).
+
+### Verification
+
+- `npm run check`, `npm test` (199) e `npm run test:e2e` nas specs `sessao`, `jogadores` e `acessibilidade` (31, incluindo axe). Validado pelo Navigator em 2026-10-09.
+
 ## 0.48.1 - 2026-10-09
 
 Boundary: fix — cores dos botões finais do `/joguinho` (patch; backend, web e APK em 0.48.1, APK `versionCode` 31; só a web muda de comportamento; Wear OS inalterado em 0.27.0).
