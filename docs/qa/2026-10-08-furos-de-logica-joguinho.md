@@ -108,3 +108,7 @@ Qualquer ação de escrita no Joguinho (cancelar, substituir, marcar ausente, en
 ## Encaminhamento (2026-10-08)
 
 Os achados viraram a [CV8.DS7](../project/roadmap/cv8-gerenciador-de-times/cv8-ds7-joguinho-sem-becos/index.md). O deadlock da partida chamada foi corrigido na 0.46.2 (US16, "Anular partida").
+
+## Fechamento (2026-10-09)
+
+A CV8.DS7 foi fechada na 0.48.0: os sete cenários de regressão estão cobertos (tabela na DS7). Restam a decisão sobre placar manual ou W.O. (US21, adiada) e o que ficou como decisão de produto nos cenários 2 e 4.

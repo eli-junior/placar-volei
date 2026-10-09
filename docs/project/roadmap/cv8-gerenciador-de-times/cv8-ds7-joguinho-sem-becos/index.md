@@ -1,8 +1,8 @@
 ---
 code: CV8.DS7
 level: Delivery Story
-status: Active
-status_reason: US16 (0.46.2), TS2 (0.46.3), US17 (0.46.4) e US18 (0.46.5) e US20 (0.47.0), TS3 e US19 (0.48.0) validadas; resta a US21 (adiada)
+status: Done
+status_reason: US16, TS2, US17, US18, US20, TS3 e US19 validadas pelo Navigator (0.46.2 a 0.48.0); US21 adiada por decisão A; cenários de regressão conferidos em 2026-10-09
 updated: 2026-10-09
 related:
   - ../../../../qa/2026-10-08-auditoria-producao.md
@@ -39,3 +39,19 @@ Ordem sugerida: US16 → TS2 → US17 → US18 → US20 → US19 → US21.
 ## Done Condition
 
 Os cenários de regressão do relatório de furos (seção "Cenários de regressão sugeridos") passam, e nenhuma tela do Joguinho mostra uma instrução que a própria tela impede de cumprir.
+
+## Fechamento (2026-10-09)
+
+Conferência dos cenários de regressão do relatório de furos, por onde cada um é coberto:
+
+| # | Cenário | Coberto por |
+|---|---|---|
+| 1 | Chamar partida, reiniciar, anular ou recriar a quadra sem cancelar a rodada | US16: `test_quadra_sumiu_anular_trocar_de_quadra_e_chamar_de_novo` e e2e "quadra some com partida chamada" |
+| 2 | Partida com placar no meio: "encerrar sem placar" | US16 (decisão A): **anular** (`test_anular_jogo_parado_no_meio_nao_conta_e_nao_mexe_no_placar`). Placar manual ou W.O. ficam na US21 |
+| 3 | Retirar jogador sem substituto, sem partida chamada | US19: `test_retirar_da_fila_deixa_a_vaga_e_o_jogador_ausente` e e2e "retirar da rodada: vaga aberta…" |
+| 4 | Retirar jogador com partida chamada | US19 (decisão C): quem está em jogo não sai e a tela mostra o motivo (e2e "quem está em jogo não sai") |
+| 5 | Cancelar rodada com partida chamada e vincular outra quadra | US16: `test_cancelar_com_partida_chamada_libera_o_vinculo` e `test_chamada_orfa_de_rodada_cancelada_nao_trava_o_vinculo` |
+| 6 | Sessão do dia anterior: aviso e escolha | US20: e2e "joguinho de outro dia: aviso com continuar ou encerrar" |
+| 7 | Quadra expirada por TTL no meio da rodada | TS2: a quadra vinculada a rodada em andamento é renovada pelo servidor |
+
+Os cenários 2 (parcial) e 4 (em jogo) saem por decisão de produto, não por falta de teste. A DS7 fecha sem a US21; ela volta ao roadmap se o grupo precisar registrar placar de partida abandonada.

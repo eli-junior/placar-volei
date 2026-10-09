@@ -4,6 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### chore/cv8-ds7-fechamento — Fechar a CV8.DS7 (documentação, sem versão)
+
+- **Branch:** `chore/cv8-ds7-fechamento`
+- **Passo Ariad:** Passo 6 - Documentação (trabalho só de documentos; sem código, sem versão nova)
+- **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
+- **Handoff:** conferir os 7 cenários de regressão do relatório de furos contra os testes, marcar a DS7 como `Done`, atualizar briefing e índice da CV8, registrar no worklog. Falta o aceite do Navigator para commitar e mesclar.
+
 ## 0.48.0 - 2026-10-09
 
 Boundary: User Story CV8.DS7.US19 + Technical Story CV8.DS7.TS3 — retirar jogador no meio da rodada (minor; backend, web e APK em 0.48.0, APK `versionCode` 30; Wear OS inalterado em 0.27.0).
