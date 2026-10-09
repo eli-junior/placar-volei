@@ -2,8 +2,8 @@
 code: CV8
 level: Value
 status: Active
-status_reason: DS1 a DS5 entregues até a 0.44.0 (validação em lote pendente); DS6 (trio) na 0.45.0; DS7 (auditoria do QA) em andamento
-updated: 2026-10-08
+status_reason: DS1 a DS5 entregues até a 0.44.0 (validação em lote pendente); DS6 (trio) na 0.45.0; DS7 (auditoria do QA) entregue até a 0.48.0 (US21 adiada); validação em lote pendente
+updated: 2026-10-09
 related:
   - regras-de-negocio.md
 ---
@@ -54,3 +54,7 @@ O formato trio (CV8.DS6.US15) está entregue: rodada inteira em trios, mistos, c
 ## Estado em 0.46.2
 
 A auditoria do QA em produção (2026-10-08, `docs/qa/`) virou a CV8.DS7. A US16 (anular partida chamada) está entregue; TS2, US17 a US20 estão planejadas e a US21 adiada.
+
+## Estado em 0.48.0
+
+A DS7 está fechada: anular partida chamada, quadra que não some no meio da rodada, segredo do dono preservado, rota `/joguinho`, joguinho de outro dia e retirar jogador no meio da rodada. Fica adiada só a US21 (placar manual ou W.O.). Continuam pendentes a validação do Navigator em lote das DS1 a DS6 e o teste dos nomes das duplas no relógio físico; histórico/ranking entre sessões e edição de partidas antigas seguem fora (fase 2).

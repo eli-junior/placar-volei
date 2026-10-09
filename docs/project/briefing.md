@@ -12,11 +12,11 @@ Audiência: o grupo de vôlei do Navigator. Escala esperada: dezenas de pessoas,
 
 ## Current State
 
-Backend, web e APK em `0.45.0` e Wear OS em `0.27.0`, todos em `master`. Entregues: placar compartilhado, relógio (CV3, CV6), APK online/offline (CV7) e gerenciador de times (CV8: cadastro, sorteio em duplas ou trios, rei da quadra, mata-mata, persistência e exibição). A validação do Navigator em lote da CV8 e dos 3 nomes no relógio físico (US15) está pendente.
+Backend, web e APK em `0.48.0` e Wear OS em `0.27.0`, todos em `master`. Entregues: placar compartilhado, relógio (CV3, CV6), APK online/offline (CV7) e gerenciador de times (CV8: cadastro, sorteio em duplas ou trios, rei da quadra, mata-mata, persistência, exibição e a DS7, que tirou os becos sem saída do Joguinho: anular partida, retirar jogador, joguinho de outro dia). A validação do Navigator em lote da CV8 e dos 3 nomes no relógio físico (US15) está pendente.
 
 Repositório publicado e sincronizado em `github.com/eli-junior/placar-volei`.
 
-Próximo trabalho: validar a CV8 em lote; a fase 2 (histórico e ranking entre sessões, edição de partidas antigas) ainda não tem regra de negócio fechada. Dívidas abertas em `docs/project/debt/`.
+Próximo trabalho: validar a CV8 em lote; a US21 (placar manual ou W.O. de partida abandonada) está adiada; a fase 2 (histórico e ranking entre sessões, edição de partidas antigas) ainda não tem regra de negócio fechada. Dívidas abertas em `docs/project/debt/`.
 
 ## Architecture Premises
 
