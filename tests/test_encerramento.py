@@ -415,6 +415,7 @@ async def test_partida_chamada_pelo_joguinho_nao_pode_ser_reiniciada_no_placar(
     await jogo.chamar()
     await jogo.pontos("A", 3)
     url = f"/api/quadras/{jogo.codigo}/reiniciar"
+    assert snapshot_sync(settings.db_path, jogo.codigo)["quadra"]["em_joguinho"] is True
     for corpo in ({"zerar": True}, {}):
         r = await placar.post(url, json=corpo)
         assert r.status_code == 409 and "joguinho" in r.json()["detail"]
@@ -423,5 +424,8 @@ async def test_partida_chamada_pelo_joguinho_nao_pode_ser_reiniciada_no_placar(
 
     # Anulada a partida, a quadra volta a poder ser reiniciada.
     assert (await ac.post("/api/rodada/anular-partida")).status_code == 200
+    assert (
+        snapshot_sync(settings.db_path, jogo.codigo)["quadra"]["em_joguinho"] is False
+    )
     r = await placar.post(url, json={"zerar": True})
     assert r.status_code in (200, 201), r.text

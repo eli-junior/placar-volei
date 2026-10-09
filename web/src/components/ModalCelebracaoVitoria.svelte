@@ -5,6 +5,7 @@
   let {
     estadoPartida,
     podeControlar = false,
+    podeReiniciar = true,
     onNovaPartida = () => {},
     onReinicioRapido = () => {},
     onFechar = () => {},
@@ -51,7 +52,7 @@
     </div>
 
     <div class="acoes-celebracao">
-      {#if podeControlar}
+      {#if podeControlar && podeReiniciar}
         <!-- Reinício rápido: zera o placar e mantém duplas e regras. -->
         <button
           type="button"

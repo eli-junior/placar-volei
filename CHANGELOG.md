@@ -10,7 +10,8 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 - **Passo Ariad:** Passo 4 - Teste e Validação (correção compactada; aguardando validação do Navigator)
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-09
 - **O que muda:** com o joguinho aberto e uma partida chamada na quadra vinculada, `POST /api/quadras/{id}/reiniciar` responde 409 (vale para "Reiniciar partida", nova partida e relógio). Só o joguinho (encerrar/anular) libera a quadra; a própria chamada do joguinho segue reiniciando o placar (`via_joguinho`).
-- **Handoff:** o botão "Reiniciar partida" ainda aparece na sala e, ao tocar, mostra o erro do servidor; esconder o botão exige expor a flag no snapshot (follow-up, ver plano abaixo).
+- **Botão escondido:** o snapshot da quadra ganhou `quadra.em_joguinho`; com ele a sala esconde "Reiniciar partida" (menu), "Iniciar Próxima Partida" (banner) e "Reinício Rápido"/"Ajustar e Iniciar" (celebração). O snapshot é reenviado à quadra ao chamar, encerrar, anular, cancelar a rodada e encerrar o joguinho, para o botão voltar sozinho.
+- **Handoff:** falta só a validação do Navigator (rota na conversa); sem migração de schema.
 
 ## 0.49.0 - 2026-10-09
 

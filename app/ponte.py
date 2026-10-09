@@ -288,6 +288,18 @@ def _guardar_partida_do_placar(partida_id: str, partida_quadra_id: str) -> None:
         conn.close()
 
 
+async def avisar_quadra_vinculada(estado: dict, quadra_id: str | None = None) -> None:
+    """Reenvia o snapshot à quadra vinculada: a trava de reinício (`em_joguinho`)
+    muda com a chamada, o encerramento e a anulação da partida. Nunca levanta."""
+    codigo = quadra_id or (estado.get("quadra") or {}).get("codigo")
+    if not codigo:
+        return
+    try:
+        await transmitir_estado(codigo, avisar=False)
+    except HTTPException:  # quadra expirada: o joguinho segue
+        return
+
+
 async def _carregar_no_placar(dados: dict) -> str:
     quadra_id = dados["quadra_id"]
     admin_id = await asyncio.to_thread(_admin_da_quadra, quadra_id)
@@ -410,7 +422,9 @@ async def encerrar_partida() -> dict:
     from app.sessao import estado_sync
 
     await asyncio.to_thread(_registrar_encerramento)
-    return await asyncio.to_thread(estado_sync)
+    estado = await asyncio.to_thread(estado_sync)
+    await avisar_quadra_vinculada(estado)
+    return estado
 
 
 class CodigoBody(BaseModel):
