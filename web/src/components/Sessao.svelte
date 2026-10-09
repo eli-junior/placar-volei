@@ -302,11 +302,11 @@
             <p class="ajuda">Encerrar o joguinho? A lista de presença sai da tela.</p>
           {/if}
           <div class="botoes">
-            <button class="perigo" type="button" onclick={encerrar} disabled={ocupado}>{rodada ? 'Cancelar rodada e encerrar' : 'Sim, encerrar'}</button>
+            <button class="critico" type="button" onclick={encerrar} disabled={ocupado}>{rodada ? 'Cancelar rodada e encerrar' : 'Sim, encerrar'}</button>
             <button class="secundario" type="button" onclick={() => confirmandoEncerrar = false}>Voltar</button>
           </div>
         {:else}
-          <button class="secundario" type="button" onclick={() => confirmandoEncerrar = true} disabled={ocupado}>Encerrar joguinho</button>
+          <button class="critico" type="button" onclick={() => confirmandoEncerrar = true} disabled={ocupado}>Encerrar joguinho</button>
         {/if}
       {/snippet}
 
@@ -442,7 +442,7 @@
       <section class="cartao" aria-labelledby="titulo-gerenciar">
         <h2 id="titulo-gerenciar">Jogadores</h2>
         <p class="ajuda">Cadastre, edite ou inative jogadores na tela de Jogadores e volte aqui para marcar quem chegou.</p>
-        <button class="secundario" type="button" onclick={onGerenciarJogadores} disabled={ocupado}>Gerenciar jogadores</button>
+        <button class="acao-principal" type="button" onclick={onGerenciarJogadores} disabled={ocupado}>Gerenciar jogadores</button>
       </section>
       {/if}
 
@@ -465,6 +465,9 @@
   .voltar, .secundario, .perigo { display: inline-flex; align-items: center; gap: .4rem; min-height: 44px; padding: 0 .85rem; border: 1px solid var(--acao-secundaria); border-radius: 12px; background: var(--fundo-superficie); color: var(--texto-medio); font: inherit; font-size: var(--texto-apoio); font-weight: 700; cursor: pointer; }
   .secundario:disabled, .perigo:disabled { opacity: .45; cursor: not-allowed; }
   .perigo { border-color: var(--estado-erro); color: var(--estado-erro-suave); }
+  /* Ação crítica de fundo cheio. Usa o tom "ativo" do destrutivo: o branco sobre ele passa de 4,5:1 e sobre o tom base não. */
+  .critico { display: flex; align-items: center; justify-content: center; min-height: 52px; padding: 0 1.1rem; border: 0; border-radius: 10px; background: var(--acao-destrutiva-ativa); color: var(--acao-destrutiva-texto); font: inherit; font-weight: 800; cursor: pointer; }
+  .critico:disabled, .acao-principal:disabled { opacity: .45; cursor: not-allowed; }
   .cartao { display: flex; flex-direction: column; gap: .6rem; padding: 1rem; border: 1px solid var(--borda-sutil); border-radius: var(--raio-padrao); background: var(--fundo-superficie); }
   .cartao h2 { margin: 0; }
   .ajuda { margin: 0; color: var(--texto-suave); font-size: var(--texto-apoio); }

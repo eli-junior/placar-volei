@@ -4,6 +4,22 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.48.1 - 2026-10-09
+
+Boundary: fix — cores dos botões finais do `/joguinho` (patch; backend, web e APK em 0.48.1, APK `versionCode` 31; só a web muda de comportamento; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
+
+Git source: merge `--no-ff` de `fix/joguinho-cores-botoes-finais` em `master`.
+
+### Changed
+
+- **"Gerenciar jogadores" laranja** (fundo cheio, o estilo dos botões principais) e **"Encerrar joguinho" vermelho** (ação crítica), com a confirmação **"Sim, encerrar" / "Cancelar rodada e encerrar"** também em vermelho cheio. O vermelho usa `--acao-destrutiva-ativa`, único tom em que o texto branco passa de 4,5:1. Valem nos temas escuro e Modo Sol.
+
+### Verification
+
+- `npm run check` e `npm run test:e2e` nas specs `sessao`, `rodada` e `acessibilidade` (31, incluindo axe). Validado visualmente pelo Navigator em 2026-10-09.
+
 ## Sem versão - 2026-10-09
 
 Boundary: Delivery Story CV8.DS7 — fechamento (só documentação; backend, web e APK seguem em 0.48.0, Wear OS em 0.27.0).
