@@ -4,6 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### fix: quadra do joguinho não pode ser reiniciada no placar
+
+- **Branch:** `ccr-73c8d4a4-40fz4l`
+- **Passo Ariad:** Passo 4 - Teste e Validação (correção compactada; aguardando validação do Navigator)
+- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-09
+- **O que muda:** com o joguinho aberto e uma partida chamada na quadra vinculada, `POST /api/quadras/{id}/reiniciar` responde 409 (vale para "Reiniciar partida", nova partida e relógio). Só o joguinho (encerrar/anular) libera a quadra; a própria chamada do joguinho segue reiniciando o placar (`via_joguinho`).
+- **Handoff:** o botão "Reiniciar partida" ainda aparece na sala e, ao tocar, mostra o erro do servidor; esconder o botão exige expor a flag no snapshot (follow-up, ver plano abaixo).
+
 ## 0.49.0 - 2026-10-09
 
 Boundary: User Story CV8.DS8.US22 — rodada triangular de 3 times (minor; backend, web e APK em 0.49.0, APK `versionCode` 33; Wear OS inalterado em 0.27.0).

@@ -5,11 +5,12 @@ from pathlib import Path
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.comandos import snapshot_sync
+from app.comandos import executar_sync, snapshot_sync
 from app.config import settings
 from app.db import init_db
 from app.gerenciador_db import init_gerenciador_sync
 from app.main import app
+from app.ponte import _admin_da_quadra
 from app.rate_limit import owner_rate_limiter
 
 SEGREDO = {"x-owner-secret": "segredo-teste"}
@@ -217,9 +218,19 @@ async def test_partida_trocada_no_placar_nao_pode_ser_lida(ac, placar):
     jogo = await Jogo(ac, placar).preparar()
     await jogo.chamar()
     await jogo.pontos("A", 10)
-    # alguém usa "nova partida" no placar: a partida da chamada saiu de cena
+    # O placar recusa "nova partida" enquanto o joguinho tem a partida chamada...
     r = await placar.post(f"/api/quadras/{jogo.codigo}/reiniciar", json={})
-    assert r.status_code == 200, r.text
+    assert r.status_code == 409, r.text
+    # ...mas se a partida sair de cena por outro caminho, o encerramento não a lê.
+    executar_sync(
+        settings.db_path,
+        jogo.codigo,
+        None,
+        "reiniciar",
+        autor_id=_admin_da_quadra(jogo.codigo),
+        dono_admin=True,
+        via_joguinho=True,
+    )
     r = await jogo.encerrar()
     assert r.status_code == 409 and "trocada" in r.json()["detail"]
     c = (await jogo.estado())["conducao"]
@@ -394,3 +405,23 @@ async def test_chamada_orfa_de_rodada_cancelada_nao_trava_o_vinculo(ac, placar):
         conn.execute("UPDATE rodadas SET estado = 'cancelada'")
     r = await ac.delete("/api/sessao/quadra")
     assert r.status_code == 200, r.text
+
+
+@pytest.mark.asyncio
+async def test_partida_chamada_pelo_joguinho_nao_pode_ser_reiniciada_no_placar(
+    ac, placar
+):
+    jogo = await Jogo(ac, placar).preparar()
+    await jogo.chamar()
+    await jogo.pontos("A", 3)
+    url = f"/api/quadras/{jogo.codigo}/reiniciar"
+    for corpo in ({"zerar": True}, {}):
+        r = await placar.post(url, json=corpo)
+        assert r.status_code == 409 and "joguinho" in r.json()["detail"]
+    e = snapshot_sync(settings.db_path, jogo.codigo)["estado_partida"]
+    assert (e["pontos_a"], e["pontos_b"]) == (3, 0)
+
+    # Anulada a partida, a quadra volta a poder ser reiniciada.
+    assert (await ac.post("/api/rodada/anular-partida")).status_code == 200
+    r = await placar.post(url, json={"zerar": True})
+    assert r.status_code in (200, 201), r.text

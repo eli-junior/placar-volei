@@ -306,6 +306,7 @@ async def _carregar_no_placar(dados: dict) -> str:
                 autor_id=admin_id,
                 dono_admin=True,
                 zerar=True,
+                via_joguinho=True,
                 alvo=dados["alvo"],
                 vantagem=True,
                 equipe_a=dados["equipe_a"],

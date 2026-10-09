@@ -330,6 +330,15 @@ def executar_sync(
                 raise HTTPException(
                     403, "Apenas administradores podem iniciar uma nova partida."
                 )
+            if not kwargs.get("via_joguinho"):
+                from app.gerenciador_db import quadra_em_partida_do_joguinho
+
+                if quadra_em_partida_do_joguinho(quadra_id):
+                    raise HTTPException(
+                        409,
+                        "Esta partida foi chamada pelo joguinho e não pode ser "
+                        "reiniciada aqui. Encerre-a ou anule-a no joguinho.",
+                    )
             estado = atual["estado_partida"]
             if not estado["encerrada"] and not kwargs.get("zerar"):
                 raise HTTPException(400, "A partida atual ainda não foi encerrada.")
