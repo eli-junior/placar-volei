@@ -4,7 +4,29 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-Nenhum trabalho ativo.
+## 0.48.0 - 2026-10-09
+
+Boundary: User Story CV8.DS7.US19 + Technical Story CV8.DS7.TS3 — retirar jogador no meio da rodada (minor; backend, web e APK em 0.48.0, APK `versionCode` 30; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: c9898a4f | Data: 2026-10-09
+
+Git source: merge `--no-ff` de `feature/cv8-ds7-us19-retirar-jogador` em `master`.
+
+### Added
+
+- **Retirar da rodada** (QA F2): em Presentes, com rodada em andamento, cada jogador ganha o botão, com confirmação que diz o efeito ("o Time N fica com a vaga aberta e escolhe o parceiro na vez dele" / "o Time N deixa de existir"). O jogador sai de todos os times em que consta e fica ausente nas próximas rodadas (volta como atrasado). Jogador de time **em jogo** (partida chamada) não sai: o botão fica desabilitado com o motivo ao lado.
+- **`POST /api/rodada/retirar`** (`{"jogador_id"}`) e **`POST /api/rodada/pular-time`**, só para o dono e com rodada em andamento.
+- **Vaga preenchida na vez de entrar em quadra, também no mata-mata:** rei com vaga escolhe o parceiro entre os eliminados; "Chamar partida" fica bloqueado até lá. O time mantém vitórias e posição.
+- **Pular o Time N:** sem elegível para a vaga, o time vai para o fim da fila (ou do rol de rivais) e a próxima partida usa o seguinte. Só é oferecido quando isso muda a próxima partida.
+- **TS3 — ajustes da fila:** tabela `ajustes_fila` (schema 11 do `gerenciador.db`, aditiva) e `derivar(..., ajustes)`. Time que fica sem nenhum jogador deixa de existir sem quebrar os resultados já registrados; "Desfazer a última partida" reaponta os ajustes posteriores.
+
+### Decision
+
+- Registro `time-vazio-e-pular-viram-ajustes-da-fila`; regra nova RN-17 em `regras-de-negocio.md`.
+
+### Verification
+
+- `ruff` (app e tests), `npm run check`, `npm test` (199), `npm run test:e2e` (98) e `pytest` (519 sem `test_sorteio.py`, que oscila nesta máquina). Um worker do e2e deu SIGSEGV numa rodada e passou ao reexecutar. Validado pelo Navigator em 2026-10-09.
 
 ## 0.47.0 - 2026-10-08
 

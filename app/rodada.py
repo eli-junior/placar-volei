@@ -11,6 +11,7 @@ ficam travadas enquanto houver rodada em proposta ou em andamento.
 import uuid
 
 from app.conducao import (
+    Ajuste,
     Candidato,
     ResultadoEntrada,
     TimeEntrada,
@@ -277,8 +278,9 @@ def anular_partida(conn) -> None:
         )
 
 
-def _contexto(conn, rodada: dict):
-    """Resultados encerrados e a situação do rei da quadra (US5/US6)."""
+def _contexto(conn, rodada: dict, extras: tuple = ()):
+    """Resultados encerrados e a situação do rei da quadra (US5/US6). `extras`
+    são ajustes de fila hipotéticos, para simular uma ação antes de gravá-la."""
     por_id = {t["id"]: t for t in rodada["times"]}
     linhas = conn.execute(
         "SELECT * FROM partidas_rodada WHERE rodada_id = ? AND estado = 'encerrada' "
@@ -291,10 +293,19 @@ def _contexto(conn, rodada: dict):
         )
         for r in linhas
     ]
+    ajustes = [
+        Ajuste(a["apos_partidas"], a["tipo"], a["time_id"])
+        for a in conn.execute(
+            "SELECT apos_partidas, tipo, time_id FROM ajustes_fila "
+            "WHERE rodada_id = ? ORDER BY id",
+            (rodada["id"],),
+        )
+    ]
     situacao = derivar(
         [TimeEntrada(t["id"], t["fila"], t["incompleto"]) for t in rodada["times"]],
         resultados,
         rodada["mata_mata_iniciado"],
+        [*ajustes, *extras],
     )
     return por_id, linhas, situacao
 
@@ -399,7 +410,9 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
     elif situacao.fase == "campeao":
         motivo = "A rodada já tem campeão."
     escalacao = None
-    if not chamada and situacao.fase == "fila":
+    # Time com vaga entra em quadra só depois de escolher o parceiro, na fila e
+    # também no mata-mata (rei com vaga, US19).
+    if not chamada and situacao.fase in ("fila", "mata_mata"):
         for t in em_quadra:
             if t["incompleto"]:
                 lista = _escalacao(rodada, por_id, linhas, situacao, t)
@@ -426,6 +439,12 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
                     ],
                     "aviso_hh": lista["aviso_hh"],
                     "ninguem": not lista["grupos"],
+                    # Sem elegível, o time pode ser pulado se isso muda a próxima partida.
+                    "pode_pular": not lista["grupos"]
+                    and _contexto(
+                        conn, rodada, (Ajuste(len(linhas), "pular", t["id"]),)
+                    )[2].em_quadra
+                    != situacao.em_quadra,
                 }
                 if motivo is None:
                     motivo = (
@@ -547,7 +566,7 @@ def escalar_parceiro(conn, jogador_id) -> None:
         (por_id[t] for t in situacao.em_quadra if por_id[t]["incompleto"]),
         None,
     )
-    if situacao.fase != "fila" or incompleto is None:
+    if situacao.fase not in ("fila", "mata_mata") or incompleto is None:
         raise erro_de_campo(
             409, "rodada", "não há time incompleto esperando parceiro", "sem_incompleto"
         )

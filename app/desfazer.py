@@ -54,6 +54,17 @@ def desfazer_ultima(conn) -> None:
         (rodada["id"],),
     )
     conn.execute("DELETE FROM partidas_rodada WHERE id = ?", (ultima["id"],))
+    # Os ajustes da fila (retirar/pular, TS3) que seguiam a partida desfeita
+    # passam a seguir a anterior; senão a próxima partida seria derivada como
+    # se eles tivessem acontecido depois dela.
+    restantes = conn.execute(
+        "SELECT COUNT(*) FROM partidas_rodada WHERE rodada_id = ? AND estado = 'encerrada'",
+        (rodada["id"],),
+    ).fetchone()[0]
+    conn.execute(
+        "UPDATE ajustes_fila SET apos_partidas = ? WHERE rodada_id = ? AND apos_partidas > ?",
+        (restantes, rodada["id"], restantes),
+    )
     # Voltar de uma partida da fila antes do mata-mata desfaz o início dele.
     conn.execute(
         "UPDATE rodadas SET desfeito = 1, estado = 'em_andamento', "

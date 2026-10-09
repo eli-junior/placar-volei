@@ -39,3 +39,30 @@ test('o que se perde: proposta, rodada vazia e rodada com tudo', () => {
     '1 rei da quadra',
   ]);
 });
+
+import { efeitoDaRetirada } from '../src/lib/joguinho.js';
+
+test('retirar: vaga aberta, time que deixa de existir, em jogo e eliminado', () => {
+  const conducao = {
+    em_quadra: [{ fila: 1, jogadores: [{ id: 'a' }, { id: 'b' }] }, { fila: 2, jogadores: [{ id: 'c' }, { id: 'd' }] }],
+    fila: [{ fila: 3, jogadores: [{ id: 'e' }, { id: 'f' }] }, { fila: 4, jogadores: [{ id: 'g' }] }],
+    reis: [],
+    eliminados: [{ id: 'h' }],
+    partida: null,
+  };
+  assert.deepEqual(efeitoDaRetirada('e', conducao), { emJogo: false, efeitos: ['o Time 3 fica com a vaga aberta e escolhe o parceiro na vez dele'] });
+  assert.deepEqual(efeitoDaRetirada('g', conducao), { emJogo: false, efeitos: ['o Time 4 deixa de existir'] });
+  assert.deepEqual(efeitoDaRetirada('h', conducao), { emJogo: false, efeitos: ['ele sai da lista de escalação'] });
+  assert.deepEqual(efeitoDaRetirada('zzz', conducao), { emJogo: false, efeitos: [] });
+  assert.equal(efeitoDaRetirada('a', { ...conducao, partida: { time_a: 1, time_b: 2 } }).emJogo, true);
+  assert.equal(efeitoDaRetirada('e', { ...conducao, partida: { time_a: 1, time_b: 2 } }).emJogo, false);
+});
+
+test('retirar: o escalado que joga por dois times conta nos dois', () => {
+  const conducao = {
+    em_quadra: [{ fila: 1, jogadores: [{ id: 'a' }, { id: 'x' }] }],
+    fila: [{ fila: 3, jogadores: [{ id: 'x' }] }],
+    reis: [], eliminados: [], partida: null,
+  };
+  assert.equal(efeitoDaRetirada('x', conducao).efeitos.length, 2);
+});

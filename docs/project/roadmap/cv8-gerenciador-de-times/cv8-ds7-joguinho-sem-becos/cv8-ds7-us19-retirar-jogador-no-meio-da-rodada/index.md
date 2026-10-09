@@ -1,9 +1,9 @@
 ---
 code: CV8.DS7.US19
 level: User Story
-status: Planned
-status_reason: decisão C fechada; puxar depois da US20
-updated: 2026-10-08
+status: Done
+status_reason: validada pelo Navigator em 2026-10-09 (0.48.0), junto da TS3
+updated: 2026-10-09
 ---
 
 # Retirar jogador no meio da rodada
@@ -14,7 +14,9 @@ updated: 2026-10-08
 
 ## Hoje
 
-Presença travada com rodada ativa; inativar é recusado; a substituição (US10) exige substituto vindo da fila ou dos eliminados e é recusada com partida chamada. Sem substituto disponível não há saída além de cancelar a ## Regra (decisão C, Navigator, 2026-10-08)
+Presença travada com rodada ativa; inativar é recusado; a substituição (US10) exige substituto vindo da fila ou dos eliminados e é recusada com partida chamada. Sem substituto disponível não há saída além de cancelar a rodada.
+
+## Regra (decisão C, Navigator, 2026-10-08)
 
 - Quem sai deixa a **vaga vazia** no time. Enquanto o time está **na fila**, a vaga pode ficar vazia.
 - O substituto é **obrigatório na hora de entrar em quadra**: na vez do time, a vaga é preenchida como a do time incompleto (lista de escalação, RN-07, US8).
@@ -34,6 +36,8 @@ Presença travada com rodada ativa; inativar é recusado; a substituição (US10
 - **Rei aguardando o mata-mata:** mesma regra. A vaga fica vazia e, na hora de entrar, o substituto é escolhido entre os eliminados, preservando o critério de time misto (RN-01, RN-07).
 - **Ninguém elegível na vez de entrar:** o time é **pulado** (a próxima partida usa o time seguinte da fila).
 
-## Em aberto
+## Decisões do plano (Navigator, 2026-10-08)
 
-- **Relação com a US10 (substituir):** a retirada substitui a US10 ou as duas convivem? O Navigator quer pensar mais; decidir antes de puxar a história.
+- **Relação com a US10:** **convivem**. *Substituir* = alguém entra no lugar agora; *Retirar* = sai sem substituto e a vaga espera a vez do time. Nada da US10 muda.
+- **"Pular":** o time vai para o **fim da fila** (ou do rol de rivais no mata-mata) e a próxima partida usa o seguinte.
+- **TS3 e US19** na mesma branch (`feature/cv8-ds7-us19-retirar-jogador`), com commits separados.

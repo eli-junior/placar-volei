@@ -43,3 +43,30 @@ export function oQueSePerde(rodada, conducao) {
   if (reis > 0) itens.push(plural(reis, 'rei da quadra', 'reis da quadra'));
   return itens.length ? itens : [`a rodada ${rodada.numero}`];
 }
+
+/**
+ * Efeito de retirar um jogador da rodada em andamento (CV8.DS7.US19), para a
+ * confirmação: quais times ficam com vaga ou deixam de existir, e se ele está
+ * em jogo (partida chamada), caso em que não pode sair.
+ * @param {string} jogadorId
+ * @param {{ em_quadra?: any[], fila?: any[], reis?: any[], eliminados?: any[], partida?: { time_a: number, time_b: number } | null } | null | undefined} conducao
+ * @returns {{ emJogo: boolean, efeitos: string[] }}
+ */
+export function efeitoDaRetirada(jogadorId, conducao) {
+  const times = [...(conducao?.em_quadra ?? []), ...(conducao?.fila ?? []), ...(conducao?.reis ?? [])];
+  const vistos = new Set();
+  const efeitos = [];
+  let emJogo = false;
+  for (const t of times) {
+    if (vistos.has(t.fila) || !t.jogadores?.some((/** @type {{ id: string }} */ j) => j.id === jogadorId)) continue;
+    vistos.add(t.fila);
+    if (conducao?.partida && (conducao.partida.time_a === t.fila || conducao.partida.time_b === t.fila)) emJogo = true;
+    efeitos.push(t.jogadores.length <= 1
+      ? `o Time ${t.fila} deixa de existir`
+      : `o Time ${t.fila} fica com a vaga aberta e escolhe o parceiro na vez dele`);
+  }
+  if (!efeitos.length && conducao?.eliminados?.some((/** @type {{ id: string }} */ j) => j.id === jogadorId)) {
+    efeitos.push('ele sai da lista de escalação');
+  }
+  return { emJogo, efeitos };
+}
