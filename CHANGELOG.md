@@ -4,12 +4,21 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### fix/joguinho-cores-botoes-finais — "Gerenciar jogadores" laranja e "Encerrar joguinho" vermelho
+## 0.48.1 - 2026-10-09
 
-- **Branch:** `fix/joguinho-cores-botoes-finais`
-- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando validação visual do Navigator)
-- **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
-- **Handoff:** só `web/src/components/Sessao.svelte`. Versão pretendida: patch 0.48.1 (web, backend e APK sobem juntos; `versionCode` do APK +1), a aplicar depois do aceite.
+Boundary: fix — cores dos botões finais do `/joguinho` (patch; backend, web e APK em 0.48.1, APK `versionCode` 31; só a web muda de comportamento; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
+
+Git source: merge `--no-ff` de `fix/joguinho-cores-botoes-finais` em `master`.
+
+### Changed
+
+- **"Gerenciar jogadores" laranja** (fundo cheio, o estilo dos botões principais) e **"Encerrar joguinho" vermelho** (ação crítica), com a confirmação **"Sim, encerrar" / "Cancelar rodada e encerrar"** também em vermelho cheio. O vermelho usa `--acao-destrutiva-ativa`, único tom em que o texto branco passa de 4,5:1. Valem nos temas escuro e Modo Sol.
+
+### Verification
+
+- `npm run check` e `npm run test:e2e` nas specs `sessao`, `rodada` e `acessibilidade` (31, incluindo axe). Validado visualmente pelo Navigator em 2026-10-09.
 
 ## Sem versão - 2026-10-09
 
