@@ -28,6 +28,8 @@ Web + exibição dos nomes das duplas no relógio. Somente formato **dupla**. Re
 - [CV8.DS6 — Formato trio](cv8-ds6-formato-trio/index.md): Rodada inteira em trios (RN-16).
 - [CV8.DS7 — Joguinho sem becos sem saída](cv8-ds7-joguinho-sem-becos/index.md): Correções da auditoria do QA de 2026-10-08 (anular partida, quadra que some, segredo, rotas, retirar jogador).
 
+- [CV8.DS8 — Formatos de rodada](cv8-ds8-formatos-de-rodada/index.md): Formatos que fogem do rei da quadra; US22, rodada triangular de 3 times (RN-18).
+
 - [CV8.TS1 — Backup do `gerenciador.db`](cv8-ts1-backup-do-gerenciador/index.md): resiliência da base durável (Technical Story).
 
 ## Acceptance / Done Condition
@@ -58,3 +60,7 @@ A auditoria do QA em produção (2026-10-08, `docs/qa/`) virou a CV8.DS7. A US16
 ## Estado em 0.48.0
 
 A DS7 está fechada: anular partida chamada, quadra que não some no meio da rodada, segredo do dono preservado, rota `/joguinho`, joguinho de outro dia e retirar jogador no meio da rodada. Fica adiada só a US21 (placar manual ou W.O.). Continuam pendentes a validação do Navigator em lote das DS1 a DS6 e o teste dos nomes das duplas no relógio físico; histórico/ranking entre sessões e edição de partidas antigas seguem fora (fase 2).
+
+## Estado em 0.49.0
+
+A DS8 (formatos de rodada) abriu com a US22: com exatamente 3 times completos a rodada é triangular (RN-18) e só é rei quem vence os outros dois; qualquer outro desfecho encerra sem campeão. O gerenciador passou ao schema 12.

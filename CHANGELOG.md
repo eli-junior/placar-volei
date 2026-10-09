@@ -4,12 +4,33 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV8.DS8.US22 — Rodada triangular de 3 times
+## 0.49.0 - 2026-10-09
 
-- **Branch:** `feature/cv8-ds8-us22-triangular-tres-times`
-- **Passo Ariad:** Passo 5 - Revisão (validada pelo Navigator no Checkpoint 2; aguardando o Checkpoint 3)
-- **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
-- **Handoff:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds8-formatos-de-rodada/cv8-ds8-us22-rodada-triangular-de-3-times/plan.md`. Código e testes prontos (backend, web, e2e); falta a validação do Navigator, a revisão e a documentação (RN-18, guia de desenvolvimento, registro de decisão, worklog). Schema do `gerenciador.db` vai para 12 (coluna `rodadas.triangular`, aditiva). Versão pretendida: 0.49.0.
+Boundary: User Story CV8.DS8.US22 — rodada triangular de 3 times (minor; backend, web e APK em 0.49.0, APK `versionCode` 33; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
+
+Git source: merge `--no-ff` de `feature/cv8-ds8-us22-triangular-tres-times` em `master`.
+
+### Added
+
+- **Rodada triangular (RN-18):** com exatamente 3 times **completos** (6 jogadores em duplas ou 9 em trios) a rodada não segue o rei da quadra. Partida 1 entre os dois primeiros; o perdedor enfrenta o terceiro; se o terceiro vence, joga a final contra quem esperava. **Só é rei quem vence os outros dois**; qualquer outro desfecho **termina sem rei**. Todas as partidas contam no saldo e "Desfazer a última partida" vale em qualquer etapa.
+- **Encerrar sem campeão:** `POST /api/rodada/encerrar-sem-campeao` e o botão com confirmação. O fechamento é manual; a rodada fecha sem campeão e libera o próximo sorteio. Também é a saída quando uma vaga aberta no triângulo não tem quem a preencha.
+- **Painel e espectador:** faixas da etapa ("Rodada triangular", "o Time 1 venceu e espera", "Final do triângulo", "venceu os outros dois e é o rei") e "Terminou sem rei." para quem acompanha.
+
+### Changed
+
+- **Schema 12 do `gerenciador.db`** (aditivo): `rodadas.triangular`, fixada ao confirmar a rodada. Atrasado não entra numa rodada triangular (409 `rodada_triangular`); com um time incompleto no sorteio (por exemplo 5 jogadores) vale o rei da quadra de sempre.
+- **O "campeão da última rodada"** não mostra mais o de uma rodada anterior quando a última terminou sem rei.
+- **Três times completos agora seguem o triângulo, não o rei da quadra.** Quatro times ou mais não mudam.
+
+### Decision
+
+- Registro `rodada-triangular-de-3-times`; regra nova RN-18; dívida nova `vaga-no-triangulo-nao-se-preenche` e `rodada-py-concentra-regras-painel-e-escalacao` atualizada (713 linhas).
+
+### Verification
+
+- `ruff`, `npm run check`, `npm test` (199), `npm run test:e2e` (100: 99 passaram e 1 `axe` do Modo Sol deu timeout na rodada longa e passou isolado) e `pytest` por arquivo (543, 24 deles novos, sem `test_sorteio.py`, que oscila nesta máquina; o `pytest` completo cai com segfault do interpretador). Três testes antigos que usavam 3 times como rei da quadra passaram a usar 4. Validado pelo Navigator em 2026-10-09.
 
 ## 0.48.2 - 2026-10-09
 

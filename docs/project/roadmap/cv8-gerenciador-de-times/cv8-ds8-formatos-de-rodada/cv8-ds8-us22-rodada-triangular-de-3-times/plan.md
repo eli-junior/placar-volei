@@ -1,6 +1,6 @@
 ---
 code: CV8.DS8.US22
-status: Planned
+status: Done
 updated: 2026-10-09
 ---
 
@@ -38,6 +38,12 @@ Todas as partidas contam no saldo (RN-10, RN-14). Placar, RN-09 e "Desfazer a ú
 - **`app/rodada.py` e rota:** `registrar_sem_campeao` fecha a rodada (`estado='encerrada'`, `campeao_time_id` nulo) por uma ação manual do operador, no mesmo espírito do início manual do mata-mata (RN-04), o que também mantém o "Desfazer" possível até o fim. Verificar tudo que lê `campeao_time_id` de rodada encerrada (`ultimo_campeao`, exibição) para aceitar nulo.
 - **Web (`PainelConducao`, espectador):** faixa de etapa ("Final do triângulo", "Time 1 espera") e o botão "Encerrar sem campeão". Textos do mata-mata não aparecem neste formato.
 - **Alternativa descartada:** formato escolhido pelo operador no sorteio (fica para depois se pedirem; exigiria coluna nova em `rodadas`).
+
+## Como ficou (desvios do plano, validados no Checkpoint 2)
+
+- **Coluna `rodadas.triangular` (schema 12):** o plano dizia sem migração, mas atrasado, escalação e retirada mudam a contagem de times e o flag `incompleto`; o formato é fixado ao confirmar.
+- **Só com 3 times completos:** com um time incompleto o parceiro viria do time que espera a final e jogaria contra o próprio time; nesse caso vale a RN-02.
+- **Vaga num time em quadra:** ninguém é eliminado antes da final, então o painel oferece "Encerrar sem campeão" (beco fechado).
 
 ## Casos de borda e padrão proposto
 

@@ -1,8 +1,8 @@
 ---
 code: CV8.DS8.US22
 level: User Story
-status: Planned
-status_reason: plano apresentado no Checkpoint 1; aguarda confirmação do Navigator
+status: Done
+status_reason: validada pelo Navigator em 2026-10-09 (0.49.0); regra RN-18
 updated: 2026-10-09
 related:
   - plan.md
@@ -17,7 +17,7 @@ Com exatamente 3 times, o rei da quadra deixa o time que perde a primeira partid
 
 ## Acceptance
 
-Ver [plan.md](plan.md).
+Ver [plan.md](plan.md) e o roteiro de validação em [test-guide.md](test-guide.md). Regra: RN-18 em `regras-de-negocio.md`.
 
 ## Out of Scope
 

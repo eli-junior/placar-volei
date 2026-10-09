@@ -1,8 +1,8 @@
 ---
 code: CV8.DS8
 level: Delivery Story
-status: Active
-status_reason: US22 em planejamento (Checkpoint 1)
+status: Done
+status_reason: US22 validada pelo Navigator em 2026-10-09 (0.49.0)
 updated: 2026-10-09
 ---
 
@@ -16,7 +16,7 @@ O rei da quadra (RN-02) é o fluxo padrão, mas rodadas pequenas pedem outro des
 
 | Código | História | Status |
 |---|---|---|
-| [US22](cv8-ds8-us22-rodada-triangular-de-3-times/index.md) | Rodada triangular de 3 times | Planned |
+| [US22](cv8-ds8-us22-rodada-triangular-de-3-times/index.md) | Rodada triangular de 3 times | Done (0.49.0) |
 
 ## Done Condition
 

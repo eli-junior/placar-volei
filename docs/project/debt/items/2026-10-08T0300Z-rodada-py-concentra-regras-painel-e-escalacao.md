@@ -4,7 +4,7 @@ status: Carried
 kind: architecture
 severity: low
 source: CV8.DS3.US8
-revisit_trigger: `app/rodada.py` passar de ~500 linhas, ou a US9/US10 mexerem nele
+revisit_trigger: `app/rodada.py` passou de ~500 linhas (já aconteceu); revisitar na próxima história que mexa na montagem do painel
 closure_condition: Mover a montagem do painel da condução para um módulo próprio
 ---
 
@@ -12,11 +12,11 @@ closure_condition: Mover a montagem do painel da condução para um módulo pró
 
 ## Description
 
-`app/rodada.py` (452 linhas) reúne o ciclo da rodada, a montagem do painel da condução e a escalação do parceiro.
+`app/rodada.py` (713 linhas na 0.49.0; eram 452 quando o item foi aberto) reúne o ciclo da rodada, a montagem do painel da condução e a escalação do parceiro.
 
 ## Carrying Reason
 
-Ainda legível; a divisão certa depende do que a US9 e a US10 pedirem.
+Ainda legível, mas o gatilho de tamanho já foi cruzado (US19 e US22 acrescentaram o painel de retirada e o do triângulo). A divisão natural é tirar `montar_conducao` e a escalação para um módulo próprio.
 
 ## Notes
 
