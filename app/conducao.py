@@ -48,7 +48,7 @@ class Ajuste(NamedTuple):
 
 
 class Situacao(NamedTuple):
-    fase: str  # "fila" | "fim_da_fila"
+    fase: str  # "fila" | "mata_mata" | "fim_da_fila" | "campeao" | "sem_rei"
     em_quadra: tuple[str, ...]  # ids, 0 a 2
     fila: tuple[str, ...]  # ids na ordem de entrada
     reis: tuple[str, ...]  # ids na ordem em que viraram rei
@@ -65,7 +65,10 @@ def derivar(
     resultados: list[ResultadoEntrada],
     mata_mata_iniciado: bool = False,
     ajustes: Sequence[Ajuste] = (),
+    triangular: bool = False,
 ) -> Situacao:
+    if triangular and len(times) == 3:
+        return _derivar_triangular(times, resultados, mata_mata_iniciado, ajustes)
     fila = deque(t.id for t in sorted(times, key=lambda t: t.fila))
     todos = set(fila)
     quadra: list[str] = []
@@ -182,6 +185,89 @@ def derivar(
         desafiante=desafiante,
         rivais=rivais,
         campeao=campeao,
+    )
+
+
+def _derivar_triangular(
+    times: list[TimeEntrada],
+    resultados: list[ResultadoEntrada],
+    mata_mata_iniciado: bool,
+    ajustes: Sequence[Ajuste],
+) -> Situacao:
+    """Rodada triangular de 3 times (RN-18, CV8.DS8.US22).
+
+    Partida 1: os dois primeiros da fila; o vencedor (V1) espera. Partida 2: o
+    perdedor (P1) contra o terceiro time (T3). Se T3 vence, a final é T3 × V1.
+    Só é rei o T3 que vence as duas; qualquer outro desfecho termina sem rei
+    (`sem_rei`). O rei sai como no fim da fila normal (`fim_da_fila`, sem
+    rivais), então o "Coroar campeão" de sempre o encerra.
+
+    Time removido (TS3) antes do desfecho termina sem rei, porque o triângulo
+    não se completa; o rei removido depois também. "Pular" não se aplica: a ordem
+    das partidas é fixa.
+    """
+    t1, t2, t3 = (t.id for t in sorted(times, key=lambda t: t.fila))
+    removidos = {a.time_id for a in ajustes if a.tipo == "remover"}
+    vitorias = {t1: 0, t2: 0, t3: 0}
+    eliminados: list[str] = []
+    ultimo: str | None = None
+    etapa = 1  # 1, 2 e 3 são as partidas; 0 é "decidido"
+    par = (t1, t2)
+    v1 = p1 = None
+    desfecho: str | None = None  # "rei" | "sem_rei"
+    for r in resultados:
+        if r.fase != "fila":
+            raise ValueError("rodada triangular não tem mata-mata")
+        if etapa == 0 or sorted((r.time_a_id, r.time_b_id)) != sorted(par):
+            raise ValueError("resultado de uma partida fora da ordem do triângulo")
+        if r.vencedor_id not in par:
+            raise ValueError("vencedor não disputou a partida")
+        perdedor = par[0] if r.vencedor_id == par[1] else par[1]
+        vitorias[r.vencedor_id] += 1
+        ultimo = r.vencedor_id
+        if etapa == 1:
+            v1, p1 = r.vencedor_id, perdedor
+            par, etapa = (p1, t3), 2
+            continue
+        eliminados.append(perdedor)
+        if etapa == 2 and r.vencedor_id == t3:
+            par, etapa = (t3, v1), 3
+        else:
+            desfecho = "rei" if etapa == 3 and r.vencedor_id == t3 else "sem_rei"
+            etapa = 0
+    if (desfecho is None and removidos) or (desfecho == "rei" and t3 in removidos):
+        desfecho = "sem_rei"
+    base = {"vitorias": vitorias, "ultimo_vencedor": ultimo}
+    if desfecho is None:
+        if mata_mata_iniciado:
+            raise ValueError("mata-mata antes do fim da fila")
+        espera = {1: t3, 2: v1}.get(etapa)
+        return Situacao(
+            fase="fila",
+            em_quadra=par,
+            fila=(espera,) if espera else (),
+            reis=(),
+            eliminados=tuple(eliminados),
+            **base,
+        )
+    if desfecho == "sem_rei":
+        return Situacao(
+            fase="sem_rei",
+            em_quadra=(),
+            fila=(),
+            reis=(),
+            eliminados=tuple(eliminados),
+            **base,
+        )
+    return Situacao(
+        fase="campeao" if mata_mata_iniciado else "fim_da_fila",
+        em_quadra=(),
+        fila=(),
+        reis=(t3,),
+        eliminados=tuple(eliminados),
+        desafiante=t3,
+        campeao=t3 if mata_mata_iniciado else None,
+        **base,
     )
 
 

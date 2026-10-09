@@ -305,3 +305,76 @@ def test_invariantes_em_simulacoes_aleatorias():
                 assert len(todos) == len(set(todos))
                 assert set(todos) | removidos == {t.id for t in times}
             assert s.campeao not in removidos
+
+
+# --- rodada triangular de 3 times (RN-18, CV8.DS8.US22) ---------------------
+
+
+def tri(resultados, **kw):
+    return derivar(fila(3), resultados, triangular=True, **kw)
+
+
+def test_triangulo_comeca_com_os_dois_primeiros_e_o_terceiro_espera():
+    s = tri([])
+    assert s.fase == "fila" and s.em_quadra == ("t1", "t2") and s.fila == ("t3",)
+
+
+def test_triangulo_o_perdedor_enfrenta_o_terceiro_e_o_vencedor_espera():
+    s = tri([r(1, 2, 1)])
+    assert s.em_quadra == ("t2", "t3") and s.fila == ("t1",) and s.eliminados == ()
+    s = tri([r(1, 2, 2)])  # o vencedor invertido
+    assert s.em_quadra == ("t1", "t3") and s.fila == ("t2",)
+
+
+def test_triangulo_terceiro_vence_e_vai_a_final_contra_quem_esperava():
+    s = tri([r(1, 2, 1), r(2, 3, 3)])
+    assert s.fase == "fila" and s.em_quadra == ("t3", "t1") and s.fila == ()
+    assert s.eliminados == ("t2",)
+
+
+def test_triangulo_terceiro_vence_a_final_e_e_rei():
+    s = tri([r(1, 2, 1), r(2, 3, 3), r(3, 1, 3)])
+    assert s.fase == "fim_da_fila" and s.reis == ("t3",) and s.desafiante == "t3"
+    assert s.em_quadra == () and s.rivais == () and s.campeao is None
+    s = tri([r(1, 2, 1), r(2, 3, 3), r(3, 1, 3)], mata_mata_iniciado=True)
+    assert s.fase == "campeao" and s.campeao == "t3"
+
+
+def test_triangulo_vencedor_da_primeira_vence_a_final_e_ninguem_e_rei():
+    s = tri([r(1, 2, 1), r(2, 3, 3), r(3, 1, 1)])
+    assert s.fase == "sem_rei" and s.reis == () and s.em_quadra == ()
+
+
+def test_triangulo_perdedor_da_primeira_vence_o_terceiro_e_termina_sem_rei():
+    s = tri([r(1, 2, 1), r(2, 3, 2)])
+    assert s.fase == "sem_rei" and s.fila == ()
+
+
+def test_triangulo_time_removido_antes_do_desfecho_termina_sem_rei():
+    s = tri([r(1, 2, 1)], ajustes=[Ajuste(1, "remover", "t3")])
+    assert s.fase == "sem_rei"
+
+
+def test_triangulo_rei_removido_depois_do_desfecho_vira_sem_rei():
+    rs = [r(1, 2, 1), r(2, 3, 3), r(3, 1, 3)]
+    assert tri(rs, ajustes=[Ajuste(3, "remover", "t3")]).fase == "sem_rei"
+    # quem perdeu sair depois não muda o rei
+    assert tri(rs, ajustes=[Ajuste(3, "remover", "t1")]).fase == "fim_da_fila"
+
+
+def test_triangulo_pular_nao_muda_a_ordem_das_partidas():
+    assert tri([], ajustes=[Ajuste(0, "pular", "t1")]).em_quadra == ("t1", "t2")
+
+
+def test_triangulo_recusa_resultado_fora_da_ordem():
+    with pytest.raises(ValueError):
+        tri([r(1, 3, 1)])
+    with pytest.raises(ValueError):
+        tri([r(1, 2, 1), r(2, 3, 2), r(1, 3, 1)])  # depois do desfecho
+
+
+def test_triangulo_so_vale_com_tres_times():
+    s = derivar(fila(4), [r(1, 2, 1)], triangular=True)
+    assert s.em_quadra == ("t1", "t3")  # rei da quadra de sempre
+    s = derivar(fila(3), [r(1, 2, 1)])  # triangular desligado: também
+    assert s.em_quadra == ("t1", "t3")

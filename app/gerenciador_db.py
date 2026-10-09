@@ -29,7 +29,7 @@ ROTULOS = {
     "codigo": "Código da quadra",
 }
 
-SCHEMA_VERSAO = 11
+SCHEMA_VERSAO = 12
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jogadores (
     id TEXT PRIMARY KEY,
@@ -89,7 +89,9 @@ CREATE TABLE IF NOT EXISTS rodadas (
     -- desfazer a última partida (CV8.DS3.US7): 1 nível só
     desfeito INTEGER NOT NULL DEFAULT 0,
     -- formato do time (CV8.DS6.US15): 'dupla' (2 jogadores) ou 'trio' (3)
-    formato TEXT NOT NULL DEFAULT 'dupla' CHECK (formato IN ('dupla', 'trio'))
+    formato TEXT NOT NULL DEFAULT 'dupla' CHECK (formato IN ('dupla', 'trio')),
+    -- rodada triangular de 3 times (CV8.DS8.US22, RN-18): fixada ao confirmar
+    triangular INTEGER NOT NULL DEFAULT 0
 );
 CREATE UNIQUE INDEX IF NOT EXISTS idx_rodada_ativa
     ON rodadas (sessao_id) WHERE estado IN ('proposta', 'em_andamento');
@@ -243,6 +245,11 @@ def init_gerenciador_sync(caminho: str | None = None) -> None:
         if "formato" not in colunas_rodada:
             conn.execute(
                 "ALTER TABLE rodadas ADD COLUMN formato TEXT NOT NULL DEFAULT 'dupla'"
+            )
+        # Migração aditiva 11 -> 12: rodada triangular de 3 times.
+        if "triangular" not in colunas_rodada:
+            conn.execute(
+                "ALTER TABLE rodadas ADD COLUMN triangular INTEGER NOT NULL DEFAULT 0"
             )
         if "fase" not in [
             r["name"] for r in conn.execute("PRAGMA table_info(partidas_rodada)")

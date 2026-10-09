@@ -181,7 +181,7 @@ test('encerrar partida: placar ao vivo, fila andando, rei e fim da fila', async 
   const p = await abrir();
   const b = await abrir();
   await sessaoLimpa(p);
-  await chegam(p, SEIS);
+  await chegam(p, [...SEIS, ['Gabi', 'M', 45], ['Hugo', 'H', 35]]); // 4 times
   await rodadaConfirmada(p, 10);
   await abrirTela(p);
   await abrirTela(b);
@@ -206,15 +206,15 @@ test('encerrar partida: placar ao vivo, fila andando, rei e fim da fila', async 
   // o outro aparelho acompanhou
   await expect(b.getByRole('heading', { name: 'Partidas encerradas (1)' })).toBeVisible();
 
-  // partida 2: Time 1 × Time 3, vence o Time 3 (B): sobra um time sozinho → fim da fila
+  // partida 2: Time 1 × Time 3, vence o Time 1 (A): vira rei e o Time 4 sobra sozinho → fim da fila
   await p.getByRole('button', { name: 'Chamar partida' }).click();
-  await pontosNoPlacar(p, codigo, 'B', 10);
+  await pontosNoPlacar(p, codigo, 'A', 10);
   await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeEnabled();
   await p.getByRole('button', { name: 'Encerrar partida' }).click();
-  await expect(p.getByText(/A fase de fila terminou\. Time 3 abre o mata-mata/)).toBeVisible();
-  await expect(p.getByRole('button', { name: 'Coroar campeão' })).toBeVisible();
+  await expect(p.getByText(/A fase de fila terminou\. Time 4 abre o mata-mata/)).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Iniciar mata-mata' })).toBeVisible();
   await expect(p.getByRole('button', { name: 'Chamar partida' })).toHaveCount(0);
-  await expect(b.getByText(/A fase de fila terminou\. Time 3 abre o mata-mata/)).toBeVisible();
+  await expect(b.getByText(/A fase de fila terminou\. Time 4 abre o mata-mata/)).toBeVisible();
 
   // cancelar com partidas registradas pede confirmação reforçada
   await p.getByRole('button', { name: 'Cancelar rodada' }).click();
@@ -410,7 +410,7 @@ test('controlador: +1 não cobre o placar com a fila visível', async ({ abrir }
 test('retirar da rodada: vaga aberta, sem elegível pula o time e a rodada segue', async ({ abrir }) => {
   const p = await abrir();
   await sessaoLimpa(p);
-  const nomes = await chegam(p, SEIS);
+  const nomes = await chegam(p, [...SEIS, ['Gabi', 'M', 45], ['Hugo', 'H', 35]]); // 4 times: o pular só existe fora do triângulo
   await rodadaConfirmada(p);
   await abrirTela(p);
   await criarEVincular(p);
@@ -422,7 +422,7 @@ test('retirar da rodada: vaga aberta, sem elegível pula o time e a rodada segue
   await p.getByRole('button', { name: 'Sim, retirar' }).click();
   await expect(p.getByRole('heading', { name: /Escolher o parceiro do Time \d/ })).toBeVisible();
   await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeDisabled();
-  await expect(p.getByText(`Presentes (5)`)).toBeVisible();
+  await expect(p.getByText(`Presentes (7)`)).toBeVisible();
 
   // ninguém foi eliminado ainda: o time espera pulado para o fim da fila
   await p.getByRole('button', { name: /Pular o Time \d \(vai para o fim da fila\)/ }).click();
@@ -446,5 +446,61 @@ test('retirar da rodada: quem está em jogo não sai, e o motivo aparece ao lado
   const estado = await (await p.request.get('/api/sessao', { headers: CABECALHO })).json();
   const dafila = estado.conducao.fila[0].jogadores[0].nome;
   await expect(p.getByRole('button', { name: `Retirar ${dafila} da rodada` })).toBeEnabled();
+  await sessaoLimpa(p);
+});
+
+// CV8.DS8.US22 — rodada triangular de 3 times (RN-18).
+async function jogarPartida(p, codigo, equipe) {
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await pontosNoPlacar(p, codigo, equipe, 10);
+  await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeEnabled();
+  await p.getByRole('button', { name: 'Encerrar partida' }).click();
+}
+
+test('rodada triangular: o terceiro time vence os dois e é o rei', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS);
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  const codigo = await criarEVincular(p);
+  await expect(p.getByText(/Rodada triangular: os 3 times se enfrentam/)).toBeVisible();
+
+  await jogarPartida(p, codigo, 'A'); // Time 1 vence o Time 2
+  await expect(p.getByText(/o Time 1 venceu e espera\. Se o Time 3 vencer, enfrenta o Time 1 na final/)).toBeVisible();
+  await jogarPartida(p, codigo, 'B'); // Time 3 vence o Time 2
+  await expect(p.getByText(/Final do triângulo: o Time 3 vence e é o rei/)).toBeVisible();
+  const { violations } = await new AxeBuilder({ page: p }).withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target.join(' ')).join(' | ')}`)).toEqual([]);
+  await jogarPartida(p, codigo, 'A'); // Time 3 vence o Time 1
+  await expect(p.getByText(/Time 3 venceu os outros dois e é o rei/)).toBeVisible();
+  await p.getByRole('button', { name: 'Coroar campeão' }).click();
+  await expect(p.getByRole('heading', { name: /Campeões da rodada/ })).toBeVisible();
+  await sessaoLimpa(p);
+});
+
+test('rodada triangular sem rei: encerrar sem campeão pede confirmação', async ({ abrir }) => {
+  const p = await abrir();
+  const b = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS);
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  await abrirTela(b);
+  const codigo = await criarEVincular(p);
+
+  await jogarPartida(p, codigo, 'A'); // Time 1 vence o Time 2
+  await jogarPartida(p, codigo, 'A'); // Time 2 vence o Time 3: ninguém é rei
+  await expect(p.getByText(/Rodada triangular terminou sem rei/)).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Chamar partida' })).toHaveCount(0);
+  await expect(b.getByText('Terminou sem rei.')).toBeVisible();
+  await p.getByRole('button', { name: 'Encerrar sem campeão' }).click();
+  await expect(p.getByText(/Não dá para desfazer a última partida depois/)).toBeVisible();
+  await p.getByRole('button', { name: 'Voltar' }).click();
+  await expect(p.getByRole('button', { name: 'Encerrar sem campeão' })).toBeVisible();
+  await p.getByRole('button', { name: 'Encerrar sem campeão' }).click();
+  await p.getByRole('button', { name: 'Sim, encerrar sem campeão' }).click();
+  await expect(p.getByRole('button', { name: 'Encerrar sem campeão' })).toHaveCount(0);
+  await expect(p.getByRole('heading', { name: /Campeões da rodada/ })).toHaveCount(0);
   await sessaoLimpa(p);
 });

@@ -202,12 +202,12 @@ async def test_duas_vitorias_seguidas_viram_rei_e_entram_os_dois_proximos(ac, pl
 
 @pytest.mark.asyncio
 async def test_fim_da_fila_bloqueia_novas_chamadas(ac, placar):
-    jogo = await Jogo(ac, placar).preparar(quantos=6, alvo=10)  # 3 times
+    jogo = await Jogo(ac, placar).preparar(quantos=8, alvo=10)  # 4 times
     await jogo.jogar("A")  # t1 vence t2; t3 entra
-    estado = await jogo.jogar("B")  # t3 vence t1; quadra com t3 sozinho
+    estado = await jogo.jogar("A")  # t1 vence t3 → rei; t4 fica sozinho na quadra
     c = estado["conducao"]
     assert c["fase"] == "fim_da_fila"
-    assert filas(c["em_quadra"]) == [3] and c["finalista"]["fila"] == 3
+    assert filas(c["em_quadra"]) == [4] and c["finalista"]["fila"] == 4
     assert c["pode_chamar"] is False and "fase de fila terminou" in c["motivo"]
     assert (await ac.post("/api/rodada/chamar-partida")).status_code == 409
 

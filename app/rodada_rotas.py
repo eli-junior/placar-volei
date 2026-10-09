@@ -87,6 +87,10 @@ def iniciar_mata_mata_sync() -> dict:
     return _rodada_op(regras_rodada.iniciar_mata_mata)
 
 
+def encerrar_sem_campeao_sync() -> dict:
+    return _rodada_op(regras_rodada.encerrar_sem_campeao)
+
+
 class AlvoBody(BaseModel):
     alvo: Any = None
     formato: Any = None
@@ -180,6 +184,12 @@ async def post_substituir(body: SubstituicaoBody, request: Request):
 async def post_iniciar_mata_mata(request: Request):
     autenticar_owner(request)
     return await _responder(iniciar_mata_mata_sync)
+
+
+@router.post("/encerrar-sem-campeao")
+async def post_encerrar_sem_campeao(request: Request):
+    autenticar_owner(request)
+    return await _responder(encerrar_sem_campeao_sync)
 
 
 @router.post("/chamar-partida", status_code=status.HTTP_201_CREATED)

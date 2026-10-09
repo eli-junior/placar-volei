@@ -29,6 +29,13 @@ def registrar_atrasado(conn, jogador_id) -> None:
             "o mata-mata já começou: o atrasado entra na próxima rodada",
             "mata_mata_iniciado",
         )
+    if rodada["triangular"]:
+        raise erro_de_campo(
+            409,
+            "rodada",
+            "a rodada é triangular, de 3 times: o atrasado entra na próxima rodada",
+            "rodada_triangular",
+        )
     if not isinstance(jogador_id, str):
         raise erro_de_campo(422, "jogador_id", "informe o jogador", "valor_invalido")
     jogador = obter_jogador(conn, jogador_id)
