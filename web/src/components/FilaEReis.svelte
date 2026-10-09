@@ -4,6 +4,7 @@
   let { exibicao = null, compacto = false } = $props();
 
   const mataMata = $derived(exibicao?.fase === 'mata_mata');
+  const semRei = $derived(exibicao?.fase === 'sem_rei');
 </script>
 
 {#if exibicao && compacto}
@@ -31,6 +32,7 @@
             {/each}
           </ul>
         {/if}
+        {#if semRei}<p class="vazio" role="status">Terminou sem rei.</p>{/if}
         <h3>Fila ({exibicao.fila.length})</h3>
         {#if exibicao.fila.length}
           <ol>

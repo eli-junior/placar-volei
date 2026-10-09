@@ -96,6 +96,7 @@ def montar(conn, sessao_id: str) -> dict | None:
         "tentativa": r["tentativa"],
         "distintas": r["distintas"],
         "mata_mata_iniciado": bool(r["mata_mata_em"]),
+        "triangular": bool(r["triangular"]),
         "times": times,
     }
 
@@ -235,9 +236,16 @@ def resortear(conn, alvo=None, formato=None) -> None:
 
 def confirmar(conn) -> None:
     _sessao, r = _exigir_proposta(conn)
+    # Rodada triangular (RN-18): exatamente 3 times, todos completos. Fica fixada
+    # aqui: atrasado e escalação mudam depois a contagem e o flag `incompleto`.
+    times = conn.execute(
+        "SELECT incompleto FROM times WHERE rodada_id = ?", (r["id"],)
+    ).fetchall()
+    triangular = int(len(times) == 3 and not any(t["incompleto"] for t in times))
     conn.execute(
-        "UPDATE rodadas SET estado = 'em_andamento', confirmado_em = ? WHERE id = ?",
-        (agora(), r["id"]),
+        "UPDATE rodadas SET estado = 'em_andamento', confirmado_em = ?, "
+        "triangular = ? WHERE id = ?",
+        (agora(), triangular, r["id"]),
     )
 
 
@@ -306,6 +314,7 @@ def _contexto(conn, rodada: dict, extras: tuple = ()):
         resultados,
         rodada["mata_mata_iniciado"],
         [*ajustes, *extras],
+        rodada["triangular"],
     )
     return por_id, linhas, situacao
 
@@ -351,6 +360,21 @@ def _escalacao(rodada: dict, por_id: dict, linhas, situacao, incompleto: dict) -
         livres=livres,
         atuais=[j["genero"] for j in incompleto["jogadores"]],
         tamanho=rodada["tamanho"],
+    )
+
+
+def _triangulo_travado(rodada: dict, por_id: dict, linhas, situacao) -> bool:
+    """Rodada triangular com um time de vaga aberta em quadra e ninguém para
+    preenchê-la: antes da final ninguém foi eliminado e "pular" não se aplica
+    (RN-18). A saída é encerrar a rodada sem campeão."""
+    if not rodada["triangular"] or situacao.fase != "fila":
+        return False
+    incompleto = next(
+        (por_id[t] for t in situacao.em_quadra if por_id[t]["incompleto"]), None
+    )
+    return (
+        incompleto is not None
+        and not _escalacao(rodada, por_id, linhas, situacao, incompleto)["grupos"]
     )
 
 
@@ -409,6 +433,8 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
         )
     elif situacao.fase == "campeao":
         motivo = "A rodada já tem campeão."
+    elif situacao.fase == "sem_rei":
+        motivo = "A rodada terminou sem rei: encerre a rodada."
     escalacao = None
     # Time com vaga entra em quadra só depois de escolher o parceiro, na fila e
     # também no mata-mata (rei com vaga, US19).
@@ -486,6 +512,12 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
                 f"Em jogo no placar ({placar['a']} × {placar['b']}): "
                 "encerre quando terminar."
             )
+    # Etapa do triângulo (RN-18): 1 e 2 são as duas primeiras partidas; a 3 é a final.
+    triangular = (
+        {"etapa": min(encerradas + 1, 3), "final": encerradas >= 2}
+        if rodada["triangular"] and situacao.fase == "fila"
+        else None
+    )
     return {
         "fase": situacao.fase,
         "em_quadra": em_quadra,
@@ -527,9 +559,13 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
             else None
         ),
         "pode_iniciar_mata_mata": situacao.fase == "fim_da_fila",
+        "triangular": triangular,
+        "rodada_triangular": bool(rodada["triangular"]),
+        "pode_encerrar_sem_campeao": situacao.fase == "sem_rei"
+        or _triangulo_travado(rodada, por_id, linhas, situacao),
         "substituicao": (
             None
-            if chamada or situacao.fase == "campeao"
+            if chamada or situacao.fase in ("campeao", "sem_rei")
             else _opcoes_substituicao(rodada, por_id, linhas, situacao)
         ),
         "pode_chamar": motivo is None,
@@ -633,16 +669,37 @@ def iniciar_mata_mata(conn) -> None:
     registrar_campeao(conn, sessao["id"])
 
 
+def encerrar_sem_campeao(conn) -> None:
+    """Fecha a rodada triangular que terminou sem rei, ou que travou numa vaga
+    sem ninguém para preenchê-la (RN-18). É manual, como o início do mata-mata:
+    até aqui o "Desfazer a última partida" ainda vale."""
+    sessao = exigir_sessao_aberta(conn)
+    rodada = montar(conn, sessao["id"])
+    if rodada is None or rodada["estado"] != "em_andamento":
+        raise erro_de_campo(409, "rodada", "não está em andamento", "sem_rodada")
+    por_id, linhas, situacao = _contexto(conn, rodada)
+    if situacao.fase != "sem_rei" and not _triangulo_travado(
+        rodada, por_id, linhas, situacao
+    ):
+        raise erro_de_campo(
+            409, "rodada", "a rodada não terminou sem rei", "fora_do_sem_rei"
+        )
+    conn.execute(
+        "UPDATE rodadas SET estado = 'encerrada' WHERE id = ?", (rodada["id"],)
+    )
+
+
 def ultimo_campeao(conn, sessao_id: str) -> dict | None:
-    """O campeão da rodada mais recente da sessão, se ela terminou em mata-mata."""
+    """O campeão da rodada mais recente da sessão. Rodada encerrada sem rei não
+    tem campeão: nesse caso não há o que mostrar (não vale o de uma anterior)."""
     r = conn.execute(
         "SELECT r.numero, t.fila, t.id AS time_id FROM rodadas r "
-        "JOIN times t ON t.id = r.campeao_time_id "
+        "LEFT JOIN times t ON t.id = r.campeao_time_id "
         "WHERE r.sessao_id = ? AND r.estado = 'encerrada' "
         "ORDER BY r.numero DESC LIMIT 1",
         (sessao_id,),
     ).fetchone()
-    if r is None:
+    if r is None or r["time_id"] is None:
         return None
     nomes = [
         j["nome"]

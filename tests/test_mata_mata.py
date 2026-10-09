@@ -68,13 +68,14 @@ async def test_sem_reis_o_vencedor_da_ultima_partida_e_campeao_direto(ac, placar
 async def test_ultimo_vencedor_que_virou_rei_com_a_fila_vazia_e_o_desafiante(
     ac, placar
 ):
-    jogo = await Jogo(ac, placar).preparar(quantos=6)  # 3 times
+    jogo = await Jogo(ac, placar).preparar(quantos=8)  # 4 times
     await jogo.jogar("A")  # t1 vence t2
-    c = (await jogo.jogar("A"))["conducao"]  # t1 vence t3 → rei, quadra vazia
+    await jogo.jogar("B")  # t3 vence t1; t4 entra
+    c = (await jogo.jogar("A"))["conducao"]  # t3 vence t4 → rei, quadra vazia
     assert c["em_quadra"] == [] and c["fase"] == "fim_da_fila"
-    assert c["finalista"]["fila"] == 1 and c["mata_mata"]["rivais"] == []
+    assert c["finalista"]["fila"] == 3 and c["mata_mata"]["rivais"] == []
     est = (await iniciar(ac)).json()
-    assert est["ultimo_campeao"]["time"] == 1
+    assert est["ultimo_campeao"]["time"] == 3
 
 
 @pytest.mark.asyncio

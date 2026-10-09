@@ -20,6 +20,7 @@
     onSubstituir = () => {},
     erroSubstituicao = null,
     onIniciarMataMata = () => {},
+    onEncerrarSemCampeao = () => {},
     erroEscalacao = null,
     onCriarQuadra = () => {},
     onVincular = () => {},
@@ -31,6 +32,7 @@
   let confirmandoCancelar = $state(false);
   let confirmandoDesfazer = $state(false);
   let confirmandoAnular = $state(false);
+  let confirmandoSemRei = $state(false);
   let saiu = $state('');
   let entra = $state('');
   const sub = $derived(conducao.substituicao);
@@ -46,6 +48,9 @@
   const fimDaFila = $derived(conducao.fase === 'fim_da_fila');
   const mataMata = $derived(conducao.fase === 'mata_mata');
   const mm = $derived(conducao.mata_mata);
+  // Rodada triangular de 3 times (RN-18): `tri` só existe enquanto há partidas a jogar.
+  const tri = $derived(conducao.triangular);
+  const semRei = $derived(conducao.fase === 'sem_rei');
   const timeDa = (fila) => conducao.em_quadra.find((t) => t.fila === fila);
 
   function vincular(evento) {
@@ -100,6 +105,8 @@
         <p class="ajuda">Ninguém elegível agora: não há jogador eliminado disponível para completar o Time {esc.time}.</p>
         {#if esc.pode_pular}
           <button class="secundario" type="button" onclick={onPular} disabled={ocupado}>Pular o Time {esc.time} (vai para o fim da fila)</button>
+        {:else if conducao.rodada_triangular}
+          <p class="ajuda">Na rodada triangular ninguém é eliminado antes da final e a ordem das partidas é fixa: encerre a rodada sem campeão (abaixo) para sortear de novo.</p>
         {:else}
           <p class="ajuda">Não há outro time para entrar no lugar dele: cancele a rodada se precisar seguir.</p>
         {/if}
@@ -163,7 +170,25 @@
         {#if placar.encerrada}<span class="selo">terminou — Time {placar.vencedor === 'A' ? conducao.partida.time_a : conducao.partida.time_b} venceu</span>{:else}<span class="selo">em jogo</span>{/if}
       </p>
     {/if}
-    {#if fimDaFila && mm}
+    {#if tri && conducao.em_quadra.length === 2}
+      {@const [a, b] = conducao.em_quadra}
+      {@const espera = conducao.fila[0]}
+      <p class="faixa" role="status">
+        {#if tri.etapa === 1}
+          Rodada triangular: os 3 times se enfrentam e só é rei quem vence os outros dois.
+        {:else if tri.etapa === 2}
+          Triângulo: o Time {espera.fila} venceu e espera. Se o Time {b.fila} vencer, enfrenta o Time {espera.fila} na final; se o Time {a.fila} vencer, termina sem rei.
+        {:else}
+          Final do triângulo: o Time {a.fila} vence e é o rei; se perder, termina sem rei.
+        {/if}
+      </p>
+    {/if}
+    {#if semRei}
+      <p class="faixa" role="status">Rodada triangular terminou sem rei. As partidas contam no saldo; encerre a rodada para liberar o próximo sorteio.</p>
+    {/if}
+    {#if fimDaFila && mm && conducao.rodada_triangular}
+      <p class="faixa" role="status">Time {mm.desafiante.fila} venceu os outros dois e é o rei. Coroar o campeão encerra a rodada.</p>
+    {:else if fimDaFila && mm}
       <p class="faixa" role="status">
         A fase de fila terminou. {mm.rivais.length
           ? `Time ${mm.desafiante.fila} abre o mata-mata contra ${mm.rivais.map((t) => `Time ${t.fila}`).join(', depois ')}.`
@@ -175,7 +200,15 @@
       <p class="faixa" role="status">Mata-mata: quem ganha fica, quem perde sai. Time {mm.desafiante.fila} em quadra.{mm.rivais.length > 1 ? ` Depois: ${mm.rivais.slice(1).map((t) => `Time ${t.fila}`).join(', ')}.` : ''}</p>
     {/if}
     <div class="botoes">
-      {#if conducao.pode_iniciar_mata_mata}
+      {#if conducao.pode_encerrar_sem_campeao}
+        {#if confirmandoSemRei}
+          <p class="ajuda">Encerrar a rodada sem campeão? Não dá para desfazer a última partida depois.</p>
+          <button class="perigo" type="button" onclick={() => { confirmandoSemRei = false; onEncerrarSemCampeao(); }} disabled={ocupado}>Sim, encerrar sem campeão</button>
+          <button class="secundario" type="button" onclick={() => (confirmandoSemRei = false)}>Voltar</button>
+        {:else}
+          <button class="acao-principal" type="button" onclick={() => (confirmandoSemRei = true)} disabled={ocupado}>Encerrar sem campeão</button>
+        {/if}
+      {:else if conducao.pode_iniciar_mata_mata}
         <button class="acao-principal" type="button" onclick={onIniciarMataMata} disabled={ocupado}>{mm && mm.rivais.length ? 'Iniciar mata-mata' : 'Coroar campeão'}</button>
       {:else if temPartida}
         <button class="acao-principal" type="button" onclick={onEncerrar} disabled={ocupado || !conducao.pode_encerrar}>Encerrar partida</button>
@@ -184,7 +217,7 @@
       {/if}
     </div>
     {#if temPartida && conducao.motivo_encerrar}<p class="ajuda">{conducao.motivo_encerrar}</p>
-    {:else if !temPartida && !fimDaFila && conducao.motivo}<p class="ajuda" role="status">{conducao.motivo}</p>{/if}
+    {:else if !temPartida && !fimDaFila && !semRei && conducao.motivo}<p class="ajuda" role="status">{conducao.motivo}</p>{/if}
     {#if temPartida && conducao.pode_anular}
       {#if confirmandoAnular}
         <p class="ajuda">Anular a partida Time {conducao.partida.time_a} × Time {conducao.partida.time_b}? Ela não conta: os dois times voltam a ser a próxima partida e a rodada segue. O placar da quadra não é apagado.</p>
