@@ -136,6 +136,9 @@ export const ICONES = {
     { tag: 'path', d: 'm12 5 7 7-7 7' },
   ],
 
+  // chevron para voltar: o mesmo traçado do botão de voltar da sala da quadra
+  voltar: [{ tag: 'path', d: 'M15 5l-7 7 7 7' }],
+
   // lucide: scroll-text
   linhaDoTempo: [
     { tag: 'path', d: 'M15 12h-5' },

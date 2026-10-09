@@ -4,6 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### fix/joguinho-botao-inicio — seta do botão "Início" no /joguinho
+
+- **Branch:** `fix/joguinho-botao-inicio`
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando validação visual do Navigator)
+- **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
+- **Handoff:** a seta de texto "←" foi trocada pelo chevron vetorial da sala da quadra (novo ícone `voltar`), em `Sessao.svelte` e `Jogadores.svelte`. Versão pretendida: patch 0.48.2, a aplicar depois do aceite.
+
 ## 0.48.1 - 2026-10-09
 
 Boundary: fix — cores dos botões finais do `/joguinho` (patch; backend, web e APK em 0.48.1, APK `versionCode` 31; só a web muda de comportamento; Wear OS inalterado em 0.27.0).

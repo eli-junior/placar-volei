@@ -180,7 +180,7 @@
 
 <main class="jogadores">
   <nav class="topo" aria-label="Navegação">
-    <button class="voltar" type="button" onclick={onVoltar}><span aria-hidden="true">←</span><span>Início</span></button>
+    <button class="voltar" type="button" onclick={onVoltar}><Icone nome="voltar" tamanho="1.2em" traco={2.6} /><span>Início</span></button>
   </nav>
 
   <h1>Jogadores</h1>
