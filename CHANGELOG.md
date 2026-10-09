@@ -4,12 +4,18 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### chore/cv8-ds7-fechamento — Fechar a CV8.DS7 (documentação, sem versão)
+## Sem versão - 2026-10-09
 
-- **Branch:** `chore/cv8-ds7-fechamento`
-- **Passo Ariad:** Passo 6 - Documentação (trabalho só de documentos; sem código, sem versão nova)
-- **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
-- **Handoff:** conferir os 7 cenários de regressão do relatório de furos contra os testes, marcar a DS7 como `Done`, atualizar briefing e índice da CV8, registrar no worklog. Falta o aceite do Navigator para commitar e mesclar.
+Boundary: Delivery Story CV8.DS7 — fechamento (só documentação; backend, web e APK seguem em 0.48.0, Wear OS em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
+
+Git source: merge `--no-ff` de `chore/cv8-ds7-fechamento` em `master`.
+
+### Changed
+
+- **CV8.DS7 passou a `Done`** depois de conferir os 7 cenários de regressão do relatório de furos contra os testes (tabela no `index.md` da DS7). Cenários 2 e 4 saem por decisão de produto (A e C); a US21 segue adiada.
+- `briefing.md` (estava em 0.45.0) e índice da CV8 atualizados para 0.48.0; nota de fechamento no relatório do QA; entrada no worklog.
 
 ## 0.48.0 - 2026-10-09
 
