@@ -1,9 +1,9 @@
 ---
 code: CV8.DS7.US19
 level: User Story
-status: Active
-status_reason: plano aprovado em 2026-10-08 (Checkpoint 1); implementando junto da TS3
-updated: 2026-10-08
+status: Done
+status_reason: validada pelo Navigator em 2026-10-09 (0.48.0), junto da TS3
+updated: 2026-10-09
 ---
 
 # Retirar jogador no meio da rodada
@@ -14,7 +14,9 @@ updated: 2026-10-08
 
 ## Hoje
 
-Presença travada com rodada ativa; inativar é recusado; a substituição (US10) exige substituto vindo da fila ou dos eliminados e é recusada com partida chamada. Sem substituto disponível não há saída além de cancelar a ## Regra (decisão C, Navigator, 2026-10-08)
+Presença travada com rodada ativa; inativar é recusado; a substituição (US10) exige substituto vindo da fila ou dos eliminados e é recusada com partida chamada. Sem substituto disponível não há saída além de cancelar a rodada.
+
+## Regra (decisão C, Navigator, 2026-10-08)
 
 - Quem sai deixa a **vaga vazia** no time. Enquanto o time está **na fila**, a vaga pode ficar vazia.
 - O substituto é **obrigatório na hora de entrar em quadra**: na vez do time, a vaga é preenchida como a do time incompleto (lista de escalação, RN-07, US8).

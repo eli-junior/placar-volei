@@ -1,9 +1,9 @@
 ---
 code: CV8.DS7.TS3
 level: Technical Story
-status: Active
-status_reason: implementando junto da US19 (mesma branch)
-updated: 2026-10-08
+status: Done
+status_reason: entregue e validada junto da US19 (0.48.0)
+updated: 2026-10-09
 related:
   - ../cv8-ds7-us19-retirar-jogador-no-meio-da-rodada/index.md
 ---
