@@ -4,6 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### CV8.DS8.US22 — Rodada triangular de 3 times
+
+- **Branch:** `feature/cv8-ds8-us22-triangular-tres-times`
+- **Passo Ariad:** Passo 2 - Planejamento (aguardando o Checkpoint 1)
+- **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
+- **Handoff:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds8-formatos-de-rodada/cv8-ds8-us22-rodada-triangular-de-3-times/plan.md`. Nenhum código escrito. Versão pretendida: 0.49.0.
+
 ## 0.48.2 - 2026-10-09
 
 Boundary: fix — seta do botão "Início" no `/joguinho` e em Jogadores (patch; backend, web e APK em 0.48.2, APK `versionCode` 32; só a web muda de comportamento; Wear OS inalterado em 0.27.0).
