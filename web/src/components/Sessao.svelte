@@ -302,7 +302,7 @@
             <p class="ajuda">Encerrar o joguinho? A lista de presença sai da tela.</p>
           {/if}
           <div class="botoes">
-            <button class="perigo" type="button" onclick={encerrar} disabled={ocupado}>{rodada ? 'Cancelar rodada e encerrar' : 'Sim, encerrar'}</button>
+            <button class="critico" type="button" onclick={encerrar} disabled={ocupado}>{rodada ? 'Cancelar rodada e encerrar' : 'Sim, encerrar'}</button>
             <button class="secundario" type="button" onclick={() => confirmandoEncerrar = false}>Voltar</button>
           </div>
         {:else}
