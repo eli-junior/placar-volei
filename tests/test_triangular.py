@@ -137,3 +137,18 @@ async def test_retirar_no_triangulo_trava_a_vaga_e_a_saida_e_encerrar_sem_campea
     r = await ac.post("/api/rodada/encerrar-sem-campeao")
     assert r.status_code == 200, r.text
     assert (await ac.get("/api/sessao")).json()["rodada"] is None
+
+
+@pytest.mark.asyncio
+async def test_time_sem_ninguem_no_triangulo_termina_sem_rei(ac, placar):
+    await triangulo(ac, placar)
+    estado = (await ac.get("/api/sessao")).json()
+    t3 = next(t for t in estado["rodada"]["times"] if t["fila"] == 3)
+    for j in t3["jogadores"]:
+        r = await ac.post("/api/rodada/retirar", json={"jogador_id": j["id"]})
+        assert r.status_code == 200, r.text
+    c = r.json()["conducao"]
+    assert c["fase"] == "sem_rei" and c["pode_encerrar_sem_campeao"] is True
+    r = await ac.post("/api/rodada/desfazer-partida")  # nada a desfazer ainda
+    assert r.status_code == 409
+    assert (await ac.post("/api/rodada/encerrar-sem-campeao")).status_code == 200

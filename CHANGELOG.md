@@ -7,7 +7,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 ### CV8.DS8.US22 — Rodada triangular de 3 times
 
 - **Branch:** `feature/cv8-ds8-us22-triangular-tres-times`
-- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando validação do Navigator, Checkpoint 2)
+- **Passo Ariad:** Passo 5 - Revisão (validada pelo Navigator no Checkpoint 2; aguardando o Checkpoint 3)
 - **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
 - **Handoff:** plano em `docs/project/roadmap/cv8-gerenciador-de-times/cv8-ds8-formatos-de-rodada/cv8-ds8-us22-rodada-triangular-de-3-times/plan.md`. Código e testes prontos (backend, web, e2e); falta a validação do Navigator, a revisão e a documentação (RN-18, guia de desenvolvimento, registro de decisão, worklog). Schema do `gerenciador.db` vai para 12 (coluna `rodadas.triangular`, aditiva). Versão pretendida: 0.49.0.
 

@@ -561,8 +561,9 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
         "pode_iniciar_mata_mata": situacao.fase == "fim_da_fila",
         "triangular": triangular,
         "rodada_triangular": bool(rodada["triangular"]),
+        # `escalacao` já diz se o time de vaga em quadra ficou sem ninguém (travado).
         "pode_encerrar_sem_campeao": situacao.fase == "sem_rei"
-        or _triangulo_travado(rodada, por_id, linhas, situacao),
+        or bool(rodada["triangular"] and escalacao and escalacao["ninguem"]),
         "substituicao": (
             None
             if chamada or situacao.fase in ("campeao", "sem_rei")
