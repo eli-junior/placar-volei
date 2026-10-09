@@ -4,6 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### fix/joguinho-cores-botoes-finais — "Gerenciar jogadores" laranja e "Encerrar joguinho" vermelho
+
+- **Branch:** `fix/joguinho-cores-botoes-finais`
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando validação visual do Navigator)
+- **Agente:** Claude Sonnet 5.5 (Driver) | Sessão: auto | Data: 2026-10-09
+- **Handoff:** só `web/src/components/Sessao.svelte`. Versão pretendida: patch 0.48.1 (web, backend e APK sobem juntos; `versionCode` do APK +1), a aplicar depois do aceite.
+
 ## Sem versão - 2026-10-09
 
 Boundary: Delivery Story CV8.DS7 — fechamento (só documentação; backend, web e APK seguem em 0.48.0, Wear OS em 0.27.0).
