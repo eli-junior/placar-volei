@@ -477,3 +477,29 @@ test('rodada triangular sem rei: encerrar sem campeão pede confirmação', asyn
   await expect(p.getByRole('heading', { name: /Campeões da rodada/ })).toHaveCount(0);
   await sessaoLimpa(p);
 });
+
+// Quadra vinculada ao joguinho: o fim da partida só oferece o Próximo jogo e a
+// pontuação e a vantagem seguem a rodada.
+test('quadra do joguinho: fim da partida só oferece Próximo jogo', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, [...SEIS, ['Gabi', 'M', 45], ['Hugo', 'H', 35]]);
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  const codigo = await criarEVincular(p);
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await pontosNoPlacar(p, codigo, 'A', 10);
+  await p.goto(`/quadra/${codigo}`);
+  const proximo = p.locator('dialog').getByRole('button', { name: 'Próximo jogo' });
+  await expect(proximo).toBeVisible();
+  for (const nome of ['Reinício Rápido', 'Ajustar e Iniciar', 'Iniciar Próxima Partida']) {
+    await expect(p.getByRole('button', { name: nome })).toHaveCount(0);
+  }
+  await expect(p.locator('.regras-topo')).toBeDisabled();
+  await proximo.click();
+  await expect(p.getByRole('button', { name: 'Próximo jogo' })).toHaveCount(0);
+  await p.goto('/joguinho');
+  await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeVisible();
+  await expect(p.getByRole('heading', { name: /Rodada 1/ })).toBeVisible();
+  await sessaoLimpa(p);
+});

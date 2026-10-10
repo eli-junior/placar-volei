@@ -34,6 +34,7 @@ from app.gerenciador_db import (
     exigir_sessao_aberta,
     sessao_aberta,
 )
+from app.identidade import SESSION_COOKIE, hash_sessao
 from app.quadras import obter_quadra_sync
 from app.sincronia import publicar
 
@@ -427,6 +428,54 @@ async def encerrar_partida() -> dict:
     return estado
 
 
+def _exigir_admin_da_quadra(quadra_id: str, session_id: str | None) -> None:
+    """O Próximo jogo age como o dono, mas só a pedido do ADMIN da quadra."""
+    if not session_id:
+        raise HTTPException(401, "Participante não autenticado.")
+    with get_db(settings.db_path) as conn:
+        linha = conn.execute(
+            "SELECT papel FROM participantes WHERE quadra_id = ? AND session_hash = ?",
+            (quadra_id, hash_sessao(session_id)),
+        ).fetchone()
+    if linha is None or linha["papel"] != "ADMIN":
+        raise HTTPException(403, "Apenas administradores podem chamar o próximo jogo.")
+
+
+def _chamada_aberta() -> bool:
+    conn = conectar(settings.gerenciador_db_path)
+    try:
+        sessao = sessao_aberta(conn)
+        if sessao is None:
+            return False
+        return (
+            conn.execute(
+                "SELECT 1 FROM partidas_rodada p JOIN rodadas r ON r.id = p.rodada_id "
+                "WHERE r.sessao_id = ? AND r.estado = 'em_andamento' "
+                "AND p.estado = 'chamada'",
+                (sessao["id"],),
+            ).fetchone()
+            is not None
+        )
+    finally:
+        conn.close()
+
+
+async def proximo_jogo(quadra_id: str, session_id: str | None) -> dict:
+    """Fim de partida na quadra do joguinho: registra o resultado da partida
+    chamada (se houver) e chama a próxima, num toque só."""
+    await asyncio.to_thread(_exigir_admin_da_quadra, quadra_id, session_id)
+    from app.sessao import estado_sync
+
+    estado = await asyncio.to_thread(estado_sync)
+    if (estado.get("quadra") or {}).get("codigo") != quadra_id:
+        raise erro_de_campo(
+            409, "quadra", "não está vinculada ao joguinho aberto", "sem_vinculo"
+        )
+    if await asyncio.to_thread(_chamada_aberta):
+        await encerrar_partida()
+    return await chamar_partida()
+
+
 class CodigoBody(BaseModel):
     codigo: Any = None
 
@@ -434,23 +483,38 @@ class CodigoBody(BaseModel):
 router = APIRouter(tags=["ponte"])
 
 
-@router.put("/api/sessao/quadra")
-async def put_quadra(body: CodigoBody, request: Request):
+@router.post("/api/quadras/{quadra_id}/proximo-jogo")
+async def post_proximo_jogo(quadra_id: str, request: Request):
+    session_id = request.headers.get("x-session-id") or request.cookies.get(
+        SESSION_COOKIE
+    )
+    estado = await proximo_jogo(quadra_id, session_id)
+    await publicar(estado)
+    return await asyncio.to_thread(snapshot_sync, settings.db_path, quadra_id)
+
+
+async def _trocar_vinculo(troca) -> dict:
+    """Muda o vínculo e avisa a quadra nova e a antiga: a trava do placar
+    (`em_joguinho`) liga e desliga junto com ele."""
     from app.sessao import estado_sync
 
-    autenticar_owner(request)
-    await asyncio.to_thread(vincular_sync, body.codigo)
+    antes = ((await asyncio.to_thread(estado_sync)).get("quadra") or {}).get("codigo")
+    await asyncio.to_thread(troca)
     estado = await asyncio.to_thread(estado_sync)
     await publicar(estado)
+    depois = (estado.get("quadra") or {}).get("codigo")
+    for codigo in {antes, depois} - {None}:
+        await avisar_quadra_vinculada(estado, codigo)
     return estado
+
+
+@router.put("/api/sessao/quadra")
+async def put_quadra(body: CodigoBody, request: Request):
+    autenticar_owner(request)
+    return await _trocar_vinculo(lambda: vincular_sync(body.codigo))
 
 
 @router.delete("/api/sessao/quadra")
 async def delete_quadra(request: Request):
-    from app.sessao import estado_sync
-
     autenticar_owner(request)
-    await asyncio.to_thread(desvincular_sync)
-    estado = await asyncio.to_thread(estado_sync)
-    await publicar(estado)
-    return estado
+    return await _trocar_vinculo(desvincular_sync)

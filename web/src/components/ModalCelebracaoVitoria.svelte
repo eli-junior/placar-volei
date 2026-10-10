@@ -5,7 +5,7 @@
   let {
     estadoPartida,
     podeControlar = false,
-    podeReiniciar = true,
+    onProximoJogo = null,
     onNovaPartida = () => {},
     onReinicioRapido = () => {},
     onFechar = () => {},
@@ -52,7 +52,13 @@
     </div>
 
     <div class="acoes-celebracao">
-      {#if podeControlar && podeReiniciar}
+      {#if podeControlar && onProximoJogo}
+        <!-- Joguinho: o resultado vai para a rodada e a próxima partida é chamada. -->
+        <button type="button" class="btn-proxima-rodada" onclick={onProximoJogo}>
+          <Icone nome="bola" tamanho="1.1em" />
+          <span>Próximo jogo</span>
+        </button>
+      {:else if podeControlar}
         <!-- Reinício rápido: zera o placar e mantém duplas e regras. -->
         <button
           type="button"

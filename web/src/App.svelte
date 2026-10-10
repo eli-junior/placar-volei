@@ -226,6 +226,7 @@
   const handleMarcarPonto = equipe => executar('pontos', { equipe });
   const handleDesfazerPonto = () => executar('desfazer');
   const handleIniciarNovaPartida = dados => executar('reiniciar', dados);
+  const handleProximoJogo = () => executar('proximo-jogo');
   const handleConfigurarPartida = dados => executar('configurar', dados);
   const handleAssumirControle = () => executar('controle/assumir');
   const handleAutorizarAdmin = id => executar(`participantes/${id}/admin`);
@@ -317,6 +318,7 @@
       onMarcarPonto={handleMarcarPonto}
       onDesfazerPonto={handleDesfazerPonto}
       onIniciarNovaPartida={handleIniciarNovaPartida}
+      onProximoJogo={handleProximoJogo}
       onConfigurarPartida={handleConfigurarPartida}
       onVoltar={() => handleVoltarParaHome()}
       onAssumirControle={handleAssumirControle}

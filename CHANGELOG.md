@@ -4,13 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### fix: tirar a faixa "Fila / Reis" da sala da quadra
+### fix: modo joguinho na quadra (Próximo jogo, sem ajuste de meta, sem faixa de fila)
 
 - **Branch:** `ccr-73c8d4a4-40fz4l`
-- **Passo Ariad:** Passo 4 - Teste e Validação (correção compactada; aguardando validação do Navigator)
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando validação do Navigator)
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
-- **O que muda:** a sala da quadra deixa de mostrar "Fila: … Reis: …" (controlador e espectador). Removidos `FilaEReis.svelte`, o estado `exibicao` do `App.svelte` e o e2e do espectador (US13). O servidor segue enviando `exibicao`; só a tela não usa mais.
-- **Handoff:** falta validar no celular e ver o resultado do e2e (`conducao`, `superficies`, `acessibilidade`). Nomes das equipes: sem defeito reproduzido no servidor; aparecem após "Chamar partida".
+- **O que muda:** (1) a sala da quadra deixa de mostrar "Fila: … Reis: …" (removidos `FilaEReis.svelte`, o estado `exibicao` do `App.svelte` e o e2e do espectador, US13; o servidor segue enviando `exibicao`). (2) Quadra **vinculada** a um joguinho aberto (não só com partida chamada) entra no modo joguinho: `reiniciar` e mudança de `alvo`/`vantagem`/`teto` em `configurar` respondem 409; o resumo das regras fica desabilitado e a configuração não mostra pontos e vantagem. (3) Fim de partida só oferece **Próximo jogo**: `POST /api/quadras/{id}/proximo-jogo` (ADMIN da quadra vinculada, sem `OWNER_SECRET`) registra o resultado da partida chamada, se houver, e chama a próxima. (4) `quadra.em_joguinho` no snapshot passa a significar "vinculada"; é reenviado ao vincular, desvincular, chamar, encerrar, anular e cancelar.
+- **Decisões do Navigator (2026-10-10):** vincular = modo joguinho; Próximo jogo encerra e chama a próxima; pontos e vantagem bloqueados no joguinho.
+- **Handoff:** falta validar no celular. Sem migração de schema. `pytest` por arquivo, `npm run check`, `npm test` (199) e e2e completo (100) verdes, com o e2e novo `quadra do joguinho: fim da partida só oferece Próximo jogo`.
 
 ## 0.49.1 - 2026-10-10
 
