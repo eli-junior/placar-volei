@@ -15,7 +15,6 @@
   import { ehDonoDoRelogio } from '../lib/relogio.js';
   import { ultimoPontoDesfazivel, sequenciaDePontos, descreverPosse, resumirRegras, resumirRegrasCurto } from '../lib/controle.js';
   import MenuSala from './MenuSala.svelte';
-  import FilaEReis from './FilaEReis.svelte';
   import { estadoConexao } from '../lib/conexao.js';
   import {
     suportaTelaCheia,
@@ -33,7 +32,6 @@
     participantes = [],
     estadoPartida = null,
     linhaDoTempo = [],
-    exibicao = null,
     wsConectado = false,
     // Quadra local do APK (CV7.US1): sem servidor, espectadores, presença nem relógio.
     modoLocal = false,
@@ -658,8 +656,6 @@
     />
     </div>
   {/if}
-
-  <FilaEReis {exibicao} compacto={modoImersivo || podeControlar} />
 
   <!-- Modal/Gaveta da Linha do Tempo (CV1.DS4.US1) -->
   {#if modalLinhaDoTempoAberto}

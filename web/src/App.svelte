@@ -21,7 +21,6 @@
   let participantes = $state([]);
   let estadoPartida = $state(null);
   let linhaDoTempo = $state([]);
-  let exibicao = $state(null);
   let ultimoSnapshot = null;
   let submetendo = $state(false);
   let operando = $state(false);
@@ -110,13 +109,10 @@
         // mesmo que o seq tenha voltado (servidor reiniciado).
         ultimoSnapshot = null;
         aplicarSnapshot(msg.payload);
-        exibicao = msg.payload.exibicao ?? null;
         wsConectado = true;
         conexao.confirmar();
       } else if (msg.tipo === 'PLACAR_ATUALIZADO') {
         aplicarSnapshot(msg.payload);
-      } else if (msg.tipo === 'EXIBICAO_ATUALIZADA') {
-        exibicao = msg.payload ?? null;
       } else if (msg.tipo === 'PRESENCA_ATUALIZADA') {
         // Presença não pode reverter uma promoção já recebida pelo log.
         participantes = (msg.payload.participantes || []).map(p => {
@@ -134,7 +130,6 @@
     ultimoSnapshot = null;
     estadoPartida = null;
     linhaDoTempo = [];
-    exibicao = null;
     participantes = [];
     quadraAtual = quadra;
     eu = participante;
@@ -318,7 +313,6 @@
       {participantes}
       {estadoPartida}
       {linhaDoTempo}
-      {exibicao}
       {wsConectado}
       onMarcarPonto={handleMarcarPonto}
       onDesfazerPonto={handleDesfazerPonto}

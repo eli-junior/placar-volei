@@ -4,6 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### fix: tirar a faixa "Fila / Reis" da sala da quadra
+
+- **Branch:** `ccr-73c8d4a4-40fz4l`
+- **Passo Ariad:** Passo 4 - Teste e Validação (correção compactada; aguardando validação do Navigator)
+- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
+- **O que muda:** a sala da quadra deixa de mostrar "Fila: … Reis: …" (controlador e espectador). Removidos `FilaEReis.svelte`, o estado `exibicao` do `App.svelte` e o e2e do espectador (US13). O servidor segue enviando `exibicao`; só a tela não usa mais.
+- **Handoff:** falta validar no celular e ver o resultado do e2e (`conducao`, `superficies`, `acessibilidade`). Nomes das equipes: sem defeito reproduzido no servidor; aparecem após "Chamar partida".
+
 ## 0.49.1 - 2026-10-10
 
 Boundary: fix — quadra com partida do joguinho não pode ser reiniciada no placar (patch; backend, web e APK em 0.49.1, APK `versionCode` 34; Wear OS inalterado em 0.27.0).
