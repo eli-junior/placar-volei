@@ -4,6 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### fix: "Abrir o placar" só com partida chamada
+
+- **Branch:** `ccr-73c8d4a4-40fz4l`
+- **Passo Ariad:** Passo 4 - Teste e Validação (correção compactada; aguardando validação do Navigator)
+- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
+- **O que muda:** no painel do `/joguinho` o link "Abrir o placar" só aparece com a partida chamada; sem ela o texto diz que o placar abre com as duplas ao chamar. Antes o link abria o placar padrão ("Equipe A × Equipe B"), que parecia uma partida aleatória.
+- **Handoff:** só a web mudou; e2e `conducao` e `sessao` (25) verdes.
+
 ## 0.51.0 - 2026-10-10
 
 Boundary: Maintenance (CV8) — nota do jogador evolui com as partidas (minor; backend, web e APK em 0.51.0, APK `versionCode` 37; Wear OS inalterado em 0.27.0).
