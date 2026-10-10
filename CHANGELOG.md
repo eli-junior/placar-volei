@@ -4,6 +4,13 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### fix: pílula vazia sob o placar em 0 × 0
+
+- **Branch:** `ccr-73c8d4a4-40fz4l`
+- **Passo Ariad:** Passo 4 - Teste e Validação (correção compactada; aguardando validação do Navigator)
+- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
+- **O que muda:** a faixa de bolinhas (`SequenciaPontos`) fica sem fundo enquanto não há ponto; a altura se mantém. A faixa "Fila / Reis" já saiu na 0.50.0 (o print era da versão anterior ao deploy).
+
 ## 0.50.0 - 2026-10-10
 
 Boundary: Maintenance — modo joguinho na quadra: Próximo jogo, sem ajuste de pontos e vantagem e sem faixa de fila (minor; backend, web e APK em 0.50.0, APK `versionCode` 35; Wear OS inalterado em 0.27.0).

@@ -22,7 +22,7 @@
   });
 </script>
 
-<div class="sequencia" bind:this={faixaEl} role="img" aria-label={resumo}>
+<div class="sequencia" class:vazia={!pontos.length} bind:this={faixaEl} role="img" aria-label={resumo}>
   {#each pontos as ponto, i (ponto.id)}
     <span
       class="bolinha"
@@ -52,6 +52,8 @@
     scrollbar-width: none;
   }
   .sequencia::-webkit-scrollbar { display: none; }
+  /* Sem pontos não há o que mostrar: a altura fica (o placar não pula), a pílula some. */
+  .sequencia.vazia { background: transparent; }
 
   .bolinha {
     flex: 0 0 auto;
