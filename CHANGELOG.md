@@ -4,6 +4,27 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.50.1 - 2026-10-10
+
+Boundary: fix — pílula vazia sob o placar e histórico legível no `/joguinho` (patch; backend, web e APK em 0.50.1, APK `versionCode` 36; só a web muda de comportamento; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
+
+Git source: merge `--no-ff` de `ccr-73c8d4a4-40fz4l` em `master`.
+
+### Fixed
+
+- **Pílula vazia sob o placar:** a faixa de bolinhas (`SequenciaPontos`) aparecia como uma pílula sem nada em 0 × 0. Sem pontos ela fica sem fundo e mantém a altura, então o placar não pula quando entra o primeiro ponto.
+- **Histórico confuso no `/joguinho`:** "Time 1 0 × 6 Time 4" se lia como "Time 10". O confronto agora é "Time 1 [0 × 6] Time 4", com o resultado como um placarzinho (fundo escuro nos dois temas, dígitos na fonte do placar e na cor de cada time, o do vencedor mais forte) e o time vencedor em negrito.
+
+### Changed
+
+- **Selo de vitórias seguidas** do painel: "1V", "2V" no lugar de "2 vitória seguida"; o leitor de tela segue lendo "2 vitórias seguidas".
+
+### Verification
+
+- `npm run check`, `npm test` (199) e e2e `conducao` e `acessibilidade` (27), com o axe conferindo o contraste do placarzinho no tema escuro. Sem mudança de backend nem de schema. Validado pelo Navigator em 2026-10-10.
+
 ## 0.50.0 - 2026-10-10
 
 Boundary: Maintenance — modo joguinho na quadra: Próximo jogo, sem ajuste de pontos e vantagem e sem faixa de fila (minor; backend, web e APK em 0.50.0, APK `versionCode` 35; Wear OS inalterado em 0.27.0).

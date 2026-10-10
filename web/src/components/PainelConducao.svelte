@@ -158,7 +158,7 @@
           <li class:incompleto={time.incompleto}>
             <span class="posicao">Time {time.fila}</span>
             <span class="jogadores">{descreverTime(time)}</span>
-            {#if time.vitorias > 0}<span class="selo">{time.vitorias} vitória seguida</span>{/if}
+            {#if time.vitorias > 0}<span class="selo" title="{time.vitorias} {time.vitorias === 1 ? 'vitória seguida' : 'vitórias seguidas'}"><span aria-hidden="true">{time.vitorias}V</span><span class="sr-only">{time.vitorias} {time.vitorias === 1 ? 'vitória seguida' : 'vitórias seguidas'}</span></span>{/if}
             {#if time.incompleto}<span class="aviso">Incompleto: escolhe o parceiro na sua vez.</span>{/if}
           </li>
         {/each}
@@ -240,7 +240,11 @@
         {#each conducao.historico as h (h.ordem)}
           <li>
             <span class="posicao">{h.ordem}ª</span>
-            <span class="jogadores">Time {h.time_a} {h.placar_a} × {h.placar_b} Time {h.time_b}</span>
+            <span class="jogadores confronto">
+              <span class="lado" class:vencedor={h.vencedor === h.time_a}>Time {h.time_a}</span>
+              <strong class="resultado"><span class="pt a" class:ganhou={h.vencedor === h.time_a}>{h.placar_a}</span> <span class="x" aria-hidden="true">×</span> <span class="pt b" class:ganhou={h.vencedor === h.time_b}>{h.placar_b}</span></strong>
+              <span class="lado" class:vencedor={h.vencedor === h.time_b}>Time {h.time_b}</span>
+            </span>
             {#if h.fase === 'mata_mata'}<span class="selo">mata-mata</span>{/if}
             <span class="selo">Time {h.vencedor} venceu</span>
           </li>
@@ -327,6 +331,31 @@
 </section>
 
 <style>
+  .confronto { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+  .confronto .lado { opacity: .8; }
+  .confronto .lado.vencedor { opacity: 1; font-weight: 700; }
+  /* Placarzinho: fundo escuro nos dois temas, cores do time fixas e claras
+     para manter o contraste (as do tema claro são escuras demais para ele). */
+  .confronto .resultado {
+    display: inline-flex;
+    align-items: stretch;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 8px;
+    background: #0b1220;
+    font-family: var(--fonte-numeros);
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+  .confronto .pt { min-width: 2ch; padding: 4px 9px 2px; text-align: center; opacity: .8; }
+  .confronto .pt.a { color: #22d3ee; }
+  .confronto .pt.b { color: #fb923c; }
+  .confronto .pt.ganhou { opacity: 1; text-shadow: 0 0 10px currentColor; }
+  .confronto .x { align-self: center; padding: 0 2px; color: #94a3b8; font-size: .9rem; }
+
   .conducao { display: flex; flex-direction: column; gap: .9rem; padding: 1rem; border: 1px solid var(--borda-ativa); border-radius: var(--raio-padrao); background: var(--fundo-superficie); color: var(--texto-forte); }
   h2 { margin: 0; font-size: var(--texto-destaque); }
   h3 { margin: 0 0 .4rem; font-size: var(--texto-corpo); }

@@ -12,7 +12,7 @@ Audiência: o grupo de vôlei do Navigator. Escala esperada: dezenas de pessoas,
 
 ## Current State
 
-Backend, web e APK em `0.50.0` e Wear OS em `0.27.0`, todos em `master`. Entregues: placar compartilhado, relógio (CV3, CV6), APK online/offline (CV7) e gerenciador de times (CV8: cadastro, sorteio em duplas ou trios, rei da quadra, mata-mata, persistência, exibição e a DS7, que tirou os becos sem saída do Joguinho: anular partida, retirar jogador, joguinho de outro dia; e a DS8, rodada triangular de 3 times). A validação do Navigator em lote da CV8 e dos 3 nomes no relógio físico (US15) está pendente.
+Backend, web e APK em `0.50.1` e Wear OS em `0.27.0`, todos em `master`. Entregues: placar compartilhado, relógio (CV3, CV6), APK online/offline (CV7) e gerenciador de times (CV8: cadastro, sorteio em duplas ou trios, rei da quadra, mata-mata, persistência, exibição e a DS7, que tirou os becos sem saída do Joguinho: anular partida, retirar jogador, joguinho de outro dia; e a DS8, rodada triangular de 3 times). A validação do Navigator em lote da CV8 e dos 3 nomes no relógio físico (US15) está pendente.
 
 Repositório publicado e sincronizado em `github.com/eli-junior/placar-volei`.
 

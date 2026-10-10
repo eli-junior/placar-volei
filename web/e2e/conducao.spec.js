@@ -201,6 +201,11 @@ test('encerrar partida: placar ao vivo, fila andando, rei e fim da fila', async 
 
   await expect(p.getByRole('heading', { name: 'Partidas encerradas (1)' })).toBeVisible();
   await expect(p.getByText('Time 1 10 × 0 Time 2')).toBeVisible();
+  // o placarzinho do histórico mantém o contraste
+  const { violations } = await new AxeBuilder({ page: p }).include('#titulo-historico').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(violations).toEqual([]);
+  const { violations: noPlacar } = await new AxeBuilder({ page: p }).include('.confronto').withTags(['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa']).analyze();
+  expect(noPlacar).toEqual([]);
   await expect(p.getByRole('heading', { name: 'Eliminados (2)' })).toBeVisible();
   await expect(p.getByRole('status').filter({ hasText: 'Time 1 × Time 3' })).toBeVisible();
   // o outro aparelho acompanhou
