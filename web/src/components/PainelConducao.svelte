@@ -158,7 +158,7 @@
           <li class:incompleto={time.incompleto}>
             <span class="posicao">Time {time.fila}</span>
             <span class="jogadores">{descreverTime(time)}</span>
-            {#if time.vitorias > 0}<span class="selo">{time.vitorias} vitória seguida</span>{/if}
+            {#if time.vitorias > 0}<span class="selo">{time.vitorias} {time.vitorias === 1 ? 'vitória seguida' : 'vitórias seguidas'}</span>{/if}
             {#if time.incompleto}<span class="aviso">Incompleto: escolhe o parceiro na sua vez.</span>{/if}
           </li>
         {/each}
@@ -240,7 +240,11 @@
         {#each conducao.historico as h (h.ordem)}
           <li>
             <span class="posicao">{h.ordem}ª</span>
-            <span class="jogadores">Time {h.time_a} {h.placar_a} × {h.placar_b} Time {h.time_b}</span>
+            <span class="jogadores confronto">
+              <span class="lado" class:vencedor={h.vencedor === h.time_a}>Time {h.time_a}</span>
+              <strong class="resultado">{h.placar_a} × {h.placar_b}</strong>
+              <span class="lado" class:vencedor={h.vencedor === h.time_b}>Time {h.time_b}</span>
+            </span>
             {#if h.fase === 'mata_mata'}<span class="selo">mata-mata</span>{/if}
             <span class="selo">Time {h.vencedor} venceu</span>
           </li>
@@ -327,6 +331,17 @@
 </section>
 
 <style>
+  .confronto { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
+  .confronto .lado { opacity: .8; }
+  .confronto .lado.vencedor { opacity: 1; font-weight: 700; }
+  .confronto .resultado {
+    padding: 2px 10px;
+    border-radius: 8px;
+    background: color-mix(in srgb, var(--fundo-superficie, #1f2a3d) 60%, #fff 12%);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
   .conducao { display: flex; flex-direction: column; gap: .9rem; padding: 1rem; border: 1px solid var(--borda-ativa); border-radius: var(--raio-padrao); background: var(--fundo-superficie); color: var(--texto-forte); }
   h2 { margin: 0; font-size: var(--texto-destaque); }
   h3 { margin: 0 0 .4rem; font-size: var(--texto-corpo); }
