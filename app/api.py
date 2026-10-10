@@ -485,7 +485,9 @@ async def executar_comando(quadra_id: str, request: Request, acao: str, **kwargs
         return resultado
 
 
-async def transmitir_estado(quadra_id: str, resultado: dict | None = None):
+async def transmitir_estado(
+    quadra_id: str, resultado: dict | None = None, avisar: bool = True
+):
     """Envia o snapshot da sala a todos os clientes, com a presença atual."""
     if resultado is None:
         resultado = await asyncio.to_thread(snapshot_sync, settings.db_path, quadra_id)
@@ -493,7 +495,8 @@ async def transmitir_estado(quadra_id: str, resultado: dict | None = None):
     for p in resultado["participantes"]:
         p["online"] = p["id"] in online
     await hub.broadcast(quadra_id, {"tipo": "PLACAR_ATUALIZADO", "payload": resultado})
-    await avisar_placar(quadra_id)
+    if avisar:
+        await avisar_placar(quadra_id)
 
 
 @router.post("/quadras/{quadra_id}/pontos", status_code=201)

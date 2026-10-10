@@ -43,6 +43,12 @@ def projetar_quadra_publica(row) -> dict:
     return {campo: row[campo] for campo in CAMPOS_PUBLICOS_QUADRA}
 
 
+def _em_joguinho(quadra_id) -> bool:
+    from app.gerenciador_db import quadra_em_partida_do_joguinho
+
+    return quadra_em_partida_do_joguinho(quadra_id)
+
+
 def snapshot(conn, quadra_id):
     quadra = conn.execute(_SELECT_QUADRA_PUBLICA, (quadra_id,)).fetchone()
     if not quadra:
@@ -61,6 +67,8 @@ def snapshot(conn, quadra_id):
     ]
     sala = projetar_quadra_publica(quadra)
     sala["partida_id"] = partida["id"]
+    # O joguinho tem uma partida chamada aqui: o placar não pode reiniciá-la.
+    sala["em_joguinho"] = _em_joguinho(quadra_id)
     return {
         "quadra": sala,
         "partida_id": partida["id"],
@@ -329,6 +337,12 @@ def executar_sync(
             if autor["papel"] != "ADMIN" and not dono_admin:
                 raise HTTPException(
                     403, "Apenas administradores podem iniciar uma nova partida."
+                )
+            if not kwargs.get("via_joguinho") and _em_joguinho(quadra_id):
+                raise HTTPException(
+                    409,
+                    "Esta partida foi chamada pelo joguinho e não pode ser "
+                    "reiniciada aqui. Encerre-a ou anule-a no joguinho.",
                 )
             estado = atual["estado_partida"]
             if not estado["encerrada"] and not kwargs.get("zerar"):

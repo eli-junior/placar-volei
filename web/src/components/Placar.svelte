@@ -8,6 +8,8 @@
     estadoPartida = null,
     temaPlacar = 'esportivo',
     podeControlar = false,
+    // Falso quando o joguinho tem a partida chamada aqui: só ele a encerra.
+    podeReiniciar = true,
     // `desabilitado` = não dá para agir agora (socket caído ou sem controle).
     desabilitado = false,
     // `enviando` = há comando em voo. Não bloqueia o toque seguinte: apenas
@@ -167,16 +169,18 @@
 
       {#if podeControlar}
         <div class="vitoria-botoes">
-          <button
-            type="button"
-            class="btn-nova-partida"
-            disabled={desabilitado || enviando}
-            aria-busy={enviando && origemEnvio === 'nova'}
-            onclick={handleIniciarNovaPartida}
-          >
-            <span class="icone-nova-partida">▶</span>
-            <span class="texto-nova-partida">Iniciar Próxima Partida</span>
-          </button>
+          {#if podeReiniciar}
+            <button
+              type="button"
+              class="btn-nova-partida"
+              disabled={desabilitado || enviando}
+              aria-busy={enviando && origemEnvio === 'nova'}
+              onclick={handleIniciarNovaPartida}
+            >
+              <span class="icone-nova-partida">▶</span>
+              <span class="texto-nova-partida">Iniciar Próxima Partida</span>
+            </button>
+          {/if}
           {#if !semCompartilhar}
             <button
               type="button"

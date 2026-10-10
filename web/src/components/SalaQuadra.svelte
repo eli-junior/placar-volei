@@ -195,6 +195,8 @@
   const selo = $derived(seloDoPapel(eu?.papel));
 
   const temControle = $derived(podeControlar && quadra?.controle_id === eu?.id);
+  // Partida chamada pelo joguinho: não se reinicia no placar (o servidor também recusa).
+  const emJoguinho = $derived(quadra?.em_joguinho === true);
   const posse = $derived(
     descreverPosse({ temControle, ehAdmin, operador: participantes.find(p => p.id === quadra?.controle_id)?.apelido, conectado: wsConectado })
   );
@@ -232,7 +234,7 @@
       ? [{ rotulo: girado ? 'Placar em retrato' : 'Girar para paisagem', icone: 'atualizar', acao: alternarGiro, pressionado: girado, fechaMenu: false }]
       : []),
     // Destrutivo: por último, sobe ao topo só se sobrar espaço depois de tudo.
-    ...(podeControlar && temControle && ehAdmin
+    ...(podeControlar && temControle && ehAdmin && !emJoguinho
       ? [{ rotulo: 'Reiniciar partida', icone: 'atualizar', acao: () => { confirmandoReiniciar = true; } }]
       : []),
   ]);
@@ -621,6 +623,7 @@
       {estadoPartida}
       temaPlacar={quadra?.tema_placar || 'esportivo'}
       podeControlar={temControle}
+      podeReiniciar={!emJoguinho}
       desabilitado={!wsConectado}
       enviando={operando}
       {ladosInvertidos}
@@ -714,6 +717,7 @@
     <ModalCelebracaoVitoria
       {estadoPartida}
       podeControlar={temControle}
+      podeReiniciar={!emJoguinho}
       movimentoReduzido={prefersReducedMotion}
       onNovaPartida={() => {
         modalCelebracaoAberto = false;

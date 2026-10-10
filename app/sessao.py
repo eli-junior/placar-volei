@@ -34,7 +34,12 @@ from app.jogadores import (
     obter_jogador,
     recompactar_presencas,
 )
-from app.ponte import info_quadra, ler_placar, reconciliar_vinculo
+from app.ponte import (
+    avisar_quadra_vinculada,
+    info_quadra,
+    ler_placar,
+    reconciliar_vinculo,
+)
 from app.sincronia import publicar
 
 MINIMO_PARA_SORTEAR = 4
@@ -266,6 +271,7 @@ async def _responder(funcao, *args) -> dict:
     """Executa a ação, publica o estado novo aos outros aparelhos e o devolve."""
     resultado = await asyncio.to_thread(funcao, *args)
     await publicar({k: v for k, v in resultado.items() if k != "jogador"})
+    await avisar_quadra_vinculada(resultado)
     return resultado
 
 
@@ -287,7 +293,12 @@ async def post_abrir(request: Request):
 @router.post("/encerrar")
 async def post_encerrar(request: Request, body: EncerrarBody | None = None):
     autenticar_owner(request)
-    return await _responder(encerrar_sync, bool(body and body.cancelar_rodada))
+    antes = await asyncio.to_thread(estado_sync)  # o fechamento perde o vínculo
+    resultado = await _responder(encerrar_sync, bool(body and body.cancelar_rodada))
+    codigo = (antes.get("quadra") or {}).get("codigo")
+    if codigo:
+        await avisar_quadra_vinculada(resultado, codigo)
+    return resultado
 
 
 @router.put("/presencas/{jogador_id}")

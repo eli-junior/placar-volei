@@ -4,6 +4,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.49.1 - 2026-10-10
+
+Boundary: fix — quadra com partida do joguinho não pode ser reiniciada no placar (patch; backend, web e APK em 0.49.1, APK `versionCode` 34; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
+
+Git source: merge `--no-ff` de `ccr-73c8d4a4-40fz4l` em `master`.
+
+### Fixed
+
+- **Reinício no meio da partida do joguinho:** com o joguinho aberto e uma partida chamada na quadra vinculada, `POST /api/quadras/{id}/reiniciar` responde 409 (vale para "Reiniciar partida", nova partida depois de encerrada e nova partida pelo relógio). Antes, reiniciar trocava a partida da quadra por baixo do joguinho e travava o encerramento ("partida trocada"). Só o joguinho (encerrar ou anular) libera a quadra; a própria chamada do joguinho continua zerando o placar (`via_joguinho`).
+- **Botões escondidos:** o snapshot da quadra ganhou `quadra.em_joguinho`; com ele a sala esconde "Reiniciar partida" (menu), "Iniciar Próxima Partida" (banner de vitória) e "Reinício Rápido"/"Ajustar e Iniciar" (celebração). O snapshot é reenviado à quadra ao chamar, encerrar, anular, cancelar a rodada e encerrar o joguinho, e os botões voltam sozinhos.
+
+### Verification
+
+- `ruff` (`app`, `tests`), `npm run check`, `npm test` (199), e2e `conducao`, `rodada` e `superficies` (32) e `pytest` por arquivo, todos verdes; teste novo `test_partida_chamada_pelo_joguinho_nao_pode_ser_reiniciada_no_placar` e `test_partida_trocada_no_placar_nao_pode_ser_lida` ajustado. Sem migração de schema. Aprovado pelo Navigator em 2026-10-10.
+
 ## 0.49.0 - 2026-10-09
 
 Boundary: User Story CV8.DS8.US22 — rodada triangular de 3 times (minor; backend, web e APK em 0.49.0, APK `versionCode` 33; Wear OS inalterado em 0.27.0).
