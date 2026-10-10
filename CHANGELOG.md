@@ -10,7 +10,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 - **Passo Ariad:** Passo 4 - Teste e Validação (correção compactada; aguardando validação do Navigator)
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
 - **O que muda:** a faixa de bolinhas (`SequenciaPontos`) fica sem fundo enquanto não há ponto; a altura se mantém. A faixa "Fila / Reis" já saiu na 0.50.0 (o print era da versão anterior ao deploy).
-- **Também:** em "Partidas encerradas" do `/joguinho` o confronto ficou "Time 1 [6 × 4] Time 3" (placar num destaque no meio, vencedor em negrito), porque "Time 1 0 × 6 Time 4" se lia como "Time 10"; e o selo passa a "2 vitórias seguidas" no plural.
+- **Também:** em "Partidas encerradas" do `/joguinho` o confronto ficou "Time 1 [6 × 4] Time 3" (placar num destaque no meio, vencedor em negrito), porque "Time 1 0 × 6 Time 4" se lia como "Time 10"; e o selo de vitórias seguidas passa a "1V", "2V" (o leitor de tela segue lendo "2 vitórias seguidas").
 
 ## 0.50.0 - 2026-10-10
 

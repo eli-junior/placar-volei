@@ -158,7 +158,7 @@
           <li class:incompleto={time.incompleto}>
             <span class="posicao">Time {time.fila}</span>
             <span class="jogadores">{descreverTime(time)}</span>
-            {#if time.vitorias > 0}<span class="selo">{time.vitorias} {time.vitorias === 1 ? 'vitória seguida' : 'vitórias seguidas'}</span>{/if}
+            {#if time.vitorias > 0}<span class="selo" title="{time.vitorias} {time.vitorias === 1 ? 'vitória seguida' : 'vitórias seguidas'}"><span aria-hidden="true">{time.vitorias}V</span><span class="sr-only">{time.vitorias} {time.vitorias === 1 ? 'vitória seguida' : 'vitórias seguidas'}</span></span>{/if}
             {#if time.incompleto}<span class="aviso">Incompleto: escolhe o parceiro na sua vez.</span>{/if}
           </li>
         {/each}
