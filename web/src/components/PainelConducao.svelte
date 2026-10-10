@@ -242,7 +242,7 @@
             <span class="posicao">{h.ordem}ª</span>
             <span class="jogadores confronto">
               <span class="lado" class:vencedor={h.vencedor === h.time_a}>Time {h.time_a}</span>
-              <strong class="resultado">{h.placar_a} × {h.placar_b}</strong>
+              <strong class="resultado"><span class="pt a" class:ganhou={h.vencedor === h.time_a}>{h.placar_a}</span> <span class="x" aria-hidden="true">×</span> <span class="pt b" class:ganhou={h.vencedor === h.time_b}>{h.placar_b}</span></strong>
               <span class="lado" class:vencedor={h.vencedor === h.time_b}>Time {h.time_b}</span>
             </span>
             {#if h.fase === 'mata_mata'}<span class="selo">mata-mata</span>{/if}
@@ -334,13 +334,27 @@
   .confronto { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
   .confronto .lado { opacity: .8; }
   .confronto .lado.vencedor { opacity: 1; font-weight: 700; }
+  /* Placarzinho: fundo escuro nos dois temas, cores do time fixas e claras
+     para manter o contraste (as do tema claro são escuras demais para ele). */
   .confronto .resultado {
-    padding: 2px 10px;
+    display: inline-flex;
+    align-items: stretch;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.14);
     border-radius: 8px;
-    background: color-mix(in srgb, var(--fundo-superficie, #1f2a3d) 60%, #fff 12%);
+    background: #0b1220;
+    font-family: var(--fonte-numeros);
+    font-size: 1.35rem;
+    font-weight: 600;
+    line-height: 1;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
+  .confronto .pt { min-width: 2ch; padding: 4px 9px 2px; text-align: center; opacity: .8; }
+  .confronto .pt.a { color: #22d3ee; }
+  .confronto .pt.b { color: #fb923c; }
+  .confronto .pt.ganhou { opacity: 1; text-shadow: 0 0 10px currentColor; }
+  .confronto .x { align-self: center; padding: 0 2px; color: #94a3b8; font-size: .9rem; }
 
   .conducao { display: flex; flex-direction: column; gap: .9rem; padding: 1rem; border: 1px solid var(--borda-ativa); border-radius: var(--raio-padrao); background: var(--fundo-superficie); color: var(--texto-forte); }
   h2 { margin: 0; font-size: var(--texto-destaque); }
