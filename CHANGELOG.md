@@ -4,13 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV8 — nota do jogador evolui com as partidas (proposta)
+### CV8 — nota do jogador evolui com as partidas
 
 - **Branch:** `ccr-73c8d4a4-40fz4l`
-- **Passo Ariad:** Passo 2 - Planejamento (Checkpoint 1: aguardando confirmação do Navigator)
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando validação do Navigator)
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
-- **Escopo:** atualizar a `nota` cadastrada a cada partida encerrada (Elo adaptado), com reversão no "Desfazer a última partida", sorteio usando a nota atual e painel mostrando "nota do sorteio → nota atual". Versão alvo: 0.51.0 (minor, schema 13 aditivo).
-- **Handoff:** decisão `Open` em `docs/project/decisions/records/2026-10-10T2300Z-nota-do-jogador-evolui-com-as-partidas.md`; nenhum código escrito ainda.
+- **Escopo:** a `nota` cadastrada ajusta a cada partida encerrada (Elo adaptado, K = 4, margem pesa de 0,5 a 1,5), com reversão no "Desfazer a última partida"; o sorteio usa a nota atual (a nota efetiva de saldo sai) e o painel mostra "62 +2". Versão alvo: 0.51.0 (minor, schema 13 aditivo).
+- **Decisões do Navigator (2026-10-10):** atualizar a nota cadastrada; sorteio só com a nota atual; K = 4. Registro `nota-do-jogador-evolui-com-as-partidas` (`Accepted`); RN-14 e RN-10 revistas.
+- **Handoff:** falta validar no `/joguinho` (rota na conversa). `pytest` por arquivo e `npm test` (200) verdes; e2e completo em execução.
 
 ## 0.50.1 - 2026-10-10
 

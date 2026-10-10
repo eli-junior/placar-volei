@@ -142,6 +142,17 @@ test('descreve um time com as notas do sorteio', () => {
   assert.equal(descreverTime(time), 'Ana Souza (90) + Bia Lima (85)');
 });
 
+test('o time mostra a nota atual e quanto ela mudou desde o sorteio', () => {
+  const time = {
+    jogadores: [
+      { nome: 'Ana Souza', nota: 60, nota_base: 62 },
+      { nome: 'Bia Lima', nota: 60, nota_base: 59 },
+      { nome: 'Caio Reis', nota: 60, nota_base: 60 },
+    ],
+  };
+  assert.equal(descreverTime(time), 'Ana Souza (62 +2) + Bia Lima (59 −1) + Caio Reis (60)');
+});
+
 test('posição da combinação volta ao início ao esgotar', () => {
   assert.deepEqual(posicaoDaCombinacao({ tentativa: 0, distintas: 5 }), { atual: 1, total: 5 });
   assert.deepEqual(posicaoDaCombinacao({ tentativa: 4, distintas: 5 }), { atual: 5, total: 5 });

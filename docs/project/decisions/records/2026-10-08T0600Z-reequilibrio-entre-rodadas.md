@@ -14,6 +14,8 @@ related:
 - Evitar dupla repetida é só desempate entre combinações equivalentes (amplitude até `TOLERANCIA`), abaixo do gênero e do equilíbrio.
 - A nota efetiva fica gravada em `time_jogadores.nota` (sem schema novo); a cadastrada é lida de `jogadores.nota` como `nota_base`.
 
+> **Parcialmente substituída em 2026-10-10** por `nota-do-jogador-evolui-com-as-partidas`: a nota efetiva (saldo ±15) deixou de existir e o sorteio usa a nota atual do jogador, que evolui com as partidas. O resto (ordem de chegada, evitar dupla repetida) segue valendo.
+
 ## Alternativas rejeitadas
 
 - Bloquear o sorteio após rodada cancelada: travaria a sessão, já que só há uma rodada ativa por vez.

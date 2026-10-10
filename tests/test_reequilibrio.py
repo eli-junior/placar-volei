@@ -1,25 +1,8 @@
 # ruff: noqa: F811
 import pytest
 
-from app.reequilibrio import nota_efetiva
 from app.sorteio import Participante, sortear
 from tests.test_encerramento import Jogo, ac, base, placar  # noqa: F401
-
-
-@pytest.mark.parametrize(
-    ("base_", "saldo", "partidas", "esperada"),
-    [
-        (60, 0, 0, 60),  # sem partidas: a nota cadastrada
-        (60, 8, 2, 68),  # 2 × 8 ÷ 2
-        (60, -3, 3, 58),
-        (60, 100, 1, 75),  # limite +15
-        (60, -100, 1, 45),  # limite −15
-        (98, 20, 1, 100),  # teto da nota
-        (5, -20, 1, 1),  # piso da nota
-    ],
-)
-def test_nota_efetiva(base_, saldo, partidas, esperada):
-    assert nota_efetiva(base_, saldo, partidas) == esperada
 
 
 def quatro():
@@ -57,22 +40,21 @@ def jogadores(rodada):
 
 
 @pytest.mark.asyncio
-async def test_rodada_2_ajusta_a_nota_pelo_saldo_sem_mudar_o_cadastro(ac, placar):
+async def test_rodada_2_sorteia_com_a_nota_atual_que_evoluiu(ac, placar):
     jogo = await campeao_da_rodada_1(ac, placar)
+    cadastro = (await ac.get("/api/jogadores")).json()
+    atuais = {
+        x["nome"]: x["nota"]
+        for x in (cadastro["jogadores"] if isinstance(cadastro, dict) else cadastro)
+    }
+    assert any(n != 60 and n != 61 and n != 62 for n in atuais.values())
     r = await ac.post("/api/rodada/sorteio", json={"alvo": 10})
     assert r.status_code in (200, 201), r.text
     rodada = (await jogo.estado())["rodada"]
     assert rodada["numero"] == 2 and rodada["estado"] == "proposta"
     js = jogadores(rodada)
-    assert any(j["nota"] != j["nota_base"] for j in js.values())
-    for j in js.values():
-        assert abs(j["nota"] - j["nota_base"]) <= 15
-    cadastro = (await ac.get("/api/jogadores")).json()
-    cadastradas = {
-        x["nome"]: x["nota"]
-        for x in (cadastro["jogadores"] if isinstance(cadastro, dict) else cadastro)
-    }
-    assert all(cadastradas[n] == j["nota_base"] for n, j in js.items())
+    # o sorteio usa a nota atual do cadastro, sem ajuste de saldo por cima
+    assert all(j["nota"] == j["nota_base"] == atuais[n] for n, j in js.items())
 
 
 @pytest.mark.asyncio

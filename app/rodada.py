@@ -20,11 +20,7 @@ from app.conducao import (
     saldos,
 )
 from app.gerenciador_db import agora, erro_de_campo, exigir_sessao_aberta
-from app.reequilibrio import (
-    duplas_anteriores,
-    nota_efetiva,
-    saldos_da_sessao,
-)
+from app.reequilibrio import duplas_anteriores
 from app.sorteio import JogadoresInsuficientes, Participante, sortear
 
 ALVO_MINIMO, ALVO_MAXIMO = 6, 25
@@ -125,17 +121,10 @@ def _formato_valido(bruto) -> str:
 
 
 def _participantes(conn, sessao_id: str) -> list[Participante]:
-    """Presentes com a nota do sorteio: a cadastrada na primeira rodada; da
-    segunda em diante, a efetiva, ajustada pelo saldo da sessão (RN-14). A
-    ordem de chegada continua valendo em todas as rodadas."""
-    saldos_sessao = saldos_da_sessao(conn, sessao_id)
+    """Presentes com a nota atual do jogador, que evolui com as partidas
+    (`app.nota_viva`). A ordem de chegada vale em todas as rodadas."""
     return [
-        Participante(
-            r["id"],
-            r["genero"],
-            nota_efetiva(r["nota"], *saldos_sessao.get(r["id"], (0, 0))),
-            r["ordem"],
-        )
+        Participante(r["id"], r["genero"], r["nota"], r["ordem"])
         for r in conn.execute(
             "SELECT j.id, j.genero, j.nota, p.ordem FROM presencas p "
             "JOIN jogadores j ON j.id = p.jogador_id WHERE p.sessao_id = ? "
