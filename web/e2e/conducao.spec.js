@@ -362,34 +362,8 @@ test('time incompleto em quadra: escolher o parceiro, chamar e somar o saldo', a
   await sessaoLimpa(p);
 });
 
-// CV8.DS5.US13 — quem acompanha a quadra vê a fila e os reis ao vivo.
-test('espectador vê a fila e os reis, e eles andam com as partidas', async ({ abrir }) => {
-  const p = await abrir();
-  const esp = await abrir();
-  await sessaoLimpa(p);
-  const nomes = await chegam(p, [...SEIS, ['Gabi', 'M', 45], ['Hugo', 'H', 35]]); // 4 times
-  await rodadaConfirmada(p, 10);
-  await abrirTela(p);
-  const codigo = await criarEVincular(p);
-  await entrarNaSala(esp, codigo);
-  const faixa = esp.getByLabel('Fila e reis');
-  await expect(faixa).toContainText('Fila:');
-  await expect(faixa).toContainText('Reis: nenhum');
-  for (let i = 0; i < 2; i++) {
-    await p.getByRole('button', { name: 'Chamar partida' }).click();
-    await pontosNoPlacar(p, codigo, 'A', 10);
-    await p.getByRole('button', { name: 'Encerrar partida' }).click();
-    await expect(p.getByRole('button', { name: 'Chamar partida' }).or(p.getByRole('button', { name: 'Iniciar mata-mata' }))).toBeVisible();
-  }
-  await expect(faixa).not.toContainText('Reis: nenhum');
-  const primeiro = nomes[0].split(' ')[0];
-  await expect(faixa).toContainText(primeiro);
-  await sessaoLimpa(p);
-});
-
-// Regressão: no celular, a fila e os reis do controlador ficam numa faixa e não
-// tomam a altura do placar (os +1 não podem cobrir o placar do time de baixo).
-test('controlador: +1 não cobre o placar com a fila visível', async ({ abrir }) => {
+// Regressão: no celular, os +1 não podem cobrir o placar do time de baixo.
+test('controlador: +1 não cobre o placar', async ({ abrir }) => {
   const p = await abrir({ viewport: { width: 360, height: 700 } });
   await sessaoLimpa(p);
   await chegam(p, [...SEIS, ['Gabi', 'M', 45], ['Hugo', 'H', 35]]);
@@ -398,7 +372,6 @@ test('controlador: +1 não cobre o placar com a fila visível', async ({ abrir }
   const codigo = await criarEVincular(p);
   await p.getByRole('button', { name: 'Chamar partida' }).click();
   await p.goto(`/quadra/${codigo}`);
-  await expect(p.getByLabel('Fila e reis')).toContainText('Fila:');
   const placarB = await p.locator('.palco .resultado').first().boundingBox();
   const maisUm = await p.locator('.btn-marcar').first().boundingBox();
   expect(placarB.y + placarB.height).toBeLessThanOrEqual(maisUm.y + 1);
@@ -502,5 +475,31 @@ test('rodada triangular sem rei: encerrar sem campeão pede confirmação', asyn
   await p.getByRole('button', { name: 'Sim, encerrar sem campeão' }).click();
   await expect(p.getByRole('button', { name: 'Encerrar sem campeão' })).toHaveCount(0);
   await expect(p.getByRole('heading', { name: /Campeões da rodada/ })).toHaveCount(0);
+  await sessaoLimpa(p);
+});
+
+// Quadra vinculada ao joguinho: o fim da partida só oferece o Próximo jogo e a
+// pontuação e a vantagem seguem a rodada.
+test('quadra do joguinho: fim da partida só oferece Próximo jogo', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, [...SEIS, ['Gabi', 'M', 45], ['Hugo', 'H', 35]]);
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  const codigo = await criarEVincular(p);
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await pontosNoPlacar(p, codigo, 'A', 10);
+  await p.goto(`/quadra/${codigo}`);
+  const proximo = p.locator('dialog').getByRole('button', { name: 'Próximo jogo' });
+  await expect(proximo).toBeVisible();
+  for (const nome of ['Reinício Rápido', 'Ajustar e Iniciar', 'Iniciar Próxima Partida']) {
+    await expect(p.getByRole('button', { name: nome })).toHaveCount(0);
+  }
+  await expect(p.locator('.regras-topo')).toBeDisabled();
+  await proximo.click();
+  await expect(p.getByRole('button', { name: 'Próximo jogo' })).toHaveCount(0);
+  await p.goto('/joguinho');
+  await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeVisible();
+  await expect(p.getByRole('heading', { name: /Rodada 1/ })).toBeVisible();
   await sessaoLimpa(p);
 });

@@ -15,6 +15,8 @@
     secao = 'tudo',
     /** Só o admin, no ⚙ completo: libera a quadra para todos (CV6.DS1.US8). */
     podeLiberar = false,
+    // No joguinho, pontos e vantagem seguem a rodada.
+    semRegras = false,
     // Quadra local (CV7.US1): "liberar" vira apagar a quadra deste aparelho.
     modoLocal = false,
     onLiberar = () => {},
@@ -27,7 +29,7 @@
   let alvoPersonalizado = $state(false);
   let confirmandoLiberar = $state(false);
 
-  const mostraRegras = $derived(secao === 'tudo' || secao === 'regras');
+  const mostraRegras = $derived(!semRegras && (secao === 'tudo' || secao === 'regras'));
   const mostraA = $derived(secao === 'tudo' || secao === 'equipe-a');
   const mostraB = $derived(secao === 'tudo' || secao === 'equipe-b');
   const titulo = $derived(
@@ -107,9 +109,13 @@
       // Campo omitido mantém o nome atual; após "Limpar", o nome padrão vai explícito.
       equipe_a: limpouA && vazioA ? 'Equipe A' : undefined,
       equipe_b: limpouB && vazioB ? 'Equipe B' : undefined,
-      alvo: Number(regraAlvo) || 10,
-      vantagem: Boolean(regraVantagem),
-      teto: regraVantagem && tetoNumerico !== null ? tetoNumerico : null,
+      ...(semRegras
+        ? {}
+        : {
+            alvo: Number(regraAlvo) || 10,
+            vantagem: Boolean(regraVantagem),
+            teto: regraVantagem && tetoNumerico !== null ? tetoNumerico : null,
+          }),
       tema_placar: temaVisual,
     });
   }

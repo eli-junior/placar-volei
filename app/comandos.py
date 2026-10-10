@@ -44,9 +44,9 @@ def projetar_quadra_publica(row) -> dict:
 
 
 def _em_joguinho(quadra_id) -> bool:
-    from app.gerenciador_db import quadra_em_partida_do_joguinho
+    from app.gerenciador_db import quadra_do_joguinho
 
-    return quadra_em_partida_do_joguinho(quadra_id)
+    return quadra_do_joguinho(quadra_id)
 
 
 def snapshot(conn, quadra_id):
@@ -67,7 +67,7 @@ def snapshot(conn, quadra_id):
     ]
     sala = projetar_quadra_publica(quadra)
     sala["partida_id"] = partida["id"]
-    # O joguinho tem uma partida chamada aqui: o placar não pode reiniciá-la.
+    # Quadra vinculada a um joguinho aberto: o placar não reinicia nem muda a meta.
     sala["em_joguinho"] = _em_joguinho(quadra_id)
     return {
         "quadra": sala,
@@ -341,8 +341,8 @@ def executar_sync(
             if not kwargs.get("via_joguinho") and _em_joguinho(quadra_id):
                 raise HTTPException(
                     409,
-                    "Esta partida foi chamada pelo joguinho e não pode ser "
-                    "reiniciada aqui. Encerre-a ou anule-a no joguinho.",
+                    "Esta quadra está no joguinho: use o Próximo jogo, ou "
+                    "encerre ou anule a partida no joguinho.",
                 )
             estado = atual["estado_partida"]
             if not estado["encerrada"] and not kwargs.get("zerar"):
@@ -414,6 +414,17 @@ def executar_sync(
                     403,
                     "Apenas administradores podem ajustar as configurações da partida.",
                 )
+            if _em_joguinho(quadra_id):
+                estado_atual = atual["estado_partida"]
+                mudou = any(
+                    kwargs.get(k) is not None and kwargs[k] != estado_atual.get(k)
+                    for k in ("alvo", "vantagem")
+                ) or ("teto" in kwargs and kwargs["teto"] != estado_atual.get("teto"))
+                if mudou:
+                    raise HTTPException(
+                        409,
+                        "Esta quadra está no joguinho: pontos e vantagem seguem a rodada.",
+                    )
             tema_alterado = False
             tema_placar = kwargs.get("tema_placar")
             if tema_placar is not None:

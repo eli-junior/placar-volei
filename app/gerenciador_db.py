@@ -195,11 +195,12 @@ def sessao_aberta(conn):
     return conn.execute("SELECT * FROM sessoes WHERE encerrada_em IS NULL").fetchone()
 
 
-def quadra_em_partida_do_joguinho(quadra_id: str) -> bool:
-    """A quadra está vinculada a um joguinho aberto com uma partida chamada nela.
+def quadra_do_joguinho(quadra_id: str) -> bool:
+    """A quadra está vinculada a um joguinho aberto.
 
-    Enquanto isso vale, o placar não pode ser reiniciado por quem opera a
-    quadra: só o próprio joguinho (encerrar ou anular a partida) a libera.
+    Vinculada, ela segue o joguinho: não reinicia nem muda pontos e vantagem no
+    placar, e o fim da partida pede o "Próximo jogo". Desvincular ou encerrar o
+    joguinho a devolve ao uso livre.
     """
     caminho = settings.gerenciador_db_path
     if not os.path.exists(caminho):
@@ -207,10 +208,7 @@ def quadra_em_partida_do_joguinho(quadra_id: str) -> bool:
     conn = conectar(caminho)
     try:
         linha = conn.execute(
-            "SELECT 1 FROM sessoes s "
-            "JOIN rodadas r ON r.sessao_id = s.id AND r.estado = 'em_andamento' "
-            "JOIN partidas_rodada p ON p.rodada_id = r.id AND p.estado = 'chamada' "
-            "WHERE s.encerrada_em IS NULL AND s.quadra_id = ? LIMIT 1",
+            "SELECT 1 FROM sessoes WHERE encerrada_em IS NULL AND quadra_id = ? LIMIT 1",
             (quadra_id,),
         ).fetchone()
     except sqlite3.OperationalError:

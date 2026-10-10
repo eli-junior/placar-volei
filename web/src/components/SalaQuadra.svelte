@@ -15,7 +15,6 @@
   import { ehDonoDoRelogio } from '../lib/relogio.js';
   import { ultimoPontoDesfazivel, sequenciaDePontos, descreverPosse, resumirRegras, resumirRegrasCurto } from '../lib/controle.js';
   import MenuSala from './MenuSala.svelte';
-  import FilaEReis from './FilaEReis.svelte';
   import { estadoConexao } from '../lib/conexao.js';
   import {
     suportaTelaCheia,
@@ -33,13 +32,13 @@
     participantes = [],
     estadoPartida = null,
     linhaDoTempo = [],
-    exibicao = null,
     wsConectado = false,
     // Quadra local do APK (CV7.US1): sem servidor, espectadores, presença nem relógio.
     modoLocal = false,
     onMarcarPonto = () => {},
     onDesfazerPonto = () => {},
     onIniciarNovaPartida = () => {},
+    onProximoJogo = () => {},
     onConfigurarPartida = () => {},
     onVoltar,
     onAssumirControle = () => {},
@@ -534,7 +533,7 @@
                cada troca, e só o texto da posse é lido (CV5.DS4.US2). -->
           <span class="sr-only" aria-live="polite">{posse.titulo}. {posse.detalhe}</span>
           <!-- Na tela, as regras da partida valem mais que a posse (Navigator, CV6.DS1.US1). -->
-          <button type="button" class="regras-topo" onclick={() => abrirConfig('regras')} title="Ajustar pontuação e vantagem: {resumirRegras(estadoPartida)}"><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida, nivelRegras)}</span>{#if nivelRegras !== 'longo'}<span class="selo-vantagem" class:acesa={estadoPartida?.vantagem ?? true} aria-hidden="true">V</span>{/if}</button>
+          <button type="button" class="regras-topo" disabled={emJoguinho} onclick={() => abrirConfig('regras')} title={emJoguinho ? 'Pontuação e vantagem seguem a rodada: ' + resumirRegras(estadoPartida) : 'Ajustar pontuação e vantagem: ' + resumirRegras(estadoPartida)}><span class="sr-only">Ajustar regras: {resumirRegras(estadoPartida)}</span><span aria-hidden="true">{resumirRegrasCurto(estadoPartida, nivelRegras)}</span>{#if nivelRegras !== 'longo'}<span class="selo-vantagem" class:acesa={estadoPartida?.vantagem ?? true} aria-hidden="true">V</span>{/if}</button>
           {#if posse.podeAssumir}
             <button class="btn-assumir" disabled={!wsConectado || operando} onclick={onAssumirControle}>Assumir</button>
           {/if}
@@ -623,7 +622,7 @@
       {estadoPartida}
       temaPlacar={quadra?.tema_placar || 'esportivo'}
       podeControlar={temControle}
-      podeReiniciar={!emJoguinho}
+      onProximoJogo={emJoguinho ? () => { modalCelebracaoAberto = false; onProximoJogo(); } : null}
       desabilitado={!wsConectado}
       enviando={operando}
       {ladosInvertidos}
@@ -659,8 +658,6 @@
     </div>
   {/if}
 
-  <FilaEReis {exibicao} compacto={modoImersivo || podeControlar} />
-
   <!-- Modal/Gaveta da Linha do Tempo (CV1.DS4.US1) -->
   {#if modalLinhaDoTempoAberto}
     <LinhaDoTempo
@@ -694,6 +691,7 @@
       temaPlacar={quadra?.tema_placar || 'esportivo'}
       isReinicio={isReinicioConfig}
       secao={isReinicioConfig ? 'tudo' : secaoConfig}
+      semRegras={emJoguinho}
       podeLiberar={ehAdmin && !isReinicioConfig && secaoConfig === 'tudo'}
       {modoLocal}
       onLiberar={() => { modalConfigAberto = false; onLiberarQuadra(); }}
@@ -717,7 +715,7 @@
     <ModalCelebracaoVitoria
       {estadoPartida}
       podeControlar={temControle}
-      podeReiniciar={!emJoguinho}
+      onProximoJogo={emJoguinho ? () => { modalCelebracaoAberto = false; onProximoJogo(); } : null}
       movimentoReduzido={prefersReducedMotion}
       onNovaPartida={() => {
         modalCelebracaoAberto = false;

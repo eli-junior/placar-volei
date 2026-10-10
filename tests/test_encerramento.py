@@ -422,10 +422,73 @@ async def test_partida_chamada_pelo_joguinho_nao_pode_ser_reiniciada_no_placar(
     e = snapshot_sync(settings.db_path, jogo.codigo)["estado_partida"]
     assert (e["pontos_a"], e["pontos_b"]) == (3, 0)
 
-    # Anulada a partida, a quadra volta a poder ser reiniciada.
+    # Anulada a partida, a quadra segue no joguinho: só desvincular a libera.
     assert (await ac.post("/api/rodada/anular-partida")).status_code == 200
+    assert snapshot_sync(settings.db_path, jogo.codigo)["quadra"]["em_joguinho"] is True
+    r = await placar.post(url, json={"zerar": True})
+    assert r.status_code == 409
+    assert (await ac.delete("/api/sessao/quadra")).status_code == 200
     assert (
         snapshot_sync(settings.db_path, jogo.codigo)["quadra"]["em_joguinho"] is False
     )
     r = await placar.post(url, json={"zerar": True})
     assert r.status_code in (200, 201), r.text
+
+
+@pytest.mark.asyncio
+async def test_quadra_vinculada_nao_reinicia_nem_muda_pontos_e_vantagem(ac, placar):
+    jogo = await Jogo(ac, placar).preparar()  # vinculada, sem partida chamada
+    base = f"/api/quadras/{jogo.codigo}"
+    r = await placar.post(f"{base}/reiniciar", json={"zerar": True})
+    assert r.status_code == 409 and "joguinho" in r.json()["detail"]
+    for corpo in ({"alvo": 21}, {"vantagem": False}, {"teto": 12}):
+        r = await placar.post(f"{base}/configurar", json=corpo)
+        assert r.status_code == 409, corpo
+    # nomes e tema continuam livres
+    r = await placar.post(f"{base}/configurar", json={"equipe_a": "Azuis"})
+    assert r.status_code == 200, r.text
+    # desvinculada, volta ao uso livre
+    assert (await ac.delete("/api/sessao/quadra")).status_code == 200
+    r = await placar.post(f"{base}/reiniciar", json={"zerar": True})
+    assert r.status_code in (200, 201), r.text
+
+
+@pytest.mark.asyncio
+async def test_proximo_jogo_encerra_a_partida_e_chama_a_proxima(ac, placar):
+    jogo = await Jogo(ac, placar).preparar()
+    await jogo.chamar()
+    await jogo.pontos("A", 10)
+    url = f"/api/quadras/{jogo.codigo}/proximo-jogo"
+    r = await placar.post(url)
+    assert r.status_code == 200, r.text
+    e = snapshot_sync(settings.db_path, jogo.codigo)["estado_partida"]
+    assert (e["pontos_a"], e["pontos_b"], e["encerrada"]) == (0, 0, False)
+    c = (await jogo.estado())["conducao"]
+    assert len(c["historico"]) == 1 and c["partida"]["ordem"] == 2
+
+
+@pytest.mark.asyncio
+async def test_proximo_jogo_sem_chamada_so_chama_e_recusa_partida_em_jogo(ac, placar):
+    jogo = await Jogo(ac, placar).preparar()
+    url = f"/api/quadras/{jogo.codigo}/proximo-jogo"
+    r = await placar.post(url)  # nada chamado: apenas chama a primeira
+    assert r.status_code == 200, r.text
+    jogo.versao = str(
+        snapshot_sync(settings.db_path, jogo.codigo)["quadra"]["controle_versao"]
+    )
+    await jogo.pontos("A", 4)
+    r = await placar.post(url)  # em jogo no placar: não encerra
+    assert r.status_code == 409 and "4 × 0" in r.json()["detail"]
+
+
+@pytest.mark.asyncio
+async def test_proximo_jogo_exige_admin_da_quadra_vinculada(ac, placar):
+    jogo = await Jogo(ac, placar).preparar()
+    url = f"/api/quadras/{jogo.codigo}/proximo-jogo"
+    async with AsyncClient(
+        transport=ASGITransport(app=app), base_url="http://test"
+    ) as anonimo:
+        assert (await anonimo.post(url)).status_code == 401
+    outra = (await placar.post("/api/quadras", json={"apelido": "Outro"})).json()["id"]
+    r = await placar.post(f"/api/quadras/{outra}/proximo-jogo")
+    assert r.status_code == 409  # a outra quadra não é a do joguinho

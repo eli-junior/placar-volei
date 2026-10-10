@@ -8,8 +8,8 @@
     estadoPartida = null,
     temaPlacar = 'esportivo',
     podeControlar = false,
-    // Falso quando o joguinho tem a partida chamada aqui: só ele a encerra.
-    podeReiniciar = true,
+    // No joguinho, o fim da partida só oferece o Próximo jogo.
+    onProximoJogo = null,
     // `desabilitado` = não dá para agir agora (socket caído ou sem controle).
     desabilitado = false,
     // `enviando` = há comando em voo. Não bloqueia o toque seguinte: apenas
@@ -37,6 +37,12 @@
   let origemEnvio = $state(null);
   let feedbackTimer = null;
   let prefersReducedMotion = $state(false);
+
+  function handleProximoJogo() {
+    if (enviando || desabilitado) return;
+    origemEnvio = 'nova';
+    onProximoJogo?.();
+  }
 
   function handleIniciarNovaPartida() {
     if (enviando || desabilitado) return;
@@ -169,18 +175,16 @@
 
       {#if podeControlar}
         <div class="vitoria-botoes">
-          {#if podeReiniciar}
-            <button
-              type="button"
-              class="btn-nova-partida"
-              disabled={desabilitado || enviando}
-              aria-busy={enviando && origemEnvio === 'nova'}
-              onclick={handleIniciarNovaPartida}
-            >
-              <span class="icone-nova-partida">▶</span>
-              <span class="texto-nova-partida">Iniciar Próxima Partida</span>
-            </button>
-          {/if}
+          <button
+            type="button"
+            class="btn-nova-partida"
+            disabled={desabilitado || enviando}
+            aria-busy={enviando && origemEnvio === 'nova'}
+            onclick={onProximoJogo ? handleProximoJogo : handleIniciarNovaPartida}
+          >
+            <span class="icone-nova-partida">▶</span>
+            <span class="texto-nova-partida">{onProximoJogo ? 'Próximo jogo' : 'Iniciar Próxima Partida'}</span>
+          </button>
           {#if !semCompartilhar}
             <button
               type="button"
