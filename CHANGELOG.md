@@ -4,6 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### CV8 — nota do jogador evolui com as partidas (proposta)
+
+- **Branch:** `ccr-73c8d4a4-40fz4l`
+- **Passo Ariad:** Passo 2 - Planejamento (Checkpoint 1: aguardando confirmação do Navigator)
+- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
+- **Escopo:** atualizar a `nota` cadastrada a cada partida encerrada (Elo adaptado), com reversão no "Desfazer a última partida", sorteio usando a nota atual e painel mostrando "nota do sorteio → nota atual". Versão alvo: 0.51.0 (minor, schema 13 aditivo).
+- **Handoff:** decisão `Open` em `docs/project/decisions/records/2026-10-10T2300Z-nota-do-jogador-evolui-com-as-partidas.md`; nenhum código escrito ainda.
+
 ## 0.50.1 - 2026-10-10
 
 Boundary: fix — pílula vazia sob o placar e histórico legível no `/joguinho` (patch; backend, web e APK em 0.50.1, APK `versionCode` 36; só a web muda de comportamento; Wear OS inalterado em 0.27.0).
