@@ -4,6 +4,22 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.51.1 - 2026-10-10
+
+Boundary: fix — "Abrir o placar" só aparece com a partida chamada (patch; backend, web e APK em 0.51.1, APK `versionCode` 38; só a web muda de comportamento; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
+
+Git source: merge `--no-ff` de `ccr-73c8d4a4-40fz4l` em `master`.
+
+### Fixed
+
+- **Link que abria uma partida "aleatória":** no painel do `/joguinho`, "Abrir o placar" abria a quadra com o placar padrão ("Equipe A × Equipe B") quando ainda não havia partida chamada. Agora o link só aparece com a partida chamada, abrindo o placar com as duplas certas; antes disso o painel explica que o placar abre com as duplas ao chamar. O código da quadra continua visível.
+
+### Verification
+
+- `npm run check`, `npm test` (200) e e2e `conducao` e `sessao` (25), com o e2e lendo o código da quadra do texto do painel e conferindo o link antes e depois de chamar a partida. Só a web mudou. Validado pelo Navigator em 2026-10-10.
+
 ## 0.51.0 - 2026-10-10
 
 Boundary: Maintenance (CV8) — nota do jogador evolui com as partidas (minor; backend, web e APK em 0.51.0, APK `versionCode` 37; Wear OS inalterado em 0.27.0).

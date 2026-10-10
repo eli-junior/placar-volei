@@ -71,7 +71,11 @@
       <p class="ajuda">
         Quadra <strong>{quadra.codigo}</strong>{#if quadra.nome} ({quadra.nome}){/if}:
         {#if quadra.disponivel}<span class="ok">disponível</span> ·
-          <a href="/quadra/{quadra.codigo}" target="_blank" rel="noopener">Abrir o placar</a>
+          {#if temPartida}
+            <a href="/quadra/{quadra.codigo}" target="_blank" rel="noopener">Abrir o placar</a>
+          {:else}
+            o placar abre com as duplas quando você chamar a partida
+          {/if}
         {:else if temPartida}<span class="ruim">indisponível — anule a partida para trocar de quadra</span>
         {:else}<span class="ruim">indisponível — vincule de novo</span>{/if}
       </p>

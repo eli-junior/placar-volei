@@ -65,8 +65,9 @@ test('criar quadra, vincular, chamar partida e ver as duplas no placar', async (
 
   await p.getByRole('button', { name: 'Criar quadra e vincular' }).click();
   await expect(p.getByText('disponível', { exact: true })).toBeVisible();
-  const link = p.getByRole('link', { name: 'Abrir o placar' });
-  const href = await link.getAttribute('href');
+  // sem partida chamada não há link: o placar abriria sem as duplas
+  await expect(p.getByRole('link', { name: 'Abrir o placar' })).toHaveCount(0);
+  const href = `/quadra/${await codigoDaQuadra(p)}`;
   expect(href).toMatch(/^\/quadra\/\d{5}$/);
 
   // placar aberto na mesma sessão do navegador (admin): vê as duplas chegarem sem recarregar
@@ -81,6 +82,8 @@ test('criar quadra, vincular, chamar partida e ver as duplas no placar', async (
   await expect(p.getByRole('button', { name: 'Chamar partida' })).toHaveCount(0);
   await expect(p.getByRole('button', { name: 'Encerrar partida' })).toBeDisabled();
   await expect(p.getByText(/Em jogo no placar \(0 × 0\)/)).toBeVisible();
+  // com a partida chamada o link abre o placar certo
+  await expect(p.getByRole('link', { name: 'Abrir o placar' })).toHaveAttribute('href', href);
 
   // a primeira a chegar (Ana) joga a primeira partida: o nome dela está no placar
   const primeiro = nomes[0].split(' ')[0];
@@ -171,10 +174,14 @@ async function pontosNoPlacar(p, codigo, equipe, quantos) {
   expect(statuses).toEqual(Array(quantos).fill(201));
 }
 
+async function codigoDaQuadra(p) {
+  return (await p.locator('[aria-labelledby="titulo-quadra"] strong').first().innerText()).trim();
+}
+
 async function criarEVincular(p) {
   await p.getByRole('button', { name: 'Criar quadra e vincular' }).click();
-  const href = await p.getByRole('link', { name: 'Abrir o placar' }).getAttribute('href');
-  return href.split('/').pop();
+  await expect(p.getByText('disponível', { exact: true })).toBeVisible();
+  return codigoDaQuadra(p);
 }
 
 test('encerrar partida: placar ao vivo, fila andando, rei e fim da fila', async ({ abrir }) => {
