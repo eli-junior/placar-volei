@@ -4,14 +4,34 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### fix: modo joguinho na quadra (Próximo jogo, sem ajuste de meta, sem faixa de fila)
+## 0.50.0 - 2026-10-10
 
-- **Branch:** `ccr-73c8d4a4-40fz4l`
-- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando validação do Navigator)
-- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
-- **O que muda:** (1) a sala da quadra deixa de mostrar "Fila: … Reis: …" (removidos `FilaEReis.svelte`, o estado `exibicao` do `App.svelte` e o e2e do espectador, US13; o servidor segue enviando `exibicao`). (2) Quadra **vinculada** a um joguinho aberto (não só com partida chamada) entra no modo joguinho: `reiniciar` e mudança de `alvo`/`vantagem`/`teto` em `configurar` respondem 409; o resumo das regras fica desabilitado e a configuração não mostra pontos e vantagem. (3) Fim de partida só oferece **Próximo jogo**: `POST /api/quadras/{id}/proximo-jogo` (ADMIN da quadra vinculada, sem `OWNER_SECRET`) registra o resultado da partida chamada, se houver, e chama a próxima. (4) `quadra.em_joguinho` no snapshot passa a significar "vinculada"; é reenviado ao vincular, desvincular, chamar, encerrar, anular e cancelar.
-- **Decisões do Navigator (2026-10-10):** vincular = modo joguinho; Próximo jogo encerra e chama a próxima; pontos e vantagem bloqueados no joguinho.
-- **Handoff:** falta validar no celular. Sem migração de schema. `pytest` por arquivo, `npm run check`, `npm test` (199) e e2e completo (100) verdes, com o e2e novo `quadra do joguinho: fim da partida só oferece Próximo jogo`.
+Boundary: Maintenance — modo joguinho na quadra: Próximo jogo, sem ajuste de pontos e vantagem e sem faixa de fila (minor; backend, web e APK em 0.50.0, APK `versionCode` 35; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
+
+Git source: merge `--no-ff` de `ccr-73c8d4a4-40fz4l` em `master`.
+
+### Added
+
+- **Próximo jogo:** `POST /api/quadras/{id}/proximo-jogo` (ADMIN da quadra vinculada, sem `OWNER_SECRET`) registra o resultado da partida chamada, se houver, e chama a próxima, num toque. Com a partida ainda em jogo no placar, recusa (409) com o placar parcial.
+
+### Changed
+
+- **Vincular = modo joguinho:** a quadra vinculada a um joguinho aberto (não só com partida chamada) não reinicia nem muda `alvo`, `vantagem` e `teto` (409); nomes e tema seguem livres. `quadra.em_joguinho` no snapshot passa a significar "vinculada" e é reenviado ao vincular, desvincular, chamar, encerrar, anular e cancelar.
+- **Fim de partida só com Próximo jogo:** banner e aviso de vitória trocam "Iniciar Próxima Partida", "Reinício Rápido" e "Ajustar e Iniciar" por **Próximo jogo**; o resumo das regras fica desabilitado e a configuração esconde pontos, vantagem e teto.
+
+### Removed
+
+- **Faixa "Fila / Reis"** da sala da quadra (`FilaEReis.svelte`, estado `exibicao` do `App.svelte` e o e2e do espectador, US13). O servidor segue enviando `exibicao`; só a tela deixou de usá-lo.
+
+### Decision
+
+- Decisões do Navigator em 2026-10-10: vincular é o modo joguinho; Próximo jogo encerra e chama a próxima; pontos e vantagem bloqueados no joguinho. Sem migração de schema.
+
+### Verification
+
+- `ruff` (`app`, `tests`), `npm run check`, `npm test` (199), `pytest` por arquivo (4 testes novos) e `npm run test:e2e` (100; o e2e novo `quadra do joguinho: fim da partida só oferece Próximo jogo` corrigido e rodado isolado). Validado pelo Navigator em 2026-10-10.
 
 ## 0.49.1 - 2026-10-10
 
