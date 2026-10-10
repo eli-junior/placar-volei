@@ -4,6 +4,33 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.51.0 - 2026-10-10
+
+Boundary: Maintenance (CV8) — nota do jogador evolui com as partidas (minor; backend, web e APK em 0.51.0, APK `versionCode` 37; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: 01SJX9BAQpsJxLAbgxWC9z7L | Data: 2026-10-10
+
+Git source: merge `--no-ff` de `ccr-73c8d4a4-40fz4l` em `master`.
+
+### Added
+
+- **Nota viva:** a cada partida encerrada, cada jogador dos dois times ajusta a própria nota (`jogadores.nota`) na mesma transação do resultado. Elo adaptado à escala 1–100: força do time = média das notas; `delta = round(4 × (resultado − esperado) × (0,5 + min(1, margem ÷ alvo)))`, nota limitada a 1–100. O escalado ajusta por cada partida em que jogou. Num alvo 10, times iguais: margem 2 dá +1/−1, margem 6 dá +2/−2, goleada +3/−3; o azarão que ganha leva mais.
+- **Reversão:** o ajuste de cada jogador fica em `ajustes_nota` (por partida); "Desfazer a última partida" o reverte e anular a partida chamada não ajusta.
+- **Schema 13 do `gerenciador.db`** (aditivo): tabela `ajustes_nota`. A migração roda sozinha e é idempotente; as notas cadastradas viram o ponto de partida.
+
+### Changed
+
+- **Sorteio com a nota atual:** a "nota efetiva" (saldo da sessão, ±15) foi removida, para o mesmo resultado não contar duas vezes. Gênero, serpentina e não repetir dupla seguem iguais.
+- **Painel do `/joguinho`:** mostra a nota atual e quanto ela mudou desde o sorteio ("Ana (62 +2)"). A edição manual da nota continua valendo.
+
+### Decision
+
+- Registro `nota-do-jogador-evolui-com-as-partidas` (`Accepted`; Navigator, 2026-10-10: atualizar a nota cadastrada, sorteio só com a nota atual, K = 4); RN-14 e RN-10 revistas; o registro `reequilibrio-entre-rodadas` ganhou a nota de substituição parcial.
+
+### Verification
+
+- `ruff` (`app`, `tests`), `npm run check`, `npm test` (200), `pytest` por arquivo (`tests/test_nota_viva.py` novo; `test_reequilibrio.py` ajustado) e `npm run test:e2e` (100). Validado pelo Navigator em 2026-10-10. A primeira subida em produção deve seguir o backup automático do `gerenciador.db`.
+
 ## 0.50.1 - 2026-10-10
 
 Boundary: fix — pílula vazia sob o placar e histórico legível no `/joguinho` (patch; backend, web e APK em 0.50.1, APK `versionCode` 36; só a web muda de comportamento; Wear OS inalterado em 0.27.0).

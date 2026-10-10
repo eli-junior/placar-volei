@@ -8,7 +8,8 @@ outra rodada ativa. Uma partida chamada depois da última é descartada junto (e
 foi chamada a partir do estado que está sendo desfeito).
 """
 
-from app.gerenciador_db import erro_de_campo, exigir_sessao_aberta
+from app.gerenciador_db import agora, erro_de_campo, exigir_sessao_aberta
+from app.nota_viva import reverter_partida
 
 
 def _alvo(conn, sessao_id: str):
@@ -53,6 +54,7 @@ def desfazer_ultima(conn) -> None:
         "DELETE FROM partidas_rodada WHERE rodada_id = ? AND estado = 'chamada'",
         (rodada["id"],),
     )
+    reverter_partida(conn, ultima["id"], agora())
     conn.execute("DELETE FROM partidas_rodada WHERE id = ?", (ultima["id"],))
     # Os ajustes da fila (retirar/pular, TS3) que seguiam a partida desfeita
     # passam a seguir a anterior; senão a próxima partida seria derivada como

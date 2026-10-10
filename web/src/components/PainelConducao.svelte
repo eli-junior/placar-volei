@@ -1,5 +1,5 @@
 <script>
-  import { descreverTime } from '../lib/jogadores.js';
+  import { ajusteDaNota, descreverTime, notaAtual } from '../lib/jogadores.js';
   import { oQueSePerde } from '../lib/joguinho.js';
 
   // Condução da rodada em andamento (CV8.DS3.US5): quadra do placar, partida,
@@ -117,7 +117,7 @@
           <ul class="times">
             {#each grupo.jogadores as j (j.id)}
               <li>
-                <span class="jogadores">{j.nome} <span class="ajuda">({j.genero === 'H' ? 'Homem' : 'Mulher'} · nota {j.nota})</span></span>
+                <span class="jogadores">{j.nome} <span class="ajuda">({j.genero === 'H' ? 'Homem' : 'Mulher'} · nota {notaAtual(j)}{ajusteDaNota(j)})</span></span>
                 <button class="secundario" type="button" onclick={() => onEscalar(j.id)} disabled={ocupado} aria-label="Escalar {j.nome} com {esc.jogador}">Escalar</button>
               </li>
             {/each}

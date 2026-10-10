@@ -29,7 +29,7 @@ ROTULOS = {
     "codigo": "Código da quadra",
 }
 
-SCHEMA_VERSAO = 12
+SCHEMA_VERSAO = 13
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jogadores (
     id TEXT PRIMARY KEY,
@@ -124,6 +124,14 @@ CREATE TABLE IF NOT EXISTS partidas_rodada (
     placar_b INTEGER,
     vencedor_time_id TEXT REFERENCES times(id),
     encerrada_em TEXT
+);
+-- Ajuste de nota de cada jogador por partida encerrada (nota viva): o que de
+-- fato mudou, para o "Desfazer a última partida" reverter. Aditiva (schema 13).
+CREATE TABLE IF NOT EXISTS ajustes_nota (
+    partida_id TEXT NOT NULL,
+    jogador_id TEXT NOT NULL,
+    delta INTEGER NOT NULL,
+    PRIMARY KEY (partida_id, jogador_id)
 );
 -- No máximo uma partida chamada (em aberto) por rodada.
 CREATE UNIQUE INDEX IF NOT EXISTS idx_partida_chamada

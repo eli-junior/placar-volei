@@ -73,16 +73,21 @@ export function primeiraPartida(times) {
   return fila.length >= 2 ? [fila[0], fila[1]] : null;
 }
 
-/** Ajuste da nota pelo saldo da sessão: " +8", " −3" ou "" quando não há (RN-14). */
+/** Nota atual do jogador: evolui com as partidas; `nota` é a que valeu no sorteio. */
+export function notaAtual(j) {
+  return j.nota_base ?? j.nota;
+}
+
+/** Quanto a nota mudou desde o sorteio: " +2", " −1" ou "" quando não mudou. */
 export function ajusteDaNota(j) {
-  const d = j.nota - (j.nota_base ?? j.nota);
+  const d = notaAtual(j) - j.nota;
   if (!d) return '';
   return d > 0 ? ` +${d}` : ` −${-d}`;
 }
 
 /** "Ana (90) + Bia (85)" para a linha de um time. */
 export function descreverTime(time) {
-  return time.jogadores.map((j) => `${j.nome} (${j.nota}${ajusteDaNota(j)})${j.escalado ? ' · escalado' : ''}`).join(' + ');
+  return time.jogadores.map((j) => `${j.nome} (${notaAtual(j)}${ajusteDaNota(j)})${j.escalado ? ' · escalado' : ''}`).join(' + ');
 }
 
 /** Qual combinação equivalente está na tela: "2 de 5" (tentativa começa em 0). */

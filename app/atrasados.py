@@ -11,7 +11,6 @@ import uuid
 
 from app.gerenciador_db import agora, erro_de_campo, exigir_sessao_aberta
 from app.jogadores import obter_jogador
-from app.reequilibrio import nota_efetiva, saldos_da_sessao
 
 
 def registrar_atrasado(conn, jogador_id) -> None:
@@ -55,7 +54,6 @@ def registrar_atrasado(conn, jogador_id) -> None:
         "VALUES (?, ?, ?, ?)",
         (sessao["id"], jogador_id, ordem, agora()),
     )
-    saldo, partidas = saldos_da_sessao(conn, sessao["id"]).get(jogador_id, (0, 0))
     fila = conn.execute(
         "SELECT COALESCE(MAX(fila), 0) + 1 FROM times WHERE rodada_id = ?",
         (rodada["id"],),
@@ -69,5 +67,5 @@ def registrar_atrasado(conn, jogador_id) -> None:
     conn.execute(
         "INSERT INTO time_jogadores (time_id, jogador_id, nota, ordem_chegada) "
         "VALUES (?, ?, ?, ?)",
-        (time_id, jogador_id, nota_efetiva(jogador["nota"], saldo, partidas), ordem),
+        (time_id, jogador_id, jogador["nota"], ordem),
     )

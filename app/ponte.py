@@ -35,6 +35,7 @@ from app.gerenciador_db import (
     sessao_aberta,
 )
 from app.identidade import SESSION_COOKIE, hash_sessao
+from app.nota_viva import aplicar_partida
 from app.quadras import obter_quadra_sync
 from app.sincronia import publicar
 
@@ -411,6 +412,7 @@ def _registrar_encerramento() -> None:
                 "placar_b = ?, vencedor_time_id = ?, encerrada_em = ? WHERE id = ?",
                 (placar["a"], placar["b"], vencedor, agora(), chamada["id"]),
             )
+            aplicar_partida(conn, chamada["id"], agora())
             conn.execute(
                 "UPDATE rodadas SET desfeito = 0 WHERE id = ?", (chamada["rodada_id"],)
             )
