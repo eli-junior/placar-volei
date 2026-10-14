@@ -38,6 +38,12 @@ async function abrirTela(p) {
   await p.getByRole('heading', { name: 'Joguinho', level: 1 }).waitFor();
 }
 
+// Títulos dos blocos do painel, na ordem da tela.
+async function ordemDoPainel(p) {
+  const titulos = await p.locator('section.conducao').locator('h2, h3').allInnerTexts();
+  return titulos.map((t) => t.trim().split(' (')[0].split(' ·')[0]);
+}
+
 const SEIS = [['Ana', 'M', 90], ['Bia', 'M', 80], ['Caio', 'H', 70], ['Davi', 'H', 60], ['Eva', 'M', 50], ['Fabio', 'H', 40]];
 
 test('sem quadra vinculada a chamada fica bloqueada com o motivo', async ({ abrir }) => {
@@ -63,8 +69,12 @@ test('criar quadra, vincular, chamar partida e ver as duplas no placar', async (
   await rodadaConfirmada(p, 12);
   await abrirTela(p);
 
+  // sem quadra, o vínculo fica no topo
+  expect((await ordemDoPainel(p)).slice(0, 2)).toEqual(['Rodada 1', 'Quadra do placar']);
   await p.getByRole('button', { name: 'Criar quadra e vincular' }).click();
   await expect(p.getByText('disponível', { exact: true })).toBeVisible();
+  // com a quadra vinculada, a partida vem primeiro, depois a rodada, a quadra e a fila
+  expect((await ordemDoPainel(p)).slice(0, 4)).toEqual(['Próxima partida', 'Rodada 1', 'Quadra do placar', 'Fila']);
   // sem partida chamada não há link: o placar abriria sem as duplas
   await expect(p.getByRole('link', { name: 'Abrir o placar' })).toHaveCount(0);
   const href = `/quadra/${await codigoDaQuadra(p)}`;
