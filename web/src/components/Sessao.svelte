@@ -437,7 +437,7 @@
       </section>
 
       {#if podeAtrasado}
-        <p class="ajuda">Quem chega agora entra como atrasado, sozinho no fim da fila, e escolhe o parceiro na sua vez. Depois do início do mata-mata, só na próxima rodada.</p>
+        <p class="ajuda">Quem chega agora entra como atrasado no fim da fila. Quando acabam os times sorteados, os atrasados formam times entre si; quem sobrar escolhe um eliminado na sua vez. Depois do início do mata-mata, só na próxima rodada.</p>
       {/if}
       {#if !travada}
       <section class="cartao" aria-labelledby="titulo-gerenciar">

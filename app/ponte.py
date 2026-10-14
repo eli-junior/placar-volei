@@ -19,6 +19,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
+from app import atrasados as regras_atrasados
 from app import rodada as regras_rodada
 from app.api import autenticar_owner, transmitir_estado
 from app.comandos import executar_sync, snapshot_sync
@@ -417,6 +418,7 @@ def _registrar_encerramento() -> None:
                 "UPDATE rodadas SET desfeito = 0 WHERE id = ?", (chamada["rodada_id"],)
             )
             regras_rodada.registrar_campeao(conn, sessao["id"])
+            regras_atrasados.agrupar(conn)
     finally:
         conn.close()
 
