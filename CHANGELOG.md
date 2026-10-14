@@ -20,6 +20,7 @@ Git source: merge `--no-ff` de `chore/makefile` em `master`.
 ### Verification
 
 - `uv run pytest`: 654 passam e 2 falham em `tests/test_blindagem_e_confiabilidade.py`, falha anterior a esta versão (o snapshot da quadra ganhou `em_joguinho` na 0.49.1 e o teste não foi atualizado). `ruff check` e `ruff format --check` limpos; `npm run check` e `npm test` verdes. Alvos do contêiner conferidos com `make -n`; o reset no contêiner real ainda não foi validado pelo Navigator. Merge autorizado pelo Navigator em 2026-10-14.
+- **Correção de teste (depois, na `fix/teste-snapshot-em-joguinho`, sem troca de versão):** `tests/test_blindagem_e_confiabilidade.py` passa a esperar `em_joguinho` no snapshot da quadra (campo derivado e público desde a 0.49.1), junto de `partida_id`. Com isso, `uv run pytest` fica com 656 passando e nenhuma falha.
 
 ## 0.51.1 - 2026-10-10
 

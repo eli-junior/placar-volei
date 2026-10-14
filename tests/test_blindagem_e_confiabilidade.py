@@ -22,6 +22,9 @@ from app.identidade import SESSION_COOKIE
 from app.main import app
 from app.quadras import criar_quadra_sync
 
+# Campos que o snapshot acrescenta à allowlist de colunas: não vêm de `quadras`.
+DERIVADOS_DO_SNAPSHOT = {"partida_id", "em_joguinho"}
+
 
 @pytest.fixture(autouse=True)
 def banco(tmp_path, monkeypatch):
@@ -122,11 +125,12 @@ def test_espectador_nao_recebe_codigo_mestre_em_nenhum_frame():
         assert "codigo_mestre" not in bruto
         assert codigo_mestre not in bruto
 
-        # A chave `quadra` traz exatamente a allowlist pública (mais `partida_id`).
+        # A chave `quadra` traz exatamente a allowlist pública, mais os campos
+        # derivados do snapshot (`partida_id` e `em_joguinho`).
         for frame in frames:
             sala = frame["payload"].get("quadra")
             if sala is not None:
-                assert set(sala) == set(CAMPOS_PUBLICOS_QUADRA) | {"partida_id"}
+                assert set(sala) == set(CAMPOS_PUBLICOS_QUADRA) | DERIVADOS_DO_SNAPSHOT
 
 
 def test_coluna_sensivel_futura_fica_fora_do_snapshot_por_padrao():
@@ -142,7 +146,7 @@ def test_coluna_sensivel_futura_fica_fora_do_snapshot_por_padrao():
     snap = snapshot_sync(settings.db_path, quadra["id"])
     assert "token_de_operacao" not in snap["quadra"]
     assert "segredo-futuro" not in json.dumps(snap, ensure_ascii=False)
-    assert set(snap["quadra"]) == set(CAMPOS_PUBLICOS_QUADRA) | {"partida_id"}
+    assert set(snap["quadra"]) == set(CAMPOS_PUBLICOS_QUADRA) | DERIVADOS_DO_SNAPSHOT
 
 
 # --- C2: CAPACIDADE REAL / PREVENÇÃO DE FANTASMAS ---
