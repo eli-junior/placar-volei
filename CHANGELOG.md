@@ -10,6 +10,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 - **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: desktop | Data: 2026-10-14
 - **Handoff / Próximos Passos:** causa: `unlink()` chama `stopSession()`; o código gerado depois não religava a sessão, então ninguém consultava `/api/watch/session` e a aprovação no telefone passava despercebida. "Gerar novo código" recebia 409 (já vinculado) e chamava `refresh()`, por isso entrava. Correção: `generateCode()` chama `startSession()` ao receber o código. Falta a validação física do Navigator.
 
+- **História / Escopo:** fix — no `/joguinho`, com a quadra vinculada, o painel abre pela partida: Próxima partida → Rodada X · alvo Y → Quadra do placar → Escolher parceiro (quando houver) → Fila → Substituir quem saiu → Partidas encerradas → Reis. Sem quadra, a ordem atual fica (vínculo no topo). Backend, web e APK 0.52.0 → 0.52.1 (`versionCode` 40); Wear OS inalterado.
+- **Branch:** `fix/joguinho-ordem-painel`
+- **Passo Ariad:** Passo 4 - Teste e Validação
+- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: desktop | Data: 2026-10-14
+- **Handoff / Próximos Passos:** blocos de `PainelConducao.svelte` viraram snippets renderizados em duas ordens conforme `quadra`. e2e `conducao` confere a ordem antes e depois de vincular. Falta a validação do Navigator; atualizar `docs/project/briefing.md` na documentação.
+
 ## 0.52.0 - 2026-10-14
 
 Boundary: Maintenance — `Makefile` com os atalhos do projeto e reset das notas dos jogadores (minor; backend, web e APK em 0.52.0, APK `versionCode` 39; só o backend ganha comportamento novo; Wear OS inalterado em 0.27.0).

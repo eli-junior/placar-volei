@@ -61,229 +61,259 @@
   }
 </script>
 
-<section class="conducao" aria-labelledby="titulo-conducao">
-  <h2 id="titulo-conducao">Rodada {rodada.numero} <span class="alvo">· alvo {rodada.alvo}</span></h2>
-
-  <div class="bloco" aria-labelledby="titulo-quadra">
-    <h3 id="titulo-quadra">Quadra do placar</h3>
-    {#if erroQuadra}<p class="erro" role="alert">{erroQuadra}</p>{/if}
-    {#if quadra}
-      <p class="ajuda">
-        Quadra <strong>{quadra.codigo}</strong>{#if quadra.nome} ({quadra.nome}){/if}:
-        {#if quadra.disponivel}<span class="ok">disponível</span> ·
-          {#if temPartida}
-            <a href="/quadra/{quadra.codigo}" target="_blank" rel="noopener">Abrir o placar</a>
-          {:else}
-            o placar abre com as duplas quando você chamar a partida
-          {/if}
-        {:else if temPartida}<span class="ruim">indisponível — anule a partida para trocar de quadra</span>
-        {:else}<span class="ruim">indisponível — vincule de novo</span>{/if}
-      </p>
-    {:else}
-      <p class="ajuda">Nenhuma quadra vinculada. O placar mostra as duplas da partida chamada.</p>
-    {/if}
-    {#if !temPartida}
-      <div class="botoes">
-        <button class="secundario" type="button" onclick={onCriarQuadra} disabled={ocupado}>Criar quadra e vincular</button>
-        {#if quadra}<button class="secundario" type="button" onclick={onDesvincular} disabled={ocupado}>Desvincular</button>{/if}
-      </div>
-      <form class="vincular" onsubmit={vincular}>
-        <label for="codigo-quadra-vinculo">Ou vincule uma quadra existente pelo código</label>
-        <div class="linha">
-          <input id="codigo-quadra-vinculo" type="text" inputmode="numeric" maxlength="5" autocomplete="off" placeholder="00000" bind:value={codigo} disabled={ocupado} />
-          <button class="secundario" type="submit" disabled={ocupado || !codigo.trim()}>Vincular</button>
-        </div>
-      </form>
-    {/if}
-  </div>
-
-  {#if conducao.escalacao}
-    {@const esc = conducao.escalacao}
-    <div class="bloco destaque" aria-labelledby="titulo-escalacao">
-      <h3 id="titulo-escalacao">Escolher {esc.faltam > 1 ? `os ${esc.faltam} parceiros` : 'o parceiro'} do Time {esc.time}</h3>
-      <p class="ajuda">
-        {esc.jogadores?.join(' e ') ?? esc.jogador} {esc.jogadores?.length > 1 ? 'estão' : 'está'} {esc.origem === 'atrasado' ? 'chegando no meio da rodada' : 'sem time completo'} e {esc.jogadores?.length > 1 ? 'escolhem' : 'escolhe'} {esc.faltam > 1 ? `${esc.faltam} parceiros` : 'o parceiro'} na vez.
-      </p>
-      {#if erroEscalacao}<p class="erro" role="alert">{erroEscalacao}</p>{/if}
-      {#if esc.ninguem}
-        <p class="ajuda">Ninguém elegível agora: não há jogador eliminado disponível para completar o Time {esc.time}.</p>
-        {#if esc.pode_pular}
-          <button class="secundario" type="button" onclick={onPular} disabled={ocupado}>Pular o Time {esc.time} (vai para o fim da fila)</button>
-        {:else if conducao.rodada_triangular}
-          <p class="ajuda">Na rodada triangular ninguém é eliminado antes da final e a ordem das partidas é fixa: encerre a rodada sem campeão (abaixo) para sortear de novo.</p>
+{#snippet blocoQuadra()}
+<div class="bloco" aria-labelledby="titulo-quadra">
+  <h3 id="titulo-quadra">Quadra do placar</h3>
+  {#if erroQuadra}<p class="erro" role="alert">{erroQuadra}</p>{/if}
+  {#if quadra}
+    <p class="ajuda">
+      Quadra <strong>{quadra.codigo}</strong>{#if quadra.nome} ({quadra.nome}){/if}:
+      {#if quadra.disponivel}<span class="ok">disponível</span> ·
+        {#if temPartida}
+          <a href="/quadra/{quadra.codigo}" target="_blank" rel="noopener">Abrir o placar</a>
         {:else}
-          <p class="ajuda">Não há outro time para entrar no lugar dele: cancele a rodada se precisar seguir.</p>
+          o placar abre com as duplas quando você chamar a partida
         {/if}
-      {:else}
-        {#each esc.grupos as grupo (grupo.rotulo)}
-          <p class="ajuda"><strong>{grupo.rotulo}</strong></p>
-          {#if esc.aviso_hh}<p class="ajuda">Não há alternativa de gênero: o time fechará só de um sexo, por falta de opção.</p>{/if}
-          <ul class="times">
-            {#each grupo.jogadores as j (j.id)}
-              <li>
-                <span class="jogadores">{j.nome} <span class="ajuda">({j.genero === 'H' ? 'Homem' : 'Mulher'} · nota {notaAtual(j)}{ajusteDaNota(j)})</span></span>
-                <button class="secundario" type="button" onclick={() => onEscalar(j.id)} disabled={ocupado} aria-label="Escalar {j.nome} com {esc.jogador}">Escalar</button>
-              </li>
-            {/each}
-          </ul>
-        {/each}
-      {/if}
-    </div>
+      {:else if temPartida}<span class="ruim">indisponível — anule a partida para trocar de quadra</span>
+      {:else}<span class="ruim">indisponível — vincule de novo</span>{/if}
+    </p>
+  {:else}
+    <p class="ajuda">Nenhuma quadra vinculada. O placar mostra as duplas da partida chamada.</p>
   {/if}
-
-  {#if sub && sub.entram.length}
-    <form class="bloco" onsubmit={substituir} aria-labelledby="titulo-substituir">
-      <h3 id="titulo-substituir">Substituir quem saiu</h3>
-      <p class="ajuda">O time mantém vitórias e posição. Quem sai fica ausente nas próximas rodadas.</p>
-      {#if erroSubstituicao}<p class="erro" role="alert">{erroSubstituicao}</p>{/if}
-      <label for="sub-saiu">Quem saiu</label>
-      <select id="sub-saiu" bind:value={saiu} disabled={ocupado}>
-        <option value="">Escolha…</option>
-        {#each sub.saem as j (j.id)}<option value={j.id}>{j.nome} (Time {j.time})</option>{/each}
-      </select>
-      <label for="sub-entra">Quem entra</label>
-      <select id="sub-entra" bind:value={entra} disabled={ocupado}>
-        <option value="">Escolha…</option>
-        {#each sub.entram as j (j.id)}<option value={j.id}>{j.nome} · {j.genero === 'H' ? 'Homem' : 'Mulher'} · {j.origem === 'aguardando' ? 'aguardando na fila' : 'eliminado'}</option>{/each}
-      </select>
-      <button class="secundario" type="submit" disabled={ocupado || !saiu || !entra}>Substituir</button>
+  {#if !temPartida}
+    <div class="botoes">
+      <button class="secundario" type="button" onclick={onCriarQuadra} disabled={ocupado}>Criar quadra e vincular</button>
+      {#if quadra}<button class="secundario" type="button" onclick={onDesvincular} disabled={ocupado}>Desvincular</button>{/if}
+    </div>
+    <form class="vincular" onsubmit={vincular}>
+      <label for="codigo-quadra-vinculo">Ou vincule uma quadra existente pelo código</label>
+      <div class="linha">
+        <input id="codigo-quadra-vinculo" type="text" inputmode="numeric" maxlength="5" autocomplete="off" placeholder="00000" bind:value={codigo} disabled={ocupado} />
+        <button class="secundario" type="submit" disabled={ocupado || !codigo.trim()}>Vincular</button>
+      </div>
     </form>
   {/if}
+</div>
+{/snippet}
 
-  <div class="bloco" aria-labelledby="titulo-partida">
-    <h3 id="titulo-partida">{temPartida ? 'Partida em quadra' : mataMata ? 'Próxima partida do mata-mata' : 'Próxima partida'}</h3>
-    {#if conducao.em_quadra.length === 2}
-      <p class="confronto" role="status">
-        <strong>Time {conducao.em_quadra[0].fila}</strong> × <strong>Time {conducao.em_quadra[1].fila}</strong>
-        {#if temPartida}<span class="selo">chamada</span>{/if}
-      </p>
-      <ul class="times">
-        {#each conducao.em_quadra as time (time.fila)}
-          <li class:incompleto={time.incompleto}>
-            <span class="posicao">Time {time.fila}</span>
-            <span class="jogadores">{descreverTime(time)}</span>
-            {#if time.vitorias > 0}<span class="selo" title="{time.vitorias} {time.vitorias === 1 ? 'vitória seguida' : 'vitórias seguidas'}"><span aria-hidden="true">{time.vitorias}V</span><span class="sr-only">{time.vitorias} {time.vitorias === 1 ? 'vitória seguida' : 'vitórias seguidas'}</span></span>{/if}
-            {#if time.incompleto}<span class="aviso">Incompleto: escolhe o parceiro na sua vez.</span>{/if}
-          </li>
-        {/each}
-      </ul>
-    {/if}
-    {#if temPartida && placar}
-      <p class="placar" role="status">
-        Placar: <strong>{placar.a} × {placar.b}</strong>
-        {#if placar.encerrada}<span class="selo">terminou — Time {placar.vencedor === 'A' ? conducao.partida.time_a : conducao.partida.time_b} venceu</span>{:else}<span class="selo">em jogo</span>{/if}
-      </p>
-    {/if}
-    {#if tri && conducao.em_quadra.length === 2}
-      {@const [a, b] = conducao.em_quadra}
-      {@const espera = conducao.fila[0]}
-      <p class="faixa" role="status">
-        {#if tri.etapa === 1}
-          Rodada triangular: os 3 times se enfrentam e só é rei quem vence os outros dois.
-        {:else if tri.etapa === 2}
-          Triângulo: o Time {espera.fila} venceu e espera. Se o Time {b.fila} vencer, enfrenta o Time {espera.fila} na final; se o Time {a.fila} vencer, termina sem rei.
-        {:else}
-          Final do triângulo: o Time {a.fila} vence e é o rei; se perder, termina sem rei.
-        {/if}
-      </p>
-    {/if}
-    {#if semRei}
-      <p class="faixa" role="status">Rodada triangular terminou sem rei. As partidas contam no saldo; encerre a rodada para liberar o próximo sorteio.</p>
-    {/if}
-    {#if fimDaFila && mm && conducao.rodada_triangular}
-      <p class="faixa" role="status">Time {mm.desafiante.fila} venceu os outros dois e é o rei. Coroar o campeão encerra a rodada.</p>
-    {:else if fimDaFila && mm}
-      <p class="faixa" role="status">
-        A fase de fila terminou. {mm.rivais.length
-          ? `Time ${mm.desafiante.fila} abre o mata-mata contra ${mm.rivais.map((t) => `Time ${t.fila}`).join(', depois ')}.`
-          : `Time ${mm.desafiante.fila} abre o mata-mata e, sem reis, já é o campeão.`}
-        Ao iniciar, ninguém mais entra na rodada.
-      </p>
-    {/if}
-    {#if mataMata && mm}
-      <p class="faixa" role="status">Mata-mata: quem ganha fica, quem perde sai. Time {mm.desafiante.fila} em quadra.{mm.rivais.length > 1 ? ` Depois: ${mm.rivais.slice(1).map((t) => `Time ${t.fila}`).join(', ')}.` : ''}</p>
-    {/if}
-    <div class="botoes">
-      {#if conducao.pode_encerrar_sem_campeao}
-        {#if confirmandoSemRei}
-          <p class="ajuda">Encerrar a rodada sem campeão? Não dá para desfazer a última partida depois.</p>
-          <button class="perigo" type="button" onclick={() => { confirmandoSemRei = false; onEncerrarSemCampeao(); }} disabled={ocupado}>Sim, encerrar sem campeão</button>
-          <button class="secundario" type="button" onclick={() => (confirmandoSemRei = false)}>Voltar</button>
-        {:else}
-          <button class="acao-principal" type="button" onclick={() => (confirmandoSemRei = true)} disabled={ocupado}>Encerrar sem campeão</button>
-        {/if}
-      {:else if conducao.pode_iniciar_mata_mata}
-        <button class="acao-principal" type="button" onclick={onIniciarMataMata} disabled={ocupado}>{mm && mm.rivais.length ? 'Iniciar mata-mata' : 'Coroar campeão'}</button>
-      {:else if temPartida}
-        <button class="acao-principal" type="button" onclick={onEncerrar} disabled={ocupado || !conducao.pode_encerrar}>Encerrar partida</button>
+{#snippet blocoEscalacao()}
+{#if conducao.escalacao}
+  {@const esc = conducao.escalacao}
+  <div class="bloco destaque" aria-labelledby="titulo-escalacao">
+    <h3 id="titulo-escalacao">Escolher {esc.faltam > 1 ? `os ${esc.faltam} parceiros` : 'o parceiro'} do Time {esc.time}</h3>
+    <p class="ajuda">
+      {esc.jogadores?.join(' e ') ?? esc.jogador} {esc.jogadores?.length > 1 ? 'estão' : 'está'} {esc.origem === 'atrasado' ? 'chegando no meio da rodada' : 'sem time completo'} e {esc.jogadores?.length > 1 ? 'escolhem' : 'escolhe'} {esc.faltam > 1 ? `${esc.faltam} parceiros` : 'o parceiro'} na vez.
+    </p>
+    {#if erroEscalacao}<p class="erro" role="alert">{erroEscalacao}</p>{/if}
+    {#if esc.ninguem}
+      <p class="ajuda">Ninguém elegível agora: não há jogador eliminado disponível para completar o Time {esc.time}.</p>
+      {#if esc.pode_pular}
+        <button class="secundario" type="button" onclick={onPular} disabled={ocupado}>Pular o Time {esc.time} (vai para o fim da fila)</button>
+      {:else if conducao.rodada_triangular}
+        <p class="ajuda">Na rodada triangular ninguém é eliminado antes da final e a ordem das partidas é fixa: encerre a rodada sem campeão (abaixo) para sortear de novo.</p>
       {:else}
-        <button class="acao-principal" type="button" onclick={onChamar} disabled={ocupado || !conducao.pode_chamar}>Chamar partida</button>
+        <p class="ajuda">Não há outro time para entrar no lugar dele: cancele a rodada se precisar seguir.</p>
       {/if}
-    </div>
-    {#if temPartida && conducao.motivo_encerrar}<p class="ajuda">{conducao.motivo_encerrar}</p>
-    {:else if !temPartida && !fimDaFila && !semRei && conducao.motivo}<p class="ajuda" role="status">{conducao.motivo}</p>{/if}
-    {#if temPartida && conducao.pode_anular}
-      {#if confirmandoAnular}
-        <p class="ajuda">Anular a partida Time {conducao.partida.time_a} × Time {conducao.partida.time_b}? Ela não conta: os dois times voltam a ser a próxima partida e a rodada segue. O placar da quadra não é apagado.</p>
-        <div class="botoes">
-          <button class="perigo" type="button" onclick={() => { confirmandoAnular = false; onAnular(); }} disabled={ocupado}>Sim, anular a partida</button>
-          <button class="secundario" type="button" onclick={() => (confirmandoAnular = false)}>Manter</button>
-        </div>
-      {:else}
-        <div class="botoes">
-          <button class="secundario" type="button" onclick={() => (confirmandoAnular = true)} disabled={ocupado}>Anular partida</button>
-        </div>
-      {/if}
-    {/if}
-  </div>
-
-  {#if conducao.historico.length}
-    <div class="bloco" aria-labelledby="titulo-historico">
-      <h3 id="titulo-historico">Partidas encerradas ({conducao.historico.length})</h3>
-      <ol class="times">
-        {#each conducao.historico as h (h.ordem)}
-          <li>
-            <span class="posicao">{h.ordem}ª</span>
-            <span class="jogadores confronto">
-              <span class="lado" class:vencedor={h.vencedor === h.time_a}>Time {h.time_a}</span>
-              <strong class="resultado"><span class="pt a" class:ganhou={h.vencedor === h.time_a}>{h.placar_a}</span> <span class="x" aria-hidden="true">×</span> <span class="pt b" class:ganhou={h.vencedor === h.time_b}>{h.placar_b}</span></strong>
-              <span class="lado" class:vencedor={h.vencedor === h.time_b}>Time {h.time_b}</span>
-            </span>
-            {#if h.fase === 'mata_mata'}<span class="selo">mata-mata</span>{/if}
-            <span class="selo">Time {h.vencedor} venceu</span>
-          </li>
-        {/each}
-      </ol>
-      {#if podeDesfazer}
-        {#if confirmandoDesfazer}
-          <p class="ajuda">Desfaz a última partida e volta a fila, os reis e as vitórias ao que eram antes dela. Só dá para desfazer uma vez seguida.</p>
-          <div class="botoes">
-            <button class="secundario" type="button" onclick={() => { confirmandoDesfazer = false; onDesfazer(); }} disabled={ocupado}>Sim, desfazer a partida</button>
-            <button class="secundario" type="button" onclick={() => (confirmandoDesfazer = false)}>Manter</button>
-          </div>
-        {:else}
-          <button class="secundario" type="button" onclick={() => (confirmandoDesfazer = true)} disabled={ocupado}>Desfazer última partida</button>
-        {/if}
-      {/if}
-    </div>
-  {/if}
-
-  <div class="bloco" aria-labelledby="titulo-fila">
-    <h3 id="titulo-fila">Fila ({conducao.fila.length})</h3>
-    {#if !conducao.fila.length}
-      <p class="ajuda">Ninguém esperando.</p>
     {:else}
-      <ol class="times">
-        {#each conducao.fila as time, i (time.fila)}
-          <li class:incompleto={time.incompleto}>
-            <span class="posicao">{i + 1}º · Time {time.fila}</span>
-            <span class="jogadores">{descreverTime(time)}</span>
-            {#if time.incompleto}<span class="aviso">Incompleto: escolhe o parceiro na sua vez.</span>{/if}
-          </li>
-        {/each}
-      </ol>
+      {#each esc.grupos as grupo (grupo.rotulo)}
+        <p class="ajuda"><strong>{grupo.rotulo}</strong></p>
+        {#if esc.aviso_hh}<p class="ajuda">Não há alternativa de gênero: o time fechará só de um sexo, por falta de opção.</p>{/if}
+        <ul class="times">
+          {#each grupo.jogadores as j (j.id)}
+            <li>
+              <span class="jogadores">{j.nome} <span class="ajuda">({j.genero === 'H' ? 'Homem' : 'Mulher'} · nota {notaAtual(j)}{ajusteDaNota(j)})</span></span>
+              <button class="secundario" type="button" onclick={() => onEscalar(j.id)} disabled={ocupado} aria-label="Escalar {j.nome} com {esc.jogador}">Escalar</button>
+            </li>
+          {/each}
+        </ul>
+      {/each}
     {/if}
   </div>
+{/if}
+{/snippet}
+
+{#snippet blocoSubstituicao()}
+{#if sub && sub.entram.length}
+  <form class="bloco" onsubmit={substituir} aria-labelledby="titulo-substituir">
+    <h3 id="titulo-substituir">Substituir quem saiu</h3>
+    <p class="ajuda">O time mantém vitórias e posição. Quem sai fica ausente nas próximas rodadas.</p>
+    {#if erroSubstituicao}<p class="erro" role="alert">{erroSubstituicao}</p>{/if}
+    <label for="sub-saiu">Quem saiu</label>
+    <select id="sub-saiu" bind:value={saiu} disabled={ocupado}>
+      <option value="">Escolha…</option>
+      {#each sub.saem as j (j.id)}<option value={j.id}>{j.nome} (Time {j.time})</option>{/each}
+    </select>
+    <label for="sub-entra">Quem entra</label>
+    <select id="sub-entra" bind:value={entra} disabled={ocupado}>
+      <option value="">Escolha…</option>
+      {#each sub.entram as j (j.id)}<option value={j.id}>{j.nome} · {j.genero === 'H' ? 'Homem' : 'Mulher'} · {j.origem === 'aguardando' ? 'aguardando na fila' : 'eliminado'}</option>{/each}
+    </select>
+    <button class="secundario" type="submit" disabled={ocupado || !saiu || !entra}>Substituir</button>
+  </form>
+{/if}
+{/snippet}
+
+{#snippet blocoPartida()}
+<div class="bloco" aria-labelledby="titulo-partida">
+  <h3 id="titulo-partida">{temPartida ? 'Partida em quadra' : mataMata ? 'Próxima partida do mata-mata' : 'Próxima partida'}</h3>
+  {#if conducao.em_quadra.length === 2}
+    <p class="confronto" role="status">
+      <strong>Time {conducao.em_quadra[0].fila}</strong> × <strong>Time {conducao.em_quadra[1].fila}</strong>
+      {#if temPartida}<span class="selo">chamada</span>{/if}
+    </p>
+    <ul class="times">
+      {#each conducao.em_quadra as time (time.fila)}
+        <li class:incompleto={time.incompleto}>
+          <span class="posicao">Time {time.fila}</span>
+          <span class="jogadores">{descreverTime(time)}</span>
+          {#if time.vitorias > 0}<span class="selo" title="{time.vitorias} {time.vitorias === 1 ? 'vitória seguida' : 'vitórias seguidas'}"><span aria-hidden="true">{time.vitorias}V</span><span class="sr-only">{time.vitorias} {time.vitorias === 1 ? 'vitória seguida' : 'vitórias seguidas'}</span></span>{/if}
+          {#if time.incompleto}<span class="aviso">Incompleto: escolhe o parceiro na sua vez.</span>{/if}
+        </li>
+      {/each}
+    </ul>
+  {/if}
+  {#if temPartida && placar}
+    <p class="placar" role="status">
+      Placar: <strong>{placar.a} × {placar.b}</strong>
+      {#if placar.encerrada}<span class="selo">terminou — Time {placar.vencedor === 'A' ? conducao.partida.time_a : conducao.partida.time_b} venceu</span>{:else}<span class="selo">em jogo</span>{/if}
+    </p>
+  {/if}
+  {#if tri && conducao.em_quadra.length === 2}
+    {@const [a, b] = conducao.em_quadra}
+    {@const espera = conducao.fila[0]}
+    <p class="faixa" role="status">
+      {#if tri.etapa === 1}
+        Rodada triangular: os 3 times se enfrentam e só é rei quem vence os outros dois.
+      {:else if tri.etapa === 2}
+        Triângulo: o Time {espera.fila} venceu e espera. Se o Time {b.fila} vencer, enfrenta o Time {espera.fila} na final; se o Time {a.fila} vencer, termina sem rei.
+      {:else}
+        Final do triângulo: o Time {a.fila} vence e é o rei; se perder, termina sem rei.
+      {/if}
+    </p>
+  {/if}
+  {#if semRei}
+    <p class="faixa" role="status">Rodada triangular terminou sem rei. As partidas contam no saldo; encerre a rodada para liberar o próximo sorteio.</p>
+  {/if}
+  {#if fimDaFila && mm && conducao.rodada_triangular}
+    <p class="faixa" role="status">Time {mm.desafiante.fila} venceu os outros dois e é o rei. Coroar o campeão encerra a rodada.</p>
+  {:else if fimDaFila && mm}
+    <p class="faixa" role="status">
+      A fase de fila terminou. {mm.rivais.length
+        ? `Time ${mm.desafiante.fila} abre o mata-mata contra ${mm.rivais.map((t) => `Time ${t.fila}`).join(', depois ')}.`
+        : `Time ${mm.desafiante.fila} abre o mata-mata e, sem reis, já é o campeão.`}
+      Ao iniciar, ninguém mais entra na rodada.
+    </p>
+  {/if}
+  {#if mataMata && mm}
+    <p class="faixa" role="status">Mata-mata: quem ganha fica, quem perde sai. Time {mm.desafiante.fila} em quadra.{mm.rivais.length > 1 ? ` Depois: ${mm.rivais.slice(1).map((t) => `Time ${t.fila}`).join(', ')}.` : ''}</p>
+  {/if}
+  <div class="botoes">
+    {#if conducao.pode_encerrar_sem_campeao}
+      {#if confirmandoSemRei}
+        <p class="ajuda">Encerrar a rodada sem campeão? Não dá para desfazer a última partida depois.</p>
+        <button class="perigo" type="button" onclick={() => { confirmandoSemRei = false; onEncerrarSemCampeao(); }} disabled={ocupado}>Sim, encerrar sem campeão</button>
+        <button class="secundario" type="button" onclick={() => (confirmandoSemRei = false)}>Voltar</button>
+      {:else}
+        <button class="acao-principal" type="button" onclick={() => (confirmandoSemRei = true)} disabled={ocupado}>Encerrar sem campeão</button>
+      {/if}
+    {:else if conducao.pode_iniciar_mata_mata}
+      <button class="acao-principal" type="button" onclick={onIniciarMataMata} disabled={ocupado}>{mm && mm.rivais.length ? 'Iniciar mata-mata' : 'Coroar campeão'}</button>
+    {:else if temPartida}
+      <button class="acao-principal" type="button" onclick={onEncerrar} disabled={ocupado || !conducao.pode_encerrar}>Encerrar partida</button>
+    {:else}
+      <button class="acao-principal" type="button" onclick={onChamar} disabled={ocupado || !conducao.pode_chamar}>Chamar partida</button>
+    {/if}
+  </div>
+  {#if temPartida && conducao.motivo_encerrar}<p class="ajuda">{conducao.motivo_encerrar}</p>
+  {:else if !temPartida && !fimDaFila && !semRei && conducao.motivo}<p class="ajuda" role="status">{conducao.motivo}</p>{/if}
+  {#if temPartida && conducao.pode_anular}
+    {#if confirmandoAnular}
+      <p class="ajuda">Anular a partida Time {conducao.partida.time_a} × Time {conducao.partida.time_b}? Ela não conta: os dois times voltam a ser a próxima partida e a rodada segue. O placar da quadra não é apagado.</p>
+      <div class="botoes">
+        <button class="perigo" type="button" onclick={() => { confirmandoAnular = false; onAnular(); }} disabled={ocupado}>Sim, anular a partida</button>
+        <button class="secundario" type="button" onclick={() => (confirmandoAnular = false)}>Manter</button>
+      </div>
+    {:else}
+      <div class="botoes">
+        <button class="secundario" type="button" onclick={() => (confirmandoAnular = true)} disabled={ocupado}>Anular partida</button>
+      </div>
+    {/if}
+  {/if}
+</div>
+{/snippet}
+
+{#snippet blocoHistorico()}
+{#if conducao.historico.length}
+  <div class="bloco" aria-labelledby="titulo-historico">
+    <h3 id="titulo-historico">Partidas encerradas ({conducao.historico.length})</h3>
+    <ol class="times">
+      {#each conducao.historico as h (h.ordem)}
+        <li>
+          <span class="posicao">{h.ordem}ª</span>
+          <span class="jogadores confronto">
+            <span class="lado" class:vencedor={h.vencedor === h.time_a}>Time {h.time_a}</span>
+            <strong class="resultado"><span class="pt a" class:ganhou={h.vencedor === h.time_a}>{h.placar_a}</span> <span class="x" aria-hidden="true">×</span> <span class="pt b" class:ganhou={h.vencedor === h.time_b}>{h.placar_b}</span></strong>
+            <span class="lado" class:vencedor={h.vencedor === h.time_b}>Time {h.time_b}</span>
+          </span>
+          {#if h.fase === 'mata_mata'}<span class="selo">mata-mata</span>{/if}
+          <span class="selo">Time {h.vencedor} venceu</span>
+        </li>
+      {/each}
+    </ol>
+    {#if podeDesfazer}
+      {#if confirmandoDesfazer}
+        <p class="ajuda">Desfaz a última partida e volta a fila, os reis e as vitórias ao que eram antes dela. Só dá para desfazer uma vez seguida.</p>
+        <div class="botoes">
+          <button class="secundario" type="button" onclick={() => { confirmandoDesfazer = false; onDesfazer(); }} disabled={ocupado}>Sim, desfazer a partida</button>
+          <button class="secundario" type="button" onclick={() => (confirmandoDesfazer = false)}>Manter</button>
+        </div>
+      {:else}
+        <button class="secundario" type="button" onclick={() => (confirmandoDesfazer = true)} disabled={ocupado}>Desfazer última partida</button>
+      {/if}
+    {/if}
+  </div>
+{/if}
+{/snippet}
+
+{#snippet blocoFila()}
+<div class="bloco" aria-labelledby="titulo-fila">
+  <h3 id="titulo-fila">Fila ({conducao.fila.length})</h3>
+  {#if !conducao.fila.length}
+    <p class="ajuda">Ninguém esperando.</p>
+  {:else}
+    <ol class="times">
+      {#each conducao.fila as time, i (time.fila)}
+        <li class:incompleto={time.incompleto}>
+          <span class="posicao">{i + 1}º · Time {time.fila}</span>
+          <span class="jogadores">{descreverTime(time)}</span>
+          {#if time.incompleto}<span class="aviso">Incompleto: escolhe o parceiro na sua vez.</span>{/if}
+        </li>
+      {/each}
+    </ol>
+  {/if}
+</div>
+{/snippet}
+
+<section class="conducao" aria-labelledby="titulo-conducao">
+  <!-- Com a quadra vinculada, a partida vem primeiro: é o que se acompanha
+       durante o jogo. Sem quadra, o vínculo fica no topo. -->
+  {#if quadra}
+    {@render blocoPartida()}
+    <h2 id="titulo-conducao">Rodada {rodada.numero} <span class="alvo">· alvo {rodada.alvo}</span></h2>
+    {@render blocoQuadra()}
+    {@render blocoEscalacao()}
+    {@render blocoFila()}
+    {@render blocoSubstituicao()}
+    {@render blocoHistorico()}
+  {:else}
+    <h2 id="titulo-conducao">Rodada {rodada.numero} <span class="alvo">· alvo {rodada.alvo}</span></h2>
+    {@render blocoQuadra()}
+    {@render blocoEscalacao()}
+    {@render blocoSubstituicao()}
+    {@render blocoPartida()}
+    {@render blocoHistorico()}
+    {@render blocoFila()}
+  {/if}
 
   <div class="bloco" aria-labelledby="titulo-reis">
     <h3 id="titulo-reis">Reis ({conducao.reis.length})</h3>
