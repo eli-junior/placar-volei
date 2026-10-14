@@ -3,14 +3,21 @@
 Elo adaptado à escala 1-100. A cada partida encerrada cada jogador ajusta a
 própria nota (`jogadores.nota`) e o ajuste efetivo fica em `ajustes_nota`, por
 partida, para o "Desfazer a última partida" reverter. As funções de cálculo são
-puras; `aplicar_partida` e `reverter_partida` falam com o banco.
+puras; `aplicar_partida`, `reverter_partida` e `resetar_notas` falam com o banco.
+
+Linha de comando (reset das notas de todos os jogadores):
+
+    python -m app.nota_viva resetar --confirmar
 """
 
+import argparse
 import math
+import sys
 
 K = 4
 ESCALA = 30
 NOTA_MINIMA, NOTA_MAXIMA = 1, 100
+NOTA_PADRAO = 60
 
 
 def limitar(nota: float) -> int:
@@ -110,3 +117,53 @@ def reverter_partida(conn, partida_id: str, agora: str) -> None:
                 (NOTA_MAXIMA, NOTA_MINIMA, r["delta"], agora, r["jogador_id"]),
             )
     conn.execute("DELETE FROM ajustes_nota WHERE partida_id = ?", (partida_id,))
+
+
+class RodadaAtiva(Exception):
+    """Há rodada em proposta ou em andamento: o reset embaralharia o painel."""
+
+
+def resetar_notas(conn, agora: str) -> int:
+    """Põe a nota de todos os jogadores em `NOTA_PADRAO` e apaga os ajustes da
+    nota viva (o "Desfazer a última partida" não tem mais o que reverter).
+    Recusa com rodada ativa. Devolve quantos jogadores mudaram de nota."""
+    if conn.execute(
+        "SELECT 1 FROM rodadas WHERE estado IN ('proposta', 'em_andamento') LIMIT 1"
+    ).fetchone():
+        raise RodadaAtiva("há rodada em proposta ou em andamento; encerre-a antes")
+    mudaram = conn.execute(
+        "UPDATE jogadores SET nota = ?, atualizado_em = ? WHERE nota != ?",
+        (NOTA_PADRAO, agora, NOTA_PADRAO),
+    ).rowcount
+    conn.execute("DELETE FROM ajustes_nota")
+    return mudaram
+
+
+def _principal(argv: list[str] | None = None) -> int:
+    from app import gerenciador_db
+    from app.config import settings
+
+    parser = argparse.ArgumentParser(prog="python -m app.nota_viva")
+    sub = parser.add_subparsers(dest="comando", required=True)
+    resetar = sub.add_parser(
+        "resetar", help=f"põe a nota de todos os jogadores em {NOTA_PADRAO}"
+    )
+    resetar.add_argument("--confirmar", action="store_true", required=True)
+    parser.parse_args(argv)
+
+    gerenciador_db.init_gerenciador_sync()
+    conn = gerenciador_db.conectar(settings.gerenciador_db_path)
+    try:
+        with gerenciador_db.escrita(conn):
+            mudaram = resetar_notas(conn, gerenciador_db.agora())
+    except RodadaAtiva as e:
+        print(f"Erro: {e}", file=sys.stderr)
+        return 1
+    finally:
+        conn.close()
+    print(f"{mudaram} jogador(es) voltaram para a nota {NOTA_PADRAO}.")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(_principal())

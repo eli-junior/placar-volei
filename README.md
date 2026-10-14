@@ -61,3 +61,5 @@ cd web && npm ci && npm test && npm run check && npm run build && cd ..
 uv run pytest && uv run ruff check app tests
 cd web && npm run test:e2e   # Playwright + axe; na primeira vez: npx playwright install chromium
 ```
+
+Ou, pelo `Makefile`: `make verify` (tudo isso), `make dev`, `make up`, `make logs`; `make` lista todos os alvos.
