@@ -6,9 +6,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** Maintenance (CV8, revisão da RN-06) — atrasados formam times entre si no fim das partidas sorteadas, com o mesmo equilíbrio do sorteio; quem sobrar (ímpar) completa o time com um eliminado, pela lista de escalação. Alvo 0.53.0.
 - **Branch:** `feature/atrasados-formam-times`
-- **Passo Ariad:** Passo 2 - Planejamento
+- **Passo Ariad:** Passo 4 - Teste e Validação
 - **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: desktop | Data: 2026-10-14
-- **Handoff / Próximos Passos:** plano apresentado ao Navigator (Checkpoint 1); nada implementado.
+- **Handoff / Próximos Passos:** plano aprovado (com a troca do texto do painel). `app/atrasados.agrupar` roda depois de toda operação da rodada (`_rodada_op`) e do encerramento da partida (`ponte`); forma os times quando o primeiro atrasado esperando está a no máximo 1 time da quadra (`FOLGA`). Textos novos em `PainelConducao.svelte` (fila) e `Sessao.svelte`. Testes: pytest 660, web 200, e2e 100. Falta a validação do Navigator; versão (0.53.0) e `versionCode` definidos no merge, conforme a ordem dos fixes abertos; RN-06 e registro de decisão na documentação.
 
 ## 0.52.0 - 2026-10-14
 

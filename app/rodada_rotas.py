@@ -26,6 +26,8 @@ def _rodada_op(acao):
     def op(conn):
         with escrita(conn):
             acao(conn)
+            # Atrasados formam times quando a vez deles chega (RN-06).
+            regras_atrasados.agrupar(conn)
         return _estado(conn)
 
     return _executar(op)

@@ -278,7 +278,8 @@
           <li class:incompleto={time.incompleto}>
             <span class="posicao">{i + 1}º · Time {time.fila}</span>
             <span class="jogadores">{descreverTime(time)}</span>
-            {#if time.incompleto}<span class="aviso">Incompleto: escolhe o parceiro na sua vez.</span>{/if}
+            {#if time.incompleto && time.origem === 'atrasado'}<span class="aviso">Atrasado: forma time com os outros atrasados quando a vez deles chegar; se sobrar, escolhe um eliminado.</span>
+            {:else if time.incompleto}<span class="aviso">Incompleto: escolhe o parceiro na sua vez.</span>{/if}
           </li>
         {/each}
       </ol>
