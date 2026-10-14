@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo:** Maintenance (CV8, revisão da RN-06) — atrasados formam times entre si no fim das partidas sorteadas, com o mesmo equilíbrio do sorteio; quem sobrar (ímpar) completa o time com um eliminado, pela lista de escalação. Alvo 0.53.0.
+- **Branch:** `feature/atrasados-formam-times`
+- **Passo Ariad:** Passo 2 - Planejamento
+- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: desktop | Data: 2026-10-14
+- **Handoff / Próximos Passos:** plano apresentado ao Navigator (Checkpoint 1); nada implementado.
+
 ## 0.52.0 - 2026-10-14
 
 Boundary: Maintenance — `Makefile` com os atalhos do projeto e reset das notas dos jogadores (minor; backend, web e APK em 0.52.0, APK `versionCode` 39; só o backend ganha comportamento novo; Wear OS inalterado em 0.27.0).
