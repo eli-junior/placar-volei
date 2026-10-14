@@ -4,6 +4,23 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.52.0 - 2026-10-14
+
+Boundary: Maintenance — `Makefile` com os atalhos do projeto e reset das notas dos jogadores (minor; backend, web e APK em 0.52.0, APK `versionCode` 39; só o backend ganha comportamento novo; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) — Agente: Claude Opus 5.5 (Driver) | Sessão: desktop | Data: 2026-10-14
+
+Git source: merge `--no-ff` de `chore/makefile` em `master`.
+
+### Added
+
+- **`Makefile`:** `make` lista os alvos. Local: `install`, `dev`, `web-dev`, `web-build`, `test`, `test-py`, `test-web`, `check`, `lint`, `format`, `e2e`, `e2e-setup`, `verify` (a ordem do CI), `fixtures`, `apk`. Contêiner: `up`, `down`, `restart`, `recreate`, `build`, `logs`, `ps`, `shell`, `health`, `backup`, `backup-listar`, `restaurar ARQUIVO=...`. Sem alvo para `down -v`, de propósito.
+- **Reset das notas:** `make resetar-notas` (confirmação e backup antes) ou `python -m app.nota_viva resetar --confirmar` põe a nota de todos os jogadores em 60 e apaga `ajustes_nota`; recusa com rodada em proposta ou em andamento. As notas guardadas nos times das rodadas passadas não mudam.
+
+### Verification
+
+- `uv run pytest`: 654 passam e 2 falham em `tests/test_blindagem_e_confiabilidade.py`, falha anterior a esta versão (o snapshot da quadra ganhou `em_joguinho` na 0.49.1 e o teste não foi atualizado). `ruff check` e `ruff format --check` limpos; `npm run check` e `npm test` verdes. Alvos do contêiner conferidos com `make -n`; o reset no contêiner real ainda não foi validado pelo Navigator. Merge autorizado pelo Navigator em 2026-10-14.
+
 ## 0.51.1 - 2026-10-10
 
 Boundary: fix — "Abrir o placar" só aparece com a partida chamada (patch; backend, web e APK em 0.51.1, APK `versionCode` 38; só a web muda de comportamento; Wear OS inalterado em 0.27.0).
