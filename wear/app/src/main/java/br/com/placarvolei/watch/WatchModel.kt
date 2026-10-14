@@ -284,6 +284,9 @@ class WatchModel(app: Application) : AndroidViewModel(app), PlacarFonte {
                 invalid = false
                 notice = null
                 message = "No telefone: Relógio → digite este código. Válido por 5 minutos."
+                // Vínculo que caiu (unlink) parou a sessão: sem ela, ninguém
+                // consulta o servidor e a aprovação no telefone passa despercebida.
+                startSession()
             }
         } catch (e: CancellationException) {
             throw e
