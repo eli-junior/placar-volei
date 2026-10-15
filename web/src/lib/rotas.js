@@ -5,7 +5,7 @@
  */
 
 /**
- * @typedef {{ tela: 'inicio' | 'quadra' | 'joguinho' | 'jogadores' | 'nao_encontrada', quadraId?: string, canonico?: string }} Rota
+ * @typedef {{ tela: 'inicio' | 'quadra' | 'joguinho' | 'resenha' | 'jogadores' | 'nao_encontrada', quadraId?: string, canonico?: string }} Rota
  */
 
 /**
@@ -21,6 +21,7 @@ export function resolverRota(caminho, { apk = false } = {}) {
   if (apk) return { tela: 'nao_encontrada' };
   if (limpo === '/jogadores') return { tela: 'jogadores' };
   if (limpo === '/joguinho') return { tela: 'joguinho' };
+  if (limpo === '/joguinho/resenha') return { tela: 'resenha' };
   // Endereço antigo da tela do Joguinho: segue valendo, mas o canônico é /joguinho.
   if (limpo === '/sessao') return { tela: 'joguinho', canonico: '/joguinho' };
   return { tela: 'nao_encontrada' };

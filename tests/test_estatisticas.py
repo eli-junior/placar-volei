@@ -4,7 +4,7 @@
 import pytest
 from httpx import ASGITransport, AsyncClient
 
-from app.estatisticas import Jogador, Partida, calcular
+from app.estatisticas import Jogador, Partida, calcular, nomes_curtos
 from app.main import app
 from tests.test_encerramento import Jogo, ac, base, placar  # noqa: F401
 
@@ -84,7 +84,7 @@ def test_sem_lavada_nao_tem_pneu_e_sem_aperto_nao_tem_infarto():
 def test_muralha_e_peneira_pela_media_sofrida():
     r = premios(calcular(dia(), JOGADORES))
     assert r["muralha"]["jogadores"] == ["a", "b"]
-    assert r["muralha"]["texto"] == "só 6.7 pontos sofridos por jogo"
+    assert r["muralha"]["texto"] == "só 6,7 pontos sofridos por jogo"
     # Fabi sofreu 12 e 10 (11.0); Caio, 42 em 4 jogos (10.5)
     assert r["peneira"]["jogadores"] == ["f"]
 
@@ -149,6 +149,23 @@ def test_sessao_vazia_nao_quebra():
     assert resultado["premios"] == [] and resultado["tabela"] == []
 
 
+def test_nomes_curtos_so_desambiguam_quem_precisa():
+    curtos = nomes_curtos(
+        {
+            "1": "Bruno Silva",
+            "2": "Bruno Souza",
+            "3": "Ana Lima",
+            "4": "Caio Melo",
+            "5": "Caio Mota",
+            "6": "Caio Melo Mota",
+        }
+    )
+    assert curtos["3"] == "Ana"
+    assert curtos["1"] == "Bruno S." or curtos["1"] == "Bruno Silva"
+    assert curtos["1"] != curtos["2"]
+    assert len(set(curtos.values())) == 6
+
+
 # --- integração --------------------------------------------------------------
 
 
@@ -178,6 +195,8 @@ async def test_resenha_da_sessao_com_partidas(ac, placar):
     assert {"rei", "carrasco", "pneu", "madrugador"} <= ids
     assert all(t["jogador"] in dados["jogadores"] for t in dados["tabela"])
     assert len(dados["galeria"]) == 8
+    um = next(iter(dados["jogadores"].values()))
+    assert um["nome"] == um["nome_completo"].split()[0]  # JogA Teste vira JogA
 
 
 @pytest.mark.asyncio

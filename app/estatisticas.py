@@ -95,6 +95,11 @@ def _plural(n: int, singular: str, plural: str) -> str:
     return f"{n} {singular if n == 1 else plural}"
 
 
+def _decimal(x: float) -> str:
+    """Uma casa, com vírgula: 6,5."""
+    return f"{x:.1f}".replace(".", ",")
+
+
 def _empatados(itens, chave):
     """Todos os itens com o melhor valor de `chave` (maior é melhor)."""
     if not itens:
@@ -259,7 +264,7 @@ def _premios(
                     "muralha",
                     "🧱",
                     "Muralha",
-                    f"só {lin(muralhas[0]).media_contra:.1f} pontos sofridos por jogo",
+                    f"só {_decimal(lin(muralhas[0]).media_contra)} pontos sofridos por jogo",
                     "positivo",
                     nomes(muralhas),
                 )
@@ -269,7 +274,7 @@ def _premios(
                     "peneira",
                     "🕳️",
                     "Peneira",
-                    f"{lin(peneiras[0]).media_contra:.1f} pontos sofridos por jogo",
+                    f"{_decimal(lin(peneiras[0]).media_contra)} pontos sofridos por jogo",
                     "negativo",
                     nomes(peneiras),
                 )
@@ -639,6 +644,25 @@ def _segundos(inicio: str | None, fim: str | None) -> int | None:
         return None
 
 
+def nomes_curtos(nomes: dict[str, str]) -> dict[str, str]:
+    """Primeiro nome, que cabe no print; quem divide o primeiro nome com outro
+    jogador do dia ganha a inicial do sobrenome, e, se ainda empatar, o nome todo."""
+    primeiro = {j: n.split()[0] for j, n in nomes.items()}
+    com_inicial = {
+        j: f"{primeiro[j]} {n.split()[-1][0]}." if len(n.split()) > 1 else n
+        for j, n in nomes.items()
+    }
+    curtos = {}
+    for j, n in nomes.items():
+        if list(primeiro.values()).count(primeiro[j]) == 1:
+            curtos[j] = primeiro[j]
+        elif list(com_inicial.values()).count(com_inicial[j]) == 1:
+            curtos[j] = com_inicial[j]
+        else:
+            curtos[j] = n
+    return curtos
+
+
 def _sessao_da_resenha(conn):
     return conn.execute(
         "SELECT * FROM sessoes ORDER BY encerrada_em IS NOT NULL, aberta_em DESC LIMIT 1"
@@ -689,8 +713,8 @@ def carregar(conn) -> dict:
     if sessao is None:
         return {"sessao": None}
     sid = sessao["id"]
-    jogadores = {
-        r["id"]: Jogador(r["id"], r["nome"], r["genero"], bool(r["tem_foto"]))
+    cadastro = {
+        r["id"]: r
         for r in conn.execute(
             "SELECT j.id, j.nome, j.genero, EXISTS(SELECT 1 FROM jogador_fotos f "
             "WHERE f.jogador_id = j.id) AS tem_foto FROM jogadores j"
@@ -740,6 +764,14 @@ def carregar(conn) -> dict:
         "('em_andamento', 'encerrada', 'cancelada')",
         (sid,),
     ).fetchone()[0]
+    do_dia = {*presentes, *(j for p in partidas for j in (*p.lado_a, *p.lado_b))}
+    curtos = nomes_curtos({j: cadastro[j]["nome"] for j in do_dia if j in cadastro})
+    jogadores = {
+        jid: Jogador(
+            jid, curto, cadastro[jid]["genero"], bool(cadastro[jid]["tem_foto"])
+        )
+        for jid, curto in curtos.items()
+    }
     resultado = calcular(
         partidas,
         jogadores,
@@ -766,6 +798,7 @@ def carregar(conn) -> dict:
             jid: {
                 "id": j.id,
                 "nome": j.nome,
+                "nome_completo": cadastro[jid]["nome"],
                 "genero": j.genero,
                 "tem_foto": j.tem_foto,
             }
