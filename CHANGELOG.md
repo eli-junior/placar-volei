@@ -4,11 +4,27 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-- **História / Escopo:** CV8.DS9.US25 — Resenha do Joguinho: página de estatísticas, prêmios (com zoeira) e galeria de títulos por jogador da última sessão, feita para print e compartilhamento no WhatsApp.
-- **Branch:** `claude/team-play-order-balance-3c03os` (igual à `master` 0.54.1 no início).
-- **Passo Ariad:** Passo 6 - Documentação (Checkpoints 2 e 3 liberados pelo Navigator em 2026-10-15: "pode seguir pra revisão e documentação"); próximo: Checkpoint 4 (merge).
-- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
-- **Handoff / Próximos Passos:** implementado e documentado (DS9/US25, RN-19, decisão `2026-10-15T1800Z-resenha-do-joguinho`, débito `imagens-da-resenha-dependem-do-navegador`, versão 0.55.0, APK `versionCode` 43). Falta: aceite do merge no Checkpoint 4 e mover esta entrada para `## 0.55.0`.
+## 0.55.0 - 2026-10-15
+
+Boundary: User Story CV8.DS9.US25 — Resenha do Joguinho (minor; backend, web e APK em 0.55.0, APK `versionCode` 43; a Resenha é só da web, fora do APK; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) — Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
+
+Git source: merge `--no-ff` de `claude/team-play-order-balance-3c03os` em `master`.
+
+### Added
+
+- **Resenha do Joguinho** (`/joguinho/resenha`, botão **Resenha** no Joguinho): estatísticas da sessão aberta ou da última encerrada em cartões 4:5 — capa com o Rei/Rainha do dia, prêmios com zoeira (Imparável, Dupla de ouro, Rolo compressor, Muralha, Foguete, Carrasco, Pneu do dia, Pé-frio, Ladeira abaixo, Peneira, Freguês, Circuit breaker, Turista, Jogo de infarto, Maratona, Madrugador), galeria com a foto e um título de cada jogador, campeões das rodadas e a tabela. Primeiro nome no texto, com a inicial do sobrenome só quando dois jogadores do dia dividem o nome.
+- **Imagens para o grupo:** "Baixar N imagens" (PNG 1080 × 1350 por cartão) e "Mandar no grupo" (compartilhar do sistema, quando o aparelho suporta), gerados no navegador com `html-to-image` 1.11.11.
+- **API:** `GET /api/sessao/estatisticas`, só para o dono.
+
+### Decision
+
+- RN-19 (critérios dos prêmios e dos títulos) e o registro `resenha-do-joguinho` (só dados do `gerenciador.db`, só o dono vê, imagem gerada no navegador). Débito novo: `imagens-da-resenha-dependem-do-navegador`.
+
+### Verification
+
+- `uv run pytest` (689, com 17 em `tests/test_estatisticas.py`), `ruff check` e `ruff format --check` limpos, `npm test` (207), `npm run check` limpo, e2e (102, com `resenha.spec.js`: cartões 4:5, axe e download de 4 PNGs de 1080 × 1350). Tela aprovada e merge autorizado pelo Navigator em 2026-10-15; o compartilhar num Android físico não foi observado.
 
 ## 0.54.1 - 2026-10-15
 
