@@ -12,4 +12,10 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(BarrasDoSistemaPlugin.class);
         super.onCreate(savedInstanceState);
     }
+
+    @Override
+    public void onWindowFocusChanged(boolean temFoco) {
+        super.onWindowFocusChanged(temFoco);
+        if (temFoco) BarrasDoSistemaPlugin.reaplicarSeEscondidas(this);
+    }
 }

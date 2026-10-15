@@ -10,7 +10,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 - **Branch:** `feature/placar-tela-cheia-tablet`
 - **Passo Ariad:** Passo 4 - Teste e Validação (aguardando Checkpoint 2)
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 2f171989-35bc-4cda-a642-a6f3e84acde2 | Data: 2026-10-15
-- **Handoff / Próximos Passos:** implementado (plugin nativo `BarrasDoSistema`, rodapé flutuante com dica que some, número maior). A quadra online é a página do servidor no WebView: validar no tablet exige o Mini PC rodando esta branch. Depois: Passo 5 (revisão), versão 0.56.0 (`versionCode` 44) e docs. Antes: o tablet foi limpo de apps não usados e recebeu o APK release 0.55.0 (versionCode 43) via MCP `dispositivos`.
+- **Handoff / Próximos Passos:** em validação no tablet SM-P620 (APK release 0.55.0 instalado com o plugin; falta o Mini PC rodar esta branch para a quadra online trazer o código novo). Feito: plugin `BarrasDoSistema` (fila, reaplica ao ganhar foco, logs), rodapé flutuante, número maior só com `text-box` (e2e mede 5 telas), `Cache-Control: no-cache` no `index.html`. Pendente: confirmar no tablet que as barras somem (se não, ler `logcat` por `BarrasDoSistema`/`[barras]`), depois Passo 5, versão 0.56.0 (`versionCode` 44) e docs.
 
 ## 0.55.0 - 2026-10-15
 

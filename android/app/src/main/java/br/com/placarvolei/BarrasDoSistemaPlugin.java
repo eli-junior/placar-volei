@@ -1,5 +1,6 @@
 package br.com.placarvolei;
 
+import android.util.Log;
 import android.view.Window;
 
 import androidx.core.view.WindowCompat;
@@ -19,22 +20,35 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  */
 @CapacitorPlugin(name = "BarrasDoSistema")
 public class BarrasDoSistemaPlugin extends Plugin {
+    private static final String TAG = "BarrasDoSistema";
+
+    /** O que o JS pediu por último; a atividade reaplica quando a janela volta a ter foco. */
+    private static volatile boolean escondidas = false;
+
+    /** O Android desfaz o modo imersivo ao perder o foco (painel de notificações, troca de app). */
+    static void reaplicarSeEscondidas(android.app.Activity atividade) {
+        if (escondidas) aplicar(atividade, true);
+    }
 
     @PluginMethod
     public void esconder(PluginCall call) {
-        aplicar(true);
+        Log.d(TAG, "esconder");
+        escondidas = true;
+        aplicar(getActivity(), true);
         call.resolve();
     }
 
     @PluginMethod
     public void mostrar(PluginCall call) {
-        aplicar(false);
+        Log.d(TAG, "mostrar");
+        escondidas = false;
+        aplicar(getActivity(), false);
         call.resolve();
     }
 
-    private void aplicar(boolean esconder) {
-        getActivity().runOnUiThread(() -> {
-            Window janela = getActivity().getWindow();
+    private static void aplicar(android.app.Activity atividade, boolean esconder) {
+        atividade.runOnUiThread(() -> {
+            Window janela = atividade.getWindow();
             WindowCompat.setDecorFitsSystemWindows(janela, !esconder);
             WindowInsetsControllerCompat controle = WindowCompat.getInsetsController(janela, janela.getDecorView());
             if (esconder) {
