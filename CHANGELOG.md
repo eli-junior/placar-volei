@@ -4,6 +4,12 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+- **História / Escopo:** Resenha do Joguinho — página de estatísticas e prêmios da sessão, feita para print e compartilhamento no WhatsApp (nível a confirmar no Checkpoint 1).
+- **Branch:** `claude/team-play-order-balance-3c03os` (igual à `master` 0.54.1 no início).
+- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1).
+- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
+- **Handoff / Próximos Passos:** plano apresentado ao Navigator; nenhum código escrito. Dados só do `gerenciador.db` (os eventos ponto a ponto das quadras expiram).
+
 ## 0.54.1 - 2026-10-15
 
 Boundary: Maintenance — sortear rola a tela para o topo (patch; backend, web e APK em 0.54.1, APK `versionCode` 42; só a web muda; Wear OS inalterado em 0.27.0).
