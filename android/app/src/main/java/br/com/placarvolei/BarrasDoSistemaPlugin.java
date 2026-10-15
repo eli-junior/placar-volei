@@ -26,27 +26,30 @@ public class BarrasDoSistemaPlugin extends Plugin {
     private static volatile boolean escondidas = false;
 
     /** O Android desfaz o modo imersivo ao perder o foco (painel de notificações, troca de app). */
+    /** Chamado pela ponte própria (página do servidor) e pelo plugin: guarda o pedido e aplica. */
+    static void pedir(android.app.Activity atividade, boolean esconder) {
+        Log.d(TAG, esconder ? "esconder" : "mostrar");
+        escondidas = esconder;
+        aplicar(atividade, esconder);
+    }
+
     static void reaplicarSeEscondidas(android.app.Activity atividade) {
         if (escondidas) aplicar(atividade, true);
     }
 
     @PluginMethod
     public void esconder(PluginCall call) {
-        Log.d(TAG, "esconder");
-        escondidas = true;
-        aplicar(getActivity(), true);
+        pedir(getActivity(), true);
         call.resolve();
     }
 
     @PluginMethod
     public void mostrar(PluginCall call) {
-        Log.d(TAG, "mostrar");
-        escondidas = false;
-        aplicar(getActivity(), false);
+        pedir(getActivity(), false);
         call.resolve();
     }
 
-    private static void aplicar(android.app.Activity atividade, boolean esconder) {
+    static void aplicar(android.app.Activity atividade, boolean esconder) {
         atividade.runOnUiThread(() -> {
             Window janela = atividade.getWindow();
             WindowCompat.setDecorFitsSystemWindows(janela, !esconder);

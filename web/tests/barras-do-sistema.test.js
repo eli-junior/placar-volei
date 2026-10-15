@@ -13,6 +13,20 @@ test('fora do APK esconder as barras é no-op', async () => {
   assert.equal(await definirBarrasEscondidas(false), false);
 });
 
+test('com a ponte própria do APK, esconder e mostrar chegam ao nativo em ordem', async () => {
+  const chamadas = [];
+  globalThis.window = { PlacarBarras: { esconder: () => chamadas.push('esconder'), mostrar: () => chamadas.push('mostrar') } };
+  try {
+    const a = definirBarrasEscondidas(true);
+    const b = definirBarrasEscondidas(false);
+    const c = definirBarrasEscondidas(true);
+    assert.deepEqual(await Promise.all([a, b, c]), [true, true, true]);
+    assert.deepEqual(chamadas, ['esconder', 'mostrar', 'esconder']);
+  } finally {
+    delete globalThis.window;
+  }
+});
+
 test('a sala esconde as barras só no modo de exibição e as devolve ao sair', () => {
   assert.match(sala, /if \(podeControlar\) return;\s*definirBarrasEscondidas\(true\);\s*return \(\) => \{ definirBarrasEscondidas\(false\); \};/);
 });
@@ -21,6 +35,7 @@ test('o plugin nativo está registrado e usa o modo imersivo por deslize', () =>
   assert.match(atividade, /registerPlugin\(BarrasDoSistemaPlugin\.class\)/);
   assert.match(plugin, /@CapacitorPlugin\(name = "BarrasDoSistema"\)/);
   assert.match(plugin, /BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE/);
+  assert.match(atividade, /addJavascriptInterface\(new PonteBarras\(\), "PlacarBarras"\)/);
 });
 
 test('na exibição o rodapé flutua sobre o placar e a dica some sozinha', () => {

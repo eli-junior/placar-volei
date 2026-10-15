@@ -1,7 +1,8 @@
 // @ts-check
 /**
  * Barras do Android (status e navegação) escondidas no modo de exibição do
- * placar. Só vale no APK: o plugin nativo `BarrasDoSistema` aplica; no
+ * placar. Só vale no APK: a ponte `window.PlacarBarras` (página do servidor) ou o
+ * plugin nativo `BarrasDoSistema` (interface embutida) aplicam; no
  * navegador e nos testes tudo aqui é no-op.
  *
  * As chamadas entram numa fila: esconder e mostrar são assíncronos e, soltos,
@@ -16,6 +17,18 @@ let fila = Promise.resolve();
 /** @param {boolean} esconder */
 async function aplicar(esconder) {
   const janela = /** @type {any} */ (globalThis.window);
+  // Ponte própria do APK: vale também na página do servidor (quadra online), onde
+  // o Capacitor não leva a ponte dos plugins.
+  const ponte = janela?.PlacarBarras;
+  if (ponte) {
+    try {
+      esconder ? ponte.esconder() : ponte.mostrar();
+      return true;
+    } catch (erro) {
+      console.warn('[barras] ponte própria falhou', erro);
+      return false;
+    }
+  }
   if (janela?.Capacitor?.getPlatform?.() !== 'android') return false;
   try {
     if (!instancia) {
