@@ -56,9 +56,12 @@ test('sortear, resortear, confirmar, presença travada e cancelar', async ({ abr
   const nomes = await chegam(p, PROXIMAS);
   await abrirTela(p);
 
+  // Tela de celular: o botão fica abaixo da dobra e a proposta abre no topo.
+  await p.setViewportSize({ width: 390, height: 500 });
   await p.getByLabel('Pontos da partida').fill('12');
   await p.getByRole('button', { name: 'Sortear duplas' }).click();
   await expect(p.getByRole('heading', { name: /Proposta 1/ })).toContainText('alvo 12');
+  await expect.poll(() => p.evaluate(() => window.scrollY)).toBe(0);
   await expect(p.getByRole('status').filter({ hasText: 'Primeira partida' })).toContainText('Time 1 × Time 2');
   const fila = p.locator('ol.fila > li');
   await expect(fila).toHaveCount(3);
