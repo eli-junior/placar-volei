@@ -4,6 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### CV8.DS2.US24 — Ímpar não fica sempre por último
+
+- **História / Escopo:** nas rodadas seguintes o ímpar (e a sobra do trio) passa a ser quem jogou por último, escolhido antes de formar as duplas; o time incompleto entra na fila pela ordem de descanso, nunca antes da 3ª posição.
+- **Branch:** `claude/team-play-order-balance-3c03os`
+- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
+- **Handoff / Próximos Passos:** Navigator decidiu (2026-10-15): ímpar = quem jogou por último (empate: último a chegar); vale para trio; incompleto entra pelo descanso, no mínimo 3º da fila. Em aberto: gênero prevalece na escolha do ímpar?
+
 ## 0.53.0 - 2026-10-15
 
 Boundary: User Story CV8.DS2.US23 — fila das rodadas seguintes por tempo sem jogar (minor; backend, web e APK em 0.53.0, APK `versionCode` 40; só o backend ganha comportamento novo; Wear OS inalterado em 0.27.0).
