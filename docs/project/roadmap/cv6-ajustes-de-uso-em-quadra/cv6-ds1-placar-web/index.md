@@ -3,7 +3,7 @@ code: CV6.DS1
 level: Delivery Story
 status: Done
 status_reason: seis histórias validadas e aceitas pelo Navigator em 2026-09-27; US1–US5 na 0.21.0, US6 na 0.22.0
-updated: 2026-09-27
+updated: 2026-10-15
 ---
 
 # CV6.DS1 — Placar web mais legível e fácil de operar
@@ -23,6 +23,7 @@ Melhorar organização, leitura, configuração e operação no tablet e telefon
 - [CV6.DS1.US7 — Pontuação por slider, topo curto e selo de papel](cv6-ds1-us7-pontuacao-por-slider/index.md) (0.23.0).
 - [CV6.DS1.US8 — Admin libera a quadra](cv6-ds1-us8-liberar-quadra/index.md) (0.23.0).
 - [CV6.DS1.US9 — Destaque do último ponto e sequência de pontos](cv6-ds1-us9-destaque-e-sequencia-de-pontos/index.md) (0.26.0).
+- [CV6.DS1.US10 — Placar em tela cheia no tablet](cv6-ds1-us10-placar-tela-cheia-no-tablet/index.md) (0.56.0).
 
 ## Acceptance / Done Condition
 

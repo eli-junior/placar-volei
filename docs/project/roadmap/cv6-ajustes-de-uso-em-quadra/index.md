@@ -2,7 +2,7 @@
 code: CV6
 level: Value
 status: Active
-status_reason: CV6.DS1 e CV6.DS2.US1–US4 entregues; Wear 0.25.0
+status_reason: CV6.DS1 (até a US10, 0.56.0) e CV6.DS2.US1–US4 entregues; Wear 0.25.0
 updated: 2026-09-28
 ---
 

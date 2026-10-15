@@ -4,13 +4,30 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### Placar em tela cheia no tablet (modo de exibição)
+## 0.56.0 - 2026-10-15
 
-- **História / Escopo:** Delivery Story — no modo de exibição o placar ocupa uma área maior da tela e o app esconde as barras do Android (status e navegação) nesse modo. Pedido do Navigator ao ver o APK 0.55.0 no tablet SM-P620.
-- **Branch:** `feature/placar-tela-cheia-tablet`
-- **Passo Ariad:** Passo 5 - Revisão (aguardando Checkpoint 3; validação no tablet aprovada em parte: barras, número e toque observados; borda e Voltar com o Navigator)
-- **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 2f171989-35bc-4cda-a642-a6f3e84acde2 | Data: 2026-10-15
-- **Handoff / Próximos Passos:** em validação no tablet SM-P620 (APK release 0.55.0 instalado com o plugin; falta o Mini PC rodar esta branch para a quadra online trazer o código novo). Feito: plugin `BarrasDoSistema` (fila, reaplica ao ganhar foco, logs) e ponte própria `window.PlacarBarras` (o Capacitor não leva a ponte dos plugins à página do servidor; comprovado no tablet: sem a ponte as barras não sumiam, com ela somem), rodapé flutuante, número maior só com `text-box` (e2e mede 5 telas), `Cache-Control: no-cache` no `index.html`. Pendente: confirmar no tablet que as barras somem (se não, ler `logcat` por `BarrasDoSistema`/`[barras]`), depois Passo 5, versão 0.56.0 (`versionCode` 44) e docs.
+Boundary: User Story CV6.DS1.US10 — placar em tela cheia no tablet (minor; backend, web e APK em 0.56.0, APK `versionCode` 44; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: 2f171989-35bc-4cda-a642-a6f3e84acde2 | Data: 2026-10-15
+
+Git source: merge `--no-ff` de `feature/placar-tela-cheia-tablet` em `master`.
+
+### Changed
+
+- **Modo de exibição maior:** o número cresce até a altura da linha da equipe (só onde o WebView suporta `text-box: trim-both`), sem cobrir o nome; o cabeçalho fica compacto, as margens menores e o rodapé flutua sobre o placar (a dica "Toque na tela para ver opções" some em 5 s).
+- **APK sem as barras do Android** para quem só acompanha: status e navegação escondidas, voltam ao deslizar da borda, ao controlar a quadra ou ao sair da sala. Plugin `BarrasDoSistema` (interface embutida) e ponte própria `window.PlacarBarras` (página do servidor).
+
+### Fixed
+
+- **WebView preso na versão antiga:** `index.html` e arquivos soltos saem com `Cache-Control: no-cache`; antes o WebView do APK guardava o index por horas e ignorava o deploy.
+
+### Decision
+
+- Registro `barras-do-sistema-e-cache-do-index` (ponte própria em vez de ampliar o Capacitor; `no-cache`). Dívidas novas: `ponte-das-barras-visivel-a-qualquer-pagina` e `casca-spec-falha-na-master` (4 testes de `casca.spec.js` falham também na `master`).
+
+### Verification
+
+- `uv run pytest` (690), `ruff check` e `ruff format --check` limpos, `npm test` (213), `npm run check` limpo, e2e do espectador, acessibilidade e sequência (21) e `exibicao-tela-cheia.spec.js` (5 formatos de tela). Validado pelo Navigator no Galaxy Tab S6 (SM-P620) com o Mini PC na branch, em 2026-10-15; merge pendente de autorização no Checkpoint 4.
 
 ## 0.55.0 - 2026-10-15
 
