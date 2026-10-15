@@ -4,13 +4,26 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV8.DS2.US24 — Ímpar não fica sempre por último
+## 0.54.0 - 2026-10-15
 
-- **História / Escopo:** o ímpar (e a sobra do trio) é escolhido antes de formar as duplas, entre os que não criam H+H ou trio de um sexo só evitáveis: quem jogou por último e, no empate (e na 1ª rodada), o último a chegar. O time incompleto fica sempre no fim da fila.
-- **Branch:** `claude/team-play-order-balance-3c03os`
-- **Passo Ariad:** Passo 7 - Conclusão e Merge (aguardando Checkpoint 4)
-- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
-- **Handoff / Próximos Passos:** Navigator decidiu (2026-10-15): ímpar = quem jogou por último (empate: último a chegar); vale para trio; incompleto sempre no fim. Gênero prevalece em todas as rodadas (Navigator, 2026-10-15): na 1ª rodada o ímpar é o último a chegar que não cria H+H evitável. Implementado em `app/sorteio.py` (`_sobra`, `_violacoes_genero`); pytest 672 verdes, e2e conducao/rodada/atalhos 29 verdes, ruff limpo. Validado pelo Navigator em 2026-10-15. Revisão aceita; docs feitas (RN-01/RN-05/RN-16, registro `fila-por-tempo-sem-jogar`, US24 `Validated` com roteiro, notas nos roteiros antigos, guia, briefing, versão 0.54.0 e `versionCode` 41). Falta: aceite do merge em `master`.
+Boundary: User Story CV8.DS2.US24 — o ímpar deixa de ser sempre o último a chegar (minor; backend, web e APK em 0.54.0, APK `versionCode` 41; só o backend ganha comportamento novo; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) — Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
+
+Git source: merge `--no-ff` de `claude/team-play-order-balance-3c03os` em `master`.
+
+### Changed
+
+- **Quem fica de ímpar:** o ímpar (ou a sobra de 1 ou 2 do trio) é escolhido antes de formar os times, entre os que não aumentam o número de duplas H+H ou de trios de um sexo só (o gênero prevalece): quem jogou por último na sessão e, no empate, o último a chegar. O time incompleto fica sempre no fim da fila. Motivo: o último a chegar ficava de ímpar, e esperando no fim, em toda rodada.
+- **1ª rodada:** sem partidas, vale o último a chegar com o mesmo filtro de gênero. Só muda com mais homens que mulheres e uma mulher chegando por último: o ímpar passa a ser o último homem e as duplas saem todas mistas.
+
+### Decision
+
+- RN-05 e RN-16 revistas, RN-01 anotada; registro `fila-por-tempo-sem-jogar` com a seção do ímpar (Navigator, 2026-10-15: quem jogou por último, vale para trio, incompleto sempre no fim, gênero prevalece em todas as rodadas).
+
+### Verification
+
+- `uv run pytest` (672; os testes de gênero passam a exigir o menor número de H+H possível), e2e `conducao`, `rodada` e `atalhos` (29), `ruff check` e `ruff format --check` limpos, `npm run check` e `npm test` (200). Validado pelo Navigator em 2026-10-15.
 
 ## 0.53.0 - 2026-10-15
 
