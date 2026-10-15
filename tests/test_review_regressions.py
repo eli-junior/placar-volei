@@ -65,6 +65,22 @@ def test_static_nao_escapa_da_raiz(url, tmp_path, monkeypatch):
         assert client.get("/quadra/12345").text == "publico"
 
 
+def test_index_e_arquivos_soltos_revalidam(tmp_path, monkeypatch):
+    from app import main
+
+    raiz = tmp_path / "static"
+    raiz.mkdir()
+    (raiz / "index.html").write_text("publico")
+    (raiz / "manifest.webmanifest").write_text("{}")
+    monkeypatch.setattr(main, "static_dir", str(raiz))
+    with TestClient(app) as client:
+        assert client.get("/").headers["cache-control"] == "no-cache"
+        assert client.get("/quadra/12345").headers["cache-control"] == "no-cache"
+        assert (
+            client.get("/manifest.webmanifest").headers["cache-control"] == "no-cache"
+        )
+
+
 def test_credencial_nao_aparece_em_superficies_publicas():
     with TestClient(app) as admin, TestClient(app) as visitante:
         q = sala(admin)

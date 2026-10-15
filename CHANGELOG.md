@@ -4,6 +4,31 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.56.0 - 2026-10-15
+
+Boundary: User Story CV6.DS1.US10 — placar em tela cheia no tablet (minor; backend, web e APK em 0.56.0, APK `versionCode` 44; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Sonnet 5.5 (Driver) — Agente: Claude Sonnet 5.5 (Driver) | Sessão: 2f171989-35bc-4cda-a642-a6f3e84acde2 | Data: 2026-10-15
+
+Git source: merge `--no-ff` de `feature/placar-tela-cheia-tablet` em `master`.
+
+### Changed
+
+- **Modo de exibição maior:** o número cresce até a altura da linha da equipe (só onde o WebView suporta `text-box: trim-both`), sem cobrir o nome; o cabeçalho fica compacto, as margens menores e o rodapé flutua sobre o placar (a dica "Toque na tela para ver opções" some em 5 s).
+- **APK sem as barras do Android** para quem só acompanha: status e navegação escondidas, voltam ao deslizar da borda, ao controlar a quadra ou ao sair da sala. Plugin `BarrasDoSistema` (interface embutida) e ponte própria `window.PlacarBarras` (página do servidor).
+
+### Fixed
+
+- **WebView preso na versão antiga:** `index.html` e arquivos soltos saem com `Cache-Control: no-cache`; antes o WebView do APK guardava o index por horas e ignorava o deploy.
+
+### Decision
+
+- Registro `barras-do-sistema-e-cache-do-index` (ponte própria em vez de ampliar o Capacitor; `no-cache`). Dívidas novas: `ponte-das-barras-visivel-a-qualquer-pagina` e `casca-spec-falha-na-master` (4 testes de `casca.spec.js` falham também na `master`).
+
+### Verification
+
+- `uv run pytest` (690), `ruff check` e `ruff format --check` limpos, `npm test` (213), `npm run check` limpo, e2e do espectador, acessibilidade e sequência (21) e `exibicao-tela-cheia.spec.js` (5 formatos de tela). Validado pelo Navigator no Galaxy Tab S6 (SM-P620) com o Mini PC na branch, em 2026-10-15; merge pendente de autorização no Checkpoint 4.
+
 ## 0.55.0 - 2026-10-15
 
 Boundary: User Story CV8.DS9.US25 — Resenha do Joguinho (minor; backend, web e APK em 0.55.0, APK `versionCode` 43; a Resenha é só da web, fora do APK; Wear OS inalterado em 0.27.0).

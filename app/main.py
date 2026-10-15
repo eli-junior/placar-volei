@@ -337,6 +337,12 @@ async def get_root_owner_quadras(request: Request):
     return await get_owner_quadras(request)
 
 
+# Sem isso o navegador e o WebView do APK guardam o index.html por horas (regra
+# de cache sem validade explícita) e seguem carregando os arquivos de uma versão
+# antiga depois de um deploy. `no-cache` obriga a revalidar (ETag, 304 se igual).
+# /assets tem hash no nome e pode ficar em cache.
+_SEM_CACHE = {"Cache-Control": "no-cache"}
+
 # Servir estáticos e SPA do frontend
 static_dir = os.path.join(os.path.dirname(__file__), "static")
 if os.path.isdir(static_dir):
@@ -356,9 +362,9 @@ if os.path.isdir(static_dir):
         if not target.is_relative_to(public_root):
             raise HTTPException(404, "Arquivo não encontrado.")
         if full_path and target.is_file():
-            return FileResponse(target)
+            return FileResponse(target, headers=_SEM_CACHE)
         # Fallback para o index.html da SPA
         index_file = os.path.join(static_dir, "index.html")
         if os.path.isfile(index_file):
-            return FileResponse(index_file)
+            return FileResponse(index_file, headers=_SEM_CACHE)
         return {"message": "Placar Vôlei Backend"}

@@ -174,6 +174,20 @@
   strong.destaque { animation: ponto .6s ease-out; }
   strong.tres-digitos { font-size: clamp(4rem, min(calc(min(27cqw, 54cqh) * var(--escala-numeros, 1)), 48cqw, 92cqh), 40rem); }
 
+  /* Com a caixa aparada rente ao glifo (só onde o motor suporta) o dígito fica
+     centrado na linha dele e não invade o nome da equipe, então pode crescer até
+     a altura toda da linha. Sem suporte, vale o tamanho acima. */
+  @supports (text-box: trim-both cap alphabetic) {
+    strong:not(.tres-digitos) {
+      /* O aparo só vale em contêiner de bloco, não em grid. */
+      display: block;
+      text-align: center;
+      text-box: trim-both cap alphabetic;
+      line-height: 1;
+      font-size: clamp(5rem, min(calc(min(50cqw, 100cqh) * var(--escala-numeros, 1)), 74cqw, 100cqh), 60rem);
+    }
+  }
+
   .time.vencedor {
     background: linear-gradient(180deg, color-mix(in srgb, var(--cor-time) 24%, transparent), transparent 72%);
   }
