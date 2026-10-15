@@ -1,5 +1,5 @@
 <script>
-  import { onMount } from 'svelte';
+  import { onMount, tick } from 'svelte';
   import Icone from './Icone.svelte';
   import Avatar from './Avatar.svelte';
   import PortaoSegredo from './PortaoSegredo.svelte';
@@ -176,7 +176,13 @@
   }
 
   const registrarAtrasado = (j) => agir('/atrasado', { metodo: 'POST', corpo: { jogador_id: j.id } }, chamarRodada);
-  const sortear = () => agir('/sorteio', { metodo: 'POST', corpo: { alvo, formato } }, chamarRodada);
+  // A proposta abre no topo da tela; o botão fica lá embaixo, depois da lista.
+  async function sortear() {
+    if (!(await agir('/sorteio', { metodo: 'POST', corpo: { alvo, formato } }, chamarRodada))) return;
+    await tick();
+    const reduzido = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+    window.scrollTo({ top: 0, behavior: reduzido ? 'instant' : 'smooth' });
+  }
   const resortear = () => agir('/resortear', { metodo: 'POST', corpo: { alvo, formato } }, chamarRodada);
   const confirmar = () => agir('/confirmar', { metodo: 'POST' }, chamarRodada);
   const descartar = () => agir('/descartar', { metodo: 'POST' }, chamarRodada);
