@@ -8,9 +8,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** o ímpar (e a sobra do trio) é escolhido antes de formar as duplas, entre os que não criam H+H ou trio de um sexo só evitáveis: quem jogou por último e, no empate (e na 1ª rodada), o último a chegar. O time incompleto fica sempre no fim da fila.
 - **Branch:** `claude/team-play-order-balance-3c03os`
-- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando Checkpoint 2)
+- **Passo Ariad:** Passo 5 - Revisão (aguardando Checkpoint 3)
 - **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
-- **Handoff / Próximos Passos:** Navigator decidiu (2026-10-15): ímpar = quem jogou por último (empate: último a chegar); vale para trio; incompleto sempre no fim. Gênero prevalece em todas as rodadas (Navigator, 2026-10-15): na 1ª rodada o ímpar é o último a chegar que não cria H+H evitável. Implementado em `app/sorteio.py` (`_sobra`, `_violacoes_genero`); pytest 672 verdes, e2e conducao/rodada/atalhos 29 verdes, ruff limpo. Falta: validação do Navigator, revisão, docs (RN-05, RN-16, registro `fila-por-tempo-sem-jogar`, US24, versão 0.54.0).
+- **Handoff / Próximos Passos:** Navigator decidiu (2026-10-15): ímpar = quem jogou por último (empate: último a chegar); vale para trio; incompleto sempre no fim. Gênero prevalece em todas as rodadas (Navigator, 2026-10-15): na 1ª rodada o ímpar é o último a chegar que não cria H+H evitável. Implementado em `app/sorteio.py` (`_sobra`, `_violacoes_genero`); pytest 672 verdes, e2e conducao/rodada/atalhos 29 verdes, ruff limpo. Validado pelo Navigator em 2026-10-15. Falta: aceite da revisão, docs (RN-05, RN-16, registro `fila-por-tempo-sem-jogar`, US24, versão 0.54.0).
 
 ## 0.53.0 - 2026-10-15
 
