@@ -30,7 +30,7 @@ test('representação recebe placar pronto e não depende de sala ou transporte'
 
 test('pontos escalam pela largura e altura e preservam números tabulares', () => {
   assert.match(resultado, /container-type: size/);
-  assert.match(resultado, /min\(50cqw, 108cqh\)/);
+  assert.match(resultado, /min\(50cqw, 74cqh\)/);
   assert.match(resultado, /font-variant-numeric: tabular-nums/);
   assert.match(resultado, /tresDigitosA/);
   assert.match(resultado, /strong\.tres-digitos \{ font-size: clamp\(4rem, min\(calc\(min\(27cqw, 54cqh\) \* var\(--escala-numeros, 1\)\), 48cqw, 92cqh\), 40rem\); \}/);

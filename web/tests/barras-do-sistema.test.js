@@ -27,3 +27,8 @@ test('na exibição o rodapé flutua sobre o placar e a dica some sozinha', () =
   assert.match(manual, /\.modo-imersivo \.rodape \{[^}]*position: absolute/);
   assert.match(manual, /animation: dica-some 5s forwards/);
 });
+
+test('o dígito só cresce com a caixa aparada ao glifo, para não cobrir o nome da equipe', () => {
+  const resultado = readFileSync(new URL('../src/components/PlacarResultado.svelte', import.meta.url), 'utf8');
+  assert.match(resultado, /@supports \(text-box: trim-both cap alphabetic\) \{\s*strong:not\(\.tres-digitos\) \{[^}]*text-box: trim-both cap alphabetic;[^}]*100cqh/);
+});
