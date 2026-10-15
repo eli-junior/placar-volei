@@ -8,9 +8,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** da 2ª rodada em diante o sorteio continua equilibrando as duplas pela nota, mas a fila passa a ordenar os times por quem está há mais tempo sem jogar (quem jogou por último vai para o fim). Motivo: time que abriu uma rodada e fechou a seguinte ficava tempo demais parado.
 - **Branch:** `claude/team-play-order-balance-3c03os`
-- **Passo Ariad:** Passo 5 - Revisão (aguardando Checkpoint 3)
+- **Passo Ariad:** Passo 7 - Conclusão e Merge (aguardando Checkpoint 4)
 - **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
-- **Handoff / Próximos Passos:** plano aceito pelo Navigator em 2026-10-15 (descanso do time = média; partida de rodada cancelada conta; ímpar sempre por último vira pendência). Implementado e testado (pytest 665 verdes, ruff limpo). Validado pelo Navigator em 2026-10-15. Falta: aceite da revisão e documentação (RN-13, decisão, roadmap US23, pendência do ímpar, versão 0.53.0).
+- **Handoff / Próximos Passos:** plano aceito pelo Navigator em 2026-10-15 (descanso do time = média; partida de rodada cancelada conta; ímpar sempre por último vira pendência). Implementado e testado (pytest 665 verdes, ruff limpo). Validado pelo Navigator em 2026-10-15. Revisão aceita; documentação feita (RN-13/RN-10/RN-05, registro `fila-por-tempo-sem-jogar`, US23 e US24 no roadmap, guia, briefing, versão 0.53.0 e `versionCode` 40). Falta: aceite do merge `--no-ff` em `master` e mover este bloco para a 0.53.0.
 
 ## 0.52.0 - 2026-10-14
 

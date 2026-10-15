@@ -3,7 +3,7 @@ code: CV8
 level: Value
 status: Active
 status_reason: DS1 a DS5 entregues até a 0.44.0 (validação em lote pendente); DS6 (trio) na 0.45.0; DS7 (auditoria do QA) entregue até a 0.48.0 (US21 adiada); validação em lote pendente
-updated: 2026-10-09
+updated: 2026-10-15
 related:
   - regras-de-negocio.md
 ---
@@ -64,3 +64,7 @@ A DS7 está fechada: anular partida chamada, quadra que não some no meio da rod
 ## Estado em 0.49.0
 
 A DS8 (formatos de rodada) abriu com a US22: com exatamente 3 times completos a rodada é triangular (RN-18) e só é rei quem vence os outros dois; qualquer outro desfecho encerra sem campeão. O gerenciador passou ao schema 12.
+
+## Estado em 0.53.0
+
+CV8.DS2.US23: nas rodadas seguintes, as duplas continuam equilibradas pela nota e a fila põe primeiro quem está há mais tempo sem jogar (RN-13 revista). A US24 (ímpar sempre por último) ficou planejada, com a regra a decidir.
