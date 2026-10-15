@@ -3,8 +3,8 @@
 Regras (ver `docs/project/roadmap/cv8-gerenciador-de-times/regras-de-negocio.md`):
 
 - RN-11: no mínimo 4 jogadores.
-- RN-05: número ímpar → o **último a chegar** fica sozinho num time incompleto,
-  por último na fila.
+- RN-05: número ímpar → um jogador fica sozinho num time incompleto, por
+  último na fila (quem, ver US24 abaixo).
 - RN-01: o número de duplas H+H é o mínimo possível, `max(0, (H − M) / 2)`
   entre os que formam dupla. O gênero prevalece sobre o equilíbrio.
 - RN-16 (trio): rodada inteira em trios; mínimo de 6 jogadores; a sobra
@@ -19,10 +19,9 @@ Regras (ver `docs/project/roadmap/cv8-gerenciador-de-times/regras-de-negocio.md`
   time cuja média da "última partida jogada" dos jogadores é menor (quem está
   há mais tempo sem jogar); a chegada desempata. Na 1ª rodada ninguém jogou e
   vale só a chegada.
-- US24: da 2ª rodada em diante o ímpar (ou a sobra do trio) é quem jogou por
-  último, escolhido antes de formar os times, entre os que não pioram o gênero
-  (RN-01, RN-16); empate pela chegada mais tarde. Na 1ª rodada segue o último a
-  chegar. O time incompleto fica sempre no fim da fila.
+- US24: o ímpar (ou a sobra do trio) é escolhido antes de formar os times,
+  entre os que não pioram o gênero (RN-01, RN-16): quem jogou por último e, no
+  empate (e na 1ª rodada), o último a chegar. O incompleto fica sempre no fim.
 
 O resultado é determinístico. "Resortear" percorre outras combinações
 igualmente equilibradas (amplitude até `TOLERANCIA` pontos pior que a melhor).
@@ -133,14 +132,13 @@ def _violacoes_genero(grupo, tamanho: int) -> int:
 def _sobra(
     ordenados: list[Participante], tamanho: int, descanso: dict[str, int]
 ) -> list[Participante]:
-    """Quem fica no time incompleto. 1ª rodada (sem descanso): os últimos a
-    chegar (RN-05). Depois (US24): quem jogou por último, entre as escolhas
-    que não pioram o gênero; empate pela chegada mais tarde."""
+    """Quem fica no time incompleto (RN-05, US24): entre as escolhas que não
+    pioram o gênero (RN-01, RN-16), quem jogou por último e, no empate, quem
+    chegou mais tarde. Na 1ª rodada ninguém jogou: o último a chegar que não
+    cria H+H (ou trio de um sexo só) evitável."""
     k = len(ordenados) % tamanho
     if k == 0:
         return []
-    if not descanso:
-        return ordenados[len(ordenados) - k :]
 
     def chave(sobra) -> tuple:
         resto = [p for p in ordenados if p not in sobra]

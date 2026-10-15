@@ -38,6 +38,13 @@ def minimo_hh(generos: str, impar_fora: str | None = None):
     return max(0, (h - m) // 2)
 
 
+def melhor_hh(generos: str):
+    """Menor H+H possível: com número ímpar, o ímpar é escolhido para isso (US24)."""
+    if len(generos) % 2 == 0:
+        return minimo_hh(generos)
+    return min(minimo_hh(generos, g) for g in set(generos))
+
+
 def test_menos_de_4_e_recusado():
     for n in range(4):
         with pytest.raises(JogadoresInsuficientes) as e:
@@ -71,8 +78,7 @@ def test_genero_numero_minimo_de_duplas_hh(homens, mulheres):
     ps = grupo("".join(generos), notas)
     for tentativa in range(2):
         s = sortear(ps, tentativa)
-        impar = ps[-1].genero if len(ps) % 2 else None
-        assert hh(s) == minimo_hh("".join(generos), impar)
+        assert hh(s) == melhor_hh("".join(generos))
         # toda dupla tem 2, todos aparecem exatamente uma vez
         ids = [p.id for t in s.times for p in t.jogadores]
         assert sorted(ids) == sorted(p.id for p in ps)
@@ -117,7 +123,8 @@ def test_independe_da_ordem_em_que_a_lista_chega():
 
 def test_impar_o_ultimo_a_chegar_fica_sozinho_por_ultimo():
     # p3 chegou por último (ordem 7), mesmo sendo o de maior nota
-    ps = grupo("HMHMHMH", [60, 60, 60, 99, 60, 60, 60], [3, 1, 2, 7, 5, 4, 6])
+    # 3 H e 4 M: tirar qualquer um não cria H+H, então vale só a chegada
+    ps = grupo("HMHMMMH", [60, 60, 60, 99, 60, 60, 60], [3, 1, 2, 7, 5, 4, 6])
     s = sortear(ps)
     assert len(s.times) == 4
     ultimo = s.times[-1]
@@ -236,8 +243,7 @@ def test_todas_as_combinacoes_de_genero_ate_6_jogadores():
         for generos in product("HM", repeat=n):
             ps = grupo("".join(generos), [50 + i for i in range(n)])
             s = sortear(ps)
-            impar = ps[-1].genero if n % 2 else None
-            assert hh(s) == minimo_hh("".join(generos), impar)
+            assert hh(s) == melhor_hh("".join(generos))
 
 
 # --- US23: fila das rodadas seguintes por tempo sem jogar --------------------
@@ -331,11 +337,13 @@ def test_impar_empate_no_descanso_cai_no_ultimo_a_chegar():
     assert [p.id for p in sortear(ps, descanso=descanso).times[-1].jogadores] == ["p8"]
 
 
-def test_primeira_rodada_impar_segue_o_ultimo_a_chegar():
-    # sem descanso, mesmo com mais homens e uma mulher por último (RN-05)
+def test_primeira_rodada_impar_e_o_ultimo_a_chegar_sem_criar_hh():
+    # 4 H e 3 M, a mulher p6 chegou por último: tirá-la deixaria 4 H e 2 M
+    # (1 dupla H+H); o ímpar é o último homem a chegar (p3)
     ps = grupo("HHHHMM" + "M", [60] * 7)
     s = sortear(ps)
-    assert [p.id for p in s.times[-1].jogadores] == ["p6"]
+    assert [p.id for p in s.times[-1].jogadores] == ["p3"]
+    assert s.duplas_hh == 0
 
 
 def test_impar_nao_cria_dupla_hh_evitavel():
