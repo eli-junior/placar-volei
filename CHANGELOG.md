@@ -4,6 +4,22 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.54.1 - 2026-10-15
+
+Boundary: Maintenance — sortear rola a tela para o topo (patch; backend, web e APK em 0.54.1, APK `versionCode` 42; só a web muda; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) — Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
+
+Git source: merge `--no-ff` de `claude/team-play-order-balance-3c03os` em `master`.
+
+### Fixed
+
+- **Sortear rola para o topo:** ao tocar em Sortear duplas (ou trios), a tela sobe até a proposta, que abre no topo; o botão fica no fim da lista e, no celular, o resultado ficava fora da vista. Só rola quando o sorteio dá certo (o erro continua visível) e respeita `prefers-reduced-motion`. Resortear não muda.
+
+### Verification
+
+- `npm run check`, `npm test` e e2e `rodada` (11; o teste do sorteio usa tela de celular e confere `scrollY` 0, e falha sem a correção). Merge autorizado pelo Navigator em 2026-10-15.
+
 ## 0.54.0 - 2026-10-15
 
 Boundary: User Story CV8.DS2.US24 — o ímpar deixa de ser sempre o último a chegar (minor; backend, web e APK em 0.54.0, APK `versionCode` 41; só o backend ganha comportamento novo; Wear OS inalterado em 0.27.0).
