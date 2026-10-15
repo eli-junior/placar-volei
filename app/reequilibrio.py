@@ -2,6 +2,7 @@
 
 Só lê rodadas `encerradas` (com campeão); rodada cancelada não conta. A nota do
 jogador evolui com as partidas em `app.nota_viva` (decisão de 2026-10-10).
+`ultima_partida` (US23) conta também rodadas canceladas: o cansaço é físico.
 """
 
 
@@ -27,3 +28,35 @@ def tem_rodada_anterior(conn, sessao_id: str) -> bool:
         ).fetchone()
         is not None
     )
+
+
+def ultima_partida(conn, sessao_id: str) -> dict[str, int]:
+    """Por jogador, o número (1, 2, 3... em ordem cronológica) da última partida
+    encerrada que ele jogou na sessão, em qualquer rodada, cancelada inclusive
+    (US23). Quem jogou cada partida vem de `ajustes_nota`, gravado no
+    encerramento; sem esse registro (notas resetadas ou partida antiga), dos
+    times da partida."""
+    ultima: dict[str, int] = {}
+    partidas = conn.execute(
+        "SELECT p.id, p.time_a_id, p.time_b_id FROM partidas_rodada p "
+        "JOIN rodadas r ON r.id = p.rodada_id "
+        "WHERE r.sessao_id = ? AND p.estado = 'encerrada' "
+        "ORDER BY r.numero, p.ordem",
+        (sessao_id,),
+    ).fetchall()
+    for numero, p in enumerate(partidas, start=1):
+        ids = [
+            r["jogador_id"]
+            for r in conn.execute(
+                "SELECT jogador_id FROM ajustes_nota WHERE partida_id = ?", (p["id"],)
+            )
+        ] or [
+            r["jogador_id"]
+            for r in conn.execute(
+                "SELECT jogador_id FROM time_jogadores WHERE time_id IN (?, ?)",
+                (p["time_a_id"], p["time_b_id"]),
+            )
+        ]
+        for jogador_id in ids:
+            ultima[jogador_id] = numero
+    return ultima

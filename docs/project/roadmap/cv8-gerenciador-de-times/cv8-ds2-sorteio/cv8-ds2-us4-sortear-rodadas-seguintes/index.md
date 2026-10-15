@@ -19,6 +19,8 @@ updated: 2026-10-07
 - **CA3:** Jogador novo (sem saldo) entra com saldo 0. A ordem de chegada **não** vale da segunda rodada em diante (RN-13). O saldo da sessão ajusta a nota (RN-14); a fórmula e os limites estão na RN-14 (ajuste de até ±15 por saldo médio por partida, só na sessão; a nota cadastrada não muda).
 - **CA4:** Exibe resultado para confirmar ou resortear.
 
+> Revisto pela US23 (2026-10-15): da segunda rodada em diante a fila ordena os times pelo tempo sem jogar, com a chegada como desempate.
+
 Regras: RN-01, RN-05, RN-10 (ver [regras-de-negocio.md](../../regras-de-negocio.md)).
 
 ## Validation Route

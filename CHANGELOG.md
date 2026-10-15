@@ -4,6 +4,26 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.53.0 - 2026-10-15
+
+Boundary: User Story CV8.DS2.US23 — fila das rodadas seguintes por tempo sem jogar (minor; backend, web e APK em 0.53.0, APK `versionCode` 40; só o backend ganha comportamento novo; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) — Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
+
+Git source: merge `--no-ff` de `claude/team-play-order-balance-3c03os` em `master`.
+
+### Changed
+
+- **Fila por tempo sem jogar:** da 2ª rodada em diante o sorteio continua formando as duplas (ou trios) como antes — gênero, nota atual em serpentina, evitar dupla repetida —, e só depois ordena a fila: primeiro o time com a menor média, entre seus jogadores, do número da última partida encerrada que cada um jogou na sessão (quem não jogou vale 0); a ordem de chegada desempata. Quem jogou por último vai para o fim; o time incompleto continua por último. Na 1ª rodada nada muda. Partidas de rodada cancelada contam (o cansaço é físico). Motivo: um time que abria uma rodada e fechava a seguinte ficava tempo demais parado.
+
+### Decision
+
+- Registro `fila-por-tempo-sem-jogar` (`Accepted`; Navigator, 2026-10-15: média por time, cancelada conta); RN-13 revista, RN-10 e RN-05 anotadas. O ímpar sempre por último virou a CV8.DS2.US24 (`Planned`, regra a decidir).
+
+### Verification
+
+- `uv run pytest` (665, com 9 testes novos em `tests/test_sorteio.py` e `tests/test_reequilibrio.py`; o de integração falha com a regra antiga), `ruff check` e `ruff format --check` limpos, `npm run check` e `npm test` (200). Validado pelo Navigator em 2026-10-15.
+
 ## 0.52.0 - 2026-10-14
 
 Boundary: Maintenance — `Makefile` com os atalhos do projeto e reset das notas dos jogadores (minor; backend, web e APK em 0.52.0, APK `versionCode` 39; só o backend ganha comportamento novo; Wear OS inalterado em 0.27.0).

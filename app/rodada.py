@@ -20,7 +20,7 @@ from app.conducao import (
     saldos,
 )
 from app.gerenciador_db import agora, erro_de_campo, exigir_sessao_aberta
-from app.reequilibrio import duplas_anteriores
+from app.reequilibrio import duplas_anteriores, ultima_partida
 from app.sorteio import JogadoresInsuficientes, Participante, sortear
 
 ALVO_MINIMO, ALVO_MAXIMO = 6, 25
@@ -122,7 +122,8 @@ def _formato_valido(bruto) -> str:
 
 def _participantes(conn, sessao_id: str) -> list[Participante]:
     """Presentes com a nota atual do jogador, que evolui com as partidas
-    (`app.nota_viva`). A ordem de chegada vale em todas as rodadas."""
+    (`app.nota_viva`). A ordem de chegada desempata a fila em todas
+    as rodadas; o descanso (`ultima_partida`, US23) vem antes dela."""
     return [
         Participante(r["id"], r["genero"], r["nota"], r["ordem"])
         for r in conn.execute(
@@ -142,6 +143,7 @@ def _sortear(conn, sessao_id: str, tentativa: int, formato: str = "dupla"):
             tentativa,
             duplas_anteriores(conn, sessao_id, tamanho),
             tamanho,
+            ultima_partida(conn, sessao_id),
         )
     except JogadoresInsuficientes as e:
         raise erro_de_campo(

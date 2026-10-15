@@ -1,6 +1,9 @@
 # ruff: noqa: F811
 import pytest
 
+from app.config import settings
+from app.gerenciador_db import conectar
+from app.reequilibrio import ultima_partida
 from app.sorteio import Participante, sortear
 from tests.test_encerramento import Jogo, ac, base, placar  # noqa: F401
 
@@ -76,3 +79,64 @@ async def test_rodada_cancelada_nao_entra_no_saldo(ac, placar):
     await ac.post("/api/rodada/sorteio", json={"alvo": 10})
     rodada = (await jogo.estado())["rodada"]
     assert all(j["nota"] == j["nota_base"] for j in jogadores(rodada).values())
+
+
+@pytest.mark.asyncio
+async def test_rodada_2_poe_na_frente_quem_esta_ha_mais_tempo_sem_jogar(ac, placar):
+    # Rodada 1 (10 jogadores, 5 duplas): T1×T2, T1×T3 (T1 rei), T4×T5,
+    # mata-mata T4×T1. Última partida: T2 → 1, T3 → 2, T5 → 3, T4 e T1 → 4.
+    jogo = await campeao_da_rodada_1(ac, placar)
+    conn = conectar(settings.gerenciador_db_path)
+    try:
+        sessao_id = conn.execute(
+            "SELECT id FROM sessoes WHERE encerrada_em IS NULL"
+        ).fetchone()["id"]
+        descanso = ultima_partida(conn, sessao_id)
+    finally:
+        conn.close()
+    assert sorted(descanso.values()) == [1, 1, 2, 2, 3, 3, 4, 4, 4, 4]
+
+    r = await ac.post("/api/rodada/sorteio", json={"alvo": 10})
+    assert r.status_code in (200, 201), r.text
+    rodada = (await jogo.estado())["rodada"]
+    medias = [
+        sum(descanso[j["id"]] for j in t["jogadores"]) / len(t["jogadores"])
+        for t in sorted(rodada["times"], key=lambda t: t["fila"])
+    ]
+    assert medias == sorted(medias)
+    assert medias[0] < medias[-1]
+
+
+def _descanso_da_sessao():
+    conn = conectar(settings.gerenciador_db_path)
+    try:
+        sessao_id = conn.execute(
+            "SELECT id FROM sessoes WHERE encerrada_em IS NULL"
+        ).fetchone()["id"]
+        return ultima_partida(conn, sessao_id)
+    finally:
+        conn.close()
+
+
+@pytest.mark.asyncio
+async def test_partida_de_rodada_cancelada_conta_como_jogada(ac, placar):
+    jogo = await Jogo(ac, placar).preparar(quantos=8)
+    await jogo.jogar("A")
+    r = await ac.post("/api/rodada/cancelar")
+    assert r.status_code == 200, r.text
+    assert sorted(_descanso_da_sessao().values()) == [1, 1, 1, 1]
+
+
+@pytest.mark.asyncio
+async def test_sem_ajustes_de_nota_usa_os_times_da_partida(ac, placar):
+    # `make resetar-notas` entre rodadas apaga `ajustes_nota`
+    jogo = await Jogo(ac, placar).preparar(quantos=8)
+    await jogo.jogar("A")
+    antes = _descanso_da_sessao()
+    conn = conectar(settings.gerenciador_db_path)
+    try:
+        with conn:
+            conn.execute("DELETE FROM ajustes_nota")
+    finally:
+        conn.close()
+    assert _descanso_da_sessao() == antes and len(antes) == 4
