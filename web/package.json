@@ -17,6 +17,7 @@
     "@capacitor/cli": "^8.5.2",
     "@playwright/test": "1.56.1",
     "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "html-to-image": "1.11.11",
     "svelte": "^5.2.7",
     "svelte-check": "^4.7.6",
     "typescript": "^6.0.3",

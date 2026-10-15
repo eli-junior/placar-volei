@@ -8,7 +8,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 - **Branch:** `claude/team-play-order-balance-3c03os` (igual à `master` 0.54.1 no início).
 - **Passo Ariad:** Passo 4 - Teste e Validação (aguardando Checkpoint 2; plano aprovado no Checkpoint 1: zoeira liberada, última sessão, galeria com foto e título).
 - **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
-- **Handoff / Próximos Passos:** implementado: `app/estatisticas.py` + `GET /api/sessao/estatisticas` (dono); web `/joguinho/resenha` (botão Resenha no Joguinho). Testes: pytest 689, web 204, e2e 102. Falta: validação do Navigator, revisão, docs (roadmap DS9, decisão, versão 0.55.0). Dados só do `gerenciador.db` (os eventos ponto a ponto das quadras expiram).
+- **Handoff / Próximos Passos:** implementado: `app/estatisticas.py` + `GET /api/sessao/estatisticas` (dono); web `/joguinho/resenha` (botão Resenha no Joguinho). Pedido do Navigator no Checkpoint 2: a página virou cartões 4:5 de tamanho fixo e ganhou "Baixar N imagens" (PNG 1080×1350) e "Mandar no grupo" (Web Share, quando o aparelho suporta), com `html-to-image` 1.11.11 no bundle. Testes: pytest 689, web 207, e2e 102. Falta: validação do Navigator, revisão, docs (roadmap DS9, decisão, versão 0.55.0). Dados só do `gerenciador.db` (os eventos ponto a ponto das quadras expiram).
 
 ## 0.54.1 - 2026-10-15
 

@@ -44,13 +44,33 @@ test('o Joguinho abre a Resenha com prêmios, galeria e tabela, sem rolagem late
   await p.getByRole('button', { name: 'Resenha' }).click();
 
   await expect(p).toHaveURL(/\/joguinho\/resenha$/);
-  await expect(p.getByRole('heading', { name: 'Rainha do dia', level: 2 })).toBeVisible();
-  await expect(p.getByText('quinta, 15/10')).toBeVisible();
-  await expect(p.getByRole('heading', { name: 'Pneu do dia' })).toBeVisible();
+  // capa, 1 cartão de prêmios (o rei fica na capa), 1 de galeria e 1 de tabela
+  const cartoes = p.locator('.cartao');
+  await expect(cartoes).toHaveCount(4);
+  await expect(cartoes.nth(0).getByRole('heading', { name: 'Rainha do dia' })).toBeVisible();
+  await expect(cartoes.nth(0)).toContainText('quinta, 15/10');
+  await expect(cartoes.nth(1).getByRole('heading', { name: /Pneu do dia/ })).toBeVisible();
   await expect(p.getByText('Ana & Beto venceram Caio & Duda')).toBeVisible();
   await expect(p.locator('.retrato')).toHaveCount(2);
   await expect(p.locator('.retrato').nth(1)).toContainText('Tomou pneu');
   await expect(p.getByRole('row', { name: /Caio/ })).toContainText('-12');
+  await expect(cartoes.nth(3)).toContainText('4/4');
+
+  // cartão 4:5 na largura útil da tela
+  const caixa = await cartoes.nth(0).boundingBox();
+  expect(caixa.width).toBeGreaterThan(340);
+  expect(Math.abs(caixa.height / caixa.width - 1.25)).toBeLessThan(0.01);
+
+  const baixados = [];
+  p.on('download', (d) => baixados.push(d));
+  await p.getByRole('button', { name: 'Baixar 4 imagens' }).click();
+  await expect(p.getByRole('status')).toContainText('4 imagens baixadas');
+  await expect.poll(() => baixados.length).toBe(4);
+  expect(baixados.map((d) => d.suggestedFilename()).sort()).toEqual([1, 2, 3, 4].map((n) => `resenha-2026-10-15-${n}.png`));
+  const png = await (await baixados[0].createReadStream()).toArray();
+  const bytes = Buffer.concat(png);
+  // largura e altura no cabeçalho IHDR do PNG
+  expect([bytes.readUInt32BE(16), bytes.readUInt32BE(20)]).toEqual([1080, 1350]);
 
   const largura = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(largura).toBeLessThanOrEqual(0);

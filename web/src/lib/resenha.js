@@ -60,3 +60,50 @@ export function recorde(g) {
   if (!g.vitorias && !g.derrotas) return 'não entrou em quadra';
   return `${g.vitorias}V · ${g.derrotas}D · ${comSinal(g.saldo)}`;
 }
+
+/** Quantos itens cabem em cada cartão 4:5 da Resenha. */
+export const POR_CARTAO = { premios: 5, galeria: 6, tabela: 12 };
+
+/**
+ * Divide a lista em pedaços de `tamanho`.
+ * @template T @param {T[]} lista @param {number} tamanho @returns {T[][]}
+ */
+export function emPedacos(lista, tamanho) {
+  const pedacos = [];
+  for (let i = 0; i < (lista?.length ?? 0); i += tamanho) pedacos.push(lista.slice(i, i + tamanho));
+  return pedacos;
+}
+
+/**
+ * Os cartões de tamanho fixo da Resenha, na ordem do print: capa (com o rei),
+ * prêmios, galeria e tabela. Cada cartão vira uma imagem para o grupo.
+ * @param {{ premios?: { id: string }[], galeria?: unknown[], tabela?: unknown[] }} dados
+ * @returns {{ tipo: 'capa' | 'premios' | 'galeria' | 'tabela', itens: any[], parte: number, partes: number, numero: number, total: number }[]}
+ */
+export function montarCartoes(dados) {
+  /** @type {{ tipo: any, itens: any[], parte: number, partes: number }[]} */
+  const cartoes = [{ tipo: 'capa', itens: [], parte: 1, partes: 1 }];
+  const grupos = /** @type {const} */ ([
+    ['premios', (dados.premios ?? []).filter((p) => p.id !== 'rei')],
+    ['galeria', dados.galeria ?? []],
+    ['tabela', dados.tabela ?? []],
+  ]);
+  for (const [tipo, lista] of grupos) {
+    const pedacos = emPedacos(lista, POR_CARTAO[tipo]);
+    pedacos.forEach((itens, i) => cartoes.push({ tipo, itens, parte: i + 1, partes: pedacos.length }));
+  }
+  return cartoes.map((c, i) => ({ ...c, numero: i + 1, total: cartoes.length }));
+}
+
+/**
+ * Nome do arquivo de cada cartão: "resenha-2026-10-14-1.png", com a data no
+ * fuso da quadra.
+ * @param {string | null | undefined} abertaEm @param {number} numero
+ */
+export function nomeDoArquivo(abertaEm, numero) {
+  const data = abertaEm ? new Date(abertaEm) : null;
+  const dia = data && !Number.isNaN(data.getTime())
+    ? new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Sao_Paulo' }).format(data)
+    : 'joguinho';
+  return `resenha-${dia}-${numero}.png`;
+}

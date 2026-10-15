@@ -6,6 +6,8 @@
   // cabeçalho) e cai nas iniciais quando não há foto.
   let { segredo, jogador, tamanho = 40 } = $props();
   let url = $state(null);
+  // Número é px; texto aceita qualquer medida CSS (o cartão da Resenha usa cqw).
+  const medida = $derived(typeof tamanho === 'number' ? `${tamanho}px` : tamanho);
 
   onMount(() => {
     let vivo = true;
@@ -20,7 +22,7 @@
   });
 </script>
 
-{#if url}<img class="avatar" style:--tamanho="{tamanho}px" src={url} alt="" />{:else}<span class="avatar" style:--tamanho="{tamanho}px" aria-hidden="true">{iniciais(jogador.nome)}</span>{/if}
+{#if url}<img class="avatar" style:--tamanho={medida} src={url} alt="" />{:else}<span class="avatar" style:--tamanho={medida} aria-hidden="true">{iniciais(jogador.nome)}</span>{/if}
 
 <style>
   .avatar { display: inline-flex; align-items: center; justify-content: center; flex: none; width: var(--tamanho, 40px); height: var(--tamanho, 40px); border-radius: var(--raio-circular); object-fit: cover; background: var(--fundo-cartao-ativo); color: var(--texto-medio); font-size: calc(var(--tamanho, 40px) * .34); font-weight: 800; }
