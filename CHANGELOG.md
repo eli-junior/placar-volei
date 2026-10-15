@@ -8,9 +8,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** Delivery Story — no modo de exibição o placar ocupa uma área maior da tela e o app esconde as barras do Android (status e navegação) nesse modo. Pedido do Navigator ao ver o APK 0.55.0 no tablet SM-P620.
 - **Branch:** `feature/placar-tela-cheia-tablet`
-- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando Checkpoint 2)
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 2f171989-35bc-4cda-a642-a6f3e84acde2 | Data: 2026-10-15
-- **Handoff / Próximos Passos:** plano apresentado ao Navigator; nenhum código alterado ainda. Antes: o tablet foi limpo de apps não usados e recebeu o APK release 0.55.0 (versionCode 43) via MCP `dispositivos`.
+- **Handoff / Próximos Passos:** implementado (plugin nativo `BarrasDoSistema`, rodapé flutuante com dica que some, número maior). A quadra online é a página do servidor no WebView: validar no tablet exige o Mini PC rodando esta branch. Depois: Passo 5 (revisão), versão 0.56.0 (`versionCode` 44) e docs. Antes: o tablet foi limpo de apps não usados e recebeu o APK release 0.55.0 (versionCode 43) via MCP `dispositivos`.
 
 ## 0.55.0 - 2026-10-15
 

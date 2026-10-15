@@ -122,10 +122,41 @@
   }
 
   .placar-esportivo.modo-imersivo {
+    position: relative;
     height: 100%;
     min-height: 0;
-    grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+    /* O rodapé flutua sobre o placar: não tira altura dele. */
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'contexto'
+      'vitoria'
+      'resultado'
+      'sequencia';
+    gap: .25rem;
     padding: 0;
+  }
+
+  .modo-imersivo .contexto { font-size: clamp(.6rem, 1.5vmin, .72rem); }
+  .modo-imersivo .identidade { padding: .1rem .5rem; }
+
+  .modo-imersivo .rodape {
+    position: absolute;
+    inset: auto 0 calc(30px + .5rem);
+    min-height: 0;
+    pointer-events: none;
+  }
+
+  .modo-imersivo .acoes button { pointer-events: auto; }
+
+  /* A dica some sozinha: depois de lida só tira área do placar. */
+  .modo-imersivo .dica {
+    background: color-mix(in srgb, var(--fundo-superficie) 88%, transparent);
+    animation: dica-some 5s forwards;
+  }
+
+  @keyframes dica-some {
+    0%, 80% { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
   }
 
   .contexto {
@@ -248,6 +279,7 @@
     .placar-esportivo { grid-template-rows: auto auto minmax(0, 1fr) auto auto; gap: .3rem; }
     .contexto { flex-direction: row; }
     .rodape { min-height: 40px; }
+    .modo-imersivo .rodape { min-height: 0; }
     .dica { padding-block: .2rem; }
     .acoes button { min-height: 40px; }
   }

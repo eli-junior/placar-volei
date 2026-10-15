@@ -25,6 +25,7 @@
     podeOcultarControles,
     MENSAGEM_TELA_CHEIA,
   } from '../lib/telaCheia.js';
+  import { definirBarrasEscondidas } from '../lib/barrasDoSistema.js';
 
   let {
     quadra,
@@ -381,6 +382,13 @@
   );
 
   $effect(() => observarTelaCheia((ativa) => { telaCheia = ativa; }));
+
+  // Modo de exibição no APK: sem as barras do Android; elas voltam ao controlar ou sair da sala.
+  $effect(() => {
+    if (podeControlar) return;
+    definirBarrasEscondidas(true);
+    return () => { definirBarrasEscondidas(false); };
+  });
 
   // Sair da sala não deixa a Home presa em tela cheia.
   $effect(() => () => { sairDaTelaCheia(); });
@@ -1041,10 +1049,10 @@
    */
   .sala-container.em-modo-imersivo {
     position: relative;
-    padding: max(8px, var(--sa-topo))
-      max(6px, var(--sa-direita))
-      max(8px, var(--sa-baixo))
-      max(6px, var(--sa-esquerda));
+    padding: max(4px, var(--sa-topo))
+      max(3px, var(--sa-direita))
+      max(4px, var(--sa-baixo))
+      max(3px, var(--sa-esquerda));
     justify-content: center;
     cursor: pointer;
     gap: 0;

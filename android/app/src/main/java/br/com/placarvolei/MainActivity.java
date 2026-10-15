@@ -9,6 +9,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         // Ponte com o relógio pelo Data Layer (CV7.TS3).
         registerPlugin(PlacarRelogioPlugin.class);
+        registerPlugin(BarrasDoSistemaPlugin.class);
         super.onCreate(savedInstanceState);
     }
 }

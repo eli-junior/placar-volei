@@ -137,7 +137,7 @@
     font-family: var(--fonte-numeros);
     /* Escala P/M/G (CV6.DS1.US3) sobre o tamanho automático, limitada ao que
        cabe na coluna: dois dígitos ≈ .62em de largura, três ≈ .95em, altura ≈ .65em. */
-    font-size: clamp(5rem, min(calc(min(50cqw, 74cqh) * var(--escala-numeros, 1)), 74cqw, 92cqh), 60rem);
+    font-size: clamp(5rem, min(calc(min(50cqw, 108cqh) * var(--escala-numeros, 1)), 74cqw, 108cqh), 60rem);
     font-weight: 600;
     font-variant-numeric: tabular-nums;
     letter-spacing: -.045em;
