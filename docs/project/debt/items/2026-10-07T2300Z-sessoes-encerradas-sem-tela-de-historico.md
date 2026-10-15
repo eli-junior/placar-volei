@@ -21,3 +21,5 @@ Fora do MVP por decisão da especificação (US-12 CA2); nenhum dado se perde.
 ## Notes
 
 Decisão: `docs/project/decisions/records/2026-10-07T2300Z-sessao-unica-presenca-e-ordem-de-chegada.md`.
+
+Desde a 0.55.0 (CV8.DS9.US25) a Resenha mostra a **última** sessão encerrada (estatísticas e prêmios); sessões anteriores a ela e o ranking entre sessões continuam sem consulta.
