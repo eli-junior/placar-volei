@@ -4,13 +4,25 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV8.DS2.US23 — Fila das rodadas seguintes por tempo sem jogar
+## 0.53.0 - 2026-10-15
 
-- **História / Escopo:** da 2ª rodada em diante o sorteio continua equilibrando as duplas pela nota, mas a fila passa a ordenar os times por quem está há mais tempo sem jogar (quem jogou por último vai para o fim). Motivo: time que abriu uma rodada e fechou a seguinte ficava tempo demais parado.
-- **Branch:** `claude/team-play-order-balance-3c03os`
-- **Passo Ariad:** Passo 7 - Conclusão e Merge (aguardando Checkpoint 4)
-- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
-- **Handoff / Próximos Passos:** plano aceito pelo Navigator em 2026-10-15 (descanso do time = média; partida de rodada cancelada conta; ímpar sempre por último vira pendência). Implementado e testado (pytest 665 verdes, ruff limpo). Validado pelo Navigator em 2026-10-15. Revisão aceita; documentação feita (RN-13/RN-10/RN-05, registro `fila-por-tempo-sem-jogar`, US23 e US24 no roadmap, guia, briefing, versão 0.53.0 e `versionCode` 40). Falta: aceite do merge `--no-ff` em `master` e mover este bloco para a 0.53.0.
+Boundary: User Story CV8.DS2.US23 — fila das rodadas seguintes por tempo sem jogar (minor; backend, web e APK em 0.53.0, APK `versionCode` 40; só o backend ganha comportamento novo; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) — Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
+
+Git source: merge `--no-ff` de `claude/team-play-order-balance-3c03os` em `master`.
+
+### Changed
+
+- **Fila por tempo sem jogar:** da 2ª rodada em diante o sorteio continua formando as duplas (ou trios) como antes — gênero, nota atual em serpentina, evitar dupla repetida —, e só depois ordena a fila: primeiro o time com a menor média, entre seus jogadores, do número da última partida encerrada que cada um jogou na sessão (quem não jogou vale 0); a ordem de chegada desempata. Quem jogou por último vai para o fim; o time incompleto continua por último. Na 1ª rodada nada muda. Partidas de rodada cancelada contam (o cansaço é físico). Motivo: um time que abria uma rodada e fechava a seguinte ficava tempo demais parado.
+
+### Decision
+
+- Registro `fila-por-tempo-sem-jogar` (`Accepted`; Navigator, 2026-10-15: média por time, cancelada conta); RN-13 revista, RN-10 e RN-05 anotadas. O ímpar sempre por último virou a CV8.DS2.US24 (`Planned`, regra a decidir).
+
+### Verification
+
+- `uv run pytest` (665, com 9 testes novos em `tests/test_sorteio.py` e `tests/test_reequilibrio.py`; o de integração falha com a regra antiga), `ruff check` e `ruff format --check` limpos, `npm run check` e `npm test` (200). Validado pelo Navigator em 2026-10-15.
 
 ## 0.52.0 - 2026-10-14
 
