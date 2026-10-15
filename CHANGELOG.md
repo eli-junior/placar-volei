@@ -4,6 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### CV8.DS2.US23 — Fila das rodadas seguintes por tempo sem jogar
+
+- **História / Escopo:** da 2ª rodada em diante o sorteio continua equilibrando as duplas pela nota, mas a fila passa a ordenar os times por quem está há mais tempo sem jogar (quem jogou por último vai para o fim). Motivo: time que abriu uma rodada e fechou a seguinte ficava tempo demais parado.
+- **Branch:** `claude/team-play-order-balance-3c03os`
+- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-15
+- **Handoff / Próximos Passos:** plano apresentado ao Navigator; nenhum código alterado. Pontos em aberto: como agregar o descanso de um time de 2–3 jogadores (média proposta) e se partidas de rodada cancelada contam.
+
 ## 0.52.0 - 2026-10-14
 
 Boundary: Maintenance — `Makefile` com os atalhos do projeto e reset das notas dos jogadores (minor; backend, web e APK em 0.52.0, APK `versionCode` 39; só o backend ganha comportamento novo; Wear OS inalterado em 0.27.0).
