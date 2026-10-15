@@ -68,3 +68,7 @@ A DS8 (formatos de rodada) abriu com a US22: com exatamente 3 times completos a 
 ## Estado em 0.53.0
 
 CV8.DS2.US23: nas rodadas seguintes, as duplas continuam equilibradas pela nota e a fila põe primeiro quem está há mais tempo sem jogar (RN-13 revista). A US24 (ímpar sempre por último) ficou planejada, com a regra a decidir.
+
+## Estado em 0.54.0
+
+CV8.DS2.US24: o ímpar (ou a sobra do trio) é quem jogou por último, entre os que não aumentam as duplas H+H ou os trios de um sexo só; o último a chegar desempata, e na 1ª rodada decide. O time incompleto segue sempre no fim da fila.

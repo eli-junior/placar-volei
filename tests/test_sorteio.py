@@ -38,6 +38,13 @@ def minimo_hh(generos: str, impar_fora: str | None = None):
     return max(0, (h - m) // 2)
 
 
+def melhor_hh(generos: str):
+    """Menor H+H possível: com número ímpar, o ímpar é escolhido para isso (US24)."""
+    if len(generos) % 2 == 0:
+        return minimo_hh(generos)
+    return min(minimo_hh(generos, g) for g in set(generos))
+
+
 def test_menos_de_4_e_recusado():
     for n in range(4):
         with pytest.raises(JogadoresInsuficientes) as e:
@@ -71,8 +78,7 @@ def test_genero_numero_minimo_de_duplas_hh(homens, mulheres):
     ps = grupo("".join(generos), notas)
     for tentativa in range(2):
         s = sortear(ps, tentativa)
-        impar = ps[-1].genero if len(ps) % 2 else None
-        assert hh(s) == minimo_hh("".join(generos), impar)
+        assert hh(s) == melhor_hh("".join(generos))
         # toda dupla tem 2, todos aparecem exatamente uma vez
         ids = [p.id for t in s.times for p in t.jogadores]
         assert sorted(ids) == sorted(p.id for p in ps)
@@ -117,7 +123,8 @@ def test_independe_da_ordem_em_que_a_lista_chega():
 
 def test_impar_o_ultimo_a_chegar_fica_sozinho_por_ultimo():
     # p3 chegou por último (ordem 7), mesmo sendo o de maior nota
-    ps = grupo("HMHMHMH", [60, 60, 60, 99, 60, 60, 60], [3, 1, 2, 7, 5, 4, 6])
+    # 3 H e 4 M: tirar qualquer um não cria H+H, então vale só a chegada
+    ps = grupo("HMHMMMH", [60, 60, 60, 99, 60, 60, 60], [3, 1, 2, 7, 5, 4, 6])
     s = sortear(ps)
     assert len(s.times) == 4
     ultimo = s.times[-1]
@@ -236,8 +243,7 @@ def test_todas_as_combinacoes_de_genero_ate_6_jogadores():
         for generos in product("HM", repeat=n):
             ps = grupo("".join(generos), [50 + i for i in range(n)])
             s = sortear(ps)
-            impar = ps[-1].genero if n % 2 else None
-            assert hh(s) == minimo_hh("".join(generos), impar)
+            assert hh(s) == melhor_hh("".join(generos))
 
 
 # --- US23: fila das rodadas seguintes por tempo sem jogar --------------------
@@ -301,7 +307,8 @@ def test_incompleto_segue_por_ultimo_mesmo_descansado():
     ps = grupo("HMHMH", [60] * 5)
     descanso = {"p0": 9, "p1": 9, "p2": 8, "p3": 8}  # p4 nunca jogou
     s = sortear(ps, descanso=descanso)
-    assert s.times[-1].incompleto and [p.id for p in s.times[-1].jogadores] == ["p4"]
+    # US24: o ímpar é quem jogou por último sem criar H+H (p0, homem), no fim
+    assert s.times[-1].incompleto and [p.id for p in s.times[-1].jogadores] == ["p0"]
 
 
 def test_trio_ordena_pela_media_do_descanso():
@@ -310,3 +317,57 @@ def test_trio_ordena_pela_media_do_descanso():
     s = sortear(ps, descanso=descanso, tamanho=3)
     medias = [_media(t, descanso) for t in s.times]
     assert medias == sorted(medias)
+
+
+# --- US24: o ímpar é quem jogou por último; o incompleto, sempre no fim -------
+
+
+def test_rodada_seguinte_impar_e_quem_jogou_por_ultimo():
+    ps = grupo("HMHMHMHMH", [60] * 9)  # p8 é o último a chegar
+    descanso = {f"p{i}": 1 for i in range(9)} | {"p2": 5}
+    s = sortear(ps, descanso=descanso)
+    assert s.times[-1].incompleto
+    assert [p.id for p in s.times[-1].jogadores] == ["p2"]
+    assert all(not t.incompleto for t in s.times[:-1])
+
+
+def test_impar_empate_no_descanso_cai_no_ultimo_a_chegar():
+    ps = grupo("HMHMHMHMH", [60] * 9)
+    descanso = {f"p{i}": 3 for i in range(9)}
+    assert [p.id for p in sortear(ps, descanso=descanso).times[-1].jogadores] == ["p8"]
+
+
+def test_primeira_rodada_impar_e_o_ultimo_a_chegar_sem_criar_hh():
+    # 4 H e 3 M, a mulher p6 chegou por último: tirá-la deixaria 4 H e 2 M
+    # (1 dupla H+H); o ímpar é o último homem a chegar (p3)
+    ps = grupo("HHHHMM" + "M", [60] * 7)
+    s = sortear(ps)
+    assert [p.id for p in s.times[-1].jogadores] == ["p3"]
+    assert s.duplas_hh == 0
+
+
+def test_impar_nao_cria_dupla_hh_evitavel():
+    # 6 H e 5 M: a mulher p9 jogou por último, mas tirá-la geraria H+H a mais;
+    # o ímpar é o homem que jogou por último
+    ps = grupo("HHHHHHMMMMM", [60] * 11)
+    descanso = {f"p{i}": 1 for i in range(11)} | {"p9": 6, "p4": 5}
+    s = sortear(ps, descanso=descanso)
+    assert [p.id for p in s.times[-1].jogadores] == ["p4"]
+    assert s.duplas_hh == 0
+
+
+def test_trio_sobra_de_dois_sao_os_que_jogaram_por_ultimo():
+    ps = grupo("HMHMHMHM", [60] * 8)  # 2 trios + sobra de 2
+    descanso = {f"p{i}": 1 for i in range(8)} | {"p0": 4, "p1": 4}
+    s = sortear(ps, descanso=descanso, tamanho=3)
+    ultimo = s.times[-1]
+    assert ultimo.incompleto and {p.id for p in ultimo.jogadores} == {"p0", "p1"}
+    assert s.duplas_hh == 0  # nenhum trio de um sexo só
+
+
+def test_incompleto_fica_no_fim_mesmo_sendo_o_mais_descansado():
+    # todos jogaram a última partida: o incompleto não sobe na fila
+    ps = grupo("HMHMH", [60] * 5)
+    descanso = {"p0": 9, "p1": 9, "p2": 9, "p3": 9, "p4": 9}
+    s = sortear(ps, descanso=descanso)
+    assert s.times[-1].incompleto and s.times[-1].fila == len(s.times)

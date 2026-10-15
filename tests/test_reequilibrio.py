@@ -140,3 +140,22 @@ async def test_sem_ajustes_de_nota_usa_os_times_da_partida(ac, placar):
     finally:
         conn.close()
     assert _descanso_da_sessao() == antes and len(antes) == 4
+
+
+@pytest.mark.asyncio
+async def test_rodada_2_impar_e_quem_jogou_por_ultimo_e_fica_no_fim(ac, placar):
+    # 11 jogadores (6 H, 5 M): rodada 1 com o ímpar (último a chegar) no fim
+    jogo = await Jogo(ac, placar).preparar(quantos=11)
+    rodada1 = (await jogo.estado())["rodada"]
+    impar1 = [t for t in rodada1["times"] if t["incompleto"]]
+    assert len(impar1) == 1
+    await jogo.jogar("A")
+    assert (await ac.post("/api/rodada/cancelar")).status_code == 200
+    descanso = _descanso_da_sessao()
+    r = await ac.post("/api/rodada/sorteio", json={"alvo": 10})
+    assert r.status_code in (200, 201), r.text
+    times = sorted((await jogo.estado())["rodada"]["times"], key=lambda t: t["fila"])
+    assert times[-1]["incompleto"] and not any(t["incompleto"] for t in times[:-1])
+    impar = times[-1]["jogadores"][0]
+    assert descanso.get(impar["id"]) == 1  # jogou a única partida
+    assert impar["id"] != impar1[0]["jogadores"][0]["id"]

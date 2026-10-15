@@ -14,3 +14,5 @@
 6. Jogue até o campeão, desfaça a última partida e abra a tela do espectador. **Esperado:** fila, reis e campeões com 3 nomes.
 
 **Aprova:** tudo acima. **Reprova:** trio de um sexo havendo alternativa, partida chamada com time incompleto, nome cortado no relógio ou regressão nas duplas.
+
+> Revisto na CV8.DS2.US24 (0.54.0, 2026-10-15): o ímpar (ou a sobra do trio) deixou de ser sempre o último a chegar; passa a ser quem jogou por último, entre os que não pioram o gênero, e o último a chegar só desempata (RN-05).

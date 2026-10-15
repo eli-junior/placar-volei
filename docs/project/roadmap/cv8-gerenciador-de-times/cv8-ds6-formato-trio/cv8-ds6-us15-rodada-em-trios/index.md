@@ -37,3 +37,5 @@ Rodada inteira em trios; trio misto salvo grupo de um sexo só; sobra é time in
 ## Out of Scope
 
 Formato misto na mesma rodada; alvo próprio para trio; histórico entre sessões.
+
+> Revisto na CV8.DS2.US24 (0.54.0, 2026-10-15): o ímpar (ou a sobra do trio) deixou de ser sempre o último a chegar; passa a ser quem jogou por último, entre os que não pioram o gênero, e o último a chegar só desempata (RN-05).

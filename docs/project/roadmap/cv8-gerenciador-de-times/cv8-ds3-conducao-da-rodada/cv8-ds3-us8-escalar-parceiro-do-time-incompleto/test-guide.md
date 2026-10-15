@@ -28,3 +28,5 @@ Use **5 jogadores** (número ímpar), cadastrados e marcados presentes **nesta o
 ## Evidência automatizada
 
 `uv run pytest` (507; 24 novos: lista de escalação com gênero e grupos, saldo dobrado, escolha na rodada com placar real, recusas, concorrência, origem atrasado, volta aos eliminados, migração 5→6), `npm test` (183), `npm run check`, `npm run test:e2e` (76, com o fluxo do ímpar completo, dois aparelhos e axe no bloco).
+
+> Revisto na CV8.DS2.US24 (0.54.0, 2026-10-15): o ímpar (ou a sobra do trio) deixou de ser sempre o último a chegar; passa a ser quem jogou por último, entre os que não pioram o gênero, e o último a chegar só desempata (RN-05).

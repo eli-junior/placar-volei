@@ -88,3 +88,5 @@ Sortear as rodadas seguintes e o saldo/nota ajustada (US-04); evitar repetir dup
 
 - **Qualidade do equilíbrio:** a busca por trocas é heurística, não prova de ótimo. Mitigação: testes de propriedade contra um ótimo exato em casos pequenos (até 10 jogadores) e a tolerância documentada.
 - **Tamanho:** é grande; se passar do razoável, separo a refatoração do módulo comum numa TS à parte antes de começar o sorteio.
+
+> Revisto na CV8.DS2.US24 (0.54.0, 2026-10-15): o ímpar (ou a sobra do trio) deixou de ser sempre o último a chegar; passa a ser quem jogou por último, entre os que não pioram o gênero, e o último a chegar só desempata (RN-05).
