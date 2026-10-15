@@ -10,7 +10,7 @@
   import { criarConexao } from '../lib/conexao.js';
   import { chamarRodada, chamarSessao, criarQuadraDoPlacar, estadoMaisNovo, faltamParaSortear, mensagemFaltam, moverPara, moverPosicao, rotuloSincronia } from '../lib/jogadores.js';
 
-  let { onVoltar = () => {}, onGerenciarJogadores = () => {} } = $props();
+  let { onVoltar = () => {}, onGerenciarJogadores = () => {}, onAbrirResenha = () => {} } = $props();
 
   let segredo = $state(lerSegredoDono());
   let estado = $state(null);
@@ -280,6 +280,7 @@
     {#if segredo}
       <span class="sincronia {sincronia.chave}">{sincronia.rotulo}</span>
       <button class="secundario" type="button" onclick={carregar} disabled={carregando}><Icone nome="atualizar" tamanho="1.1em" /><span>Atualizar</span></button>
+      <button class="secundario" type="button" onclick={onAbrirResenha}><Icone nome="trofeu" tamanho="1.1em" /><span>Resenha</span></button>
     {/if}
   </nav>
 
@@ -464,7 +465,7 @@
 
 <style>
   .sessao { box-sizing: border-box; max-width: 640px; margin: 0 auto; padding: calc(var(--sa-topo) + 1rem) 1rem calc(var(--sa-baixo) + 2rem); display: flex; flex-direction: column; gap: 1rem; color: var(--texto-forte); }
-  .topo { display: flex; justify-content: space-between; gap: .5rem; }
+  .topo { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; }
   .sincronia { margin-left: auto; align-self: center; padding: .15rem .6rem; border-radius: var(--raio-circular); background: var(--fundo-cartao-ativo); color: var(--texto-medio); font-size: var(--texto-legenda); font-weight: 700; }
   .sincronia.reconectando, .sincronia.offline { color: var(--estado-erro-suave); }
   h1 { margin: 0; font-size: var(--texto-titulo-forte); }

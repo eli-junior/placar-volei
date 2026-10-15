@@ -2,7 +2,7 @@
 code: CV8
 level: Value
 status: Active
-status_reason: DS1 a DS5 entregues até a 0.44.0 (validação em lote pendente); DS6 (trio) na 0.45.0; DS7 (auditoria do QA) entregue até a 0.48.0 (US21 adiada); validação em lote pendente
+status_reason: DS9 (Resenha) na 0.55.0; DS1 a DS5 entregues até a 0.44.0 (validação em lote pendente); DS6 (trio) na 0.45.0; DS7 (auditoria do QA) entregue até a 0.48.0 (US21 adiada); validação em lote pendente
 updated: 2026-10-15
 related:
   - regras-de-negocio.md
@@ -30,6 +30,8 @@ Web + exibição dos nomes das duplas no relógio. Somente formato **dupla**. Re
 
 - [CV8.DS8 — Formatos de rodada](cv8-ds8-formatos-de-rodada/index.md): Formatos que fogem do rei da quadra; US22, rodada triangular de 3 times (RN-18).
 
+- [CV8.DS9 — Resenha](cv8-ds9-resenha/index.md): Estatísticas, prêmios e galeria da sessão em imagens para o grupo (US25, RN-19).
+
 - [CV8.TS1 — Backup do `gerenciador.db`](cv8-ts1-backup-do-gerenciador/index.md): resiliência da base durável (Technical Story).
 
 ## Acceptance / Done Condition
@@ -38,7 +40,7 @@ Com 4 ou mais presentes, o operador sorteia, conduz as partidas até o mata-mata
 
 ## Fora do escopo (fase 2)
 
-- Tela de histórico / ranking geral entre sessões.
+- Tela de histórico / ranking geral entre sessões (a Resenha da DS9 cobre só a sessão aberta ou a última encerrada).
 - Edição de partidas antigas (além de desfazer a última).
 
 ## Notes
@@ -72,3 +74,7 @@ CV8.DS2.US23: nas rodadas seguintes, as duplas continuam equilibradas pela nota 
 ## Estado em 0.54.0
 
 CV8.DS2.US24: o ímpar (ou a sobra do trio) é quem jogou por último, entre os que não aumentam as duplas H+H ou os trios de um sexo só; o último a chegar desempata, e na 1ª rodada decide. O time incompleto segue sempre no fim da fila.
+
+## Estado em 0.55.0
+
+CV8.DS9.US25: a Resenha do Joguinho (`/joguinho/resenha`) mostra prêmios com zoeira, galeria com foto e título de cada jogador, campeões e tabela da sessão aberta ou da última encerrada (RN-19), em cartões 4:5 que viram imagens para mandar no grupo.

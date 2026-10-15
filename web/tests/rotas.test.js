@@ -7,6 +7,7 @@ test('rotas conhecidas do navegador', () => {
   assert.deepEqual(resolverRota('/index.html'), { tela: 'inicio' });
   assert.deepEqual(resolverRota('/jogadores'), { tela: 'jogadores' });
   assert.deepEqual(resolverRota('/joguinho'), { tela: 'joguinho' });
+  assert.deepEqual(resolverRota('/joguinho/resenha'), { tela: 'resenha' });
   assert.deepEqual(resolverRota('/quadra/12345'), { tela: 'quadra', quadraId: '12345' });
 });
 
@@ -29,7 +30,7 @@ test('o resto não existe', () => {
 test('no APK só o início e a sala existem', () => {
   assert.equal(resolverRota('/', { apk: true }).tela, 'inicio');
   assert.equal(resolverRota('/quadra/123', { apk: true }).tela, 'quadra');
-  for (const caminho of ['/joguinho', '/sessao', '/jogadores', '/qualquer']) {
+  for (const caminho of ['/joguinho', '/joguinho/resenha', '/sessao', '/jogadores', '/qualquer']) {
     assert.equal(resolverRota(caminho, { apk: true }).tela, 'nao_encontrada', caminho);
   }
 });

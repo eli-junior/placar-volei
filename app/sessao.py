@@ -15,6 +15,7 @@ from typing import Any
 from fastapi import APIRouter, Request, status
 from pydantic import BaseModel
 
+from app import estatisticas
 from app import rodada as regras_rodada
 from app.api import autenticar_owner
 from app.config import settings
@@ -282,6 +283,13 @@ router = APIRouter(prefix="/api/sessao", tags=["sessao"])
 async def get_sessao(request: Request):
     autenticar_owner(request)
     return await asyncio.to_thread(estado_sync)
+
+
+@router.get("/estatisticas")
+async def get_estatisticas(request: Request):
+    """Resenha do Joguinho (CV8.DS9.US25): a sessão aberta ou a última encerrada."""
+    autenticar_owner(request)
+    return await asyncio.to_thread(_executar, estatisticas.carregar)
 
 
 @router.post("", status_code=status.HTTP_201_CREATED)

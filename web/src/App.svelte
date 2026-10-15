@@ -4,6 +4,7 @@
   import ModalEntrar from './components/ModalEntrar.svelte';
   import Jogadores from './components/Jogadores.svelte';
   import Sessao from './components/Sessao.svelte';
+  import Resenha from './components/Resenha.svelte';
   import PaginaNaoEncontrada from './components/PaginaNaoEncontrada.svelte';
   import { resolverRota } from './lib/rotas.js';
   import SalaQuadra from './components/SalaQuadra.svelte';
@@ -15,6 +16,7 @@
   // Base de jogadores (CV8): só no navegador, nunca dentro do APK.
   let telaJogadores = $state(false);
   let telaSessao = $state(false);
+  let telaResenha = $state(false);
   // Caminho que não existe: mostra a página de aviso (CV8.DS7.US18).
   let caminhoInexistente = $state(null);
   let eu = $state(null);
@@ -264,6 +266,7 @@
     }
     telaJogadores = rota.tela === 'jogadores';
     telaSessao = rota.tela === 'joguinho';
+    telaResenha = rota.tela === 'resenha';
     caminhoInexistente = rota.tela === 'nao_encontrada' ? window.location.pathname : null;
     if (rota.tela !== 'quadra') return;
     const quadraId = rota.quadraId;
@@ -301,7 +304,10 @@
     <Sessao
       onVoltar={() => { window.history.pushState({}, '', '/'); carregarRota(); }}
       onGerenciarJogadores={() => { window.history.pushState({}, '', '/jogadores'); carregarRota(); }}
+      onAbrirResenha={() => { window.history.pushState({}, '', '/joguinho/resenha'); carregarRota(); }}
     />
+  {:else if telaResenha}
+    <Resenha onVoltar={() => { window.history.pushState({}, '', '/joguinho'); carregarRota(); }} />
   {:else if telaJogadores}
     <Jogadores onVoltar={() => { window.history.pushState({}, '', '/'); carregarRota(); }} />
   {:else if caminhoInexistente}
