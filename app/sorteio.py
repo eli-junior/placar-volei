@@ -19,6 +19,10 @@ Regras (ver `docs/project/roadmap/cv8-gerenciador-de-times/regras-de-negocio.md`
   time cuja média da "última partida jogada" dos jogadores é menor (quem está
   há mais tempo sem jogar); a chegada desempata. Na 1ª rodada ninguém jogou e
   vale só a chegada.
+- US24: da 2ª rodada em diante o ímpar (ou a sobra do trio) é quem jogou por
+  último, escolhido antes de formar os times, entre os que não pioram o gênero
+  (RN-01, RN-16); empate pela chegada mais tarde. Na 1ª rodada segue o último a
+  chegar. O time incompleto fica sempre no fim da fila.
 
 O resultado é determinístico. "Resortear" percorre outras combinações
 igualmente equilibradas (amplitude até `TOLERANCIA` pontos pior que a melhor).
@@ -26,6 +30,7 @@ igualmente equilibradas (amplitude até `TOLERANCIA` pontos pior que a melhor).
 
 import random
 from functools import lru_cache
+from itertools import combinations
 from typing import NamedTuple
 
 MINIMO_JOGADORES = 4
@@ -110,6 +115,42 @@ def _ordem_da_fila(descanso: dict[str, int]):
         return (media, min(p.ordem for p in time))
 
     return chave
+
+
+def _violacoes_genero(grupo, tamanho: int) -> int:
+    """Mínimo de times "ruins" que o grupo obriga: duplas H+H (RN-01) ou trios
+    de um sexo só com os dois sexos presentes (RN-16)."""
+    h = sum(p.genero == "H" for p in grupo)
+    m = len(grupo) - h
+    if tamanho == 2:
+        return max(0, (h - m) // 2)
+    if h == 0 or m == 0:
+        return 0
+    n = len(grupo) // 3
+    return n - min(h, m, n)
+
+
+def _sobra(
+    ordenados: list[Participante], tamanho: int, descanso: dict[str, int]
+) -> list[Participante]:
+    """Quem fica no time incompleto. 1ª rodada (sem descanso): os últimos a
+    chegar (RN-05). Depois (US24): quem jogou por último, entre as escolhas
+    que não pioram o gênero; empate pela chegada mais tarde."""
+    k = len(ordenados) % tamanho
+    if k == 0:
+        return []
+    if not descanso:
+        return ordenados[len(ordenados) - k :]
+
+    def chave(sobra) -> tuple:
+        resto = [p for p in ordenados if p not in sobra]
+        return (
+            _violacoes_genero(resto, tamanho),
+            sorted((-descanso.get(p.id, 0), -p.ordem) for p in sobra),
+        )
+
+    escolhida = min(combinations(ordenados, k), key=chave)
+    return sorted(escolhida, key=lambda p: p.ordem)
 
 
 def _serpentina(grupo: list[Participante]) -> list[list[Participante]]:
@@ -365,7 +406,7 @@ def _sortear_trios(
     descanso: dict[str, int],
 ) -> Sorteio:
     ordenados = sorted(participantes, key=lambda p: p.ordem)
-    sobra = ordenados[len(ordenados) - len(ordenados) % 3 :]
+    sobra = _sobra(ordenados, 3, descanso)
     grupo = [p for p in ordenados if p not in sobra]
     candidatas = _candidatas_n(tuple(grupo), anteriores)
     escolhida = candidatas[tentativa % len(candidatas)]
@@ -412,7 +453,8 @@ def sortear(
         return _sortear_trios(participantes, tentativa, anteriores, descanso)
 
     ordenados = sorted(participantes, key=lambda p: p.ordem)
-    impar = ordenados[-1] if len(ordenados) % 2 else None
+    sobra = _sobra(ordenados, 2, descanso)
+    impar = sobra[0] if sobra else None
     pares = [p for p in ordenados if p is not impar]
 
     candidatas = _candidatas(tuple(pares), anteriores)
