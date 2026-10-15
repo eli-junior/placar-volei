@@ -8,7 +8,7 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** Delivery Story — no modo de exibição o placar ocupa uma área maior da tela e o app esconde as barras do Android (status e navegação) nesse modo. Pedido do Navigator ao ver o APK 0.55.0 no tablet SM-P620.
 - **Branch:** `feature/placar-tela-cheia-tablet`
-- **Passo Ariad:** Passo 4 - Teste e Validação (aguardando Checkpoint 2)
+- **Passo Ariad:** Passo 5 - Revisão (aguardando Checkpoint 3; validação no tablet aprovada em parte: barras, número e toque observados; borda e Voltar com o Navigator)
 - **Assinatura do Agente:** Agente: Claude Sonnet 5.5 (Driver) | Sessão: 2f171989-35bc-4cda-a642-a6f3e84acde2 | Data: 2026-10-15
 - **Handoff / Próximos Passos:** em validação no tablet SM-P620 (APK release 0.55.0 instalado com o plugin; falta o Mini PC rodar esta branch para a quadra online trazer o código novo). Feito: plugin `BarrasDoSistema` (fila, reaplica ao ganhar foco, logs) e ponte própria `window.PlacarBarras` (o Capacitor não leva a ponte dos plugins à página do servidor; comprovado no tablet: sem a ponte as barras não sumiam, com ela somem), rodapé flutuante, número maior só com `text-box` (e2e mede 5 telas), `Cache-Control: no-cache` no `index.html`. Pendente: confirmar no tablet que as barras somem (se não, ler `logcat` por `BarrasDoSistema`/`[barras]`), depois Passo 5, versão 0.56.0 (`versionCode` 44) e docs.
 
