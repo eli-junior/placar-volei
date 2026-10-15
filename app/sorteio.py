@@ -4,11 +4,12 @@ Regras (ver `docs/project/roadmap/cv8-gerenciador-de-times/regras-de-negocio.md`
 
 - RN-11: no mínimo 4 jogadores.
 - RN-05: número ímpar → um jogador fica sozinho num time incompleto, por
-  último na fila (quem, ver US24 abaixo).
+  último na fila (quem fica, ver US24 abaixo).
 - RN-01: o número de duplas H+H é o mínimo possível, `max(0, (H − M) / 2)`
   entre os que formam dupla. O gênero prevalece sobre o equilíbrio.
 - RN-16 (trio): rodada inteira em trios; mínimo de 6 jogadores; a sobra
-  (1 ou 2 últimos a chegar) forma um time incompleto por último na fila; com
+  (1 ou 2, escolhida como o ímpar, US24) forma um time incompleto por último
+  na fila; com
   homens e mulheres presentes, o número de trios só de um sexo é o mínimo
   possível (o gênero prevalece sobre o equilíbrio).
 - RN-14: duplas equilibradas pela nota (somas de nota o mais parecidas

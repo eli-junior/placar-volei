@@ -19,7 +19,13 @@ A fila de toda rodada seguia só a ordem de chegada (RN-13). Um time que abria u
 - **Ordem da fila:** primeiro o time com a menor **média** do descanso dos seus jogadores (há mais tempo esperando); a menor ordem de chegada desempata (RN-13). Na 1ª rodada todos valem 0 e vale só a chegada.
 - **Rodada cancelada conta:** suas partidas encerradas entram no descanso (o cansaço é físico), ao contrário das duplas anteriores e da nota.
 - **Quem jogou cada partida** vem de `ajustes_nota` (gravado no encerramento); sem esse registro (notas resetadas), dos times da partida.
-- O time incompleto (ímpar) continua por último (RN-05); fica como pendência na US24.
+- O time incompleto (ímpar) continua por último (RN-05).
+
+## Ímpar (US24; Navigator, 2026-10-15)
+
+- O ímpar (ou a sobra do trio) é escolhido **antes** de formar os times, entre os que não aumentam o número de duplas H+H (ou de trios de um sexo só): o gênero prevalece, em todas as rodadas. Entre eles, **quem jogou por último**; no empate, **o último a chegar**. Na 1ª rodada vale só a chegada, com o mesmo filtro de gênero.
+- O time incompleto fica **sempre no fim da fila**: quem jogou por último é quem pode esperar mais, e o ímpar deixa de ser sempre a mesma pessoa.
+- Rejeitadas: o mais descansado de ímpar (entraria cedo, sem eliminados para ser parceiro); o incompleto na fila pela ordem de descanso (o Navigator preferiu sempre no fim); não repetir o ímpar na sessão; o descanso prevalecer sobre o gênero (uma dupla H+H a mais).
 
 ## Alternativas rejeitadas
 
@@ -30,4 +36,4 @@ A fila de toda rodada seguia só a ordem de chegada (RN-13). Um time que abria u
 
 ## Consequências
 
-`app/reequilibrio.py` (`ultima_partida`) calcula o descanso; `app/sorteio.py` (`sortear(..., descanso=...)`) o usa só no `sorted` da fila. Sem schema novo: o descanso usado não fica gravado na rodada.
+`app/reequilibrio.py` (`ultima_partida`) calcula o descanso; `app/sorteio.py` (`sortear(..., descanso=...)`) o usa no `sorted` da fila e na escolha do ímpar (`_sobra`, com `_violacoes_genero`). Sem schema novo: o descanso usado não fica gravado na rodada.

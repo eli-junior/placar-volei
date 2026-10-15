@@ -30,4 +30,4 @@ related:
 
 ## Out of Scope
 
-O ímpar sempre por último (US24); gravar o descanso usado na rodada.
+Quem fica de ímpar (resolvido na US24, 0.54.0); gravar o descanso usado na rodada.
