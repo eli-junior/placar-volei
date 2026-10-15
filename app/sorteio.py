@@ -15,6 +15,10 @@ Regras (ver `docs/project/roadmap/cv8-gerenciador-de-times/regras-de-negocio.md`
   possível), sem aleatoriedade na combinação-base.
 - RN-13: a fila ordena os times pela menor ordem de chegada entre seus
   jogadores; o time incompleto vai ao fim.
+- US23: da 2ª rodada em diante, antes da chegada vale o descanso: primeiro o
+  time cuja média da "última partida jogada" dos jogadores é menor (quem está
+  há mais tempo sem jogar); a chegada desempata. Na 1ª rodada ninguém jogou e
+  vale só a chegada.
 
 O resultado é determinístico. "Resortear" percorre outras combinações
 igualmente equilibradas (amplitude até `TOLERANCIA` pontos pior que a melhor).
@@ -95,6 +99,17 @@ def _repetidas(duplas, anteriores: frozenset) -> int:
 
 def _chave(duplas) -> tuple:
     return tuple(sorted(tuple(sorted(p.id for p in d)) for d in duplas))
+
+
+def _ordem_da_fila(descanso: dict[str, int]):
+    """Chave da fila dos times completos (US23): média da última partida
+    jogada (0 = ainda não jogou na sessão), depois a menor chegada (RN-13)."""
+
+    def chave(time) -> tuple:
+        media = sum(descanso.get(p.id, 0) for p in time) / len(time)
+        return (media, min(p.ordem for p in time))
+
+    return chave
 
 
 def _serpentina(grupo: list[Participante]) -> list[list[Participante]]:
@@ -344,7 +359,10 @@ def _candidatas_n(
 
 
 def _sortear_trios(
-    participantes: list[Participante], tentativa: int, anteriores: frozenset
+    participantes: list[Participante],
+    tentativa: int,
+    anteriores: frozenset,
+    descanso: dict[str, int],
 ) -> Sorteio:
     ordenados = sorted(participantes, key=lambda p: p.ordem)
     sobra = ordenados[len(ordenados) - len(ordenados) % 3 :]
@@ -352,7 +370,7 @@ def _sortear_trios(
     candidatas = _candidatas_n(tuple(grupo), anteriores)
     escolhida = candidatas[tentativa % len(candidatas)]
     misto = len({p.genero for p in grupo}) == 2
-    completos = sorted(escolhida, key=lambda t: min(p.ordem for p in t))
+    completos = sorted(escolhida, key=_ordem_da_fila(descanso))
     times = [
         Time(tuple(sorted(t, key=lambda p: p.ordem)), fila=i, incompleto=False)
         for i, t in enumerate(completos, start=1)
@@ -374,11 +392,15 @@ def sortear(
     tentativa: int = 0,
     anteriores: frozenset = frozenset(),
     tamanho: int = 2,
+    descanso: dict[str, int] | None = None,
 ) -> Sorteio:
     """Monta a proposta. `tentativa` 0 é a melhor combinação; as seguintes
     percorrem as equivalentes (e voltam ao início ao esgotá-las). `anteriores`
     são as duplas já formadas na sessão (conjuntos de ids): evitá-las é
-    preferência, abaixo do gênero e do equilíbrio (RN-10)."""
+    preferência, abaixo do gênero e do equilíbrio (RN-10). `descanso` dá, por
+    id, o número da última partida jogada na sessão (US23): só muda a ordem da
+    fila, nunca a combinação."""
+    descanso = descanso or {}
     if tamanho not in MINIMO_POR_TAMANHO:
         raise ValueError("tamanho de time inválido")
     minimo = MINIMO_POR_TAMANHO[tamanho]
@@ -387,7 +409,7 @@ def sortear(
     if len({p.id for p in participantes}) != len(participantes):
         raise ValueError("jogadores repetidos")
     if tamanho == 3:
-        return _sortear_trios(participantes, tentativa, anteriores)
+        return _sortear_trios(participantes, tentativa, anteriores, descanso)
 
     ordenados = sorted(participantes, key=lambda p: p.ordem)
     impar = ordenados[-1] if len(ordenados) % 2 else None
@@ -396,7 +418,7 @@ def sortear(
     candidatas = _candidatas(tuple(pares), anteriores)
     escolhida = candidatas[tentativa % len(candidatas)]
 
-    completos = sorted(escolhida, key=lambda d: min(p.ordem for p in d))
+    completos = sorted(escolhida, key=_ordem_da_fila(descanso))
     times = [
         Time(tuple(sorted(d, key=lambda p: p.ordem)), fila=i, incompleto=False)
         for i, d in enumerate(completos, start=1)

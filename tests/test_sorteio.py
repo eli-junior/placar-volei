@@ -238,3 +238,75 @@ def test_todas_as_combinacoes_de_genero_ate_6_jogadores():
             s = sortear(ps)
             impar = ps[-1].genero if n % 2 else None
             assert hh(s) == minimo_hh("".join(generos), impar)
+
+
+# --- US23: fila das rodadas seguintes por tempo sem jogar --------------------
+
+
+def _media(time, descanso):
+    return sum(descanso.get(p.id, 0) for p in time.jogadores) / len(time.jogadores)
+
+
+def test_descanso_nao_muda_a_combinacao_so_a_fila():
+    ps = grupo("HMHMHMHM", [60, 61, 62, 63, 64, 65, 66, 67])
+    descanso = {"p0": 5, "p1": 5, "p2": 1, "p3": 2, "p6": 4}
+    sem, com = sortear(ps), sortear(ps, descanso=descanso)
+
+    def duplas(s):
+        return {frozenset(p.id for p in t.jogadores) for t in s.times}
+
+    assert duplas(sem) == duplas(com)
+    assert com.amplitude == sem.amplitude
+    medias = [_media(t, descanso) for t in com.times]
+    assert medias == sorted(medias)
+    assert [t.fila for t in com.times] == list(range(1, 5))
+
+
+def test_quem_jogou_por_ultimo_vai_para_o_fim_da_fila():
+    # a e b chegaram primeiro, mas jogaram a última partida (4)
+    ps = [
+        Participante("a", "H", 60, 1),
+        Participante("b", "M", 60, 2),
+        Participante("c", "H", 60, 3),
+        Participante("d", "M", 60, 4),
+    ]
+    descanso = {"a": 4, "b": 4, "c": 1, "d": 2}
+    for t in range(10):
+        s = sortear(ps, t, descanso=descanso)
+        medias = [_media(x, descanso) for x in s.times]
+        assert medias == sorted(medias)
+        if {p.id for p in s.times[-1].jogadores} == {"a", "b"}:
+            return
+    pytest.skip("nenhuma combinação equivalente juntou a e b")
+
+
+def test_quem_ainda_nao_jogou_entra_primeiro_e_a_chegada_desempata():
+    ps = grupo("HMHMHMHM", [60] * 8)
+    # todos jogaram a partida 3, menos p6 e p7 (chegaram depois, nunca jogaram)
+    descanso = {f"p{i}": 3 for i in range(6)}
+    s = sortear(ps, descanso=descanso)
+    zerados = [t for t in s.times if _media(t, descanso) < 3]
+    assert s.times[0] in zerados
+    iguais = [t for t in s.times if _media(t, descanso) == 3]
+    chegadas = [min(p.ordem for p in t.jogadores) for t in iguais]
+    assert chegadas == sorted(chegadas)
+
+
+def test_sem_descanso_e_a_primeira_rodada_de_sempre():
+    ps = grupo("HMHMHMHM", [60, 61, 62, 63, 64, 65, 66, 67], [5, 1, 8, 2, 3, 7, 4, 6])
+    assert sortear(ps) == sortear(ps, descanso={})
+
+
+def test_incompleto_segue_por_ultimo_mesmo_descansado():
+    ps = grupo("HMHMH", [60] * 5)
+    descanso = {"p0": 9, "p1": 9, "p2": 8, "p3": 8}  # p4 nunca jogou
+    s = sortear(ps, descanso=descanso)
+    assert s.times[-1].incompleto and [p.id for p in s.times[-1].jogadores] == ["p4"]
+
+
+def test_trio_ordena_pela_media_do_descanso():
+    ps = grupo("HMHMHMHMH", [60, 61, 62, 63, 64, 65, 66, 67, 68])
+    descanso = {"p0": 6, "p1": 6, "p2": 6, "p3": 1, "p4": 2, "p5": 3, "p6": 4}
+    s = sortear(ps, descanso=descanso, tamanho=3)
+    medias = [_media(t, descanso) for t in s.times]
+    assert medias == sorted(medias)
