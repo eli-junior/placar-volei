@@ -21,3 +21,5 @@ Não nasceram da US10 e a casca não mudou nela; investigar sairia do escopo da 
 ## Notes
 
 O resto do e2e do espectador, de acessibilidade e de sequência passa (21 testes).
+
+Em 2026-10-17 (CV8.DS7.US21): rodando a suíte inteira (`npx playwright test`), 8 testes falham, os da casca e também os de `e2e/local.spec.js`; rodando só `e2e/casca.spec.js e2e/local.spec.js`, os 7 passam, tanto na `master` quanto na branch. Isso enfraquece a suspeita de ambiente (`PLACAR_SERVIDOR`) e aponta para interferência entre testes na suíte completa.

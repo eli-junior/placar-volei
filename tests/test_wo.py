@@ -99,3 +99,18 @@ async def test_wo_fica_fora_da_resenha_e_conta_no_tempo_sem_jogar(ac, placar):
     finally:
         conn.close()
     assert sorted(descanso.values()).count(2) == 4  # os 4 do W.O. jogaram a 2ª
+
+
+@pytest.mark.asyncio
+async def test_wo_no_mata_mata_da_o_campeao(ac, placar):
+    jogo = await Jogo(ac, placar).preparar(quantos=10)  # times 1..5
+    for _ in range(3):  # t1 rei; t4 finalista
+        await jogo.jogar("A")
+    assert (await ac.post("/api/rodada/iniciar-mata-mata")).status_code == 200
+    await jogo.chamar()  # t4 × t1
+    await jogo.pontos("A", 2)
+    r = await dar_vitoria(ac, "A")  # o desafiante t4 leva por W.O.
+    assert r.status_code == 200, r.text
+    est = r.json()
+    assert est["rodada"] is None
+    assert est["ultimo_campeao"]["time"] == 4

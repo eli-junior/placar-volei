@@ -356,28 +356,39 @@ async def chamar_partida() -> dict:
     return await asyncio.to_thread(estado_sync)
 
 
+def _partida_chamada(conn, acao: str):
+    """(sessão, partida chamada) da rodada em andamento, ou 409. `acao` completa
+    a mensagem: "não tem partida chamada para <acao>"."""
+    sessao = exigir_sessao_aberta(conn)
+    rodada = regras_rodada.montar(conn, sessao["id"])
+    if rodada is None or rodada["estado"] != "em_andamento":
+        raise erro_de_campo(409, "rodada", "não está em andamento", "sem_rodada")
+    chamada = conn.execute(
+        "SELECT * FROM partidas_rodada WHERE rodada_id = ? AND estado = 'chamada'",
+        (rodada["id"],),
+    ).fetchone()
+    if chamada is None:
+        raise erro_de_campo(
+            409, "rodada", f"não tem partida chamada para {acao}", "sem_partida"
+        )
+    return sessao, chamada
+
+
+def _fechar(conn, sessao, chamada) -> None:
+    """Depois de gravar o resultado: o desfazer volta a valer e, se foi a última
+    partida, a rodada ganha o campeão."""
+    conn.execute(
+        "UPDATE rodadas SET desfeito = 0 WHERE id = ?", (chamada["rodada_id"],)
+    )
+    regras_rodada.registrar_campeao(conn, sessao["id"])
+
+
 def _registrar_encerramento() -> None:
     """Lê o placar final da quadra e grava o resultado da partida chamada."""
     conn = conectar(settings.gerenciador_db_path)
     try:
         with escrita(conn):
-            sessao = exigir_sessao_aberta(conn)
-            rodada = regras_rodada.montar(conn, sessao["id"])
-            if rodada is None or rodada["estado"] != "em_andamento":
-                raise erro_de_campo(
-                    409, "rodada", "não está em andamento", "sem_rodada"
-                )
-            chamada = conn.execute(
-                "SELECT * FROM partidas_rodada WHERE rodada_id = ? AND estado = 'chamada'",
-                (rodada["id"],),
-            ).fetchone()
-            if chamada is None:
-                raise erro_de_campo(
-                    409,
-                    "rodada",
-                    "não tem partida chamada para encerrar",
-                    "sem_partida",
-                )
+            sessao, chamada = _partida_chamada(conn, "encerrar")
             placar = ler_placar(chamada["quadra_id"], chamada["partida_quadra_id"])
             if placar is None:
                 raise erro_de_campo(
@@ -413,10 +424,7 @@ def _registrar_encerramento() -> None:
                 (placar["a"], placar["b"], vencedor, agora(), chamada["id"]),
             )
             aplicar_partida(conn, chamada["id"], agora())
-            conn.execute(
-                "UPDATE rodadas SET desfeito = 0 WHERE id = ?", (chamada["rodada_id"],)
-            )
-            regras_rodada.registrar_campeao(conn, sessao["id"])
+            _fechar(conn, sessao, chamada)
     finally:
         conn.close()
 
@@ -430,23 +438,7 @@ def _registrar_wo(lado) -> None:
     conn = conectar(settings.gerenciador_db_path)
     try:
         with escrita(conn):
-            sessao = exigir_sessao_aberta(conn)
-            rodada = regras_rodada.montar(conn, sessao["id"])
-            if rodada is None or rodada["estado"] != "em_andamento":
-                raise erro_de_campo(
-                    409, "rodada", "não está em andamento", "sem_rodada"
-                )
-            chamada = conn.execute(
-                "SELECT * FROM partidas_rodada WHERE rodada_id = ? AND estado = 'chamada'",
-                (rodada["id"],),
-            ).fetchone()
-            if chamada is None:
-                raise erro_de_campo(
-                    409,
-                    "rodada",
-                    "não tem partida chamada para dar a vitória",
-                    "sem_partida",
-                )
+            sessao, chamada = _partida_chamada(conn, "dar a vitória")
             placar = ler_placar(chamada["quadra_id"], chamada["partida_quadra_id"])
             a, b = (
                 (placar["a"], placar["b"])
@@ -460,10 +452,7 @@ def _registrar_wo(lado) -> None:
                 "WHERE id = ?",
                 (a, b, vencedor, agora(), chamada["id"]),
             )
-            conn.execute(
-                "UPDATE rodadas SET desfeito = 0 WHERE id = ?", (chamada["rodada_id"],)
-            )
-            regras_rodada.registrar_campeao(conn, sessao["id"])
+            _fechar(conn, sessao, chamada)
     finally:
         conn.close()
 

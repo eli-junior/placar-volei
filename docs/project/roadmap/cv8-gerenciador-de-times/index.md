@@ -78,3 +78,7 @@ CV8.DS2.US24: o ímpar (ou a sobra do trio) é quem jogou por último, entre os 
 ## Estado em 0.55.0
 
 CV8.DS9.US25: a Resenha do Joguinho (`/joguinho/resenha`) mostra prêmios com zoeira, galeria com foto e título de cada jogador, campeões e tabela da sessão aberta ou da última encerrada (RN-19), em cartões 4:5 que viram imagens para mandar no grupo.
+
+## Estado em 0.57.0
+
+CV8.DS7.US21: a partida chamada que não vai terminar no placar pode ganhar vencedor por W.O. (conta para a rodada e o tempo sem jogar; fora da nota, do saldo e da Resenha). O gerenciador passou ao schema 14.

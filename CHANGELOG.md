@@ -8,9 +8,9 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 - **História / Escopo:** registrar o resultado de uma partida chamada que não terminou no placar (time foi embora, chuva, lesão), dando a vitória a um dos times, para a rodada seguir sem anular.
 - **Branch:** `claude/team-play-order-balance-3c03os` (reiniciada a partir da `master` 0.56.0)
-- **Passo Ariad:** Passo 5 - Revisão (aguardando Checkpoint 3)
+- **Passo Ariad:** Passo 7 - Conclusão e Merge (aguardando Checkpoint 4)
 - **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-17
-- **Handoff / Próximos Passos:** plano aceito (Navigator, 2026-10-17): W.O. vale como vitória na rodada; nota não muda; fora do saldo e da Resenha; conta no tempo sem jogar; líder só pré-selecionado. Schema 14 (`partidas_rodada.wo`), rota `POST /api/rodada/dar-vitoria {vencedor: A|B}`, botão no painel. pytest 695 verdes (5 novos em `tests/test_wo.py`), e2e 100 verdes no joguinho (casca e local passam isolados; falham só na suíte inteira). Validado pelo Navigator em 2026-10-17 (W.O. inteiro fora da Resenha aceito). Falta: revisão, docs, versão 0.57.0.
+- **Handoff / Próximos Passos:** plano aceito (Navigator, 2026-10-17): W.O. vale como vitória na rodada; nota não muda; fora do saldo e da Resenha; conta no tempo sem jogar; líder só pré-selecionado. Schema 14 (`partidas_rodada.wo`), rota `POST /api/rodada/dar-vitoria {vencedor: A|B}`, botão no painel. pytest 695 verdes (5 novos em `tests/test_wo.py`), e2e 100 verdes no joguinho (casca e local passam isolados; falham só na suíte inteira). Validado pelo Navigator em 2026-10-17 (W.O. inteiro fora da Resenha aceito). Revisão aceita (extraídos `_partida_chamada` e `_fechar` em `app/ponte.py`; teste de W.O. no mata-mata). Docs feitas (RN-09/RN-14, registro `vitoria-por-wo-em-partida-abandonada`, US21 `Validated`, DS7 e decisão A revistas, guia, briefing, debt da casca, versão 0.57.0 e `versionCode` 45). Falta: aceite do merge em `master`.
 
 ## 0.56.0 - 2026-10-15
 
