@@ -17,7 +17,7 @@ from app import rodada as regras_rodada
 from app import substituicao as regras_substituicao
 from app.api import autenticar_owner
 from app.gerenciador_db import escrita
-from app.ponte import chamar_partida, encerrar_partida
+from app.ponte import chamar_partida, dar_vitoria, encerrar_partida
 from app.sessao import _estado, _executar, _responder
 from app.sincronia import publicar
 
@@ -103,6 +103,10 @@ class SubstituicaoBody(BaseModel):
 
 class ParceiroBody(BaseModel):
     jogador_id: Any = None
+
+
+class VitoriaBody(BaseModel):
+    vencedor: Any = None
 
 
 router = APIRouter(prefix="/api/rodada", tags=["rodada"])
@@ -204,5 +208,14 @@ async def post_chamar_partida(request: Request):
 async def post_encerrar_partida(request: Request):
     autenticar_owner(request)
     estado = await encerrar_partida()
+    await publicar(estado)
+    return estado
+
+
+@router.post("/dar-vitoria")
+async def post_dar_vitoria(body: VitoriaBody, request: Request):
+    """W.O. da partida chamada (CV8.DS7.US21): `vencedor` é "A" ou "B"."""
+    autenticar_owner(request)
+    estado = await dar_vitoria(body.vencedor)
     await publicar(estado)
     return estado

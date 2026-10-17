@@ -731,7 +731,7 @@ def carregar(conn) -> dict:
     linhas = conn.execute(
         "SELECT p.*, r.numero AS rodada, r.alvo FROM partidas_rodada p "
         "JOIN rodadas r ON r.id = p.rodada_id "
-        "WHERE r.sessao_id = ? AND p.estado = 'encerrada' AND p.placar_a IS NOT NULL "
+        "WHERE r.sessao_id = ? AND p.estado = 'encerrada' AND p.placar_a IS NOT NULL AND p.wo = 0 "
         "ORDER BY r.numero, p.ordem",
         (sid,),
     ).fetchall()

@@ -94,6 +94,8 @@ Desde a 0.53.0 a fila das rodadas seguintes segue o **tempo sem jogar** (CV8.DS2
 
 Desde a 0.54.0 o ímpar (ou a sobra do trio) é escolhido antes do pareamento por `sorteio._sobra` (CV8.DS2.US24): entre as escolhas que não aumentam o mínimo de H+H ou de trios de um sexo só (`_violacoes_genero`), quem jogou por último e, no empate, o último a chegar; força bruta sobre as combinações de 1 ou 2 jogadores. O incompleto continua sempre no fim da fila.
 
+Desde a 0.57.0 o `gerenciador.db` está no schema 14 (coluna `partidas_rodada.wo`, aditiva; a migração roda sozinha e é idempotente). `POST /api/rodada/dar-vitoria {"vencedor": "A"|"B"}` (só do dono) encerra a partida chamada por W.O. (CV8.DS7.US21): grava o placar parcial da quadra (0 × 0 se indisponível) e o vencedor escolhido, sem `aplicar_partida`; `rodada.py` tira o W.O. do saldo e `estatisticas.carregar`, da Resenha. Sem partida chamada responde 409 `sem_partida`; `vencedor` fora de A/B, 422. Veja o registro `vitoria-por-wo-em-partida-abandonada`.
+
 ### Backup e restauração do `gerenciador.db` (CV8.TS1)
 
 - **Automático:** o app grava uma cópia verificada na subida e a cada `GERENCIADOR_BACKUP_INTERVALO_HORAS` (6), mantendo as `GERENCIADOR_BACKUP_MANTER` (28) mais recentes. No compose, a pasta é `./backups` do host, montada em `/backups`, **fora** do volume `gerenciador-dados`. Sem `GERENCIADOR_BACKUP_DIR` o backup fica desligado (aviso no log). Falha de backup é logada e não derruba o app; uma cópia que falha na verificação nunca substitui nem faz podar as boas.

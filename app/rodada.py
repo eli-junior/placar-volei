@@ -480,6 +480,7 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
             "placar_b": r["placar_b"],
             "vencedor": por_id[r["vencedor_time_id"]]["fila"],
             "encerrada_em": r["encerrada_em"],
+            "wo": bool(r["wo"]),
         }
         for r in conn.execute(
             "SELECT * FROM partidas_rodada WHERE rodada_id = ? AND estado = 'encerrada' "
@@ -527,12 +528,13 @@ def montar_conducao(conn, rodada: dict, quadra: dict | None, ler_placar=None) ->
         "escalacao": escalacao,
         "saldos": saldos(
             {t: v["jogadores"] for t, v in por_id.items()},
-            [dict(r) for r in linhas],
+            [dict(r) for r in linhas if not r["wo"]],  # W.O. fora do saldo
         ),
         "partidas_encerradas": encerradas,
         "historico": historico,
         "pode_encerrar": bool(chamada) and motivo_encerrar is None,
         "pode_anular": bool(chamada),
+        "pode_dar_vitoria": bool(chamada),
         "motivo_encerrar": motivo_encerrar,
         "finalista": (
             vista(situacao.desafiante)

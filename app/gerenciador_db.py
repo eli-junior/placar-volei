@@ -29,7 +29,7 @@ ROTULOS = {
     "codigo": "Código da quadra",
 }
 
-SCHEMA_VERSAO = 13
+SCHEMA_VERSAO = 14
 SCHEMA_SQL = """
 CREATE TABLE IF NOT EXISTS jogadores (
     id TEXT PRIMARY KEY,
@@ -123,7 +123,10 @@ CREATE TABLE IF NOT EXISTS partidas_rodada (
     placar_a INTEGER,
     placar_b INTEGER,
     vencedor_time_id TEXT REFERENCES times(id),
-    encerrada_em TEXT
+    encerrada_em TEXT,
+    -- vitória dada pelo operador a uma partida que não terminou no placar
+    -- (CV8.DS7.US21): placar parcial guardado, fora da nota, do saldo e da Resenha
+    wo INTEGER NOT NULL DEFAULT 0
 );
 -- Ajuste de nota de cada jogador por partida encerrada (nota viva): o que de
 -- fato mudou, para o "Desfazer a última partida" reverter. Aditiva (schema 13).
@@ -282,11 +285,17 @@ def init_gerenciador_sync(caminho: str | None = None) -> None:
             conn.execute(
                 "ALTER TABLE rodadas ADD COLUMN triangular INTEGER NOT NULL DEFAULT 0"
             )
-        if "fase" not in [
+        colunas_partida = [
             r["name"] for r in conn.execute("PRAGMA table_info(partidas_rodada)")
-        ]:
+        ]
+        if "fase" not in colunas_partida:
             conn.execute(
                 "ALTER TABLE partidas_rodada ADD COLUMN fase TEXT NOT NULL DEFAULT 'fila'"
+            )
+        # Migração aditiva 13 -> 14: vitória por W.O. (CV8.DS7.US21).
+        if "wo" not in colunas_partida:
+            conn.execute(
+                "ALTER TABLE partidas_rodada ADD COLUMN wo INTEGER NOT NULL DEFAULT 0"
             )
         # Migração 9 -> 10: o alvo da rodada deixa de ser só 10 ou 12 (6 a 25).
         # O SQLite não altera um CHECK: recria a tabela, copiando as linhas.

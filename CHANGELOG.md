@@ -4,6 +4,31 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+## 0.57.0 - 2026-10-17
+
+Boundary: User Story CV8.DS7.US21 — vitória por W.O. em partida abandonada (minor; backend, web e APK em 0.57.0, APK `versionCode` 45; `gerenciador.db` no schema 14; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) — Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-17
+
+Git source: merge `--no-ff` de `claude/team-play-order-balance-3c03os` em `master`.
+
+### Added
+
+- **Dar a vitória (W.O.):** com a partida chamada, o painel do `/joguinho` oferece "Dar a vitória (W.O.)" ao lado de "Anular partida". O operador escolhe o vencedor (quem lidera o placar vem pré-selecionado) e confirma. Para a rodada é uma vitória normal (elimina, conta para rei, mata-mata e triângulo; "Desfazer a última partida" vale) e conta no tempo sem jogar; o placar parcial fica no histórico com o selo W.O. A nota não muda e a partida fica fora do saldo e da Resenha. Motivo: quando um time ia embora, chovia ou alguém se machucava, a única saída era anular.
+- **Rota `POST /api/rodada/dar-vitoria`** (`{"vencedor": "A"|"B"}`, só do dono). **Schema 14** (aditivo): coluna `partidas_rodada.wo`; a migração roda sozinha e é idempotente.
+
+### Changed
+
+- `app/ponte.py`: o encerramento e o W.O. compartilham `_partida_chamada` e `_fechar`.
+
+### Decision
+
+- Registro `vitoria-por-wo-em-partida-abandonada` (`Accepted`; Navigator, 2026-10-17); RN-09 e RN-14 revistas; decisão A da CV8.DS7 ("por ora só anular") revista.
+
+### Verification
+
+- `uv run pytest` (696; 6 em `tests/test_wo.py`, inclusive W.O. no mata-mata), e2e do joguinho (100, com o W.O. numa rodada triangular; os da casca e da quadra local passam isolados e falham só na suíte inteira, anotado no debt `casca-spec-falha-na-master`), `npm test` (213), `npm run check`, `ruff`. Validado pelo Navigator em 2026-10-17. A primeira subida em produção deve seguir o backup automático do `gerenciador.db`.
+
 ## 0.56.0 - 2026-10-15
 
 Boundary: User Story CV6.DS1.US10 — placar em tela cheia no tablet (minor; backend, web e APK em 0.56.0, APK `versionCode` 44; Wear OS inalterado em 0.27.0).
