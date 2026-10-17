@@ -515,3 +515,28 @@ test('quadra do joguinho: fim da partida só oferece Próximo jogo', async ({ ab
   await expect(p.getByRole('heading', { name: /Rodada 1/ })).toBeVisible();
   await sessaoLimpa(p);
 });
+
+test('dar a vitória (W.O.) a uma partida que não terminou no placar', async ({ abrir }) => {
+  const p = await abrir();
+  await sessaoLimpa(p);
+  await chegam(p, SEIS);
+  await rodadaConfirmada(p, 10);
+  await abrirTela(p);
+  const codigo = await criarEVincular(p);
+  await p.getByRole('button', { name: 'Chamar partida' }).click();
+  await pontosNoPlacar(p, codigo, 'A', 3);
+  await expect(p.getByText('Placar: 3 × 0')).toBeVisible();
+
+  await p.getByRole('button', { name: 'Dar a vitória (W.O.)' }).click();
+  // quem lidera já vem marcado, mas o operador pode trocar
+  await expect(p.getByRole('button', { name: 'Time 1', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await p.getByRole('button', { name: 'Time 2', exact: true }).click();
+  await p.getByRole('button', { name: 'Sim, vitória do Time 2' }).click();
+
+  await expect(p.getByText('W.O.', { exact: true })).toBeVisible();
+  await expect(p.getByText('Time 2 venceu', { exact: true })).toBeVisible();
+  // 6 jogadores: rodada triangular, o W.O. segue o triângulo como uma vitória
+  await expect(p.getByText(/Triângulo: o Time 2 venceu/)).toBeVisible();
+  await expect(p.getByRole('button', { name: 'Chamar partida' })).toBeEnabled();
+  await sessaoLimpa(p);
+});

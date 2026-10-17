@@ -167,6 +167,7 @@ async def test_encerrar_grava_placar_e_vencedor_dos_dois_lados(ac, placar):
             "placar_b": 3,
             "vencedor": 1,
             "encerrada_em": c["historico"][0]["encerrada_em"],
+            "wo": False,
         }
     ]
     # time 1 fica (1 vitória) e enfrenta o próximo da fila; time 2 foi eliminado

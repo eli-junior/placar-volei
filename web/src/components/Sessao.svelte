@@ -210,6 +210,7 @@
   const encerrarSemCampeao = () => agirQuadra(() => chamarRodada(segredo, '/encerrar-sem-campeao', { metodo: 'POST' }));
   const encerrarPartida = () => agirQuadra(() => chamarRodada(segredo, '/encerrar-partida', { metodo: 'POST' }));
   const anularPartida = () => agirQuadra(() => chamarRodada(segredo, '/anular-partida', { metodo: 'POST' }));
+  const darVitoria = (lado) => agirQuadra(() => chamarRodada(segredo, '/dar-vitoria', { metodo: 'POST', corpo: { vencedor: lado } }));
   const retirar = async (j) => { retirandoId = null; await agir('/retirar', { metodo: 'POST', corpo: { jogador_id: j.id } }, chamarRodada); };
 
   async function pularTime() {
@@ -332,7 +333,7 @@
       {#if rodada?.estado === 'proposta'}
         <PainelRodada {rodada} {ocupado} onResortear={resortear} onDescartar={descartar} onConfirmar={confirmar} />
       {:else if rodada && estado.conducao}
-        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onAnular={anularPartida} onEscalar={escalar} onPular={pularTime} podeDesfazer={estado.pode_desfazer} onDesfazer={desfazerPartida} onSubstituir={substituir} {erroSubstituicao} onIniciarMataMata={iniciarMataMata} onEncerrarSemCampeao={encerrarSemCampeao} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
+        <PainelConducao {rodada} conducao={estado.conducao} quadra={estado.quadra} {ocupado} {erroQuadra} onChamar={chamarPartida} onEncerrar={encerrarPartida} onAnular={anularPartida} onDarVitoria={darVitoria} onEscalar={escalar} onPular={pularTime} podeDesfazer={estado.pode_desfazer} onDesfazer={desfazerPartida} onSubstituir={substituir} {erroSubstituicao} onIniciarMataMata={iniciarMataMata} onEncerrarSemCampeao={encerrarSemCampeao} {erroEscalacao} onCriarQuadra={criarEVincular} onVincular={vincular} onDesvincular={desvincular} onCancelar={cancelarRodada} />
       {:else if estado.ultimo_campeao}
         <section class="cartao" aria-labelledby="titulo-campeao">
           <h2 id="titulo-campeao">Campeões da rodada {estado.ultimo_campeao.rodada}</h2>

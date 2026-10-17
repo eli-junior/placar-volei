@@ -13,6 +13,7 @@
     onChamar = () => {},
     onEncerrar = () => {},
     onAnular = () => {},
+    onDarVitoria = () => {},
     onPular = () => {},
     onEscalar = () => {},
     podeDesfazer = false,
@@ -32,6 +33,18 @@
   let confirmandoCancelar = $state(false);
   let confirmandoDesfazer = $state(false);
   let confirmandoAnular = $state(false);
+  // W.O. (CV8.DS7.US21): lado escolhido ('A' ou 'B'), ou null fora da confirmação.
+  let vitoriaPara = $state(null);
+  const lider = $derived.by(() => {
+    const p = conducao.partida?.placar;
+    if (!p || !p.mesma_partida || p.a === p.b) return null;
+    return p.a > p.b ? 'A' : 'B';
+  });
+  let darVitoriaAberto = $state(false);
+  function abrirDarVitoria() {
+    vitoriaPara = lider;
+    darVitoriaAberto = true;
+  }
   let confirmandoSemRei = $state(false);
   let saiu = $state('');
   let entra = $state('');
@@ -229,9 +242,23 @@
           <button class="perigo" type="button" onclick={() => { confirmandoAnular = false; onAnular(); }} disabled={ocupado}>Sim, anular a partida</button>
           <button class="secundario" type="button" onclick={() => (confirmandoAnular = false)}>Manter</button>
         </div>
+      {:else if darVitoriaAberto}
+        <fieldset class="dar-vitoria">
+          <legend>Dar a vitória (W.O.) a quem?</legend>
+          <p class="ajuda">Para a partida que não vai terminar no placar (time foi embora, chuva, lesão). Conta como vitória na rodada; a nota não muda e o resultado fica fora do saldo e da Resenha.</p>
+          <div class="botoes">
+            <button type="button" class="secundario" aria-pressed={vitoriaPara === 'A'} onclick={() => (vitoriaPara = 'A')}>Time {conducao.partida.time_a}</button>
+            <button type="button" class="secundario" aria-pressed={vitoriaPara === 'B'} onclick={() => (vitoriaPara = 'B')}>Time {conducao.partida.time_b}</button>
+          </div>
+          <div class="botoes">
+            <button class="perigo" type="button" onclick={() => { const lado = vitoriaPara; darVitoriaAberto = false; vitoriaPara = null; onDarVitoria(lado); }} disabled={ocupado || !vitoriaPara}>{vitoriaPara ? `Sim, vitória do Time ${vitoriaPara === 'A' ? conducao.partida.time_a : conducao.partida.time_b}` : 'Escolha o vencedor'}</button>
+            <button class="secundario" type="button" onclick={() => { darVitoriaAberto = false; vitoriaPara = null; }}>Voltar</button>
+          </div>
+        </fieldset>
       {:else}
         <div class="botoes">
           <button class="secundario" type="button" onclick={() => (confirmandoAnular = true)} disabled={ocupado}>Anular partida</button>
+          {#if conducao.pode_dar_vitoria}<button class="secundario" type="button" onclick={abrirDarVitoria} disabled={ocupado}>Dar a vitória (W.O.)</button>{/if}
         </div>
       {/if}
     {/if}
@@ -250,6 +277,7 @@
               <span class="lado" class:vencedor={h.vencedor === h.time_b}>Time {h.time_b}</span>
             </span>
             {#if h.fase === 'mata_mata'}<span class="selo">mata-mata</span>{/if}
+            {#if h.wo}<span class="selo">W.O.</span>{/if}
             <span class="selo">Time {h.vencedor} venceu</span>
           </li>
         {/each}
@@ -335,6 +363,9 @@
 </section>
 
 <style>
+  .dar-vitoria { margin: 0; padding: 0; border: 0; }
+  .dar-vitoria legend { font-weight: 600; padding: 0; }
+  .dar-vitoria button[aria-pressed='true'] { border-color: var(--marca); background: var(--marca-tenue); font-weight: 700; }
   .confronto { display: inline-flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; }
   .confronto .lado { opacity: .8; }
   .confronto .lado.vencedor { opacity: 1; font-weight: 700; }

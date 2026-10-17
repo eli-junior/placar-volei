@@ -421,6 +421,62 @@ def _registrar_encerramento() -> None:
         conn.close()
 
 
+def _registrar_wo(lado) -> None:
+    """Encerra a partida chamada dando a vitória ao lado `"A"` ou `"B"` (W.O.,
+    CV8.DS7.US21): para a rodada é uma vitória como outra; o placar parcial da
+    quadra fica guardado (0 × 0 se ela não está disponível) e a nota não muda."""
+    if lado not in ("A", "B"):
+        raise erro_de_campo(422, "vencedor", "deve ser A ou B", "valor_invalido")
+    conn = conectar(settings.gerenciador_db_path)
+    try:
+        with escrita(conn):
+            sessao = exigir_sessao_aberta(conn)
+            rodada = regras_rodada.montar(conn, sessao["id"])
+            if rodada is None or rodada["estado"] != "em_andamento":
+                raise erro_de_campo(
+                    409, "rodada", "não está em andamento", "sem_rodada"
+                )
+            chamada = conn.execute(
+                "SELECT * FROM partidas_rodada WHERE rodada_id = ? AND estado = 'chamada'",
+                (rodada["id"],),
+            ).fetchone()
+            if chamada is None:
+                raise erro_de_campo(
+                    409,
+                    "rodada",
+                    "não tem partida chamada para dar a vitória",
+                    "sem_partida",
+                )
+            placar = ler_placar(chamada["quadra_id"], chamada["partida_quadra_id"])
+            a, b = (
+                (placar["a"], placar["b"])
+                if placar and placar["mesma_partida"]
+                else (0, 0)
+            )
+            vencedor = chamada["time_a_id"] if lado == "A" else chamada["time_b_id"]
+            conn.execute(
+                "UPDATE partidas_rodada SET estado = 'encerrada', placar_a = ?, "
+                "placar_b = ?, vencedor_time_id = ?, encerrada_em = ?, wo = 1 "
+                "WHERE id = ?",
+                (a, b, vencedor, agora(), chamada["id"]),
+            )
+            conn.execute(
+                "UPDATE rodadas SET desfeito = 0 WHERE id = ?", (chamada["rodada_id"],)
+            )
+            regras_rodada.registrar_campeao(conn, sessao["id"])
+    finally:
+        conn.close()
+
+
+async def dar_vitoria(lado) -> dict:
+    from app.sessao import estado_sync
+
+    await asyncio.to_thread(_registrar_wo, lado)
+    estado = await asyncio.to_thread(estado_sync)
+    await avisar_quadra_vinculada(estado)
+    return estado
+
+
 async def encerrar_partida() -> dict:
     from app.sessao import estado_sync
 
