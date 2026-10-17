@@ -4,6 +4,14 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
+### CV8.DS7.US21 — Resultado de partida abandonada
+
+- **História / Escopo:** registrar o resultado de uma partida chamada que não terminou no placar (time foi embora, chuva, lesão), dando a vitória a um dos times, para a rodada seguir sem anular.
+- **Branch:** `claude/team-play-order-balance-3c03os` (reiniciada a partir da `master` 0.56.0)
+- **Passo Ariad:** Passo 2 - Planejamento (aguardando Checkpoint 1)
+- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-17
+- **Handoff / Próximos Passos:** plano apresentado; nenhum código alterado. Em aberto: efeito na nota, no saldo e na Resenha; o que gravar como placar.
+
 ## 0.56.0 - 2026-10-15
 
 Boundary: User Story CV6.DS1.US10 — placar em tela cheia no tablet (minor; backend, web e APK em 0.56.0, APK `versionCode` 44; Wear OS inalterado em 0.27.0).
