@@ -4,13 +4,30 @@ Este changelog registra tanto o **trabalho ativo em andamento** (para coordenaç
 
 ## [Em Andamento]
 
-### CV8.DS7.US21 — Resultado de partida abandonada
+## 0.57.0 - 2026-10-17
 
-- **História / Escopo:** registrar o resultado de uma partida chamada que não terminou no placar (time foi embora, chuva, lesão), dando a vitória a um dos times, para a rodada seguir sem anular.
-- **Branch:** `claude/team-play-order-balance-3c03os` (reiniciada a partir da `master` 0.56.0)
-- **Passo Ariad:** Passo 7 - Conclusão e Merge (aguardando Checkpoint 4)
-- **Assinatura do Agente:** Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-17
-- **Handoff / Próximos Passos:** plano aceito (Navigator, 2026-10-17): W.O. vale como vitória na rodada; nota não muda; fora do saldo e da Resenha; conta no tempo sem jogar; líder só pré-selecionado. Schema 14 (`partidas_rodada.wo`), rota `POST /api/rodada/dar-vitoria {vencedor: A|B}`, botão no painel. pytest 695 verdes (5 novos em `tests/test_wo.py`), e2e 100 verdes no joguinho (casca e local passam isolados; falham só na suíte inteira). Validado pelo Navigator em 2026-10-17 (W.O. inteiro fora da Resenha aceito). Revisão aceita (extraídos `_partida_chamada` e `_fechar` em `app/ponte.py`; teste de W.O. no mata-mata). Docs feitas (RN-09/RN-14, registro `vitoria-por-wo-em-partida-abandonada`, US21 `Validated`, DS7 e decisão A revistas, guia, briefing, debt da casca, versão 0.57.0 e `versionCode` 45). Falta: aceite do merge em `master`.
+Boundary: User Story CV8.DS7.US21 — vitória por W.O. em partida abandonada (minor; backend, web e APK em 0.57.0, APK `versionCode` 45; `gerenciador.db` no schema 14; Wear OS inalterado em 0.27.0).
+
+Authors: Eli (Navigator); Claude Opus 5.5 (Driver) — Agente: Claude Opus 5.5 (Driver) | Sessão: 01Wcr85vge8irGGE43Ho3syc | Data: 2026-10-17
+
+Git source: merge `--no-ff` de `claude/team-play-order-balance-3c03os` em `master`.
+
+### Added
+
+- **Dar a vitória (W.O.):** com a partida chamada, o painel do `/joguinho` oferece "Dar a vitória (W.O.)" ao lado de "Anular partida". O operador escolhe o vencedor (quem lidera o placar vem pré-selecionado) e confirma. Para a rodada é uma vitória normal (elimina, conta para rei, mata-mata e triângulo; "Desfazer a última partida" vale) e conta no tempo sem jogar; o placar parcial fica no histórico com o selo W.O. A nota não muda e a partida fica fora do saldo e da Resenha. Motivo: quando um time ia embora, chovia ou alguém se machucava, a única saída era anular.
+- **Rota `POST /api/rodada/dar-vitoria`** (`{"vencedor": "A"|"B"}`, só do dono). **Schema 14** (aditivo): coluna `partidas_rodada.wo`; a migração roda sozinha e é idempotente.
+
+### Changed
+
+- `app/ponte.py`: o encerramento e o W.O. compartilham `_partida_chamada` e `_fechar`.
+
+### Decision
+
+- Registro `vitoria-por-wo-em-partida-abandonada` (`Accepted`; Navigator, 2026-10-17); RN-09 e RN-14 revistas; decisão A da CV8.DS7 ("por ora só anular") revista.
+
+### Verification
+
+- `uv run pytest` (696; 6 em `tests/test_wo.py`, inclusive W.O. no mata-mata), e2e do joguinho (100, com o W.O. numa rodada triangular; os da casca e da quadra local passam isolados e falham só na suíte inteira, anotado no debt `casca-spec-falha-na-master`), `npm test` (213), `npm run check`, `ruff`. Validado pelo Navigator em 2026-10-17. A primeira subida em produção deve seguir o backup automático do `gerenciador.db`.
 
 ## 0.56.0 - 2026-10-15
 
